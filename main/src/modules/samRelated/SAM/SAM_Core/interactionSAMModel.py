@@ -80,8 +80,6 @@ class interactionSAMModel(yarp.RFModule):
         print 'Configuring Interaction...'
         print
 
-        self.mm = SAM_utils.initialiseModels([self.dataPath, self.modelPath, self.driverName], 'update', 'interaction')
-
         # parse settings from config file
         parser2 = SafeConfigParser()
         parser2.read(self.configPath)
@@ -101,10 +99,7 @@ class interactionSAMModel(yarp.RFModule):
                 elif self.portNameList[j][0] == 'collectionmethod':
                     self.collectionMethod = self.portNameList[j][1].split(' ')[0]
                     try:
-                        if self.mm[0].model_mode != 'temporal':
-                            self.bufferSize = int(self.portNameList[j][1].split(' ')[1])
-                        elif self.mm[0].model_mode == 'temporal':
-                            self.bufferSize = self.mm[0].windowSize
+                        proposedBuffer = int(self.portNameList[j][1].split(' ')[1])
                     except ValueError:
                         print 'collectionMethod bufferSize is not an integer'
                         print 'Should be e.g: collectionMethod = buffered 3'
@@ -155,6 +150,14 @@ class interactionSAMModel(yarp.RFModule):
             self.dataList = []
             self.classificationList = []
             yarp.Network.init()
+
+            self.mm = SAM_utils.initialiseModels([self.dataPath, self.modelPath, self.driverName], 'update',
+                                                 'interaction')
+
+            if self.mm[0].model_mode != 'temporal':
+                self.bufferSize = proposedBuffer
+            elif self.mm[0].model_mode == 'temporal':
+                self.bufferSize = self.mm[0].temporalModelWindowSize
 
             # self.test()
 
@@ -209,12 +212,12 @@ class interactionSAMModel(yarp.RFModule):
         if self.portsList[self.labelPort].getInputCount() > 0:
             print '-------------------------------------'
             if self.collectionMethod == 'buffered':
-                [thisClass, likelihood] = self.mm[0].processLiveData(self.dataList, self.mm)
+                thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
                 if thisClass is None:
                     reply.addString('None')
                 else:
                     reply.addString(thisClass)
-                    reply.addDouble(likelihood)
+                    # reply.addDouble(likelihood)
             # -------------------------------------------------
             elif self.collectionMethod == 'continuous':
                 if len(self.classificationList) > 0:
@@ -228,12 +231,12 @@ class interactionSAMModel(yarp.RFModule):
                 for j in range(self.bufferSize):
                     self.dataList.append(self.readFrame())
                 # thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
-                [thisClass, likelihood] = self.mm[0].processLiveData(self.dataList, self.mm)
+                thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
                 if thisClass is None:
                     reply.addString('None')
                 else:
                     reply.addString(thisClass)
-                    reply.addDouble(likelihood)
+                    # reply.addDouble(likelihood)
         else:
             reply.addString('nack')
             reply.addString('No input connections to ' + str(self.portsList[self.labelPort].getName()))

@@ -1,20 +1,20 @@
-#""""""""""""""""""""""""""""""""""""""""""""""
-#The University of Sheffield
-#WYSIWYD Project
+# """"""""""""""""""""""""""""""""""""""""""""""
+# The University of Sheffield
+# WYSIWYD Project
 #
-#The core of the Synthetic Autobiographical Memory (SAM) system.
-#The core is built upon Latent Feature Models (LFMs) and implements
-#cognitive memory properties, such as recall, pattern completion, compression etc.
+# The core of the Synthetic Autobiographical Memory (SAM) system.
+# The core is built upon Latent Feature Models (LFMs) and implements
+# cognitive memory properties, such as recall, pattern completion, compression etc.
 #
-#The Core is accompanied by peripherals, currently implemented as Drivers.
-#Drivers facilitate the communication of sensory modalities and the Core.
-#See Driver.py for this.
+# The Core is accompanied by peripherals, currently implemented as Drivers.
+# Drivers facilitate the communication of sensory modalities and the Core.
+# See Driver.py for this.
 #
-#Created:  2015
+# Created:  2015
 #
-#@authors: Andreas Damianou
+# @authors: Andreas Damianou
 #
-#""""""""""""""""""""""""""""""""""""""""""""""
+# """"""""""""""""""""""""""""""""""""""""""""""
 
 
 import GPy
@@ -22,25 +22,17 @@ import numpy as np
 import matplotlib.cm as cm
 import itertools
 import pylab as pb
-#from GPy.plotting.matplot_dep import dim_reduction_plots as dredplots
 import cPickle as pickle
 from scipy.spatial import distance
 import operator
 import os
 
-# try:
-#     from mpi4py import MPI
-# except:
-#     print "mpi not found"
-
-# from SAM import SAM
-# d={'first':1,'second':2}
-# a=SAM.pSAM(d)
-
 
 """
 SAM based on Latent Feature Models
 """
+
+
 class LFM(object):
     def __init__(self):
         self.type = []
@@ -52,11 +44,12 @@ class LFM(object):
         self.N = None
         self.num_inducing = None
         self.namesList = None
+        self.Ylist = None
 
     def store(self, observed, inputs=None, Q=None, kernel=None, num_inducing=None, init_X='PCA'):
         """
         Store events.
-        ARG: obserbved: A N x D matrix, where N is the number of points and D the number
+        ARG: observed: A N x D matrix, where N is the number of points and D the number
         of features needed to describe each point.
         ARG: inputs: A N x Q matrix, where Q is the number of features per input. 
         Leave None for unsupervised learning.
@@ -72,18 +65,18 @@ class LFM(object):
         of the existing neurons. The GP is here playing the role of "synapses", by learning
         non-linear and rich combinations of the inducing points.
         """
-        assert(isinstance(observed,dict))
+        assert(isinstance(observed, dict))
         self.observed = observed
         self.__num_views = len(self.observed.keys())
         self.Q = Q
-        #self.D = observed.shape[1]
+        # self.D = observed.shape[1]
         self.N = observed[observed.keys()[0]].shape[0]
         self.num_inducing = num_inducing
         if num_inducing is None:
             self.num_inducing = self.N
         if inputs is None:
             if self.Q is None:
-                self.Q = 2#self.D
+                self.Q = 2  # self.D
             if self.__num_views == 1:
                 assert(self.type == [] or self.type == 'bgplvm')
                 self.type = 'bgplvm'
@@ -115,7 +108,7 @@ class LFM(object):
                 Xr -= Xr.mean(0)
                 Xr /= Xr.std(0)
                 self.model = GPy.models.BayesianGPLVM(Ytmp, self.Q, kernel=kernel, num_inducing=self.num_inducing, X=Xr)
-            self.model['.*noise']=Ytmp.var() / 100.
+            self.model['.*noise'] = Ytmp.var() / 100.
         elif self.type == 'mrd':
             # Create a list of observation spaces (aka views)
             self.Ylist = []
@@ -123,12 +116,13 @@ class LFM(object):
             for k in self.observed.keys():
                 self.Ylist = [self.Ylist, self.observed[k]]
                 self.namesList = [self.namesList, k]
-            self.Ylist[0]=self.Ylist[0][1]
-            self.namesList[0]=self.namesList[0][1]
-            pcaFailed=False
+            self.Ylist[0] = self.Ylist[0][1]
+            self.namesList[0] = self.namesList[0][1]
+            pcaFailed = False
             if init_X == 'PCA':
                 try:
-                    self.model = GPy.models.MRD(self.Ylist, input_dim=self.Q, num_inducing=self.num_inducing, kernel=kernel, initx="PCA_single", initz='permute')
+                    self.model = GPy.models.MRD(self.Ylist, input_dim=self.Q, num_inducing=self.num_inducing,
+                                                kernel=kernel, initx="PCA_single", initz='permute')
                 except ValueError:
                     pcaFailed = True
                     print "Initialisation with PCA failed. Initialising with PPCA..."
@@ -138,21 +132,21 @@ class LFM(object):
                 Xr = np.zeros((self.Ylist[0].shape[0], self.Q))
                 for qs, Y in zip(np.array_split(np.arange(self.Q), len(self.Ylist)), self.Ylist):
                     try:
-                        x,frcs = initialize_latent('PCA', len(qs), Y)
+                        x, frcs = initialize_latent('PCA', len(qs), Y)
                     except ValueError:
                         x = GPy.util.linalg.ppca(Y, len(qs), 2000)[0]
                     Xr[:, qs] = x
                 Xr -= Xr.mean()
                 Xr /= Xr.std()
                 self.model = GPy.models.MRD(self.Ylist, input_dim=self.Q, num_inducing=self.num_inducing, kernel=kernel, initx="PCA_single", initz='permute', X=Xr)
-            self.model['.*noise']=[yy.var() / 100. for yy in self.model.Ylist]
+            self.model['.*noise'] = [yy.var() / 100. for yy in self.model.Ylist]
         elif self.type == 'gp':
             self.model = GPy.models.SparseGPRegression(self.inputs, self.observed[self.observed.keys()[0]], kernel=kernel, num_inducing=self.num_inducing)
         
         self.model.data_labels = None
         self.model.textLabelPts = dict()
 
-    #def _init_latents():
+    # def _init_latents():
     #    from GPy.util.initialization import initialize_latent
     #    X, fracs = initialize_latent(init, input_dim, Y)
 
@@ -168,9 +162,9 @@ class LFM(object):
             self.model.data_labels = labels
         else:
             print "Warning: labels assumed to be in 1-of-K encoding!"
-            self.model.data_labels = np.argmax(labels,1)[:,None]
+            self.model.data_labels = np.argmax(labels, 1)[:, None]
 
-    def learn(self, optimizer='bfgs',max_iters=1000, init_iters=300, verbose=True):
+    def learn(self, optimizer='bfgs', max_iters=1000, init_iters=300, verbose=True):
         """
         Learn the model (analogous to "forming synapses" after perveiving data).
         """
@@ -284,10 +278,10 @@ class LFM(object):
         formed "synapses".
         """
         if self.type == 'bgplvm':
-            #tmp = self.model.infer_newX(test_data)[0]
-            #pred_mean = tmp.mean
-            #pred_variance = tmp.variance #np.zeros(pred_mean.shape)
-            tmp=self.model.infer_newX(test_data,optimize=False)[1]
+            # tmp = self.model.infer_newX(test_data)[0]
+            # pred_mean = tmp.mean
+            # pred_variance = tmp.variance #np.zeros(pred_mean.shape)
+            tmp = self.model.infer_newX(test_data, optimize=False)[1]
             tmp.optimize(max_iters=2000, messages=verbose)
             pred_mean = tmp.X.mean
             pred_variance = tmp.X.variance
@@ -299,13 +293,14 @@ class LFM(object):
         elif self.type == 'gp':
             tmp = []
             pred_mean, pred_variance = self.model.predict(test_data)
+
         if (self.type == 'mrd' or self.type == 'bgplvm') and visualiseInfo is not None:
             ax = visualiseInfo['ax']
-            inds0, inds1=most_significant_input_dimensions(self.model, None)
-            pp=ax.plot(pred_mean[:,inds0], pred_mean[:,inds1], 'om', markersize=11, mew=11)
+            inds0, inds1 = most_significant_input_dimensions(self.model, None)
+            pp = ax.plot(pred_mean[:, inds0], pred_mean[:, inds1], 'om', markersize=11, mew=11)
             pb.draw()
         else:
-            pp=None
+            pp = None
         
         return pred_mean, pred_variance, pp, tmp
 
@@ -327,12 +322,12 @@ class LFM(object):
         dists = np.zeros((self.model.X.shape[0], 1))
 
         for j in range(dists.shape[0]):
-            dists[j,:] = distance.euclidean(self.model.X.mean[j, :], mm[0].values)
+            dists[j, :] = distance.euclidean(self.model.X.mean[j, :], mm[0].values)
         nn, min_value = min(enumerate(dists), key=operator.itemgetter(1))
         if self.type == 'mrd':
             ret = self.model.bgplvms[target_modality].Y[nn, :]
         elif self.type == 'bgplvm':
-            ret = nn #self.model.data_labels[nn]
+            ret = nn  # self.model.data_labels[nn]
         return ret
 
     def fantasy_memory(self, X, view=0):
@@ -349,8 +344,8 @@ class LFM(object):
             pred_mean, pred_variance = self.model.predict(X)
         return pred_mean, pred_variance
 
-    def familiarity(self,Ytest,ytrmean=None,ytrstd=None):
-        assert(self.type=='bgplvm')
+    def familiarity(self, Ytest, ytrmean=None, ytrstd=None):
+        assert(self.type == 'bgplvm')
 
         N = Ytest.shape[0]
         if ytrmean is not None:
@@ -359,23 +354,23 @@ class LFM(object):
 
         from SAM.SAM_Core.svi_ratio import SVI_Ratio
         s = SVI_Ratio()
-        _,_,_,qX = self.pattern_completion(Ytest, verbose=False)
+        _, _, _, qX = self.pattern_completion(Ytest, verbose=False)
         qX = qX.X
 
         ll = 0
         for i in range(N):
-            ll+=s.inference(self.model.kern, qX[i,:][None,:],self.model.Z, self.model.likelihood, Ytest[i,:][None,:],self.model.posterior)[0]
-        ll/=N
+            ll += s.inference(self.model.kern, qX[i, :][None, :],self.model.Z, self.model.likelihood, Ytest[i, :][None, :], self.model.posterior)[0]
+        ll /= N
         return ll
         
 ##############################  TMP   ##############################################################
-    def familiarity_reverse(self, Ytest, ytrmean = None, ytrstd=None, source_view = 0, max_iters=1000,num_inducing = 15):
+    def familiarity_reverse(self, Ytest, ytrmean=None, ytrstd=None, source_view=0, max_iters=1000, num_inducing=15):
         if Ytest is None:
             if self.type == 'bgplvm':
                 tmpX = self.model.Y.values.copy()
             elif self.type == 'mrd':
                 tmpX = self.model.bgplvms[source_view].Y.values.copy()
-            kernel=GPy.kern.RBF(tmpX.shape[1], ARD=False)+GPy.kern.Bias(tmpX.shape[1])
+            kernel = GPy.kern.RBF(tmpX.shape[1], ARD=False)+GPy.kern.Bias(tmpX.shape[1])
             tmpY = self.model.X.mean.values.copy()
             self.back_GP = GPy.models.SparseGPRegression(tmpX, tmpY, kernel=kernel, num_inducing=num_inducing)
             self.back_GP.optimize(optimizer='bfgs', max_iters=max_iters, messages=1)
@@ -386,7 +381,7 @@ class LFM(object):
                 Ytest /= ytrstd
             return self.back_GP.predict(Ytest)
 
-    def familiarity3(self, Ytest, ytrmean = None, ytrstd=None):
+    def familiarity3(self, Ytest, ytrmean=None, ytrstd=None):
         assert(self.type == 'bgplvm')
 
         import numpy as np
@@ -398,11 +393,11 @@ class LFM(object):
         qx, mm = self.model.infer_newX(Ytest)
         # Optional for more iters---
         mm.optimize(max_iters=800)
-        # qx = mm.X 
+        # qx = mm.X
+
         return mm._log_marginal_likelihood - self.model._log_marginal_likelihood
 
-
-    def familiarity2(self, Ytest, ytrmean = None, ytrstd=None, sigma2=None,use_uncert=True):
+    def familiarity2(self, Ytest, ytrmean = None, ytrstd=None, sigma2=None, use_uncert=True):
         #def my_logpdf(y, ymean, yvar):
         #    import numpy as np
         #    N = y.shape[0]
@@ -424,7 +419,7 @@ class LFM(object):
         qx, mm = self.model.infer_newX(Ytest)
         # Optional for more iters---
         mm.optimize(max_iters=400)
-        qx=mm.X
+        qx = mm.X
         #----
         
         #ymean, yvar = model._raw_predict(qx)
@@ -469,6 +464,8 @@ serialized sequence of bytes, into a txt file.
 For the future, we can make them "smarter" by not having to save information e.g. about
 the data or about the object functions, but just save the parameters of the trained model.
 """
+
+
 def save_model(mm, fileName='m_serialized.txt'):
     #mPruned = mm.getstate() # TODO (store less stuff)
     output = open(fileName, 'wb')
@@ -476,9 +473,11 @@ def save_model(mm, fileName='m_serialized.txt'):
     pickle.dump(mm, output)
     output.close()
 
+
 def load_model(fileName='m_serialized.txt'):
     mm = pickle.load(open(fileName,'r'))
     return mm
+
 
 def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
     """
@@ -515,16 +514,16 @@ def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
 
     if economy:
         SAMObjPruned['modelPath'] = fileName + '_model.h5'
-        #if file exists delete
-        if(os.path.isfile(os.path.join(folderPath,SAMObjPruned['modelPath']))):
-            os.remove(os.path.join(folderPath,SAMObjPruned['modelPath']))
+        # if file exists delete
+        if os.path.isfile(os.path.join(folderPath, SAMObjPruned['modelPath'])):
+            os.remove(os.path.join(folderPath, SAMObjPruned['modelPath']))
         if mm.model:
-            mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
+            mm.model.save(os.path.join(folderPath, SAMObjPruned['modelPath']))
     else:
         SAMObjPruned['modelPath'] = fileName + '_model.pickle'
-        mm.model.pickle(os.path.join(folderPath,SAMObjPruned['modelPath']))
+        mm.model.pickle(os.path.join(folderPath, SAMObjPruned['modelPath']))
 
-    output = open(os.path.join(folderPath,fileName) +'.pickle', 'wb')
+    output = open(os.path.join(folderPath, fileName) + '.pickle', 'wb')
     pickle.dump(SAMObjPruned, output)
     output.close()
 
@@ -536,13 +535,13 @@ def load_pruned_model(fileName='m_pruned', economy=False, m=None):
     in this case calling the present function will set its parameters (meaning that you still need to
     create a model but don't need to optimize it.)
     """
-    folderPath = os.path.join('/',*fileName.split('/')[:-1])
-    SAMObjPruned = pickle.load(open(fileName + '.pickle','rb'))
-    SAMObject=LFM()
+    folderPath = os.path.join('/', *fileName.split('/')[:-1])
+    SAMObjPruned = pickle.load(open(fileName + '.pickle', 'rb'))
+    SAMObject = LFM()
     if economy:
         assert m is not None
         import tables
-        f = tables.open_file(os.path.join(folderPath,SAMObjPruned['modelPath']),'r')
+        f = tables.open_file(os.path.join(folderPath,SAMObjPruned['modelPath']), 'r')
         m.param_array[:] = f.root.param_array[:]
         f.close()
         m._trigger_params_changed()
@@ -553,8 +552,8 @@ def load_pruned_model(fileName='m_pruned', economy=False, m=None):
             SAMObject.model = pickle.load(f)
         # TODO: The following is supposed to update the model, but maybe not. Change...
     # LB get error here using MRD
-    #SAMObject.model.update_toggle()
-    #SAMObject.model.update_toggle()
+    # SAMObject.model.update_toggle()
+    # SAMObject.model.update_toggle()
     
     SAMObject.type = SAMObjPruned['type'] 
     # SAMObject.observed = SAMObjPruned['observed'] 
@@ -567,6 +566,7 @@ def load_pruned_model(fileName='m_pruned', economy=False, m=None):
     SAMObject.namesList = SAMObjPruned['namesList']
 
     return SAMObject
+
 
 # Copied from GPy
 def most_significant_input_dimensions(model, which_indices):
@@ -625,7 +625,7 @@ def latent_cluster_estimate(SAMObject, n_components=10, X=None, plot=True, alpha
         for i, (mean, covar, color,marker) in enumerate(zip(dpgmm.means_, dpgmm._get_covars(), color_iter,marker_iter)):
             # as the method will not use every component it has access to
             # unless it needs it, we shouldn't plot the redundant components.
-            #if not np.any(Y_ == i):
+            # if not np.any(Y_ == i):
             #    continue
             pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=color,marker=marker)
 
@@ -636,8 +636,7 @@ def latent_cluster_estimate(SAMObject, n_components=10, X=None, plot=True, alpha
     return Y_
 
 
-
-def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True,which_indices=(0,1)):
+def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True, which_indices=(0,1)):
     """
     Use Anglomerative clustering to cluster the latent space by having a given number of clusters.
     ARG SAMObject: The SAMObject to operate on.
@@ -658,15 +657,17 @@ def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True,which_indices=(0,
 
     # Compute clustering
     print("Compute structured hierarchical clustering...")
-    ward = AgglomerativeClustering(n_clusters=n_clusters, connectivity=connectivity,linkage='ward',compute_full_tree=True).fit(X)
-    #ward = AgglomerativeClustering(n_clusters=8,linkage='ward',compute_full_tree=True).fit(X)
+    ward = AgglomerativeClustering(n_clusters=n_clusters, connectivity=connectivity, linkage='ward',
+                                   compute_full_tree=True).fit(X)
+    # ward = AgglomerativeClustering(n_clusters=8,linkage='ward',compute_full_tree=True).fit(X)
     Y_ = ward.labels_
 
     if plot:
         color_iter = colors = cm.rainbow(np.linspace(0, 1, 20))
 
-        #---- a silly way to get maximal separation in colors for the n_cluster first elements... move to separate function
-        index_all = np.linspace(0,19,20).astype(int)
+        # ---- a silly way to get maximal separation in colors for the n_cluster first elements...
+        # move to separate function
+        index_all = np.linspace(0, 19, 20).astype(int)
         space = np.floor(color_iter.shape[0]/float(n_clusters)).astype(int)
         index_first = index_all[::space][:n_clusters]
         index_rest = np.array(list(set(index_all)-set(index_first)))
@@ -679,15 +680,16 @@ def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True,which_indices=(0,
         marker_iter = itertools.cycle((',', '+', '.', 'o', '*','v','x','>')) 
         splot = pb.subplot(1, 1, 1)
 
-        for i, (color,marker) in enumerate(zip(color_iter,marker_iter)):
-            # as the method will not use every component it has access to unless it needs it, we shouldn't plot the redundant components.
-            #if not np.any(Y_ == i):
+        for i, (color, marker) in enumerate(zip(color_iter, marker_iter)):
+            # as the method will not use every component it has access to unless it needs it,
+            # we shouldn't plot the redundant components.
+            # if not np.any(Y_ == i):
             #    continue
-            ###### tmp
-            #cc = ['b','g','r']
-            #mm = ['<','^','>']
-            #pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=cc[i],marker=mm[i]) 
-            #######
+            # ##### tmp
+            # cc = ['b','g','r']
+            # mm = ['<','^','>']
+            # pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=cc[i],marker=mm[i])
+            # ######
             pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=color,marker=marker) #UNCOMMENT
             if i >= n_clusters:
                 break
@@ -727,22 +729,22 @@ def util_plot_cov_ellipse(pos, cov, volume=.5, ax=None, fc='none', ec=[0,0,0], a
 
     vals, vecs = np.linalg.eigh(cov)
     order = vals.argsort()[::-1]
-    vals=vals[order]
-    vecs=vecs[:,order]
-    angle = np.degrees(np.arctan2(*vecs[:,0][::-1]))
+    vals = vals[order]
+    vecs = vecs[:, order]
+    angle = np.degrees(np.arctan2(*vecs[:, 0][::-1]))
 
-    kwrg = {'facecolor':fc, 'edgecolor':ec, 'alpha':a, 'linewidth':lw}
+    kwrg = {'facecolor': fc, 'edgecolor': ec, 'alpha': a, 'linewidth': lw}
 
     # Width and height are "full" widths, not radius
     width, height = 2 * np.sqrt(chi2.ppf(volume,2)) * np.sqrt(vals)
-    posOrder = [which_indices[0],which_indices[1]]
+    posOrder = [which_indices[0], which_indices[1]]
     ellip = Ellipse(xy=pos[posOrder], width=width, height=height, angle=angle, **kwrg)
     ax.add_artist(ellip)
 
     plt.draw()
     plt.show()
     plt.draw()
-    plt.plot(pos[which_indices[0]],pos[which_indices[1]],'k+',markersize=15,mew=2)
+    plt.plot(pos[which_indices[0]], pos[which_indices[1]], 'k+', markersize=15, mew=2)
 
 
 #def util_plot_cov_ellipse(mean,covar,ax=None):
@@ -782,7 +784,6 @@ def util_plot_cov_ellipse(pos, cov, volume=.5, ax=None, fc='none', ec=[0,0,0], a
 #     ellip = Ellipse(xy=pos, width=width, height=height, angle=theta, **kwrg)
 
 
-
 def latent_cluster_centers(SAMObject, X=None, labels=None, center='gaussian', plot=True, which_indices=(0,1), randSeed=None, ax=None):
     """
     Find centers for the clusters identified in param. labels for the latent space. Centers can be a gaussian density (so, mean and covar.)
@@ -799,19 +800,19 @@ def latent_cluster_centers(SAMObject, X=None, labels=None, center='gaussian', pl
     K = len(cluster_labels)
     Q = X.shape[1]
 
-    cntr = np.zeros((K,Q))*np.nan
+    cntr = np.zeros((K, Q))*np.nan
     if center == 'gaussian':
-        covars = np.zeros((K,Q,Q))*np.nan
+        covars = np.zeros((K, Q, Q))*np.nan
     else:
         covars = None
 
     for i in range(K):
         if center == 'gaussian':
             g = mixture.GMM(covariance_type='full', init_params='wmc', min_covar=0.001,
-                    n_components=1, n_init=1, n_iter=300, params='wmc',
-                    random_state=randSeed, thresh=None, tol=0.001, verbose=0)
-            g.fit(X[labels==cluster_labels[i],:]) 
-            cntr[i,:] = g.means_
+                            n_components=1, n_init=1, n_iter=300, params='wmc',
+                            random_state=randSeed, thresh=None, tol=0.001, verbose=0)
+            g.fit(X[labels == cluster_labels[i], :])
+            cntr[i, :] = g.means_
             covars[i] = g.covars_
         elif center == 'median':
             raise NotImplementedError("This is not implemented yet")
@@ -825,16 +826,17 @@ def latent_cluster_centers(SAMObject, X=None, labels=None, center='gaussian', pl
         color_iter = colors = cm.rainbow(np.linspace(0, 1, 20))
         myperm = np.random.permutation(color_iter.shape[0])
         color_iter = color_iter[myperm, :]
-        marker_iter = itertools.cycle((',', '+', '.', 'o', '*','v','x','>')) 
+        marker_iter = itertools.cycle((',', '+', '.', 'o', '*', 'v', 'x', '>'))
         splot = pb.subplot(1, 1, 1)
 
-        for i, (color,marker) in enumerate(zip(color_iter,marker_iter)):
-            pb.scatter(X[labels==cluster_labels[i], which_indices[0]], X[labels==cluster_labels[i], which_indices[1]], s=40, color=color,marker=marker)
+        for i, (color, marker) in enumerate(zip(color_iter,marker_iter)):
+            pb.scatter(X[labels == cluster_labels[i], which_indices[0]],
+                       X[labels == cluster_labels[i], which_indices[1]], s=40, color=color, marker=marker)
 
             if i == K-1:
                 break
         if ax is None:
             ax = pb.gca()
         for i in range(K):
-            util_plot_cov_ellipse(cntr[i,:],covars[i],ax=ax,which_indices=which_indices)
+            util_plot_cov_ellipse(cntr[i, :], covars[i], ax=ax, which_indices=which_indices)
     return cntr, covars

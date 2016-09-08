@@ -319,9 +319,10 @@ class SAMDriver_ARWin(SAMDriver):
                     combinedHands = dataVecAll[j, idxBase:idxBase + itemsPerJoint]
                 else:
                     combinedHands = np.vstack([combinedHands, dataVecAll[j, idxBase:idxBase + itemsPerJoint]])
-
             print dataVecAll.shape
             print combinedHands.shape
+        else:
+            self.handsCombined = False
 
         dataVecReq = None
 
@@ -336,14 +337,24 @@ class SAMDriver_ARWin(SAMDriver):
 
         print jointsToUse
         for j, item in enumerate(jointsToUse):
-            if item not in handDict and item not in objectDict:
-                self.featureSequence.append(item)
-                idxBase = j * itemsPerJoint
+            if self.handsCombined:
+                if item not in handDict and item not in objectDict:
+                    self.featureSequence.append(item)
+                    idxBase = j * itemsPerJoint
 
-                if dataVecReq is None:
-                    dataVecReq = dataVecAll[:, idxBase:idxBase + itemsPerJoint]
-                else:
-                    dataVecReq = np.hstack([dataVecReq, dataVecAll[:, idxBase:idxBase + itemsPerJoint]])
+                    if dataVecReq is None:
+                        dataVecReq = dataVecAll[:, idxBase:idxBase + itemsPerJoint]
+                    else:
+                        dataVecReq = np.hstack([dataVecReq, dataVecAll[:, idxBase:idxBase + itemsPerJoint]])
+            else:
+                if item not in objectDict:
+                    self.featureSequence.append(item)
+                    idxBase = j * itemsPerJoint
+
+                    if dataVecReq is None:
+                        dataVecReq = dataVecAll[:, idxBase:idxBase + itemsPerJoint]
+                    else:
+                        dataVecReq = np.hstack([dataVecReq, dataVecAll[:, idxBase:idxBase + itemsPerJoint]])
 
         print dataVecReq.shape
         print len(data2Labels)
@@ -415,7 +426,6 @@ class SAMDriver_ARWin(SAMDriver):
 
         return self.seqTestConf
         # return numpy.ones([3, 3])
-
 
     def messageChecker(self, dataMessage, mode):
 
@@ -508,12 +518,12 @@ class SAMDriver_ARWin(SAMDriver):
                     [label, val] = SAMTesting.testSegment(thisModel, vec, True, visualiseInfo=None)
                     classification = label.split('_')[0]
                     if classification == 'unknown':
-                        sentence.append("You did an " + label + " action on the " + j[0])
+                        sentence.append("You did an " + label + " action")
                     else:
-                        sentence.append("You " + label.split('_')[0] + " the " + j[0])
+                        sentence.append("You did a " + label)  # + " the " + j[0])
 
-                    if len(j) > 1:
-                        sentence[-1] += " with your " + j[1].replace('hand', '') + ' hand'
+                    # if len(j) > 1:
+                    #     sentence[-1] += " with your " + j[1].replace('hand', '') + ' hand'
                     print sentence[-1]
                     print '------------------------------------------------------'
                     if classification == 'unknown':

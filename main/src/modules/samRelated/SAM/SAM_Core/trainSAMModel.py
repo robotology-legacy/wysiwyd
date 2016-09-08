@@ -90,5 +90,6 @@ for k in range(numParts):
     print '-------------------'
     print 'Saving: ' + mm[k].fname
     mm[k].saveParameters()
-
+    print 'Keys:'
+    print mm[k].paramsDict.keys()
     SAMCore.save_pruned_model(mm[k].SAMObject, mm[k].fname, mm[0].economy_save, extraDict=mm[k].paramsDict)

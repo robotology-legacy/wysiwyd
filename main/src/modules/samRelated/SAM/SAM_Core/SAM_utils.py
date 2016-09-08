@@ -72,7 +72,8 @@ def initialiseModels(argv, update, initMode='training'):
 
     defaultParamsList = ['experiment_number', 'model_type', 'model_num_inducing',
                          'model_num_iterations', 'model_init_iterations', 'verbose',
-                         'Quser', 'kernelString', 'ratioData', 'update_mode', 'model_mode', 'temporalModelWindowSize']
+                         'Quser', 'kernelString', 'ratioData', 'update_mode', 'model_mode',
+                         'temporalModelWindowSize']
 
     mySAMpy.experiment_number = None
     mySAMpy.model_type = None

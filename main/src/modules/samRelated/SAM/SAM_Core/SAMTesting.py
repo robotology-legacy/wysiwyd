@@ -175,19 +175,19 @@ def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
         if verbose:
             print "With " + str(vv.mean()) + " prob. error the new instance is " \
                   + thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
-        if vv.mean() < 0.02:
-            textStringOut = thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
-        else:
-            textStringOut = 'unknown'
+        # if vv.mean() < 0.1:
+        textStringOut = thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
+        # else:
+            # textStringOut = 'unknown'
 
     elif thisModel.SAMObject.type == 'bgplvm':
         if verbose:
             print "With " + str(vv.mean()) + " prob. error the new instance is " \
                   + thisModel.textLabels[int(thisModel.L[nn, :])]
-        if vv.mean() < 0.02:
-            textStringOut = thisModel.textLabels[int(thisModel.L[nn, :])]
-        else:
-            textStringOut = 'unknown'
+        # if vv.mean() < 0.1:
+        textStringOut = thisModel.textLabels[int(thisModel.L[nn, :])]
+        # else:
+        #     textStringOut = 'unknown'
 
     # if(vv.mean()<0.00012):
     #     print "The action is " + textStringOut
