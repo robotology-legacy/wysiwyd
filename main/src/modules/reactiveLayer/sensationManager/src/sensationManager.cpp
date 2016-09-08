@@ -22,9 +22,8 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(0.1)).asDouble();
 
     Bottle grp = rf.findGroup("SENSATIONS");
-
     if (!grp.isNull()){
-        Bottle sensationList = *grp.find("sensations").asList();  
+        sensationList = *grp.find("sensations").asList();  
         for (int i = 0; i < sensationList.size(); i++)
         {
             string sensation_name = sensationList.get(i).asString();
@@ -66,7 +65,7 @@ bool SensationManager::updateModule()
 
 bool SensationManager::respond(const Bottle& cmd, Bottle& reply)
 {
-    yInfo() << "RPC received in allostaticController";
+    yInfo() << "RPC received in sensationsManager";
     yDebug() << cmd.toString();
     
     reply.clear();
@@ -78,6 +77,7 @@ bool SensationManager::respond(const Bottle& cmd, Bottle& reply)
     }
     else if (cmd.get(0).asString() == "is") {
         string entity_name = cmd.get(1).asString();
+
         for (int i = 0; i < sensationList.size(); i++)
         {
             string sensation_name = sensationList.get(i).asString();

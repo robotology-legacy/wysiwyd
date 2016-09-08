@@ -99,7 +99,7 @@ Bottle OpcSensation::handleEntities()
     bool known_obj = false;
     bool agentPresent = false;
     Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities;
-    Bottle u_entities, k_entities,objects;
+    Bottle objects;
 
     for (auto& entity : lEntities)
     {
@@ -138,10 +138,9 @@ Bottle OpcSensation::handleEntities()
                 addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
             else if (entity->entity_type() == "object"){
-                if (dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
-                    known_obj = true;
-                    addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
-                    Object* obj1 = dynamic_cast<Object*>(entity);
+                known_obj = true;
+                Object* obj1 = dynamic_cast<Object*>(entity);
+
                 //Handle red balls
                 if (entity->name() == "red_ball"){
                     yDebug("Found a redBall object");
@@ -168,32 +167,35 @@ Bottle OpcSensation::handleEntities()
                         yDebug("opc updated...");*/
                         
                     }
-                    if (obj1->m_present == 1.0){
-                        //send data to PPS
-                        Bottle objec;
-                        objec.clear();
-                        objec.addDouble(obj1->m_ego_position[0]);          //X
-                        objec.addDouble(obj1->m_ego_position[1]);          //Y
-                        objec.addDouble(obj1->m_ego_position[2]);          //Z
-                        double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
-                        objec.addDouble(dimensions);                       //RADIUS
-                        objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
-                        objects.addList()=objec;
-                        yDebug("message sent");
-                    }
-                    
+                }
+                if (obj1->m_present == 1.0){
+                    //send data to PPS
+                    Bottle objec;
+                    objec.clear();
+                    objec.addDouble(obj1->m_ego_position[0]);          //X
+                    objec.addDouble(obj1->m_ego_position[1]);          //Y
+                    objec.addDouble(obj1->m_ego_position[2]);          //Z
+                    double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
+                    objec.addDouble(dimensions);                       //RADIUS
+                    objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
+                    objects.addList()=objec;
+                    yDebug("message sent");
+                    addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
                 }
                 addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
                 yDebug("Updating OPC...");
                 iCub->opc->commit(obj1);
                 yDebug("Updated OPC...");
 
+                
+            }
+            if (entity->entity_type() == "agent") {  // Known entities
+                if (dynamic_cast<Object*>(entity)->m_present == 1.0)
+                {
+                    agentPresent = true;
+                }
             }
         }
-        if (entity->entity_type() == "agent") {  // Known entities
-            agentPresent = true;
-        }
-        
         if (dynamic_cast<Object*>(entity)->m_present == 1.0)
         {
             addToEntityList(temp_p_entities, entity->entity_type(), entity->name());
@@ -204,6 +206,7 @@ Bottle OpcSensation::handleEntities()
     //yDebug() << "k_entities = " + k_entities.toString();
     u_entities.copy( temp_u_entities);
     k_entities.copy( temp_k_entities);
+    yDebug()<<k_entities.toString();
     p_entities.copy( temp_p_entities);
     up_entities.copy( temp_up_entities);
     kp_entities.copy( temp_kp_entities);
@@ -225,9 +228,11 @@ Bottle OpcSensation::handleEntities()
 int OpcSensation::get_property(string name,string property)
 {
     Bottle b;
+    yDebug()<<property;
     if (property == "known")
     {
         b = k_entities;
+        yDebug()<<"Bottle: "<<b.toString();
     }
     else if (property == "unknown")
     {
@@ -237,6 +242,8 @@ int OpcSensation::get_property(string name,string property)
     {
         b = p_entities;
     }
+    yDebug()<<b.toString()<<"    " << name;
+
     for (int i=0;i<b.size();i++)
     {
         if (b.get(i).asList()->get(1).asString()==name)
