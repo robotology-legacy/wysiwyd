@@ -64,7 +64,23 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
             return false;
+
+        } else if (behavior_name == "pushingLeft") {
+            behaviors.push_back(new PushingLeft(&mut, rf, "pushingLeft"));
         }
+//        else if (behavior_name == "pushingRight") {
+//            behaviors.push_back(new PushingRight(&mut, rf, "pushingRight"));
+
+//        } else if (behavior_name == "pushingFront") {
+//            behaviors.push_back(new PushingFront(&mut, rf, "pushingFront"));
+
+//        } else if (behavior_name == "pulling") {
+//            behaviors.push_back(new Pulling(&mut, rf, "pulling"));
+
+//        }  else {
+//            yDebug() << "Behavior " + behavior_name + " not implemented";
+//            return false;
+//        }
     }
 
     //Create an iCub Client and check that all dependencies are here before starting
@@ -104,6 +120,13 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
                 yInfo()<<"Connecting "<< beh->rpc_out_port.getName() << " to " <<  beh->external_port_name;// <<endl;
                 yarp::os::Time::delay(0.5);
             }   
+        }
+
+        if (beh->from_planner_port_name != "None") {
+            while (!Network::connect(beh->from_planner_port_name, beh->planner_port_in.getName())) {
+                yInfo()<<"Connecting "<< beh->from_planner_port_name << " to " <<  beh->planner_port_in.getName();// <<endl;
+                yarp::os::Time::delay(0.5);
+            }
         }
     }
 
@@ -189,6 +212,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                         yInfo()<< "The external port for "<< beh->behaviorName <<" was not connected. \nReconnection status: " << aux;
                     }   
                 }
+
 
                 Bottle args;
                 if (cmd.size()>1){

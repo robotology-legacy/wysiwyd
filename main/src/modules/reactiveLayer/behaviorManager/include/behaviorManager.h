@@ -14,6 +14,7 @@
 #include "narrate.h"
 #include "followingOrder.h"
 #include "recognitionOrder.h"
+#include "pushingLeft.h"
 
 using namespace std;
 using namespace yarp::os;
