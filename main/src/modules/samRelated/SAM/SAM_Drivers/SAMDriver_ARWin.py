@@ -404,11 +404,11 @@ class SAMDriver_ARWin(SAMDriver):
 
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
-        # yTrainingData = SAMTesting.formatDataFunc(Yall)
-        # [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose)
-        #
-        # yTrainingData = SAMTesting.formatDataFunc(YtestAll)
-        # [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose)
+        yTrainingData = SAMTesting.formatDataFunc(Yall)
+        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose)
+
+        yTrainingData = SAMTesting.formatDataFunc(YtestAll)
+        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose)
 
         yTrainingData = SAMTesting.formatDataFunc(self.dataVec)
         [self.seqTestConf, self.seqTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, self.data2Labels, verbose)

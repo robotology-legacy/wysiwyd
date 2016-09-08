@@ -175,14 +175,19 @@ def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
         if verbose:
             print "With " + str(vv.mean()) + " prob. error the new instance is " \
                   + thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
-
-        textStringOut = thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
+        if vv.mean() < 0.02:
+            textStringOut = thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
+        else:
+            textStringOut = 'unknown'
 
     elif thisModel.SAMObject.type == 'bgplvm':
         if verbose:
             print "With " + str(vv.mean()) + " prob. error the new instance is " \
                   + thisModel.textLabels[int(thisModel.L[nn, :])]
-        textStringOut = thisModel.textLabels[int(thisModel.L[nn, :])]
+        if vv.mean() < 0.02:
+            textStringOut = thisModel.textLabels[int(thisModel.L[nn, :])]
+        else:
+            textStringOut = 'unknown'
 
     # if(vv.mean()<0.00012):
     #     print "The action is " + textStringOut
@@ -248,11 +253,12 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
         tempTest = testInstance - thisModel[j+1].Ymean
         tempTest /= thisModel[j+1].Ystd
         yy_test = thisModel[j+1].SAMObject.familiarity(tempTest)[:, None]
-        # yy_test -= thisModel[j].Ymean
-        # yy_test /= thisModel[j].Ystd
+        yy_test += thisModel[j].Ymean
+        yy_test *= thisModel[j].Ystd
         cc = thisModel[0].classifiers[j].predict_proba(yy_test)[:, j]
         if verbose:
-            print('Familiarity with ' + thisModel[j+1].modelLabel + ' given current instance is: ' + str(cc[0]))
+            print('Familiarity with ' + thisModel[j+1].modelLabel + ' given current instance is: ' + str(yy_test) +
+                  ' ' + str(cc[0]))
         familiarities_tmp.append(yy_test)
         classif_tmp.append(cc)
 
@@ -260,7 +266,12 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
 
     for j in range(cmSize):
         if thisModel[0].classif_thresh[j][0] <= classif_tmp[j] <= thisModel[0].classif_thresh[j][1]:
+            print 'GEWWAAA'
+            bestConfidence = j
             label = thisModel[0].textLabels[j]
+
+        print 'min, classifier, max = ' + str(thisModel[0].classif_thresh[j][0]) + ' ' + str(classif_tmp[j]) + ' ' + \
+              str(thisModel[0].classif_thresh[j][1])
 
     # if visualiseInfo:
     #     pass
@@ -322,29 +333,26 @@ def testSegments(thisModel, Ysample, Lnum, verbose):
     # cmSize = len(set(self.data2Labels))
     # confMatrix = np.zeros((cmSize, cmSize))
     # labelList = copy.deepcopy(list(set(self.data2Labels)))
-    if isinstance(Lnum[0], (int, long)):
+    if type(Lnum).__module__ == np.__name__:
         useModelLabels = True
     else:
         useModelLabels = False
 
     if useModelLabels:
-        cmSize = len(thisModel[0].textLabels)
         if len(thisModel) > 1:
-            confMatrix = np.zeros((cmSize+1, cmSize+1))
             labelList = copy.deepcopy(thisModel[0].textLabels)
             labelList.append('unknown')
         else:
-            confMatrix = np.zeros((cmSize, cmSize))
             labelList = copy.deepcopy(thisModel[0].textLabels)
+            labelList.append('unknown')
     else:
-        cmSize = len(set(Lnum))
         if len(thisModel) > 1:
-            confMatrix = np.zeros((cmSize+1, cmSize+1))
             labelList = copy.deepcopy(list(set(Lnum)))
             labelList.append('unknown')
         else:
-            confMatrix = np.zeros((cmSize, cmSize))
             labelList = copy.deepcopy(list(set(Lnum)))
+            labelList.append('unknown')
+    confMatrix = np.zeros((len(labelList), len(labelList)))
 
     numItems = len(Ysample)
 
@@ -430,8 +438,8 @@ def calculateData(textLabels, confMatrix, numItems=None):
     print normConf
 
     # if plotting
-    # confMatLabels = copy.deepcopy(textLabels)
-    # plot_confusion_matrix(normConf, confMatLabels)
+    confMatLabels = copy.deepcopy(textLabels)
+    plot_confusion_matrix(normConf, confMatLabels)
 
     percCorect = 100*np.diag(h.astype(np.float)).sum()/numItems
 

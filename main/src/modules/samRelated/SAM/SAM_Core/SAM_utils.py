@@ -45,6 +45,7 @@ def initialiseModels(argv, update, initMode='training'):
     print '-------------------'
     print 'Training Settings:'
     print
+    print 'Init mode: '.ljust(off), initMode
     print 'Data Path: '.ljust(off), dataPath
     print 'Model Path: '.ljust(off), modelPath
     print 'Participants: '.ljust(off), participantList
@@ -300,7 +301,7 @@ def initialiseModels(argv, update, initMode='training'):
 
         print 'minData = ' + str(minData)
         print 'ratioData = ' + str(mySAMpy.ratioData)
-
+    print '-------------------------------------------------------------------------------------------------'
     if initMode == 'training':
         samOptimiser.deleteModel(modelPath, 'exp' + str(mm[0].experiment_number))
         for k in range(len(mm[0].participantList)):

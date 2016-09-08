@@ -46,14 +46,14 @@ class LFM(object):
         self.type = []
         self.model = []
         self.observed = None
-        self.inputs=None
-        self.__num_views=None
-        self.Q=None
-        self.N=None
-        self.num_inducing=None
-        self.namesList=None
+        self.inputs = None
+        self.__num_views = None
+        self.Q = None
+        self.N = None
+        self.num_inducing = None
+        self.namesList = None
 
-    def store(self,observed, inputs=None, Q=None, kernel=None, num_inducing=None, init_X='PCA'):
+    def store(self, observed, inputs=None, Q=None, kernel=None, num_inducing=None, init_X='PCA'):
         """
         Store events.
         ARG: obserbved: A N x D matrix, where N is the number of points and D the number
@@ -150,6 +150,7 @@ class LFM(object):
             self.model = GPy.models.SparseGPRegression(self.inputs, self.observed[self.observed.keys()[0]], kernel=kernel, num_inducing=self.num_inducing)
         
         self.model.data_labels = None
+        self.model.textLabelPts = dict()
 
     #def _init_latents():
     #    from GPy.util.initialization import initialize_latent
@@ -182,9 +183,12 @@ class LFM(object):
         self.model.optimize(optimizer, messages=verbose, max_iters=max_iters)
         self.check_snr()
 
-    def check_snr(self,warning=True,messages=True):
+        for j in list(np.unique(self.model.data_labels)):
+            self.model.textLabelPts[j] = [l for l, k in enumerate(self.model.data_labels) if k[0] == j]
+
+    def check_snr(self, warning=True, messages=True):
         if self.type == 'bgplvm':
-            snr=self.model.Y.var()/self.model.Gaussian_noise.variance.values[0]
+            snr = self.model.Y.var()/self.model.Gaussian_noise.variance.values[0]
 
             if messages:
                 print('# SNR: ' + str(snr))
@@ -206,14 +210,14 @@ class LFM(object):
         """
         Show the internal representation of the memory
         """
-        #if self.type == 'bgplvm' and which_indices is None:
+        # if self.type == 'bgplvm' and which_indices is None:
         #    which_indices = most_significant_input_dimensions(self.model,None)
-        #if self.type == 'mrd' and which_indices is None:
+        # if self.type == 'mrd' and which_indices is None:
         #    # Assume that labels modality is always the last one!!
         #    which_indices = most_significant_input_dimensions(self.model.bgplvms[-1],None)
         if self.type == 'bgplvm' or self.type == 'mrd':
             if self.model.data_labels is not None:
-                ret = self.model.plot_latent(labels=self.model.data_labels,which_indices=which_indices)
+                ret = self.model.plot_latent(labels=self.model.data_labels, which_indices=which_indices)
             else:
                 ret = self.model.plot_latent(which_indices=which_indices)
         elif self.type == 'gp':
@@ -221,7 +225,7 @@ class LFM(object):
         if self.type == 'mrd' and plot_scales:
             ret2 = self.model.plot_scales()
 
-        #if self.type == 'mrd':
+        # if self.type == 'mrd':
         #    ret1 = self.model.X.plot("Latent Space 1D")
         #    ret2 = self.model.plot_scales("MRD Scales")
         
@@ -266,15 +270,15 @@ class LFM(object):
         if locations == -1:
             locations = range(self.N)
         if self.type == 'bgplvm' or self.type == 'gp':
-            return self.model.Y[locations,:].values
+            return self.model.Y[locations, :].values
         elif self.type == 'mrd':
-            return self.model.bgplvms[0].Y[locations,:].values
+            return self.model.bgplvms[0].Y[locations, :].values
 
     def pattern_completion(self, test_data, view=0, verbose=False, visualiseInfo=None):
         """
         In the case of supervised learning, pattern completion means that we 
-        give new inputs and infer their correspondin outputs. In the case of
-        unsupervised leaerning, pattern completion means that we give new
+        give new inputs and infer their corresponding outputs. In the case of
+        unsupervised learning, pattern completion means that we give new
         outputs and we infer their corresponding "latent" inputs, ie the internal
         compressed representation of the new outputs in terms of the already
         formed "synapses".
@@ -320,13 +324,13 @@ class LFM(object):
         mm = ret[0]
         post = ret[3]        
         # find nearest neighbour of mm and model.X
-        dists = np.zeros((self.model.X.shape[0],1))
+        dists = np.zeros((self.model.X.shape[0], 1))
 
         for j in range(dists.shape[0]):
-            dists[j,:] = distance.euclidean(self.model.X.mean[j,:], mm[0].values)
+            dists[j,:] = distance.euclidean(self.model.X.mean[j, :], mm[0].values)
         nn, min_value = min(enumerate(dists), key=operator.itemgetter(1))
         if self.type == 'mrd':
-            ret = self.model.bgplvms[target_modality].Y[nn,:]
+            ret = self.model.bgplvms[target_modality].Y[nn, :]
         elif self.type == 'bgplvm':
             ret = nn #self.model.data_labels[nn]
         return ret
@@ -484,6 +488,8 @@ def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
     """
     SAMObjPruned=dict()
     SAMObjPruned['type'] = mm.type
+    if mm.model:
+        SAMObjPruned['textLabelPts'] = mm.model.textLabelPts
     # SAMObjPruned['observed'] = mm.observed # REMOVE
     # SAMObjPruned['inputs'] = mm.inputs
 #    SAMObjPruned['__num_views'] = mm.__num_views
@@ -552,7 +558,8 @@ def load_pruned_model(fileName='m_pruned', economy=False, m=None):
     
     SAMObject.type = SAMObjPruned['type'] 
     # SAMObject.observed = SAMObjPruned['observed'] 
-    # SAMObject.inputs = SAMObjPruned['inputs'] 
+    # SAMObject.inputs = SAMObjPruned['inputs']
+    SAMObject.model.textLabelPts = SAMObjPruned['textLabelPts']
     SAMObject.__num_views = SAMObjPruned['__num_views'] 
     SAMObject.Q = SAMObjPruned['Q'] 
     SAMObject.N = SAMObjPruned['N'] 
@@ -796,7 +803,7 @@ def latent_cluster_centers(SAMObject, X=None, labels=None, center='gaussian', pl
     if center == 'gaussian':
         covars = np.zeros((K,Q,Q))*np.nan
     else:
-        covars = Nonee
+        covars = None
 
     for i in range(K):
         if center == 'gaussian':

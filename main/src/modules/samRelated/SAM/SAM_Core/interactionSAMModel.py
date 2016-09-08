@@ -7,6 +7,7 @@ from SAM.SAM_Core import SAMDriver as Driver
 from SAM.SAM_Core import SAM_utils
 import readline
 import warnings
+import numpy as np
 import yarp
 warnings.simplefilter("ignore")
 
@@ -152,7 +153,7 @@ class interactionSAMModel(yarp.RFModule):
         self.classificationList = []
         yarp.Network.init()
 
-        self.test()
+        # self.test()
 
         return True
 
@@ -187,50 +188,92 @@ class interactionSAMModel(yarp.RFModule):
             self.close()
         # -------------------------------------------------
         elif action in self.callSignList:
-            if 'label' in action and self.dataInConnected:
+            if 'label' in action:
                 self.classifyInstance(reply)
-            elif 'instance' in action and self.dataOutConnected:
-                self.generateInstance(reply)
+            elif 'instance' in action:
+                self.generateInstance(reply, command.get(1).asString())
         # -------------------------------------------------
         else:
             reply.addString("nack")
+            reply.addString("Command not recognized")
 
         return True
 
     def classifyInstance(self, reply):
-        print '-------------------------------------'
-        if self.collectionMethod == 'buffered':
-            [thisClass, likelihood] = self.mm[0].processLiveData(self.dataList, self.mm)
-            if thisClass is None:
-                reply.addString('None')
-            else:
-                reply.addString(thisClass)
-                reply.addDouble(likelihood)
-        # -------------------------------------------------
-        elif self.collectionMethod == 'continuous':
-            if len(self.classificationList) > 0:
-                reply.addString(self.classificationList[-1])
-                self.classificationList.pop(-1)
-            else:
-                reply.addString('None')
-        # -------------------------------------------------
-        elif self.collectionMethod == 'future_buffered':
-            self.dataList = []
-            for j in range(self.bufferSize):
-                self.dataList.append(self.readFrame())
-            # thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
-            [thisClass, likelihood] = self.mm[0].processLiveData(self.dataList, self.mm)
-            if thisClass is None:
-                reply.addString('None')
-            else:
-                reply.addString(thisClass)
-                reply.addDouble(likelihood)
-
-    def generateInstance(self, reply):
-        if self.portsList[self.instancePort].getOutputCount() != 0:
-            reply.addString('Generating instance')
+        if self.portsList[self.labelPort].getInputCount() > 0:
+            print '-------------------------------------'
+            if self.collectionMethod == 'buffered':
+                [thisClass, likelihood] = self.mm[0].processLiveData(self.dataList, self.mm)
+                if thisClass is None:
+                    reply.addString('None')
+                else:
+                    reply.addString(thisClass)
+                    reply.addDouble(likelihood)
+            # -------------------------------------------------
+            elif self.collectionMethod == 'continuous':
+                if len(self.classificationList) > 0:
+                    reply.addString(self.classificationList[-1])
+                    self.classificationList.pop(-1)
+                else:
+                    reply.addString('None')
+            # -------------------------------------------------
+            elif self.collectionMethod == 'future_buffered':
+                self.dataList = []
+                for j in range(self.bufferSize):
+                    self.dataList.append(self.readFrame())
+                # thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
+                [thisClass, likelihood] = self.mm[0].processLiveData(self.dataList, self.mm)
+                if thisClass is None:
+                    reply.addString('None')
+                else:
+                    reply.addString(thisClass)
+                    reply.addDouble(likelihood)
         else:
             reply.addString('nack')
+            reply.addString('No input connections to ' + str(self.portsList[self.labelPort].getName()))
+
+    def generateInstance(self, reply, instanceName):
+        if self.portsList[self.instancePort].getOutputCount() != 0:
+            if instanceName in self.mm[0].textLabels:
+                instance = self.recallFromLabel(instanceName)
+                # send generated instance to driver where it is converted into the proper format
+                formattedData = self.mm[0].formatGeneratedData(instance)
+                # check formattedData is of correct data type
+                if str(type(self.portsList[self.instancePort])).split('\'')[1].split('Port')[1] in str(type(formattedData)):
+                    try:
+                        img = self.portsList[self.instancePort].prepare()
+                        img.copy(formattedData)
+                        self.portsList[self.instancePort].write()
+
+                        reply.addString('Generated instance of ' + instanceName + ' as ' +
+                                        str(type(formattedData)))
+                    except:
+                        reply.addString('Failed to write ' + instanceName + ' as ' +
+                                        str(type(self.portsList[self.instancePort])))
+                else:
+                    reply.addString('Output of ' + self.driverName + '.formatGeneratedData is of type: ' +
+                                    str(type(formattedData)) + '. Should be type: ' +
+                                    str(type(self.portsList[self.instancePort])))
+            else:
+                reply.addString('Instance name not found. Available instance names are: ' + str(self.mm[0].textLabels))
+        else:
+            reply.addString('nack')
+            reply.addString('No outgoing connections on ' + str(self.portsList[self.instancePort].getName()))
+
+    def recallFromLabel(self, label):
+
+        ind = self.mm[0].textLabels.index(label)
+        yrecall = None
+        if len(self.mm) > 1:
+            indsToChooseFrom = self.mm[ind + 1].SAMObject.model.textLabelPts[ind]
+            chosenInd = np.random.choice(indsToChooseFrom, 1)
+            yrecall = self.mm[ind + 1].SAMObject.recall(chosenInd)
+        else:
+            indsToChooseFrom = self.mm[0].SAMObject.model.textLabelPts[ind]
+            chosenInd = np.random.choice(indsToChooseFrom, 1)
+            yrecall = self.mm[0].SAMObject.recall(chosenInd)
+
+        return yrecall
 
     def interruptModule(self):
         return True

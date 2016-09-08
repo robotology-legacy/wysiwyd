@@ -61,6 +61,7 @@ class SAMDriver:
         self.listOfModels = []
         self.model_type = None
         self.modelLabel = None
+        self.textLabels = None
         self.participantList = None
         self.fname = None
 
@@ -304,4 +305,17 @@ class SAMDriver:
     # Outputs: None
     # """"""""""""""""
     def processLiveData(self, dataList, thisModel):
+        raise NotImplementedError("this needs to be implemented to use the model class")
+
+    # """"""""""""""""
+    # Method which receives an instance generated from a model via a label and formats the received vector
+    # by reshaping it or adding crucial data with it for it to be deciphered at the receiving end
+    # Inputs:
+    #    - instance: a vector of generated data
+    #
+    # Outputs:
+    #    returns a yarp Bottle or yarp image that is then transmitted
+    #    by interactionSamModel from where this function is called from
+    # """"""""""""""""
+    def formatGeneratedData(self, instance):
         raise NotImplementedError("this needs to be implemented to use the model class")

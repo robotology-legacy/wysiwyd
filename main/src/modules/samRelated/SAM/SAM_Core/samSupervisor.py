@@ -42,7 +42,9 @@ class SamSupervisorModule(yarp.RFModule):
             persistence = rf.check("persistence", yarp.Value("False")).asString()
             windowed = rf.check("windowed", yarp.Value("True")).asString()
             verbose = rf.check("verbose", yarp.Value("True")).asString()
+            startModels = rf.check("startModels", yarp.Value("True")).asString()
 
+            self.startModels = startModels == 'True'
             self.persistence = True if(persistence == "True") else False
             self.windowed = True if(windowed == "True") else False
             self.verbose = True if(verbose == "True") else False
@@ -109,20 +111,22 @@ class SamSupervisorModule(yarp.RFModule):
                     print self.dataPath
                     print self.interactionSectionList
                     print
-                for j in self.interactionSectionList:
-                    command = yarp.Bottle()
-                    command.addString("load")
-                    command.addString(j)
-                    if self.verbose:
-                        print command.toString()
-                    reply = yarp.Bottle()
+                if self.startModels:
+                    for j in self.interactionSectionList:
+                        command = yarp.Bottle()
+                        command.addString("load")
+                        command.addString(j)
+                        if self.verbose:
+                            print command.toString()
+                        reply = yarp.Bottle()
 
-                    self.loadModel(reply, command)
-                    if self.verbose:
-                        print reply.toString()
-                        print "-----------------------------------------------"
-                        print
-                
+                        self.loadModel(reply, command)
+                        if self.verbose:
+                            print reply.toString()
+                            print "-----------------------------------------------"
+                            print
+                else:
+                    print 'Config ready. Awaiting input ...'
             elif len(self.noModels) > 0:
                 if self.verbose:
                     print "Models available for training."
@@ -349,10 +353,13 @@ class SamSupervisorModule(yarp.RFModule):
                 reply.addString(repStr)
 
         elif any(command.get(0).asString() in e[3] for e in self.rpcConnections):
-            try:
-                self.forwardCommand(command, reply)
-            except utils.TimeoutError:
-                reply.addString('Failed to respond within timeout')
+            if 'instance' in command.get(0).asString() and command.size() != 2:
+                reply.addString("Instance name required. e.g. ask_face_instance Daniel")
+            else:
+                try:
+                    self.forwardCommand(command, reply)
+                except utils.TimeoutError:
+                    reply.addString('Failed to respond within timeout')
 
         else:
             reply.addVocab(yarp.Vocab_encode("many"))

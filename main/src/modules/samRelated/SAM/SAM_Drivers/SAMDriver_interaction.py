@@ -323,3 +323,22 @@ class SAMDriver_interaction(SAMDriver):
             return SAMTesting.combineClassifications(thisModel, labels, likelihoods)
         else:
             return [None, 0]
+
+    def formatGeneratedData(self, instance):
+        # normalise image between 0 and 1
+        yMin = instance.min()
+        instance -= yMin
+        yMax = instance.max()
+        instance /= yMax
+        instance *= 255
+        instance = instance.astype(numpy.uint8)
+        instance = numpy.reshape(instance, (self.paramsDict['imgHNew'], self.paramsDict['imgWNew']))
+
+        # convert image into yarp rgb image
+        yarpImage = yarp.ImageMono()
+        yarpImage.resize(self.paramsDict['imgHNew'], self.paramsDict['imgWNew'])
+        instance = instance.astype(numpy.uint8)
+        yarpImage.setExternal(instance, instance.shape[1], instance.shape[0])
+
+        return yarpImage
+
