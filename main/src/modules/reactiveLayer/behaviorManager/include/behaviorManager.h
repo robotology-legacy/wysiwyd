@@ -20,7 +20,6 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
 
-
 class BehaviorManager: public RFModule
 {
 private:
@@ -36,7 +35,7 @@ private:
 
     ICubClient *iCub;
 
-    //int behavior_to_trigger;
+    // int behavior_to_trigger;
 
     Mutex mut;
     Bottle behaviorList;

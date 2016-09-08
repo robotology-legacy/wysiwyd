@@ -12,7 +12,7 @@ private:
     Port        portToBehavior;
     Port        portToSpeechRecognizer;
     BufferedPort<Bottle>        portTarget;
-
+    bool onPlannerMode;
     Mutex m;
     bool bShouldListen;
 

@@ -29,11 +29,15 @@ private:
     void addToEntityList(yarp::os::Bottle& list, std::string type, std::string name);
     Bottle handleEntities();
     void handleTouch();
+    
 
 public:
 
+    Bottle u_entities, k_entities, up_entities, kp_entities, p_entities;
     void configure();
     void publish();
+    int get_property(string name, string property);
+    
 
     void close_ports() {
         unknown_entities_port.interrupt();

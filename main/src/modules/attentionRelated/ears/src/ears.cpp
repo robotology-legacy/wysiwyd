@@ -5,6 +5,8 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("ears")).asString().c_str();
     setName(moduleName.c_str());
+    onPlannerMode = rf.check("plans",Value("false")).asBool();
+    yDebug()<< "PLANS ENABLED: " << onPlannerMode;
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
@@ -19,12 +21,20 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    portToBehavior.open("/" + moduleName + "/behavior:o");
     portTarget.open("/" + moduleName + "/target:o");
     portToSpeechRecognizer.open("/" + moduleName + "/speech:o");
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
     bShouldListen = true;
+
+    if (onPlannerMode) {
+        while (!Network::connect(portTarget.getName(),"/planner/rpc")) {
+            yWarning() << "Planner is unreachable...";
+            yarp::os::Time::delay(0.5);
+        }
+    } else {
+        portToBehavior.open("/" + moduleName + "/behavior:o");
+    }
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
@@ -74,11 +84,13 @@ bool ears::close() {
     portToSpeechRecognizer.interrupt();
     portToSpeechRecognizer.close();
 
-    portToBehavior.interrupt();
-    portToBehavior.close();
-
     portTarget.interrupt();
     portTarget.close();
+
+    if (!onPlannerMode) {
+        portToBehavior.interrupt();
+        portToBehavior.close();
+    }
 
     yDebug() << "closing rpc port";
     rpc.interrupt();
@@ -99,6 +111,25 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         return false;
+    }
+    else if (command.get(0).asString() == "dummy")
+    {
+        // sends a test bottle to planner
+        Bottle &bToTarget = portTarget.prepare();
+        bToTarget.clear();
+        Bottle bAux;
+        bAux.clear();
+        Bottle bAux2;
+        bAux2.clear();
+        bToTarget.addString("new");
+        bAux.addString("dummy2");
+        bAux.addInt(1);
+        bAux2.addString("sObjectType");
+        bAux2.addString("sObject");
+        bAux.addList()=bAux2;
+        bToTarget.addList()=bAux;
+        portTarget.write();
+        yDebug() << "Sending " + bToTarget.toString();
     }
     else if (command.get(0).asString() == "listen")
     {
@@ -219,27 +250,46 @@ bool ears::updateModule() {
             sObject = "";
         } else {
             yError() << "[ears] Unknown predicate";
-
+            // return true;
         }
+        //send rpc data to planner
+        if (onPlannerMode) {
+            Bottle &bToTarget = portTarget.prepare();
+            bToTarget.clear();
+            Bottle bAux;
+            bAux.clear();
+            Bottle bAux2;
+            bAux2.clear();
+            bToTarget.addString("new");
+            bAux.addString(sAction);
+            bAux.addInt(1);
+            bAux2.addString(sObjectType);
+            bAux2.addString(sObject);
+            bAux.addList()=bAux2;
+            bToTarget.addList()=bAux;
+            portTarget.write();
+            yDebug() << "Sending " + bToTarget.toString();
+        } else {
+            Bottle &bToTarget = portTarget.prepare();
+            bToTarget.clear();
+            bToTarget.addString(sAction);
+            bToTarget.addString(sObjectType);
+            bToTarget.addString(sObject);
+            portTarget.write();
 
-        Bottle &bToTarget = portTarget.prepare();
-        bToTarget.clear();
-        bToTarget.addString(sAction);
-        bToTarget.addString(sObjectType);
-        bToTarget.addString(sObject);
-        portTarget.write();
+            Bottle bCondition;
+            bCondition.addString(sCommand);
+            bCondition.addString(sAction);
+            bCondition.addString(sObjectType);
+            bCondition.addString(sObject);
 
-        Bottle bCondition;
-        bCondition.addString(sCommand);
-        bCondition.addString(sAction);
-        bCondition.addString(sObjectType);
-        bCondition.addString(sObject);
-
-        portToBehavior.write(bCondition);
-
-        yDebug() << "Sending " + bCondition.toString();
+            portToBehavior.write(bCondition);
+     
+            yDebug() << "Sending " + bCondition.toString();
+        }
     } else {
         yDebug() << "Not bListen";
+        yarp::os::Time::delay(0.5);
     }
 
     return true;

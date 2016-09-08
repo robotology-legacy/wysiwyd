@@ -35,6 +35,8 @@ void OpcSensation::configure()
     is_touched_port_name = "/" + moduleName + "/is_touched:o";
     is_touched_port.open(is_touched_port_name);
 
+    u_entities.clear();
+    k_entities.clear();
     yInfo() << "Configuration done.";
 
 }
@@ -96,8 +98,7 @@ Bottle OpcSensation::handleEntities()
     bool unknown_obj = false;
     bool known_obj = false;
     bool agentPresent = false;
-    Bottle u_entities, k_entities;
-
+    Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities;
     for (auto& entity : lEntities)
     {
         if (entity->name().find("unknown") == 0) {
@@ -107,12 +108,14 @@ Bottle OpcSensation::handleEntities()
                 Object* o = dynamic_cast<Object*>(entity);
                 if(o && (o->m_present==1.0)) {
                     unknown_obj = true;
-                    addToEntityList(u_entities, entity->entity_type(), entity->name());
+                    addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
                 }
+                addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
             }
             else if(entity->entity_type() == "bodypart") {
                     unknown_obj = true;
-                    addToEntityList(u_entities, entity->entity_type(), entity->name());
+                    addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
+                    addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
         }
 
@@ -121,34 +124,75 @@ Bottle OpcSensation::handleEntities()
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
                 unknown_obj = true;
-                addToEntityList(u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
+            addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
         }
         else {
             if (entity->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(entity)->m_tactile_number == -1))
             {
                 unknown_obj = true;
-                addToEntityList(u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
-            else if (entity->entity_type() == "object" && dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
-                known_obj = true;
-                addToEntityList(k_entities, entity->entity_type(), entity->name());
+            else if (entity->entity_type() == "object"){
+                if (dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
+                    known_obj = true;
+                    addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
+                }
+                addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
             }
         }
         if (entity->entity_type() == "agent") {  // Known entities
             agentPresent = true;
         }
+        
+        if (dynamic_cast<Object*>(entity)->m_present == 1.0)
+        {
+            addToEntityList(temp_p_entities, entity->entity_type(), entity->name());
+        }
     }
 
     //yDebug() << "u_entities = " + u_entities.toString();
     //yDebug() << "k_entities = " + k_entities.toString();
+    u_entities.copy( temp_u_entities);
+    k_entities.copy( temp_k_entities);
+    p_entities.copy( temp_p_entities);
+    up_entities.copy( temp_up_entities);
+    kp_entities.copy( temp_kp_entities);
 
     Bottle out;
     out.addInt(int(unknown_obj));
-    out.addList()=u_entities;
+    out.addList()=up_entities;
     out.addInt(int(known_obj));
-    out.addList()=k_entities;
+    out.addList()=kp_entities;
     out.addInt(int(agentPresent));
 
     return out;
 }
+
+int OpcSensation::get_property(string name,string property)
+{
+    Bottle b;
+    if (property == "known")
+    {
+        b = k_entities;
+    }
+    else if (property == "unknown")
+    {
+        b = u_entities;
+    }
+    else if (property == "present")
+    {
+        b = p_entities;
+    }
+    for (int i=0;i<b.size();i++)
+    {
+        if (b.get(i).asList()->get(1).asString()==name)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
