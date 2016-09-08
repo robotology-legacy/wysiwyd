@@ -36,7 +36,7 @@ private:
 
     ICubClient *iCub;
 
-    int behavior_to_trigger;
+    // int behavior_to_trigger;
 
     Mutex mut;
     Bottle behaviorList;

@@ -264,8 +264,8 @@ bool Planner::updateModule() {
             Bottle command = newPlan[it];
             bool knownPlan = checkKnown(command, avaiPlansList);
             string planName = command.get(1).asList()->get(0).asString();
-            objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
-            object = command.get(1).asList()->get(2).asList()->get(1).asString();
+            string objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+            string object = command.get(1).asList()->get(2).asList()->get(1).asString();
 
             if (knownPlan)
             {

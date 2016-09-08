@@ -28,12 +28,7 @@ private:
     int id;
     int attemptCnt;
 
-    string objectType;
-    string object;
-
     // bool bShouldListen;
-
-    std::string      MainGrammar;
 
     yarp::os::Mutex mutex;
     bool ordering;

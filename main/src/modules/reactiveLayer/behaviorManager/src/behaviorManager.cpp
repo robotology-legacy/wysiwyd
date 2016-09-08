@@ -78,7 +78,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     }
 
 
-    if (!rf.check("plans",Value("false")).asBool())
+    if (!rf.check("use_ears",Value("false")).asBool())
     {
         while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
             yWarning() << "Ears is not reachable";

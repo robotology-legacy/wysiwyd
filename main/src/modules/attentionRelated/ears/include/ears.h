@@ -12,7 +12,6 @@ private:
     Port        portToBehavior;
     Port        portToSpeechRecognizer;
     BufferedPort<Bottle>        port_planner;
-    BufferedPort<Bottle>        goal_need_port;
     BufferedPort<Bottle>        portTarget;
     bool onPlannerMode;
     Mutex m;
