@@ -74,6 +74,11 @@ public:
     */
     ObjectArea m_objectarea;
 
+    /**
+    * A measurement of the object subjective value [0,1]
+    */  
+    double          m_value;
+
     virtual bool    isType(std::string _entityType)
     {
         if (_entityType == EFAA_OPC_ENTITY_OBJECT) {

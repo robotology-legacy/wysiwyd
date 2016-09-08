@@ -22,20 +22,25 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(0.1)).asDouble();
 
     Bottle grp = rf.findGroup("SENSATIONS");
-    sensationList = *grp.find("sensations").asList();  
-    for (int i = 0; i < sensationList.size(); i++)
-    {
-        string sensation_name = sensationList.get(i).asString();
-        // behavior_names.push_back(behavior_name);
-        if (sensation_name == "opcSensation") {
-            sensations.push_back(new OpcSensation());
-        } else if (sensation_name == "test") {
-            sensations.push_back(new Test());
-        } else{
-            yDebug() << "Sensation " + sensation_name + " not implemented";
-            return false;
+    if (!grp.isNull()){
+        sensationList = *grp.find("sensations").asList();  
+        for (int i = 0; i < sensationList.size(); i++)
+        {
+            string sensation_name = sensationList.get(i).asString();
+            // behavior_names.push_back(behavior_name);
+            if (sensation_name == "opcSensation") {
+                sensations.push_back(new OpcSensation());
+            } else if (sensation_name == "test") {
+                sensations.push_back(new Test());
+            } else{
+                yDebug() << "Sensation " + sensation_name + " not implemented";
+                return false;
+            }
+            sensations.back()->configure();
         }
-        sensations.back()->configure();
+    }else{
+        yError()<<"Didn't find any sensation. Please revise your configuration files...";
+        return 0;
     }
 
     // for(std::vector<Behavior*>::iterator it = behaviors.begin(); it != behaviors.end(); ++it) {
@@ -60,7 +65,7 @@ bool SensationManager::updateModule()
 
 bool SensationManager::respond(const Bottle& cmd, Bottle& reply)
 {
-    yInfo() << "RPC received in allostaticController";
+    yInfo() << "RPC received in sensationsManager";
     yDebug() << cmd.toString();
     
     reply.clear();
@@ -72,6 +77,7 @@ bool SensationManager::respond(const Bottle& cmd, Bottle& reply)
     }
     else if (cmd.get(0).asString() == "is") {
         string entity_name = cmd.get(1).asString();
+
         for (int i = 0; i < sensationList.size(); i++)
         {
             string sensation_name = sensationList.get(i).asString();

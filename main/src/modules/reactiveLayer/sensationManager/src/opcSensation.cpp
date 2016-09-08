@@ -7,13 +7,9 @@ void OpcSensation::configure()
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName,"sensation","client.ini",isRFVerbose);
     iCub->opc->isVerbose = false;
-    char rep = 'n';
-    while (rep!='y'&&!iCub->connect())
+    while (!iCub->connect())
     {
         cout<<"iCubClient : Some dependencies are not running..."<<endl;
-        //cout<<"Continue? y,n"<<endl;
-        //cin>>rep;
-        break; //to debug
         Time::delay(1.0);
     }
 
@@ -37,6 +33,10 @@ void OpcSensation::configure()
 
     u_entities.clear();
     k_entities.clear();
+    pf3dTrackerPort.open("/"+moduleName+"/pf3dTracker:i");
+
+    outputPPSPort.open("/"+moduleName+"/objects:o");
+
     yInfo() << "Configuration done.";
 
 }
@@ -99,6 +99,8 @@ Bottle OpcSensation::handleEntities()
     bool known_obj = false;
     bool agentPresent = false;
     Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities;
+    Bottle objects;
+
     for (auto& entity : lEntities)
     {
         if (entity->name().find("unknown") == 0) {
@@ -120,7 +122,7 @@ Bottle OpcSensation::handleEntities()
         }
 
         else if (entity->name() == "partner" && entity->entity_type() == "agent") {
-            yInfo() << "I found an unknown partner: " << entity->name();
+            //yInfo() << "I found an unknown partner: " << entity->name();
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
                 unknown_obj = true;
@@ -136,31 +138,75 @@ Bottle OpcSensation::handleEntities()
                 addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
             else if (entity->entity_type() == "object"){
-                if (dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
-                    known_obj = true;
+                known_obj = true;
+                Object* obj1 = dynamic_cast<Object*>(entity);
+
+                //Handle red balls
+                if (entity->name() == "red_ball"){
+                    // Set color:
+                    obj1->m_color[0] = 250;
+                    obj1->m_color[1] = 0;
+                    obj1->m_color[2] = 0;
+                    if (!Network::isConnected("/pf3dTracker/data:o",("/"+moduleName+"/pf3dTracker:i").c_str())){
+                        yDebug("RedBall Port not connected...");
+                        obj1->m_present = 0.0;
+                    }else{
+                        //update position
+                        Bottle *bot = pf3dTrackerPort.read();
+                        obj1->m_ego_position[0] = bot->get(0).asDouble();
+                        obj1->m_ego_position[1] = bot->get(1).asDouble();
+                        obj1->m_ego_position[2] = bot->get(2).asDouble();
+                        obj1->m_dimensions[0] = bot->get(3).asDouble();
+                        obj1->m_dimensions[1] = bot->get(4).asDouble();
+                        obj1->m_dimensions[2] = bot->get(5).asDouble();
+                        obj1->m_present = bot->get(6).asDouble();
+                        /*iCub->opc->commit(obj1);
+                        yDebug("opc updated...");*/
+                        
+                    }
+                }
+                if (obj1->m_present == 1.0){
+                    //send data to PPS
+                    Bottle objec;
+                    objec.clear();
+                    objec.addDouble(obj1->m_ego_position[0]);          //X
+                    objec.addDouble(obj1->m_ego_position[1]);          //Y
+                    objec.addDouble(obj1->m_ego_position[2]);          //Z
+                    double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
+                    objec.addDouble(dimensions);                       //RADIUS
+                    objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
+                    objects.addList()=objec;
                     addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
                 }
                 addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
+                iCub->opc->commit(obj1);
+
+                
+            }
+            if (entity->entity_type() == "agent") {  // Known entities
+                if (dynamic_cast<Object*>(entity)->m_present == 1.0)
+                {
+                    agentPresent = true;
+                }
             }
         }
-        if (entity->entity_type() == "agent") {  // Known entities
-            agentPresent = true;
-        }
-        
         if (dynamic_cast<Object*>(entity)->m_present == 1.0)
         {
             addToEntityList(temp_p_entities, entity->entity_type(), entity->name());
         }
     }
 
-    //yDebug() << "u_entities = " + u_entities.toString();
-    //yDebug() << "k_entities = " + k_entities.toString();
+
     u_entities.copy( temp_u_entities);
     k_entities.copy( temp_k_entities);
     p_entities.copy( temp_p_entities);
     up_entities.copy( temp_up_entities);
     kp_entities.copy( temp_kp_entities);
 
+    Bottle& output=outputPPSPort.prepare();
+    output.clear();
+    output.addList()=objects;
+    outputPPSPort.write();
     Bottle out;
     out.addInt(int(unknown_obj));
     out.addList()=up_entities;

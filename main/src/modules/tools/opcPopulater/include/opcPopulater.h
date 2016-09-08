@@ -19,6 +19,11 @@ private:
     double Y_ag;
     double Z_ag;
     double noise;
+    vector<double> spd1;
+    vector<double> spd2;
+    bool move;
+    int iter;
+
 
 
 public:
@@ -39,6 +44,8 @@ public:
 
     bool updateModule();
     bool    populateEntityRandom(Bottle bInput);
+    bool    populateRedBall();
+    bool    populateMoving();
     bool    populateSpecific();
     bool    populateSpecific1(Bottle bInput);
     bool    populateSpecific2();
@@ -46,6 +53,7 @@ public:
 
     bool    addUnknownEntity(Bottle bInput);
     bool    setSaliencyEntity(Bottle bInput);
+    bool    setValueEntity(Bottle bInput);
 
     bool    populateABM(Bottle bInput);
     bool    populateABMiCubStory(Bottle bInput);

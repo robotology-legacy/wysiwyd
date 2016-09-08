@@ -34,6 +34,7 @@ Object::Object():Entity()
     m_dimensions.resize(3,0.1);
     m_color.resize(3,255.0);
     m_saliency = 0.0;
+    m_value = 0.0;
     m_present = 0.0;
     m_objectarea = ObjectArea::NOTREACHABLE;
 
@@ -52,6 +53,7 @@ Object::Object(const Object &b):Entity(b)
     this->m_present = b.m_present;
     this->m_saliency = b.m_saliency;
     this->m_objectarea = b.m_objectarea;
+    this->m_value = b.m_value;
 }
 
 Bottle Object::asBottle()
@@ -124,6 +126,10 @@ Bottle Object::asBottle()
     bSub.addDouble(m_saliency);
     b.addList() = bSub;
     bSub.clear();
+    bSub.addString(EFAA_OPC_OBJECT_VALUE);
+    bSub.addDouble(m_value);
+    b.addList() = bSub;
+    bSub.clear();
 
     //Present
     bSub.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
@@ -158,8 +164,8 @@ bool Object::fromBottle(const Bottle &b)
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_G) ||
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_B) ||
         !b.check(EFAA_OPC_OBJECT_PRESENT_TAG) ||
-        !b.check("object_area")
-       )
+        !b.check("object_area")               ||
+        !b.check(EFAA_OPC_OBJECT_VALUE))
     {
         return false;
     }
@@ -177,6 +183,7 @@ bool Object::fromBottle(const Bottle &b)
     m_color[1] = b.find(EFAA_OPC_OBJECT_GUI_COLOR_G).asDouble();
     m_color[2] = b.find(EFAA_OPC_OBJECT_GUI_COLOR_B).asDouble();
     m_saliency = b.find(EFAA_OPC_OBJECT_SALIENCY).asDouble();
+    m_value = b.find(EFAA_OPC_OBJECT_VALUE).asDouble();
     m_present = b.find(EFAA_OPC_OBJECT_PRESENT_TAG).asDouble();
     m_objectarea = static_cast<ObjectArea>(b.find("object_area").asInt());
 
@@ -197,6 +204,8 @@ string Object::toString()
     oss<< m_color.toString(3,3)<<endl;
     oss<<"saliency : \t";
     oss<< m_saliency<<endl;
+    oss<<"value : \t";
+    oss<< m_value<<endl;
     oss<<"present : \t";
     oss<< m_present<<endl;
     oss<<"object area : \t";

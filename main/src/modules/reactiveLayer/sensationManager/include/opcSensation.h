@@ -25,7 +25,8 @@ private:
     yarp::os::BufferedPort<Bottle> opc_has_known_port;
     yarp::os::BufferedPort<Bottle> opc_has_agent_port;
     yarp::os::BufferedPort<Bottle> is_touched_port;
-
+    yarp::os::BufferedPort<Bottle>  pf3dTrackerPort;
+    yarp::os::BufferedPort<yarp::os::Bottle> outputPPSPort;
     void addToEntityList(yarp::os::Bottle& list, std::string type, std::string name);
     Bottle handleEntities();
     void handleTouch();
@@ -52,5 +53,9 @@ public:
         opc_has_agent_port.close();
         is_touched_port.interrupt();
         is_touched_port.close();
+        pf3dTrackerPort.interrupt();
+        pf3dTrackerPort.close();
+        outputPPSPort.interrupt();
+        outputPPSPort.close();
     }
 };

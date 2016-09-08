@@ -76,8 +76,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         yInfo() << "iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
-
-
     if (rf.check("use_ears",Value("false")).asBool())
     {
         while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
