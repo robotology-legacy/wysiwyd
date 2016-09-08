@@ -143,7 +143,6 @@ Bottle OpcSensation::handleEntities()
 
                 //Handle red balls
                 if (entity->name() == "red_ball"){
-                    yDebug("Found a redBall object");
                     // Set color:
                     obj1->m_color[0] = 250;
                     obj1->m_color[1] = 0;
@@ -152,10 +151,8 @@ Bottle OpcSensation::handleEntities()
                         yDebug("RedBall Port not connected...");
                         obj1->m_present = 0.0;
                     }else{
-                        yDebug("RedBall Port connected...\nUpdateing position...");
                         //update position
                         Bottle *bot = pf3dTrackerPort.read();
-                        yDebug("RedBall Port readed");
                         obj1->m_ego_position[0] = bot->get(0).asDouble();
                         obj1->m_ego_position[1] = bot->get(1).asDouble();
                         obj1->m_ego_position[2] = bot->get(2).asDouble();
@@ -179,13 +176,10 @@ Bottle OpcSensation::handleEntities()
                     objec.addDouble(dimensions);                       //RADIUS
                     objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
                     objects.addList()=objec;
-                    yDebug("message sent");
                     addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
                 }
                 addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
-                yDebug("Updating OPC...");
                 iCub->opc->commit(obj1);
-                yDebug("Updated OPC...");
 
                 
             }
@@ -202,11 +196,9 @@ Bottle OpcSensation::handleEntities()
         }
     }
 
-    //yDebug() << "u_entities = " + u_entities.toString();
-    //yDebug() << "k_entities = " + k_entities.toString();
+
     u_entities.copy( temp_u_entities);
     k_entities.copy( temp_k_entities);
-    yDebug()<<k_entities.toString();
     p_entities.copy( temp_p_entities);
     up_entities.copy( temp_up_entities);
     kp_entities.copy( temp_kp_entities);
@@ -228,11 +220,9 @@ Bottle OpcSensation::handleEntities()
 int OpcSensation::get_property(string name,string property)
 {
     Bottle b;
-    yDebug()<<property;
     if (property == "known")
     {
         b = k_entities;
-        yDebug()<<"Bottle: "<<b.toString();
     }
     else if (property == "unknown")
     {
@@ -242,8 +232,6 @@ int OpcSensation::get_property(string name,string property)
     {
         b = p_entities;
     }
-    yDebug()<<b.toString()<<"    " << name;
-
     for (int i=0;i<b.size();i++)
     {
         if (b.get(i).asList()->get(1).asString()==name)
