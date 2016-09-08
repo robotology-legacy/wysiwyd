@@ -180,11 +180,11 @@ int OpcSensation::get_property(string name,string property)
     }
     else if (property == "unknown")
     {
-        b=u_entities;
+        b = u_entities;
     }
     else if (property == "present")
     {
-        b=p_entities;
+        b = p_entities;
     }
     for (int i=0;i<b.size();i++)
     {

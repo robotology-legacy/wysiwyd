@@ -67,9 +67,6 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
         }
     }
 
-    actPt = action_list.begin();
-    prioPt = priority_list.begin();
-
     priority_list.clear();
     action_list.clear();
     id = 0;

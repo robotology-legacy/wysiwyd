@@ -252,7 +252,7 @@ bool ears::updateModule() {
             sObject = "";
         } else {
             yError() << "[ears] Unknown predicate";
-            return true;
+            // return true;
         }
         //send rpc data to planner
         if (onPlannerMode){

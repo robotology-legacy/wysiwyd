@@ -24,9 +24,9 @@ using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
-	yarp::os::Network yarp;
-	
-	if (!yarp.checkNetwork())
+    yarp::os::Network yarp;
+    
+    if (!yarp.checkNetwork())
     {
         yError()<<"YARP network seems unavailable!";
         return 1;

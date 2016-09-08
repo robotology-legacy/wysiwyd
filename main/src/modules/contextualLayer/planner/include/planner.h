@@ -13,7 +13,7 @@ private:
     Port        portToBehavior;
     Port        toHomeo;
     Port        getState;
-    BufferedPort<Bottle>        port_behavior_context;
+    // BufferedPort<Bottle>        port_behavior_context;
     Bottle avaiPlansList;
     vector<Bottle> newPlan;
     vector<string> plan_list;
@@ -22,8 +22,6 @@ private:
     vector<string> type_list;
     vector<int> priority_list;
     vector<int> actionPos_list;
-    vector<string>::iterator actPt;
-    vector<int>::iterator prioPt;
     Bottle grpPlans;
     int id;
     int attemptCnt;
@@ -33,7 +31,6 @@ private:
     yarp::os::Mutex mutex;
     bool ordering;
     bool fulfill;
-    Port behaviorsRPC;
     void run(Bottle args=Bottle());
 
 
