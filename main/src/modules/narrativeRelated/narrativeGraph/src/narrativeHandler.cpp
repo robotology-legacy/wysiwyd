@@ -205,8 +205,12 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    linkMeaningScenario(2, 3);
 
+    cout << "linking scenarios 3 3" << endl;
+    linkMeaningScenario(3, 3);
+    cout << "linking scenarios 2 2" << endl;
+    linkMeaningScenario(2, 2);
+    cout << endl << endl;
     displayDFW();
 
     return true;
@@ -2304,27 +2308,16 @@ void narrativeHandler::displayDFW(){
     for (vector<storygraph::DFW>::iterator itD = vDFW.begin(); itD != vDFW.end(); itD++){
         cout << "\t" << itD->sName << endl;
 
-        if (itD->vFirstIGARF.size() == itD->vSecondIGARF.size()){
-            for (unsigned int jj = 0; jj < itD->vFirstIGARF.size(); jj++){
-                cout << itD->vFirstIGARF[jj].toString() << "\t" << itD->vSecondIGARF[jj].toString() << endl;
-            }
-
+        cout << "\t\t double:" << endl;
+        for (unsigned int jj = 0; jj < itD->vDoubleIGARF.size(); jj++){
+            cout << itD->vDoubleIGARF[jj].first.toString() << "\t" << itD->vDoubleIGARF[jj].second.toString() << endl;
         }
-        else{
-            cout << "\t\t first: " << endl;
-            for (vector<storygraph::sKeyMean>::iterator itI = itD->vFirstIGARF.begin();
-                itI != itD->vFirstIGARF.end();
-                itI++){
-                cout << "\t\t\t" << itI->toString() << endl;
-            }
 
-            cout << "\t\t second:" << endl;
-            for (vector<storygraph::sKeyMean>::iterator itI = itD->vSecondIGARF.begin();
-                itI != itD->vSecondIGARF.end();
-                itI++){
-                cout << "\t\t\t" << itI->toString() << endl;
-            }
+        cout << "\t\t simple: " << endl;
+        for (vector<storygraph::sKeyMean>::iterator itI = itD->vSingleIGARF.begin();
+            itI != itD->vSingleIGARF.end();
+            itI++){
+            cout << "\t\t\t" << itI->toString() << endl;
         }
     }
-
 }

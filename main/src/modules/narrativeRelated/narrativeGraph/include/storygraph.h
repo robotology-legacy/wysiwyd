@@ -167,8 +167,8 @@ namespace storygraph {
         std::string  sName;
         DFW(std::string name);
 
-        std::vector <sKeyMean>   vFirstIGARF;
-        std::vector <sKeyMean>   vSecondIGARF;
+        std::vector <sKeyMean>   vSingleIGARF;
+        std::vector <std::pair <sKeyMean,sKeyMean> >   vDoubleIGARF;
 
 
     };

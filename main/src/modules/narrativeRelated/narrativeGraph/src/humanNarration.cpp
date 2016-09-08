@@ -1010,17 +1010,29 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         level1 != MD.meanings.vDiscourse.end();
         level1++
         )
-    {
+    { // for each sentence of the discourse
 
         DFW *currentDFW;
         bool isMultiple = false; // if a sentence is multiple (with a DFW)
         int iPreposition = 0;   // get the order of the preposition in the sentence
+        int iNbPreposition = level1->vSentence.size();
+        bool isDFW = level1->vSentence[0].vOCW.size() == 1;
+        sKeyMean singleIGARF;
+        pair<sKeyMean, sKeyMean> doubleIGARF;
+
+        bool bAllAction = true;  //depend of the score of findBest
+
+        bool firstsKeyMean = true; // in the case of DFW with 2 skeymean
+
+
+        cout << "sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
+
 
         for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
             level2 != level1->vSentence.end();
-            level2++){
+            level2++){  // for each preposition of the sentence
             if (true){
-                cout << "===============" << endl << "Sentence: [ ";
+                cout << "===============" << endl << "Preposition: [ ";
                 for (int iWord = 0; iWord < level2->vOCW.size(); iWord++){
 
                     cout << level2->vOCW[iWord] << " ";
@@ -1030,8 +1042,8 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
             int iScore = 0;
             vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
-            bool isDFW = level2->vOCW.size() == 1;
-            if (isDFW){ // only one OCW: DFW
+            if (isDFW && iPreposition == 0){ // only one OCW: DFW
+                cout << "\t\t\t sentence has a DFW." << endl;
                 string nameDFW = level2->vOCW[0];
                 isMultiple = true;
                 bool found = false;
@@ -1043,23 +1055,34 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                     }
                 }
                 if (!found) {
-                    cout << " creating new DFW: " << nameDFW << endl;
                     currentDFW = new DFW(nameDFW);
                     vDFW.push_back(*currentDFW);
                     currentDFW = &vDFW[vDFW.size() - 1];
+                    cout << " creating new DFW: " << currentDFW->sName << endl;
                 }
             }
 
-            sKeyMean currentIGARF;
+            bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
 
-            if (iScore > iThresholdScoreIGARFPAOR){
+            if (bAllAction){     // if found;
                 for (int kk = 0; kk < vkTmp.size(); kk++)
                 {
                     sKeyMean kTmp = vkTmp[kk];
                     cout << "\t result find: " << (kTmp.toString()) << endl;
                     if (kTmp.iIGARF != -1){
                         //currentIGARF = sm.vIGARF[kTmp.iIGARF];
-                        currentIGARF = kTmp;
+                        if (iNbPreposition > 2){
+                            if (firstsKeyMean){
+                                doubleIGARF.first = kTmp;
+                                firstsKeyMean = false;
+                            }
+                            else{
+                                doubleIGARF.second = kTmp;
+                            }
+                        }
+                        else{
+                            singleIGARF = kTmp;
+                        }
 
                         if (kTmp.cPart == 'A'){
                             cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
@@ -1092,23 +1115,32 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                     }
                 }
             }
-
-            if (!isDFW && isMultiple){
-                if (iPreposition < 2){
-                    currentDFW->vFirstIGARF.push_back(currentIGARF);
-                    cout << "filling first vector" << endl;
-                }
-                else{
-                    currentDFW->vSecondIGARF.push_back(currentIGARF);
-                    cout << "filling second vector" << endl;
-                }
+            else {
+                cout << "Action not recognized" << endl;
             }
 
             iPreposition++;
-        }
-    }
+        }  // end preposition
 
-    displayDFW();
+        if (bAllAction){
+            if (isDFW && isMultiple){
+                if (iNbPreposition <= 2){
+                    cout << "filling single vector ...";
+                    currentDFW->vSingleIGARF.push_back(singleIGARF);
+                    cout << " done !" << endl;
+                }
+                else{
+                    cout << "filling double vector ...";
+                    currentDFW->vDoubleIGARF.push_back(doubleIGARF);
+                    cout << " done !" << endl;
+                }
+            }
+        }
+        //cout << "\t\t\t\t\end of sentence" << endl;
+    } // end sentence
+    //cout << "end of the loop, starting to display" << endl;
+
+    //displayDFW();
 
     //MD.print();
 
