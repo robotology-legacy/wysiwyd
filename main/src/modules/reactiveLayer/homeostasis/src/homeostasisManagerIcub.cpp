@@ -125,8 +125,9 @@ bool HomeostaticModule::configure(yarp::os::ResourceFinder &rf)
             
         }
     }
-
-    stress=0;
+    stress_k = rf.check("stress-k",Value("15.")).asDouble();
+    stress_th = rf.check("stress-th",Value("0.55")).asDouble();
+    //stress=0;
 
     stressPort.open("/"+moduleName+"/stress:o");
 
@@ -414,7 +415,7 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
 
 bool HomeostaticModule::updateModule()
 {
-    stress = 0;
+    double stress = 0;
     for(unsigned int d = 0; d<manager->drives.size();d++)
     {
         yInfo() << "Going by drive #"<<d << " with name "<< manager->drives[d]->name ;
@@ -481,9 +482,8 @@ bool HomeostaticModule::updateModule()
     }
     Bottle& output=stressPort.prepare();
     output.clear();
-    double k = 15.;
-    double th = -0.55;
-    stress = 1./(1.+exp(-k*(-stress+th)));
+
+    stress = 1./(1.+exp(-stress_k*(-stress+stress_th)));
    
     output.addDouble(stress);
     stressPort.write();
@@ -525,6 +525,8 @@ bool HomeostaticModule::close()
         outputm_ports[d]->interrupt();
         outputm_ports[d]->close();
     }
+    stressPort.interrupt();
+    stressPort.close();
 
     input_ports.clear();
     outputM_ports.clear();

@@ -20,13 +20,12 @@ private:
 
     std::string moduleName;
     double period;
+    double stress_k, stress_th;
 
-    double stress;
+    //double stress;
     yarp::os::BufferedPort<yarp::os::Bottle> stressPort;
 
 
-    //vector< yarp::os::BufferedPort<yarp::os::Bottle> *> output_ports;
-    //vector< yarp::os::BufferedPort<yarp::os::Bottle> *> input_ports;
     vector< yarp::os::BufferedPort<Bottle> * > input_ports;
     vector< yarp::os::BufferedPort<Bottle> * > outputM_ports;
     vector< yarp::os::BufferedPort<Bottle> * > outputm_ports;
@@ -39,13 +38,8 @@ private:
     bool addNewDrive(string driveName, yarp::os::Bottle& grpHomeostatic);
     bool addNewDrive(string driveName);
     bool removeDrive(int d);
-    //bool addNewDrive(string driveName, yarp::os::Value grpHomeostatic, int d);
-    //void configureTactile(yarp::os::ResourceFinder &rf);
-    //void configureSalutation(yarp::os::ResourceFinder &rf);
 
 public:
-
-    //homeostaticModule():manager(0){;}
 
     Drive bDrive(yarp::os::Bottle* b)
     {
