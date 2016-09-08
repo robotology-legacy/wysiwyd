@@ -21,7 +21,6 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    portToBehavior.open("/" + moduleName + "/behavior:o");
     portTarget.open("/" + moduleName + "/target:o");
     portToSpeechRecognizer.open("/" + moduleName + "/speech:o");
 
@@ -29,26 +28,14 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     bShouldListen = true;
 
     if (onPlannerMode){
-        /*portToBehavior.open("/" + moduleName + "/behavior:o");
-        while (!Network::connect(portToBehavior.getName(),"/GoalManager/trigger:i ")) {
-            yWarning() << " Behavior is not reachable";
-            yarp::os::Time::delay(0.5);
-        }*/
-
-        // port to planner module
         port_planner.open("/" + moduleName + "/target:o");
         while (!Network::connect(port_planner.getName(),"/planner/rpc"))
         {
             yWarning() << "Planner is unreachable...";
             yarp::os::Time::delay(0.5);
         }
-
     }else{
         portToBehavior.open("/" + moduleName + "/behavior:o");
-        while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
-            yWarning() << " Behavior is not reachable";
-            yarp::os::Time::delay(0.5);
-        }
     }
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
@@ -324,29 +311,3 @@ bool ears::updateModule() {
 
     return true;
 }
-
-
-/*
-*   Get the context path of a .grxml grammar, and return it as a string
-*
-*/
-// string ears::grammarToString(string sPath)
-// {
-//     string sOutput = "";
-//     ifstream isGrammar(sPath.c_str());
-
-//     if (!isGrammar)
-//     {
-//         yInfo() << "Error in ears::grammarToString. Couldn't open file : " << sPath << ".";
-//         return "Error in ears::grammarToString. Couldn't open file";
-//     }
-
-//     string sLine;
-//     while (getline(isGrammar, sLine))
-//     {
-//         sOutput += sLine;
-//         sOutput += "\n";
-//     }
-
-//     return sOutput;
-// }
