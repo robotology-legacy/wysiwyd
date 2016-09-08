@@ -12,12 +12,10 @@
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
 import warnings
-import matplotlib.pyplot as plt
 import sys
 import numpy
 import numpy as np
 from SAM.SAM_Core import SAMCore
-from SAM.SAM_Core import samOptimiser
 from SAM.SAM_Core import SAMTesting
 from SAM.SAM_Core.SAM_utils import initialiseModels
 np.set_printoptions(threshold=numpy.nan)
@@ -28,8 +26,6 @@ modelPath = sys.argv[2]
 driverName = sys.argv[3]
 
 mm = initialiseModels(sys.argv[1:4], sys.argv[4])
-
-samOptimiser.deleteModel(modelPath, 'exp' + str(mm[0].experiment_number))
 
 if len(mm) > 1:
     SAMTesting.calibrateMultipleModelRecall(mm)
@@ -58,7 +54,7 @@ for k in range(numParts):
         mm[k].paramsDict['textLabels'] = mm[0].textLabels
         mm[k].paramsDict['modelQ'] = mm[0].SAMObject.Q
     elif mm[0].model_mode == 'temporal':
-        mm[k].paramsDict['windowSize'] = mm[0].windowSize
+        mm[k].paramsDict['temporalModelWindowSize'] = mm[0].temporalModelWindowSize
 
     if mm[k].model_type == 'mrd' and mm[k].model_mode != 'temporal':
         print mm[k].Y['L'].shape
@@ -94,5 +90,6 @@ for k in range(numParts):
     print '-------------------'
     print 'Saving: ' + mm[k].fname
     mm[k].saveParameters()
-
+    print 'Keys:'
+    print mm[k].paramsDict.keys()
     SAMCore.save_pruned_model(mm[k].SAMObject, mm[k].fname, mm[0].economy_save, extraDict=mm[k].paramsDict)

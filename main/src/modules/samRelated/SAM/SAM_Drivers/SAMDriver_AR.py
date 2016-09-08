@@ -422,6 +422,7 @@ class SAMDriver_AR(SAMDriver):
         for k in self.paramsDict['ignoreLabels']:
             ignoreInds.append(labels.index(k))
 
+        # the following block of code extracts blocks of actions from the log files
         dataStruct = []
         for arr in range(len(dataLogList)):
             for label in labels:
@@ -431,17 +432,19 @@ class SAMDriver_AR(SAMDriver):
                 if len(idxs) > 5:
                     for idxIndex in range(len(idxs)):
                         if idxIndex != 0:
-                            if idxs[idxIndex] - idxs[idxIndex-1] != 1:
-                                if idxIndex-startIdx > 5:
-                                    for joint in jointsList+objectsList[1:]:
+                            if idxs[idxIndex] - idxs[idxIndex - 1] != 1:
+                                if idxIndex - startIdx > 5:
+                                    print idxs[startIdx:idxIndex]
+                                    for joint in jointsList + objectsList[1:]:
                                         actionData = data[joint][arr][idxs[startIdx:idxIndex]]
                                         dataStruct.append([joint, label, arr, actionData.shape[0], actionData])
                                     startIdx = idxIndex
 
-                            if idxIndex+2 > len(idxs):
-                                if idxs[idxIndex] - idxs[idxIndex-1] != 1:
-                                    for joint in jointsList+objectsList[1:]:
-                                        actionData = data[joint][arr][idxs[startIdx:idxIndex+1]]
+                            if idxIndex + 2 > len(idxs):
+                                if idxIndex - startIdx > 5:
+                                    print idxs[startIdx:idxIndex + 1]
+                                    for joint in jointsList + objectsList[1:]:
+                                        actionData = data[joint][arr][idxs[startIdx:idxIndex + 1]]
                                         dataStruct.append([joint, label, arr, actionData.shape[0], actionData])
 
         for a in range(len(dataLogList)):
@@ -624,8 +627,6 @@ class SAMDriver_AR(SAMDriver):
         if self.verbose:
             print self.Y.shape
             print len(self.L)
-
-        return self.Y.shape[0]
 
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 

@@ -12,6 +12,7 @@
 import numpy as np
 from ConfigParser import SafeConfigParser
 import pickle
+from SAM.SAM_Core import samOptimiser
 from os import listdir
 from os.path import join, isdir
 import threading
@@ -44,6 +45,7 @@ def initialiseModels(argv, update, initMode='training'):
     print '-------------------'
     print 'Training Settings:'
     print
+    print 'Init mode: '.ljust(off), initMode
     print 'Data Path: '.ljust(off), dataPath
     print 'Model Path: '.ljust(off), modelPath
     print 'Participants: '.ljust(off), participantList
@@ -70,7 +72,8 @@ def initialiseModels(argv, update, initMode='training'):
 
     defaultParamsList = ['experiment_number', 'model_type', 'model_num_inducing',
                          'model_num_iterations', 'model_init_iterations', 'verbose',
-                         'Quser', 'kernelString', 'ratioData', 'update_mode', 'model_mode', 'windowSize']
+                         'Quser', 'kernelString', 'ratioData', 'update_mode', 'model_mode',
+                         'temporalModelWindowSize']
 
     mySAMpy.experiment_number = None
     mySAMpy.model_type = None
@@ -127,8 +130,8 @@ def initialiseModels(argv, update, initMode='training'):
 
             if parser.has_option(trainName, 'model_mode'):
                 mySAMpy.model_mode = parser.get(trainName, 'model_mode')
-                if mySAMpy.model_mode == 'temporal' and parser.has_option(trainName, 'windowSize'):
-                        mySAMpy.windowSize = int(parser.get(trainName, 'windowSize'))
+                if mySAMpy.model_mode == 'temporal' and parser.has_option(trainName, 'temporalModelWindowSize'):
+                        mySAMpy.temporalWindowSize = int(parser.get(trainName, 'temporalModelWindowSize'))
                 else:
                     temporalFlag = True
             else:
@@ -170,10 +173,7 @@ def initialiseModels(argv, update, initMode='training'):
             found = parser.read(dataPath + "/config.ini")
 
             # load parameters from config file
-            if parser.has_option(trainName, 'experiment_number'):
-                mySAMpy.experiment_number = int(parser.get(trainName, 'experiment_number'))
-            else:
-                mySAMpy.experiment_number = int(modelPath.split('__')[-2].replace('exp', ''))
+            mySAMpy.experiment_number = int(modelPath.split('__')[-1].replace('exp', ''))
 
             modelPickle = pickle.load(open(modelPath+'.pickle', 'rb'))
             mySAMpy.paramsDict = dict()
@@ -186,7 +186,7 @@ def initialiseModels(argv, update, initMode='training'):
             mySAMpy.model_type = modelPickle['model_type']
             mySAMpy.model_mode = modelPickle['model_mode']
             if mySAMpy.model_mode == 'temporal':
-                mySAMpy.windowSize = modelPickle['windowSize']
+                mySAMpy.temporalModelWindowSize = modelPickle['temporalModelWindowSize']
                 mySAMpy.model_type = 'mrd'
             mySAMpy.model_num_inducing = modelPickle['model_num_inducing']
             mySAMpy.model_num_iterations = modelPickle['model_num_iterations']
@@ -236,8 +236,8 @@ def initialiseModels(argv, update, initMode='training'):
         mySAMpy.L = np.asarray([mySAMpy.textLabels.index(i) for i in mySAMpy.L])[:, None]
         mySAMpy.textLabels = mySAMpy.textLabels
     else:
-        mySAMpy.X, mySAMpy.Y = transformTimeSeriesToSeq(mySAMpy.Y1, mySAMpy.windowSize)
-        mySAMpy.L, mySAMpy.tmp = transformTimeSeriesToSeq(mySAMpy.U1, mySAMpy.windowSize)
+        mySAMpy.X, mySAMpy.Y = transformTimeSeriesToSeq(mySAMpy.Y1, mySAMpy.temporalModelWindowSize)
+        mySAMpy.L, mySAMpy.tmp = transformTimeSeriesToSeq(mySAMpy.U1, mySAMpy.temporalModelWindowSize)
 
     mm = [mySAMpy]
     # mm.append(mySAMpy)
@@ -299,8 +299,9 @@ def initialiseModels(argv, update, initMode='training'):
 
         print 'minData = ' + str(minData)
         print 'ratioData = ' + str(mySAMpy.ratioData)
-
+    print '-------------------------------------------------------------------------------------------------'
     if initMode == 'training':
+        samOptimiser.deleteModel(modelPath, 'exp' + str(mm[0].experiment_number))
         for k in range(len(mm[0].participantList)):
             # for k = 0 check if multiple model or not
             if mm[0].participantList[k] != 'root':
@@ -367,15 +368,34 @@ class timeout(object):
         return wrapped_f
 
 
-def transformTimeSeriesToSeq(Y, timeWindow):
+def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False, noY=False):
+    # TODO add parameter for number of points to skip between sampled windows
     Ntr, D = Y.shape
-    blocksNumber = Ntr - timeWindow
-    X = np.zeros((blocksNumber, timeWindow * D))
-    Ynew = np.zeros((blocksNumber, D))
+    if noY:
+        blocksNumber = Ntr - timeWindow + 1
+    else:
+        blocksNumber = Ntr - timeWindow
+    if normalised and reduced:
+        X = np.zeros((blocksNumber, (timeWindow - 1) * D))
+    else:
+        X = np.zeros((blocksNumber, timeWindow * D))
+
+    if not noY:
+        Ynew = np.zeros((blocksNumber, D))
+    else:
+        Ynew = None
+
     for i in range(blocksNumber):
         tmp = Y[i:i + timeWindow, :].T
+
+        if normalised:
+            tmp = np.subtract(tmp, tmp[:, 0][:, None])
+            if reduced:
+                tmp = np.delete(tmp, 0, 1)
         X[i, :] = tmp.flatten().T
-        Ynew[i, :] = Y[i + timeWindow, :]
+
+        if not noY:
+            Ynew[i, :] = Y[i + timeWindow, :]
 
     return X, Ynew
 
