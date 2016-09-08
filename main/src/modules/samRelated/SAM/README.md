@@ -1,6 +1,9 @@
 # SAM_Sheffield
 
-The devel branch of SAM_Sheffield contains untested code and is used for development. This branch also includes SAM_Demos and SAM_models
+Authors: Uriel Martinez, Daniel Camilleri, Andreas Damianou, Luke Boorman
+email:   d.camilleri@sheffield.ac.uk
+
+A Synthetic Autobiographical Memory for the iCub robot. This module contains the core, which implements the high-level functionality, and the drivers which act as middleware between the perceptual system and the core.
 
 ##Features
 
@@ -17,6 +20,25 @@ interactionSAMModel also allows for great flexibility in the method of data coll
 -`future_buffered` : 	In this case, when a classification request is sent, the future n data points are collected, classified and a classification returned.
 
 Setting a model to any one of these data collection methods and also specifying the buffer lengths is done within sensory_level_config.ini
+
+##PreRequisites
+
+This module is using:
+- Python code which is included in this repo
+And requires:
+- GPy dependency from https://github.com/SheffieldML/GPy. The best way to include this is:
+    1) clone the GPy repository https://github.com/SheffieldML/GPy.git
+    2) switch to branch "devel"
+    3) Include the directory where you cloned GPy in your PYTHONPATH.
+    4) Move to the GPy directory and run: "python setup.py install" (try "python setup.py build_ext --inplace" if you want to do the installation in the same directory).
+- GPyOpt dependency from https://github.com/SheffieldML/GPy. The best way to include this is:
+    1) sudo apt-get install python-pip
+    2) pip install gpyopt
+
+If this does not work:
+    1) clone the GPyOpt repository https://github.com/SheffieldML/GPy.git
+    2) Include the directory where you cloned GPyOpt in your PYTHONPATH.
+    4) Move to the GPyOpt directory and run: "python setup.py develop"
 
 ##How to use:
 
@@ -91,8 +113,19 @@ verbose:      defines the level of verbosity of samSupervisor
 
 ####SAM_Core: 
 - Includes the base classes for SAM_Core and SAM_Driver
-- Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR      
+- Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR
+-Implements the core functionality of SAM. This module is the memory system where the already transformed (by SAM_Drivers) perceived signals are compressed and stored in a coherent way. Coherent meaning that audio, visual etc signals are treated in analogous manner. This model is built upon the deep Gaussian process model using GPy, so that high-dimensional, noisy data can be compressed, chunked and "cleaned" automatically in a probabilistic way (ie the model is trying to keep the "relevant" variance in the data and eliminate redundancies in the representation by encoding memories as "clean" and non-redundant signals).
 
 ####SAM_Drivers:
 - This folder contains all developed drivers. 
 - These drivers are accessed via the generic trainModel and interactionModel classes which are called from samSupervisor
+- This module contains the implementation for transforming the raw perceptual signal into preprocessed signal. For example, in the biological brain, the visual cortex is hierarchically processing the visual stimuli before the signal is reaching the brain. In the current implementation, the drivers are doing this work, and currently we have implemented: Faces, Actions
+
+##License
+Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+website: http://wysiwyd.upf.edu/
+Permission is granted to copy, distribute, and/or modify this program under the terms of the GNU General Public License, version 2 or any later version published by the Free Software Foundation.
+
+A copy of the license can be found at $WYSIWYD_ROOT/license/gpl.txt
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details
