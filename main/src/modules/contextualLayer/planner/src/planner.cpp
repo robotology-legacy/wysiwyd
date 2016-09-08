@@ -1,6 +1,10 @@
 #include "planner.h"
 #include "wrdac/subsystems/subSystem_recog.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+
 bool Planner::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("planner")).asString().c_str();

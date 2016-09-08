@@ -1,5 +1,10 @@
 #include "behaviorManager.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::sig;
+using namespace yarp::math;
+
 bool BehaviorManager::interruptModule()
 {
     rpc_in_port.interrupt();
@@ -78,7 +83,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     }
 
 
-    if (!rf.check("use_ears",Value("false")).asBool())
+    if (rf.check("use_ears",Value("false")).asBool())
     {
         while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
             yWarning() << "Ears is not reachable";

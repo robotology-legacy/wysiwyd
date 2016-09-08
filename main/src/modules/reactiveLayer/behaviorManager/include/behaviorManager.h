@@ -15,11 +15,6 @@
 #include "followingOrder.h"
 #include "recognitionOrder.h"
 
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::math;
-
 
 class BehaviorManager: public RFModule
 {

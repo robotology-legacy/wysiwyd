@@ -1,5 +1,9 @@
 #include "greeting.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::sig;
+
 void Greeting::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     string name = "greeting";
