@@ -120,7 +120,6 @@ class SAMDriver:
 
         return self.segTestConf
 
-
     # """"""""""""""""
     # Method to train, store and load the learned model
     # Inputs:

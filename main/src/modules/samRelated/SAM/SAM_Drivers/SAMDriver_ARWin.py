@@ -320,8 +320,8 @@ class SAMDriver_ARWin(SAMDriver):
                 else:
                     combinedHands = np.vstack([combinedHands, dataVecAll[j, idxBase:idxBase + itemsPerJoint]])
 
-        print dataVecAll.shape
-        print combinedHands.shape
+            print dataVecAll.shape
+            print combinedHands.shape
 
         dataVecReq = None
 
@@ -414,6 +414,8 @@ class SAMDriver_ARWin(SAMDriver):
         [self.seqTestConf, self.seqTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, self.data2Labels, verbose)
 
         return self.seqTestConf
+        # return numpy.ones([3, 3])
+
 
     def messageChecker(self, dataMessage, mode):
 
@@ -456,13 +458,13 @@ class SAMDriver_ARWin(SAMDriver):
         if len(dataList) == self.paramsDict['windowSize']:
             dataStrings = []
             for j in dataList:
-                [t, goAhead] = self.messageChecker(j, mode)
+                [t, goAhead] = self.messageChecker(j.toString(), mode)
                 if goAhead:
                     dataStrings.append(t)
 
             data = dict()
             print 'going ahead'
-            if len(dataStrings) == self.paramsDict['windowSize']:
+            if len(dataStrings) >= self.paramsDict['windowSize']:
                 jointsList = []
                 objectsList = []
                 # extract data parts
@@ -506,15 +508,21 @@ class SAMDriver_ARWin(SAMDriver):
                     [label, val] = SAMTesting.testSegment(thisModel, vec, True, visualiseInfo=None)
                     classification = label.split('_')[0]
                     if classification == 'unknown':
-                        sentence.append("You did an " + label + " action on the " + j[0] + " with your " +
-                                        j[1].replace('hand', '') + ' hand')
+                        sentence.append("You did an " + label + " action on the " + j[0])
                     else:
-                        sentence.append("You " + label.split('_')[0] + " the " + j[0] +
-                                        " with your " + j[1].replace('hand', '') + ' hand')
-                    print '\n'.join(sentence)
-                    print '------------------------------------------------------'
+                        sentence.append("You " + label.split('_')[0] + " the " + j[0])
 
-                return str(sentence)
+                    if len(j) > 1:
+                        sentence[-1] += " with your " + j[1].replace('hand', '') + ' hand'
+                    print sentence[-1]
+                    print '------------------------------------------------------'
+                    if classification == 'unknown':
+                        sentence.pop(-1)
+
+                if len(sentence) > 1:
+                    return str(sentence)
+                else:
+                    return 'None'
             else:
                 print 'Some incorrect messages received'
                 return None

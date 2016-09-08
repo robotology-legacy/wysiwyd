@@ -54,7 +54,7 @@ for k in range(numParts):
         mm[k].paramsDict['textLabels'] = mm[0].textLabels
         mm[k].paramsDict['modelQ'] = mm[0].SAMObject.Q
     elif mm[0].model_mode == 'temporal':
-        mm[k].paramsDict['windowSize'] = mm[0].windowSize
+        mm[k].paramsDict['temporalModelWindowSize'] = mm[0].temporalModelWindowSize
 
     if mm[k].model_type == 'mrd' and mm[k].model_mode != 'temporal':
         print mm[k].Y['L'].shape

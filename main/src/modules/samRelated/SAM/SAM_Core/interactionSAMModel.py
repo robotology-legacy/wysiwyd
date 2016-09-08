@@ -65,6 +65,7 @@ class interactionSAMModel(yarp.RFModule):
         self.modelPath = sys.argv[2]
         self.driverName = sys.argv[4]
         self.configPath = sys.argv[3]
+        self.modelRoot = self.dataPath.split('/')[-1]
 
         off = 17
         print '-------------------'
@@ -72,6 +73,7 @@ class interactionSAMModel(yarp.RFModule):
         print
         print 'Data Path: '.ljust(off), self.dataPath
         print 'Model Path: '.ljust(off), self.modelPath
+        print 'Model Root: '.ljust(off),
         print 'Config Path: '.ljust(off), self.configPath
         print 'Driver:'.ljust(off), self.driverName
         print '-------------------'
@@ -83,79 +85,83 @@ class interactionSAMModel(yarp.RFModule):
         # parse settings from config file
         parser2 = SafeConfigParser()
         parser2.read(self.configPath)
-        self.portNameList = parser2.items(self.dataPath.split('/')[-1])
-        print self.portNameList
-        self.portsList = []
-        for j in range(len(self.portNameList)):
-            if self.portNameList[j][0] == 'rpcbase':
-                self.portsList.append(yarp.Port())
-                self.portsList[j].open(self.portNameList[j][1]+":i")
-                self.svPort = j
-                self.attach(self.portsList[j])
-            elif self.portNameList[j][0] == 'callsign':
-                # should check for repeated call signs by getting list from samSupervisor
-                self.callSignList = self.portNameList[j][1].split(',')
-            elif self.portNameList[j][0] == 'collectionmethod':
-                self.collectionMethod = self.portNameList[j][1].split(' ')[0]
-                try:
-                    if self.mm[0].model_mode != 'temporal':
-                        self.bufferSize = int(self.portNameList[j][1].split(' ')[1])
-                    elif self.mm[0].model_mode == 'temporal':
-                        self.bufferSize = self.mm[0].windowSize
-                except ValueError:
-                    print 'collectionMethod bufferSize is not an integer'
-                    print 'Should be e.g: collectionMethod = buffered 3'
-                    return False
+        if self.modelRoot in parser2.sections():
+            self.portNameList = parser2.items(self.dataPath.split('/')[-1])
+            print self.portNameList
+            self.portsList = []
+            for j in range(len(self.portNameList)):
+                if self.portNameList[j][0] == 'rpcbase':
+                    self.portsList.append(yarp.Port())
+                    self.portsList[j].open(self.portNameList[j][1]+":i")
+                    self.svPort = j
+                    self.attach(self.portsList[j])
+                elif self.portNameList[j][0] == 'callsign':
+                    # should check for repeated call signs by getting list from samSupervisor
+                    self.callSignList = self.portNameList[j][1].split(',')
+                elif self.portNameList[j][0] == 'collectionmethod':
+                    self.collectionMethod = self.portNameList[j][1].split(' ')[0]
+                    try:
+                        if self.mm[0].model_mode != 'temporal':
+                            self.bufferSize = int(self.portNameList[j][1].split(' ')[1])
+                        elif self.mm[0].model_mode == 'temporal':
+                            self.bufferSize = self.mm[0].windowSize
+                    except ValueError:
+                        print 'collectionMethod bufferSize is not an integer'
+                        print 'Should be e.g: collectionMethod = buffered 3'
+                        return False
 
-                if self.collectionMethod not in ['buffered', 'continuous', 'future_buffered']:
-                    print 'collectionMethod should be set to buffered / continuous / future_buffered'
-                    return False
-            else:
-                parts = self.portNameList[j][1].split(' ')
-                print parts
-
-                if parts[1].lower() == 'imagergb':
-                    self.portsList.append(yarp.BufferedPortImageRgb())
-                    self.portsList[j].open(parts[0])
-
-                elif parts[1].lower() == 'imagemono':
-                    self.portsList.append(yarp.BufferedPortImageMono())
-                    self.portsList[j].open(parts[0])
-
-                elif parts[1].lower() == 'bottle':
-                    self.portsList.append(yarp.BufferedPortBottle())
-                    self.portsList[j].open(parts[0])
-
+                    if self.collectionMethod not in ['buffered', 'continuous', 'future_buffered']:
+                        print 'collectionMethod should be set to buffered / continuous / future_buffered'
+                        return False
                 else:
-                    print 'Data type ', parts[1], 'for ', self.portNameList[j][0], ' unsupported'
-                    return False
-                # mrd models with label/instance training will always have:
-                # 1 an input data line which is used when a label is requested
-                # 2 an output data line which is used when a generated instance is required
-                if parts[0][-1] == 'i':
-                    self.labelPort = j
-                elif parts[0][-1] == 'o':
-                    self.instancePort = j
+                    parts = self.portNameList[j][1].split(' ')
+                    print parts
 
-        if self.svPort is None or self.labelPort is None or self.instancePort is None:
-            print 'Config file properties incorrect. Should look like this:'
-            print '[Actions]'
-            print 'dataIn = /sam/actions/actionData:i Bottle'
-            print 'dataOut = /sam/actions/actionData:o Bottle'
-            print 'rpcBase = /sam/actions/rpc'
-            print 'callSign = ask_action_label, ask_action_instance'
-            print 'collectionMethod = buffered 3'
+                    if parts[1].lower() == 'imagergb':
+                        self.portsList.append(yarp.BufferedPortImageRgb())
+                        self.portsList[j].open(parts[0])
 
-        # self.mm[0].configInteraction(self)
-        self.inputType = self.portNameList[self.labelPort][1].split(' ')[1].lower()
-        self.outputType = self.portNameList[self.labelPort][1].split(' ')[1].lower()
-        self.dataList = []
-        self.classificationList = []
-        yarp.Network.init()
+                    elif parts[1].lower() == 'imagemono':
+                        self.portsList.append(yarp.BufferedPortImageMono())
+                        self.portsList[j].open(parts[0])
 
-        # self.test()
+                    elif parts[1].lower() == 'bottle':
+                        self.portsList.append(yarp.BufferedPortBottle())
+                        self.portsList[j].open(parts[0])
 
-        return True
+                    else:
+                        print 'Data type ', parts[1], 'for ', self.portNameList[j][0], ' unsupported'
+                        return False
+                    # mrd models with label/instance training will always have:
+                    # 1 an input data line which is used when a label is requested
+                    # 2 an output data line which is used when a generated instance is required
+                    if parts[0][-1] == 'i':
+                        self.labelPort = j
+                    elif parts[0][-1] == 'o':
+                        self.instancePort = j
+
+            if self.svPort is None or self.labelPort is None or self.instancePort is None:
+                print 'Config file properties incorrect. Should look like this:'
+                print '[Actions]'
+                print 'dataIn = /sam/actions/actionData:i Bottle'
+                print 'dataOut = /sam/actions/actionData:o Bottle'
+                print 'rpcBase = /sam/actions/rpc'
+                print 'callSign = ask_action_label, ask_action_instance'
+                print 'collectionMethod = buffered 3'
+
+            # self.mm[0].configInteraction(self)
+            self.inputType = self.portNameList[self.labelPort][1].split(' ')[1].lower()
+            self.outputType = self.portNameList[self.labelPort][1].split(' ')[1].lower()
+            self.dataList = []
+            self.classificationList = []
+            yarp.Network.init()
+
+            # self.test()
+
+            return True
+        else:
+            print 'Section ' + self.modelRoot + ' not found in ' + self.configPath
+            return False
 
     def close(self):
         # close ports of loaded models
@@ -352,14 +358,15 @@ class interactionSAMModel(yarp.RFModule):
             if thisClass is not None:
                 # empty dataList
                 self.dataList = []
-                # add classification to classificationList to be retrieved during respond method
-                print 'classList len:', len(self.classificationList)
-                if len(self.classificationList) == self.bufferSize:
-                    # FIFO buffer first item in list is oldest
-                    self.classificationList.pop(0)
-                    self.classificationList.append(thisClass)
-                else:
-                    self.classificationList.append(thisClass)
+                if thisClass != 'None':
+                    # add classification to classificationList to be retrieved during respond method
+                    print 'classList len:', len(self.classificationList)
+                    if len(self.classificationList) == self.bufferSize:
+                        # FIFO buffer first item in list is oldest
+                        self.classificationList.pop(0)
+                        self.classificationList.append(thisClass)
+                    else:
+                        self.classificationList.append(thisClass)
         # -------------------------------------------------
         elif self.collectionMethod == 'future_buffered':
             pass
