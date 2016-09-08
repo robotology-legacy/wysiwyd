@@ -4,6 +4,7 @@
 *.orig
 *.pyc
 CMakeLists.txt.user
+.catkin_tools
 
 WYSIWYD.config
 WYSIWYD.creator
@@ -11,3 +12,6 @@ WYSIWYD.creator.user
 WYSIWYD.files
 WYSIWYD.includes
 
+main/src/modules/perspectiveTaking/build
+main/src/modules/perspectiveTaking/logs
+main/src/modules/perspectiveTaking/devel
