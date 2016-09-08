@@ -78,10 +78,13 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     }
     if (rf.check("use_ears",Value("false")).asBool())
     {
+        yDebug()<<"using ears";
         while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
             yWarning() << "Ears is not reachable";
             yarp::os::Time::delay(0.5);
         }
+    }else{
+        yDebug()<<"not using ears";
     }
 
     // id = 0;
@@ -189,8 +192,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
 
                 Bottle args;
                 if (cmd.size()>1){
-                    for (int i = 1; i < cmd.size(); i++)
-                        args.addList()=*cmd.get(i).asList();
+                    args = cmd.tail();
                 }
                 beh->trigger(args);
                 behavior_triggered = true;
