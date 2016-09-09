@@ -10,18 +10,19 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Pointing::run";
     Bottle *sensation = sensation_port_in.read();
 
-    if(sensation->size()==0) {
-        iCub->say("There are no objects I can point at.");
-        return;
-    }
     string obj_name, sentence;
     bool no_objects = true;
     if (args.size()!=0){
-        obj_name = args.get(0).asString();
+        yDebug()<<args.toString() << args.size();
+        obj_name = args.get(0).asList()->toString();
         yDebug() << "Object selected: " << obj_name;
         sentence = "Ok, this is the ";
         no_objects=false;
     }else{
+        if(sensation->size()==0) {
+            iCub->say("There are no objects I can point at.");
+            return;
+        }
         int id = yarp::os::Random::uniform(0, sensation->size() - 1);
         obj_name = sensation->get(id).asList()->get(1).asString();
         yDebug() << "Randomly selected: " << id << " " << obj_name;
