@@ -342,11 +342,11 @@ bool Planner::updateModule() {
                     }
 
                     // record action selection reasoning in ABM
-                    // iCub->getABMClient()->sendActivity("reasoning",
-                    //     actionName,
-                    //     "planner",  // expl: "pasar", "drives"...
-                    //     lArgument,
-                    //     true);
+                    iCub->getABMClient()->sendActivity("reasoning",
+                        actionName,
+                        "planner",  // expl: "pasar", "drives"...
+                        lArgument,
+                        true);
                     yInfo() << actionName + " reasoning has been recorded in the ABM";
 
                     if (state)
@@ -407,11 +407,11 @@ bool Planner::updateModule() {
                             lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
                             lArgument.push_back(std::pair<std::string, std::string>(actionName, "object"));
                             lArgument.push_back(std::pair<std::string, std::string>("bottom", "result"));
-                            // iCub->getABMClient()->sendActivity("reasoning",
-                            //     "priority",
-                            //     "planner",  // expl: "pasar", "drives"...
-                            //     lArgument,
-                            //     true);
+                            iCub->getABMClient()->sendActivity("reasoning",
+                                "priority",
+                                "planner",  // expl: "pasar", "drives"...
+                                lArgument,
+                                true);
                             yInfo() << "addition of " + actionName + " to bottom of list has been recorded in the ABM";
                         }
 
@@ -437,11 +437,11 @@ bool Planner::updateModule() {
                             lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
                             lArgument.push_back(std::pair<std::string, std::string>(actionName, "object"));
                             lArgument.push_back(std::pair<std::string, std::string>(to_string(insertID), "result"));
-                            // iCub->getABMClient()->sendActivity("reasoning",
-                            //     "priority",
-                            //     "planner",  // expl: "pasar", "drives"...
-                            //     lArgument,
-                            //     true);
+                            iCub->getABMClient()->sendActivity("reasoning",
+                                "priority",
+                                "planner",  // expl: "pasar", "drives"...
+                                lArgument,
+                                true);
                             yInfo() << "addition of " + actionName + " to index " << insertID << " of list has been recorded in the ABM";
                         }
                     }
@@ -504,11 +504,11 @@ bool Planner::updateModule() {
             {
                 lArgument.push_back(std::pair<std::string, std::string>(action_list[i], "action"));
             }
-            // iCub->getABMClient()->sendActivity("reasoning",
-            //     "action_list",
-            //     "planner",  // expl: "pasar", "drives"...
-            //     lArgument,
-            //     true);
+            iCub->getABMClient()->sendActivity("reasoning",
+                "action_list",
+                "planner",  // expl: "pasar", "drives"...
+                lArgument,
+                true);
             // yInfo() << "sent action_list to ABM";
             lArgument.clear();
 
@@ -562,11 +562,11 @@ bool Planner::updateModule() {
                 lArgument.push_back(std::pair<std::string, std::string>("keep_action", "predicate"));
                 lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                 lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
-                // iCub->getABMClient()->sendActivity("reasoning",
-                //     "iCub",
-                //     "planner",  // expl: "pasar", "drives"...
-                //     lArgument,
-                //     true);
+                iCub->getABMClient()->sendActivity("reasoning",
+                    "iCub",
+                    "planner",  // expl: "pasar", "drives"...
+                    lArgument,
+                    true);
                 yInfo() << action_list[0] + " failure and reattempt has been recorded in the ABM";
 
                 if (attemptCnt > 2)
