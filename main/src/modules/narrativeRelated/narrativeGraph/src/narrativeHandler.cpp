@@ -206,9 +206,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
-    cout << "linking scenarios 3 3" << endl;
-    linkMeaningScenario(3, 3);
-    cout << "linking scenarios 2 2" << endl;
+//    cout << "linking scenarios 3 3" << endl;
+  //  linkMeaningScenario(3, 3);
+    //cout << "linking scenarios 2 2" << endl;
     linkMeaningScenario(2, 2);
     cout << endl << endl;
     displayDFW();
@@ -2314,7 +2314,7 @@ void narrativeHandler::displayDFW(){
         }
 
         cout << "\t\t simple: " << endl;
-        for (vector<storygraph::sKeyMean>::iterator itI = itD->vSingleIGARF.begin();
+        for (vector<storygraph::EVT_IGARF>::iterator itI = itD->vSingleIGARF.begin();
             itI != itD->vSingleIGARF.end();
             itI++){
             cout << "\t\t\t" << itI->toString() << endl;

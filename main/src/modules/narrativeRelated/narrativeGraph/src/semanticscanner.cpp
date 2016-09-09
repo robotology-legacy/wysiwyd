@@ -63,6 +63,7 @@ vector <string> VocabularyHandler::extractOCW(const vector <string>& words) {
 }
 
 bool VocabularyHandler::shareMeaning(string word, vector<string> ocw) {
+    if (word == "") return false;
     if (find(ocw.begin(), ocw.end(), word) != ocw.end())
         return true;
     for (set<string> wordClass : VocabularyHandler::vSynonyms) {
@@ -77,6 +78,7 @@ bool VocabularyHandler::shareMeaning(string word, vector<string> ocw) {
 }
 
 bool VocabularyHandler::shareMeaning(string word, set<string> ocw) {
+    if (word == "") return false;
     if (ocw.find(word) != ocw.end())
         return true;
     for (set<string> wordClass : VocabularyHandler::vSynonyms) {

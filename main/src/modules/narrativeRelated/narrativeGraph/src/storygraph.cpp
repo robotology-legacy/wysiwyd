@@ -69,6 +69,7 @@ void SituationModel::showIGARF(int i, int level) {
         return;
 
     const sIGARF &evt = vIGARF.at(i);
+    vIGARF.at(i).iLevel= level;
     margin(level);
     cout << "[" << i << "] " << endl;
     line(level);
@@ -575,6 +576,10 @@ void SituationModel::makeStructure() {
     showIGARF(head);
 }
 
+
+
+
+
 /*-------------------------------------*
  * SMtoTrain and SMandNarrativeToTrain *
  *-------------------------------------*/
@@ -584,24 +589,37 @@ int SituationModel::proximityScoreAction(int i, const vector<string>& ocw) {
     const sActionEvt& e = vActionEvts.at(i);
     int score = 0;
 
+    //cout << "comparing: ";
+    //for (int ii = 0; ii < ocw.size(); ii++){
+    //    cout << ocw[ii] << " ";
+    //}
+    //cout << " <-> " << e.predicate << " " << e.agent << " " << e.object << " " << e.recipient<<" ; score: ";
+
 
     // if ocw has only 1 element:
     // check if predicate is predicate
     if (VocabularyHandler::shareMeaning(e.predicate, ocw[0]))
     {
+        //cout << "IDEM: " << e.predicate << " = " << ocw[0] << endl;
         score += 10;
     }
 
     // if at least 2 element
     if (ocw.size() > 1){
         if (VocabularyHandler::shareMeaning(e.agent, ocw[1]))
+        {
+            //cout << "IDEM: " << e.agent << " = " << ocw[1] << endl;
             score += 8;
+        }
     }
 
     // if at least 3 element
     if (ocw.size() > 2){
         if (VocabularyHandler::shareMeaning(e.object, ocw[2]))
+        {
+            //cout << "IDEM: " << e.object << " = " << ocw[2] << endl;
             score += 6;
+        }
     }
 
     // if at least 4 element
@@ -610,15 +628,16 @@ int SituationModel::proximityScoreAction(int i, const vector<string>& ocw) {
             score += 4;
     }
 
-
     if (VocabularyHandler::shareMeaning(e.predicate, ocw))
         score += 5;
     if (VocabularyHandler::shareMeaning(e.agent, ocw))
         score += 4;
-    if (e.object != "" && VocabularyHandler::shareMeaning(e.object, ocw))
+    if (VocabularyHandler::shareMeaning(e.object, ocw))
         score += 2;
-    if (e.recipient != "" && VocabularyHandler::shareMeaning(e.recipient, ocw))
+    if (VocabularyHandler::shareMeaning(e.recipient, ocw))
         score += 1;
+    //cout << score << endl;
+
 
     return score;// (score == 12) ? 1 : 0; // Binary return, if all the words in the sActionEvt don't need to be in ocw, it is best to return score
 }
@@ -629,24 +648,36 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     const sRelation& r = vRelations.at(i);
     int score = 0;
 
+    cout << "comparing: ";
+    for (int ii = 0; ii < ocw.size(); ii++){
+        cout << ocw[ii] << " ";
+    }
+    cout << " <-> " << r.verb << " " << r.subject << " " << r.object << " ; score: ";
 
     // if ocw has only 1 element:
     // check if predicate is predicate
     if (VocabularyHandler::shareMeaning(r.verb, ocw[0]))
     {
+ //       cout << "IDEM: " << r.verb << " = " << ocw[0] << endl;
         score += 10;
     }
 
     // if at least 2 element
     if (ocw.size() > 1){
         if (VocabularyHandler::shareMeaning(r.subject, ocw[1]))
+        {
+//            cout << "IDEM: " << r.subject << " = " << ocw[1] << endl;
             score += 8;
+        }
     }
 
     // if at least 3 element
     if (ocw.size() > 2){
         if (VocabularyHandler::shareMeaning(r.object, ocw[2]))
+        {
+//            cout << "IDEM: " << r.object << " = " << ocw[2] << endl;
             score += 6;
+        }
     }
 
     if (VocabularyHandler::shareMeaning(r.verb, ocw))
@@ -656,12 +687,15 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     if (VocabularyHandler::shareMeaning(r.object, ocw))
         score += 2;
 
+    cout << score << "; relation: " << i << endl;
+
     return score;// (score == 11) ? 1 : 0; // See proximityScoreAction(..)
 }
 
 vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore) {
     int score_max = 0;
     vector<sKeyMean>  vkmBest;
+    vector<int>   vScore;
     bool equal = false;
     sKeyMean km = createKey(-1, 'Z', -1);
     for (int i = 0; i < (int)vActionEvts.size(); i++) {
@@ -669,17 +703,27 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
         if (s >= score_max && s > 0) {
             equal = (s == score_max);
             score_max = s;
+            bool hasClear = false;
             // Search this event in the IGARF
             for (int j = 0; j < (int)vIGARF.size(); j++) {
                 if (vIGARF.at(j).tAction == ACTION_EVT && vIGARF.at(j).iAction == i) {
                     km = createKey(j, 'A', -1);
-                    if (!equal) vkmBest.clear();
+                    if (!equal && !hasClear) {
+                        hasClear = true;
+                        vkmBest.clear();
+                        vScore.clear();
+                    }
                     vkmBest.push_back(km);
+                    vScore.push_back(s);
                 }
                 else if (vIGARF.at(j).tResult == ACTION_EVT && vIGARF.at(j).iResult == i) {
                     km = createKey(j, 'R', -1);
-                    if (!equal) vkmBest.clear();
+                    if (!equal && !hasClear) {
+                        vkmBest.clear();
+                        vScore.clear();
+                    }
                     vkmBest.push_back(km);
+                    vScore.push_back(s);
                 }
             }
         }
@@ -690,25 +734,40 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
             equal = (s == score_max);
             score_max = s;
             for (int j = 0; j < (int)vIGARF.size(); j++) {
+                bool hasClear = false;
                 for (int k = 0; k < (int)vIGARF.at(j).vInitState.size(); k++) {
                     if (vIGARF.at(j).vInitState.at(k) == i) {
-                        km = createKey(j, 'I', k);
-                        if (!equal) vkmBest.clear();
+                        km = createKey(j, 'I', k);    
+                        if (!equal) {
+                            vkmBest.clear();
+                            vScore.clear();
+                            hasClear = true;
+                        }
                         vkmBest.push_back(km);
+                        vScore.push_back(s);
                     }
                 }
                 for (int k = 0; k < (int)vIGARF.at(j).vGoal.size(); k++) {
                     if (vIGARF.at(j).vGoal.at(k) == i) {
                         km = createKey(j, 'G', k);
-                        if (!equal) vkmBest.clear();
+                        if (!equal && !hasClear) {
+                            hasClear = true;
+                            vkmBest.clear();
+                            vScore.clear();
+                        }
                         vkmBest.push_back(km);
+                        vScore.push_back(s);
                     }
                 }
                 for (int k = 0; k < (int)vIGARF.at(j).vFinalState.size(); k++) {
                     if (vIGARF.at(j).vFinalState.at(k) == i) {
                         km = createKey(j, 'F', k);
-                        if (!equal) vkmBest.clear();
+                        if (!equal && !hasClear) {
+                            vkmBest.clear();
+                            vScore.clear();
+                        }
                         vkmBest.push_back(km);
+                        vScore.push_back(s);
                     }
                 }
             }
@@ -716,7 +775,7 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
     }
 
     if (vkmBest.size() > 1){// && score_max != 0) {
-        cout << "several best target: " << vkmBest.size() << endl;
+        cout << "several best target: " << vkmBest.size()<<endl;
     }
     iScore = score_max;
     cout << " **score: " << score_max << "** "<<endl;

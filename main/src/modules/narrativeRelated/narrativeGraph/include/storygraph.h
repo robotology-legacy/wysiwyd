@@ -38,6 +38,7 @@ namespace storygraph {
         int iResult; ///< The instance number of the Result cell
         std::vector < int > vFinalState; ///< The instance numbers of the relations describing the Final State
         int iNext;  ///< The instance number of the Next IGARF (in temporal order). -1 if there is no next event
+        int iLevel; /// level of depth of the IGARF
         std::string toString() {
             std::ostringstream os;
             os << tAction << " " << tResult << " action: " << iAction << ", result: " << iResult << ", next: " << iNext;
@@ -142,6 +143,8 @@ namespace storygraph {
                                                                /// then they are used to make links.
                                                                ///< @param create If true and if no known event or relation has been recognized in the meaning,
                                                                /// then a new sActionEvt or sRelation is created and added to the SituationModel (it is integrated in an IGARF).
+        std::vector <std::pair <int, int> >  SMtoStructure(int head);   /// return the list of IGARF with their levels
+
         void endSentence(); ///< Ends a sentence, avoid next event to be automatically link to last one
         // -- SMtoLRH
         void AUXautoLink(int iIGARF); // Auxiliary
@@ -161,17 +164,40 @@ namespace storygraph {
 
     };
 
+
+    class EVT_IGARF{
+    public:
+        sKeyMean km;
+        int iIgarf;
+        int iLevel;
+
+        std::string toString(){
+           std::ostringstream os;
+            os << km.iIGARF << " " << km.cPart << " " << km.iRel << " - " << iIgarf << " / " << iLevel;
+            return os.str();
+        }
+
+
+        EVT_IGARF(){}
+
+        EVT_IGARF(sKeyMean _km, int ig, int il){
+            km = _km;
+            iIgarf = ig;
+            iLevel = il;
+        }
+    };
+
+
     // class of Discourse Function Words
     class DFW {
     public:
         std::string  sName;
         DFW(std::string name);
 
-        std::vector <sKeyMean>   vSingleIGARF;
-        std::vector <std::pair <sKeyMean,sKeyMean> >   vDoubleIGARF;
-
-
+        std::vector <EVT_IGARF>   vSingleIGARF;
+        std::vector <std::pair <EVT_IGARF, EVT_IGARF> >   vDoubleIGARF;
     };
+
 }
 
 #endif

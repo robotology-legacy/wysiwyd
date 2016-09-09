@@ -1017,15 +1017,16 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         int iPreposition = 0;   // get the order of the preposition in the sentence
         int iNbPreposition = level1->vSentence.size();  // nb of preposition in the sentence
         bool isDFW = level1->vSentence[0].vOCW.size() == 1;
-        sKeyMean singleIGARF;
-        pair<sKeyMean, sKeyMean> doubleIGARF;
+        vector<EVT_IGARF> singleIGARF;
+        vector<EVT_IGARF>  doubleBefore;
+        vector<EVT_IGARF>  doubleAfter;
 
         bool bAllAction = true;  //depend of the score of findBest
 
         bool firstsKeyMean = true; // in the case of DFW with 2 skeymean
 
 
-        cout << "sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
+        cout << "---------------------------------------------------------------------\n"<< "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
 
 
         for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
@@ -1041,9 +1042,9 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             }
 
             int iScore = 0;
-            vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
+            
             if (isDFW && iPreposition == 0){ // only one OCW: DFW
-                cout << "\t\t\t sentence has a DFW." << endl;
+                //cout << "\t\t\t sentence has a DFW." << endl;
                 string nameDFW = level2->vOCW[0];
                 isMultiple = true;
                 bool found = false;
@@ -1061,63 +1062,87 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                     cout << " creating new DFW: " << currentDFW->sName << endl;
                 }
             }
+            else{
+                vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
 
-            bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
+                bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
 
-            if (bAllAction){     // if found;
-                for (int kk = 0; kk < vkTmp.size(); kk++)
-                {
-                    sKeyMean kTmp = vkTmp[kk];
-                    cout << "\t result find: " << (kTmp.toString()) << endl;
-                    if (kTmp.iIGARF != -1){
-                        //currentIGARF = sm.vIGARF[kTmp.iIGARF];
+                if (bAllAction){     // if found;
+                    for (int kk = 0; kk < vkTmp.size(); kk++)
+                    {
+                        sKeyMean kTmp = vkTmp[kk];
+                        cout << "\t result find: " << (kTmp.toString()) << endl;
+                        int iIg, iL;
+                        if (kTmp.iIGARF != -1){
+                            //currentIGARF = sm.vIGARF[kTmp.iIGARF];
+                            
+
+                            //vIGARF.at(j).vGoal.at(k)
+                            if (kTmp.cPart == 'A'){
+                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
+                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].iAction << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                    << " [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
+                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
+                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
+                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
+                            }
+                            else if (kTmp.cPart == 'G'){
+                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
+                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                    << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
+                                    << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].verb
+                                    << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
+                            }
+                            else if (kTmp.cPart == 'I'){
+                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
+                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                    << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
+                                    << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].verb
+                                    << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
+                            }
+                            else if (kTmp.cPart == 'F'){
+                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
+                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                    << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
+                                    << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].verb
+                                    << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
+                            }
+                            else if (kTmp.cPart == 'R'){
+                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
+                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].iAction << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                    << " [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].agent
+                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].predicate
+                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].object
+                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].recipient << "]" << endl;
+                            }
+                        }
+
+                        storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
+
                         if (iNbPreposition > 2){
                             if (firstsKeyMean){
-                                doubleIGARF.first = kTmp;
+                                doubleBefore.push_back(evtKM);
                                 firstsKeyMean = false;
                             }
                             else{
-                                doubleIGARF.second = kTmp;
+                                doubleAfter.push_back(evtKM);
                             }
                         }
                         else{
-                            singleIGARF = kTmp;
+                            singleIGARF.push_back(evtKM);
                         }
 
-                        if (kTmp.cPart == 'A'){
-                            cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
-                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
-                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
-                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
-
-                        }
-                        else if (kTmp.cPart == 'G'){
-                            cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
-                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].verb
-                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
-                        }
-                        else if (kTmp.cPart == 'I'){
-                            cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
-                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].verb
-                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
-                        }
-                        else if (kTmp.cPart == 'F'){
-                            cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
-                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].verb
-                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
-                        }
-                        else if (kTmp.cPart == 'R'){
-                            cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
-                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
-                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
-                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
-                        }
                     }
                 }
             }
-            else {
-                cout << "Action not recognized" << endl;
-            }
+            //else {
+            //    cout << "Action not recognized" << endl;
+            //}
 
             iPreposition++;
         }  // end preposition
@@ -1126,12 +1151,25 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             if (isDFW && isMultiple){
                 if (iNbPreposition <= 2){
                     cout << "filling single vector ...";
-                    currentDFW->vSingleIGARF.push_back(singleIGARF);
+                    for (int iSimple = 0; iSimple < singleIGARF.size(); iSimple++)
+                    {
+                        currentDFW->vSingleIGARF.push_back(singleIGARF[iSimple]);
+                    }
                     cout << " done !" << endl;
                 }
                 else{
                     cout << "filling double vector ...";
-                    currentDFW->vDoubleIGARF.push_back(doubleIGARF);
+
+
+                    for (int iFirst = 0; iFirst < doubleBefore.size(); iFirst++){
+                        pair<EVT_IGARF, EVT_IGARF>  kTmpDouble;
+                        kTmpDouble.first = doubleBefore[iFirst];
+                        for (int iSecond = 0; iSecond < doubleAfter.size(); iSecond++){
+                            kTmpDouble.second = doubleAfter[iSecond];
+                            currentDFW->vDoubleIGARF.push_back(kTmpDouble);
+                        }
+                    }
+
                     cout << " done !" << endl;
                 }
             }
