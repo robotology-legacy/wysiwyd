@@ -31,6 +31,7 @@ find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
 find_package(WYSIWYD REQUIRED)
 find_package(PCL REQUIRED QUIET COMPONENTS common)
+find_package(kinectWrapper REQUIRED)
 
 include(${VTK_USE_FILE})
 
@@ -117,6 +118,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${Eigen_INCLUDE_DIRS}
   ${WYSIWYD_INCLUDE_DIRS}
+  ${kinectWrapper_INCLUDE_DIRS}
 )
 
 ## Declare common source files
@@ -125,7 +127,7 @@ target_link_libraries(pt_lib ${PCL_LIBRARIES})
 
 ## Declare executables
 add_executable( mental_perspective_transformer src/mental_perspective_transformer.cpp ${headers} )
-add_dependencies( mental_perspective_transformer ${catkin_EXPORTED_TARGETS} perspective_taking_python_gencpp )
+add_dependencies( mental_perspective_transformer ${catkin_EXPORTED_TARGETS} )
 target_link_libraries( mental_perspective_transformer ${catkin_LIBRARIES} pt_lib )
 
 add_executable( visualize_robot_perspective src/visualize_robot_perspective.cpp ${headers} )
@@ -168,6 +170,13 @@ add_executable( skeleton_visualizer src/skeleton_visualizer.cpp ${headers} )
 add_dependencies( skeleton_visualizer ${catkin_EXPORTED_TARGETS} )
 target_link_libraries( skeleton_visualizer ${catkin_LIBRARIES} pt_lib )
 
+add_executable( fake_ikart_robotinterface src/fake_ikart_robotinterface ${headers} )
+add_dependencies( fake_ikart_robotinterface ${catkin_EXPORTED_TARGETS} )
+target_link_libraries( fake_ikart_robotinterface ${catkin_LIBRARIES} ${YARP_LIBRARIES} )
+
+add_executable( depth_to_pointcloud src/depth_to_pointcloud.cpp ${headers} )
+add_dependencies( depth_to_pointcloud ${catkin_EXPORTED_TARGETS} )
+target_link_libraries( depth_to_pointcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${YARP_LIBRARIES} ${kinectWrapper_LIBRARIES} ${WYSIWYD_LIBRARIES} )
 
 #############
 ## Install ##
@@ -186,6 +195,8 @@ install(TARGETS
     point_cloud_transformer
     point_cloud_merger
     skeleton_visualizer
+    fake_ikart_robotinterface
+    depth_to_pointcloud
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
