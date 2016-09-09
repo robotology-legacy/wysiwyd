@@ -58,15 +58,12 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new Narrate(&mut, rf, "narrate"));
         }  else if (behavior_name == "recognitionOrder") {
             behaviors.push_back(new recognitionOrder(&mut, rf, "recognitionOrder"));
-            // other behaviors here
         }  else if (behavior_name == "greeting") {
             behaviors.push_back(new recognitionOrder(&mut, rf, "greeting"));
-
-        }
-
-
-
-        else {
+        }  else if (behavior_name == "speech") {
+            behaviors.push_back(new Speech(&mut, rf, "speech"));            
+            // other behaviors here
+        }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
             return false;
         }
