@@ -1,0 +1,38 @@
+﻿<GRAMMAR	LANGID="809">
+
+  <DEFINE>
+    <ID	NAME="predicateObject"	VAL="1"/>
+    <ID	NAME="object"	VAL="2"/>
+  </DEFINE>
+
+
+  <RULE	NAME="SENTENCEOBJECT"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <RULEREF	NAME="predicateObject"/>
+    <O>
+      <L>
+        <P>the</P>
+        <P>this</P>
+        <P>my</P>
+      </L>
+    </O>
+    <RULEREF	NAME="object"/>
+  </RULE>
+
+  <RULE NAME="predicateObject" DYNAMIC="TRUE">
+    <L>
+      <P>give</P>
+      <P>take</P>
+    </L>
+  </RULE>
+
+  
+  <RULE NAME="object" DYNAMIC="TRUE">
+    <L>
+      <P>brain</P>
+      <P>crocodile</P>
+      <P>mouse</P>
+      <P>rabbit</P>
+    </L>
+  </RULE>
+
+</GRAMMAR>
