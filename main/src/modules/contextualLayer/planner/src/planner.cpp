@@ -267,13 +267,46 @@ bool Planner::updateModule() {
             if (knownPlan)
             {
                 yInfo() << "plan known.";
-                // determine which parts of plan needs to be executed depending on state of object
-                int stepID;
                 // assumption is that the action plan is complete enough that at least one set of prerequisites is met
                 bool assumption = false;
                 Bottle bot;
                 Bottle rep;
                 bool state;
+
+                // check if necessary to rank actions according to priority
+                unsigned int insertID = 0;
+                bool rankPriority = true;
+                priority = command.get(1).asList()->get(1).asInt();
+                if (priority_list.size() != 0)
+                {
+                    for (unsigned int i = 0; i < priority_list.size(); i++)
+                    {
+                        if (priority == 1)
+                        {
+                            yInfo() << "lowest priority, append to end.";
+                            rankPriority = false;
+                            break;
+                        }
+                        else if (priority < priority_list[i])
+                        {
+                            insertID = i + 1;
+                        }
+                    }
+                }
+                else
+                {
+                    yInfo() << "new plan when initial state is empty";
+                    rankPriority = false;
+                }
+
+
+                // holding bottles that will be reversed and appended if assumption is met
+                vector<string> plan_store;
+                vector<string> action_store;
+                vector<string> object_store;
+                vector<string> type_store;
+                vector<int> priority_store;
+                vector<int> actionPos_store;
 
                 for (int ii = grpPlans.find(planName + "-totactions").asInt(); ii > 0; ii--)
                 {
@@ -287,9 +320,9 @@ bool Planner::updateModule() {
                     Bottle preconds = *grpPlans.find(planName + "-" + to_string(ii) + "pre").asList();
                     std::list<std::pair<std::string, std::string >> lArgument;
                     Bottle auxMsg;
-                    for (int i = 0; i < preconds.size(); i++)
+                    for (int k = 0; k < preconds.size(); k++)
                     {
-                        Bottle* msg = preconds.get(i).asList()->get(1).asList();
+                        Bottle* msg = preconds.get(k).asList()->get(1).asList();
                         // format message to sensationsManager
                         for (int i = 0; i < msg->size(); i++)
                         {
@@ -307,7 +340,7 @@ bool Planner::updateModule() {
                         auxMsg.clear();
                         bool indiv;
                         bool negate;
-                        string attach = preconds.get(i).asList()->get(0).asString();
+                        string attach = preconds.get(k).asList()->get(0).asString();
                         yDebug() << preconds.toString();
                         if (attach == "not")
                         {
@@ -334,10 +367,10 @@ bool Planner::updateModule() {
                         string strind;
                         if (indiv == true) { strind = "true"; }
                         else { strind = "false"; }
-                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(0).asString(), "predicate"+to_string(i)));
-                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(1).asString(), "agent"+to_string(i)));
-                        lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(i)));
-                        lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(i)));
+                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(0).asString(), "predicate"+to_string(k)));
+                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(1).asString(), "agent"+to_string(k)));
+                        lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(k)));
+                        lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(k)));
                         yDebug() << "lArgument formed for condition";
                     }
 
@@ -349,9 +382,18 @@ bool Planner::updateModule() {
                         true);
                     yInfo() << actionName + " reasoning has been recorded in the ABM";
 
+
+                    // insert actions into the various holding lists (IN REVERSE ORDER)
+                    yInfo() << "storing action details:" << actionName;
+                    action_store.push_back(actionName);
+                    priority_store.push_back(priority);
+                    plan_store.push_back(planName);
+                    object_store.push_back(object);
+                    type_store.push_back(objectType);
+                    actionPos_store.push_back(ii);
+
                     if (state)
                     {
-                        stepID = ii;
                         assumption = true;
                         break;
                     }
@@ -359,90 +401,57 @@ bool Planner::updateModule() {
 
                 if (assumption)
                 {
-                    // check if necessary to rank actions according to priority
-                    int insertID = 0;
-                    bool rankPriority = true;
-                    priority = command.get(1).asList()->get(1).asInt();
-                    if (priority_list.size() != 0)
-                    {
-                        for (unsigned int i = 0; i < priority_list.size(); i++)
-                        {
-                            if (priority == 1)
-                            {
-                                yInfo() << "lowest priority - append to bottom of list";
-                                rankPriority = false;
-                                break;
-                            }
-                            else if (priority < priority_list[i])
-                            {
-                                insertID = i + 1;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        yInfo() << "new plan when initial state is empty";
-                        rankPriority = false;
-                    }
-
                     // insert actions into the various lists
                     if (!rankPriority)
                     {
-                        for (int i = stepID; i < grpPlans.find(planName + "-totactions").asInt() + 1; i++)
+                        for (unsigned a = action_store.size(); a-- > 0;)
                         {
-                            // string act = grpPlans.find(planName + "-action" + to_string(i)).asList();
-                            Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(i)).asList();
-                            string actionName = fullAction->get(0).asString();
-                            yInfo() << "adding action " << actionName;
-                            action_list.push_back(actionName);
-                            priority_list.push_back(priority);
-                            plan_list.push_back(planName);
-                            object_list.push_back(object);
-                            type_list.push_back(objectType);
-                            actionPos_list.push_back(i);
+                            yInfo() << "adding action " << action_store[a];
+                            action_list.push_back(action_store[a]);
+                            priority_list.push_back(priority_store[a]);
+                            plan_list.push_back(plan_store[a]);
+                            object_list.push_back(object_store[a]);
+                            type_list.push_back(type_store[a]);
+                            actionPos_list.push_back(actionPos_store[a]);
 
                             // log in ABM
                             std::list<std::pair<std::string, std::string> > lArgument;
                             lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
                             lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
-                            lArgument.push_back(std::pair<std::string, std::string>(actionName, "object"));
+                            lArgument.push_back(std::pair<std::string, std::string>(action_store[a], "object"));
                             lArgument.push_back(std::pair<std::string, std::string>("bottom", "result"));
                             iCub->getABMClient()->sendActivity("reasoning",
                                 "priority",
                                 "planner",  // expl: "pasar", "drives"...
                                 lArgument,
                                 true);
-                            yInfo() << "addition of " + actionName + " to bottom of list has been recorded in the ABM";
+                            yInfo() << "addition of " + action_store[a] + " to bottom of list has been recorded in the ABM";
                         }
-
                     }
                     else
                     {   
-                        for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
+                        for (unsigned a = 0; a < action_store.size(); a++)
                         {
-                            // string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
-                            Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(i)).asList();
-                            string actionName = fullAction->get(0).asString();
-                            yInfo() << "adding action " << actionName;
-                            plan_list.insert(plan_list.begin() + insertID, planName);
-                            object_list.insert(object_list.begin() + insertID, object);
-                            type_list.insert(type_list.begin() + insertID, objectType);
-                            action_list.insert(action_list.begin() + insertID, actionName);
-                            actionPos_list.insert(actionPos_list.begin() + insertID, i);
-                            priority_list.insert(priority_list.begin() + insertID, priority);
+                            yInfo() << "adding action " << action_store[a];
+                            plan_list.insert(plan_list.begin() + insertID, plan_store[a]);
+                            object_list.insert(object_list.begin() + insertID, object_store[a]);
+                            type_list.insert(type_list.begin() + insertID, type_store[a]);
+                            action_list.insert(action_list.begin() + insertID, action_store[a]);
+                            actionPos_list.insert(actionPos_list.begin() + insertID, actionPos_store[a]);
+                            priority_list.insert(priority_list.begin() + insertID, priority_store[a]);
 
                             // log in ABM
                             std::list<std::pair<std::string, std::string> > lArgument;
                             lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
                             lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
-                            lArgument.push_back(std::pair<std::string, std::string>(actionName, "object"));
+                            lArgument.push_back(std::pair<std::string, std::string>(action_store[a], "object"));
                             lArgument.push_back(std::pair<std::string, std::string>(to_string(insertID), "result"));
                             iCub->getABMClient()->sendActivity("reasoning",
                                 "priority",
                                 "planner",  // expl: "pasar", "drives"...
                                 lArgument,
                                 true);
-                            yInfo() << "addition of " + actionName + " to index " << insertID << " of list has been recorded in the ABM";
+                            yInfo() << "addition of " + action_store[a] + " to index" << insertID << "of list has been recorded in the ABM";
                         }
                     }
 
@@ -451,6 +460,14 @@ bool Planner::updateModule() {
                 {
                     yWarning() << "None of the sets of prerequisites are met, unable to handle plan.";
                 }
+
+                // remove elements from holding lists to make way for new plan input
+                action_store.clear();
+                priority_store.clear();
+                plan_store.clear();
+                object_store.clear();
+                type_store.clear();
+                actionPos_store.clear();
             }
             else
             {
