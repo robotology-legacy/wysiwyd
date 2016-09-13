@@ -22,11 +22,10 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     grpPlans = rf.findGroup("PLANS");
     avaiPlansList = *grpPlans.find("plans").asList();
 
-    set = rf.findGroup("SETTINGS");
-    fulfill = *set.find("fulfill").asString();
+    fulfill = rf.check("fulfill",Value("true")).asBool();
 
-    bool ears = *set.find("ears").asString();
-    bool homeo = *set.find("homeostasis").asString();
+    bool ears = rf.check("ears",Value("true")).asBool();
+    bool homeo = rf.check("homeostasis",Value("true")).asBool();
     bool SM = 1;
     bool BM = 1;
 
@@ -339,19 +338,19 @@ bool Planner::updateModule() {
                             auxMsg.addString(aux);
                         }
                         getState.write(auxMsg, rep);
+                        yDebug() << auxMsg.toString();
                         auxMsg.clear();
                         bool indiv;
                         bool negate;
                         string attach = preconds.get(k).asList()->get(0).toString();
-                        yDebug() << preconds.toString();
                         if (attach == "not")
                         {
+                            yDebug() << "not";
                             indiv = !rep.get(1).asBool();
                             negate = true;
                         }
                         else
                         {
-                            yDebug() << "attached is a non-negation";
                             indiv = rep.get(1).asBool();
                             negate = false;
                         }
@@ -592,6 +591,7 @@ bool Planner::updateModule() {
                 {
                     yInfo() << "reached threshold for action attempts.";
                     iCub->say("I have tried too many times and failed to do " + action_list[0] + ". Do it yourself or help me.");
+
                     // remove action and/or plan?
                 }
                 // wait for a second before trying again
@@ -623,6 +623,7 @@ bool Planner::triggerBehavior(Bottle cmd)
     Bottle reply;
     reply.clear();
     portToBehavior.write(cmd,reply);
+    yDebug() << "Bottle contents: " << cmd.toString();
     if (reply.get(0).asString() == "ack")
     {
         return true;

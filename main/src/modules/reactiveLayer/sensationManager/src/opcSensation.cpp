@@ -233,7 +233,9 @@ int OpcSensation::get_property(string name,string property)
     {
         b = p_entities;
     }
-    if (name == any){
+    if (name == "any"){
+        yDebug() << "name is any"; 
+        yDebug() << b.size();
         if (b.size()!=0){
             return 1;
         }else{
@@ -247,7 +249,7 @@ int OpcSensation::get_property(string name,string property)
                 return 1;
             }
         }
-    return 0;
+        return 0;
     }
 }
 
