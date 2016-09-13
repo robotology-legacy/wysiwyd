@@ -22,8 +22,11 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     grpPlans = rf.findGroup("PLANS");
     avaiPlansList = *grpPlans.find("plans").asList();
 
-    bool ears = 0;
-    bool homeo = 0;
+    set = rf.findGroup("SETTINGS");
+    fulfill = *set.find("fulfill").asString();
+
+    bool ears = *set.find("ears").asString();
+    bool homeo = *set.find("homeostasis").asString();
     bool SM = 1;
     bool BM = 1;
 
@@ -70,7 +73,6 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     priority_list.clear();
     action_list.clear();
     id = 0;
-    fulfill = false;
     attemptCnt = 0;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
@@ -340,7 +342,7 @@ bool Planner::updateModule() {
                         auxMsg.clear();
                         bool indiv;
                         bool negate;
-                        string attach = preconds.get(k).asList()->get(0).asString();
+                        string attach = preconds.get(k).asList()->get(0).toString();
                         yDebug() << preconds.toString();
                         if (attach == "not")
                         {
