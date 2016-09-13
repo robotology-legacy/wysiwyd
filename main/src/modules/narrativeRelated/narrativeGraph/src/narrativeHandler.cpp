@@ -206,12 +206,12 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
-//    cout << "linking scenarios 3 3" << endl;
-  //  linkMeaningScenario(3, 3);
+    //    cout << "linking scenarios 3 3" << endl;
+    //  linkMeaningScenario(3, 3);
     //cout << "linking scenarios 2 2" << endl;
-    linkMeaningScenario(2, 2);
-    cout << endl << endl;
-    displayDFW();
+    //linkMeaningScenario(2, 2);
+    //cout << endl << endl;
+    //displayDFW();
 
     return true;
 }
@@ -324,7 +324,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             reply.addString("linkMeaningScenario takes 2 arguments (narration and scenario)");
         }
         else{
-            linkMeaningScenario(command.get(1).asInt(), command.get(2).asInt());
+            linkMeaningScenario(command.get(1).asInt(), command.get(2).asInt() - 1);
         }
     }
     else if (command.get(0).asString() == "displayKnownNarrations"){
@@ -837,6 +837,9 @@ void narrativeHandler::findStories()
     if (bInitial){
         if (researchWindows){
             yInfo() << " BEGIN FINDSTORIES INITIAL from: " << instanceStart << " to " << instanceStop;
+            if (instanceStart >= instanceStop){
+                yWarning(" in narrativeGraph::narrativeHandler.cpp::findStories instanceStart >= instanceStop.");
+            }
             osRequest << "SELECT time, begin, instance FROM main WHERE instance between " << instanceStart << " and " << instanceStop << " ORDER by instance";
 
         }
@@ -1148,7 +1151,6 @@ Bottle narrativeHandler::unfoldGoal(string goal)
 void narrativeHandler::initializeStories()
 {
     yInfo() << " initializeStories from: " << cursorStories;
-    cout << "begin initializating stories " << endl;
 
     vector<int>    toDelete; // vector of the stories to delete from the list.
     unsigned int iSto = 0;
@@ -1238,10 +1240,28 @@ void narrativeHandler::initializeStories()
     }
     cout << endl;
 
+    cout << "Found before deleting: " << listStories.size() << " stories;" << endl;
+
     yInfo() << "starting deletion of stories: " << toDelete.size();
     reverse(toDelete.begin(), toDelete.end());
+    //for (auto del : toDelete){
+    //    cout << "deleting: " << del;
+    //    cout << " size: " << listStories[del].viInstances.size();
+    //    cout << " events: " << listStories[del].vEvents.size();
+    //    cout << " sentences: " << listStories[del].sentenceStory.size() << endl;
+    //    for (auto sent : listStories[del].sentenceStory){
+    //        cout << " \t" << sent << endl;
+    //    }
+    //    cout << "events: " << endl;
+    //    for (auto ev : listStories[del].vEvents){
+    //        ev.print();
+    //    }
+    //}
+
+
     for (auto del : toDelete)
     {
+        listStories[del].toString();
         listStories.erase(listStories.begin() + del);
     }
 
@@ -1514,11 +1534,14 @@ void narrativeHandler::createNarration(story &sto)
 
     osCurrent << "story: " << sto.timeBegin.toString() << " (" << sto.viInstances[0] << ")  to " << sto.timeEnd.toString() << " (" << sto.viInstances[sto.viInstances.size() - 1] << ")" << endl;
 
+
     vsOutput.push_back(osCurrent.str());
     int cursor = 0;
     for (unsigned int currentElement = 0; currentElement != sto.vEvents.size(); currentElement++){
         evtStory currentEvent = sto.vEvents[currentElement];
         currentEvent.addUnderscore();
+
+        if (VERBOSE) currentEvent.print();
 
         bool addEvt = true;
         if (!currentEvent.isNarration)
@@ -1594,7 +1617,7 @@ void narrativeHandler::createNarration(story &sto)
                     }
                     else{
                         // if the previous instance wasn't already an action
-                        if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || true == sto.vEvents[currentElement - 1].begin){
+                        if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || false == sto.vEvents[currentElement - 1].begin){
                             if (lrh){
                                 string meaning = createMeaning(currentEvent.agent,
                                     currentEvent.predicate,
@@ -1614,8 +1637,7 @@ void narrativeHandler::createNarration(story &sto)
                         }
                     }
                 }
-                // the action ends
-                else{
+                else{ // the action ends
                     if (cursor == 0){
                         addEvt = false;
                     }
@@ -1974,6 +1996,7 @@ void narrativeHandler::createNarration(story &sto)
                 addEvt = false;
             }
             addEvt &= osCurrent.str() != "";
+
             if (VERBOSE) cout << osCurrent.str();
             if (addEvt){
                 string sentenceWithoutUnderscore = osCurrent.str();

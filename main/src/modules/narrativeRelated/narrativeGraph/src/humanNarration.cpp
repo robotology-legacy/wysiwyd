@@ -1026,7 +1026,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         bool firstsKeyMean = true; // in the case of DFW with 2 skeymean
 
 
-        cout << "---------------------------------------------------------------------\n"<< "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
+        cout << "---------------------------------------------------------------------\n" << "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
 
 
         for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
@@ -1042,7 +1042,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             }
 
             int iScore = 0;
-            
+
             if (isDFW && iPreposition == 0){ // only one OCW: DFW
                 //cout << "\t\t\t sentence has a DFW." << endl;
                 string nameDFW = level2->vOCW[0];
@@ -1075,7 +1075,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                         int iIg, iL;
                         if (kTmp.iIGARF != -1){
                             //currentIGARF = sm.vIGARF[kTmp.iIGARF];
-                            
+
 
                             //vIGARF.at(j).vGoal.at(k)
                             if (kTmp.cPart == 'A'){
@@ -1178,7 +1178,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     } // end sentence
     //cout << "end of the loop, starting to display" << endl;
 
-    //displayDFW();
+    displayDFW();
 
     //MD.print();
 

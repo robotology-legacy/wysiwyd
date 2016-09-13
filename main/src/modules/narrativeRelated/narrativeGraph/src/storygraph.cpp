@@ -735,18 +735,6 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
             score_max = s;
             for (int j = 0; j < (int)vIGARF.size(); j++) {
                 bool hasClear = false;
-                for (int k = 0; k < (int)vIGARF.at(j).vInitState.size(); k++) {
-                    if (vIGARF.at(j).vInitState.at(k) == i) {
-                        km = createKey(j, 'I', k);    
-                        if (!equal) {
-                            vkmBest.clear();
-                            vScore.clear();
-                            hasClear = true;
-                        }
-                        vkmBest.push_back(km);
-                        vScore.push_back(s);
-                    }
-                }
                 for (int k = 0; k < (int)vIGARF.at(j).vGoal.size(); k++) {
                     if (vIGARF.at(j).vGoal.at(k) == i) {
                         km = createKey(j, 'G', k);
@@ -765,6 +753,18 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
                         if (!equal && !hasClear) {
                             vkmBest.clear();
                             vScore.clear();
+                        }
+                        vkmBest.push_back(km);
+                        vScore.push_back(s);
+                    }
+                }
+                for (int k = 0; k < (int)vIGARF.at(j).vInitState.size(); k++) {
+                    if (vIGARF.at(j).vInitState.at(k) == i) {
+                        km = createKey(j, 'I', k);
+                        if (!equal) {
+                            vkmBest.clear();
+                            vScore.clear();
+                            hasClear = true;
                         }
                         vkmBest.push_back(km);
                         vScore.push_back(s);
