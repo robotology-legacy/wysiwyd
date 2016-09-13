@@ -10,14 +10,14 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period", Value(0.1)).asDouble();
 
     //Create an iCub Client and check that all dependencies are here before starting
-    // bool isRFVerbose = false;
-    // iCub = new ICubClient(moduleName, "planner", "client.ini", isRFVerbose);
-    // iCub->opc->isVerbose = false;
-    // while (!iCub->connect())
-    // {
-    //    yInfo() << " iCubClient : Some dependencies are not running...";
-    //    Time::delay(1.0);
-    // }
+    bool isRFVerbose = false;
+    iCub = new ICubClient(moduleName, "planner", "client.ini", isRFVerbose);
+    iCub->opc->isVerbose = false;
+    while (!iCub->connect())
+    {
+       yInfo() << " iCubClient : Some dependencies are not running...";
+       Time::delay(1.0);
+    }
     
     grpPlans = rf.findGroup("PLANS");
     avaiPlansList = *grpPlans.find("plans").asList();
@@ -137,14 +137,14 @@ bool Planner::unfreeze_all()
 bool Planner::checkKnown(const Bottle& command, Bottle& avaiPlansList) {
     // check if plan exists in ini file
     for (int i = 0; i < avaiPlansList.size(); i++)
-        {
+    {
             // iterate through list of drives to check if action plan is known
-            if (avaiPlansList.get(i).asString() == command.get(1).asList()->get(0).asString())
-            {
-                yInfo() << "plan is known: " + avaiPlansList.get(i).asString();
-                return true;
-            }
+        if (avaiPlansList.get(i).asString() == command.get(1).asList()->get(0).asString())
+        {
+            yInfo() << "plan is known: " + avaiPlansList.get(i).asString();
+            return true;
         }
+    }
 
     return false;
 }
@@ -152,17 +152,17 @@ bool Planner::checkKnown(const Bottle& command, Bottle& avaiPlansList) {
 bool Planner::respond(const Bottle& command, Bottle& reply) {
     LockGuard lg(mutex);
     string helpMessage = string(getName().c_str()) +
-        " commands are: \n" +
-        "quit \n" +
-        "help \n" +
-        "follow \n" +
-        "new (plan priority (objectType object)) \n" +
-        "freeze \n" +
-        "unfreeze \n" +
-        "actions \n" +
-        "listplans \n" +
-        "stopfollow \n" +
-        "exit \n";
+    " commands are: \n" +
+    "quit \n" +
+    "help \n" +
+    "follow \n" +
+    "new (plan priority (objectType object)) \n" +
+    "freeze \n" +
+    "unfreeze \n" +
+    "actions \n" +
+    "listplans \n" +
+    "stopfollow \n" +
+    "exit \n";
 
     reply.clear();
 
@@ -375,7 +375,7 @@ bool Planner::updateModule() {
                         yDebug() << "lArgument formed for condition";
                     }
 
-                    // record action selection reasoning in ABM
+                    record action selection reasoning in ABM
                     iCub->getABMClient()->sendActivity("reasoning",
                         actionName,
                         "planner",  // expl: "pasar", "drives"...
@@ -495,8 +495,8 @@ bool Planner::updateModule() {
 
         else
         {
-            fulfill = false;
-            yDebug() << "no actions in list, fulfill is set to 0.";
+            yDebug() << "no actions in list.";
+            Time::delay(1.0);
             skip = 1;
         }
         
@@ -527,35 +527,57 @@ bool Planner::updateModule() {
                 "planner",  // expl: "pasar", "drives"...
                 lArgument,
                 true);
-            // yInfo() << "sent action_list to ABM";
+            yInfo() << "sent action_list to ABM";
             lArgument.clear();
 
             // check for completed state
             string planName = plan_list[0];
             Bottle stateOI = *grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "post").asList();
+            args.clear();
+            args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
+            args = args.tail();
 
             // checking for post condition fulfillment.
             int stateCheck = 1;
-            for (int i = 0; i < stateOI.size(); i++)
+            for (int k = 0; k < stateOI.size(); k++)
             {
                 Bottle bot;
                 Bottle rep;
                 bot.clear();
                 rep.clear();
-                bot = *stateOI.get(i).asList()->get(1).asList();
-                getState.write(bot, rep);
-                int indiv;
 
-                if (stateOI.get(i).asList()->get(0).asString() == "not")
+                Bottle* msg = stateOI.get(k).asList()->get(1).asList();
+                for (int i = 0; i < msg->size(); i++)
                 {
-                    indiv = !rep.get(1).asInt();
+                    string aux = msg->get(i).asString();
+                    for (int j = 0; j < args.size(); j++)
+                    {
+                        if (args.get(j).asString() == msg->get(i).asString())
+                        {
+                            aux = object_list[0];
+                        }
+                    }
+                    bot.addString(aux);
+                }
+
+                getState.write(bot, rep);
+                yDebug() << bot.toString();
+                bot.clear();
+                bool indiv;
+                string attach = stateOI.get(k).asList()->get(0).toString();
+
+                if (attach == "not")
+                {
+                    yDebug() << "not";
+                    indiv = !rep.get(1).asBool();
                 }
                 else
                 {
-                    indiv = rep.get(1).asInt();
+                    indiv = rep.get(1).asBool();
                 }
 
                 stateCheck = indiv && stateCheck;
+                yDebug() << "State is" << stateCheck;
             }
 
             if (actionCompleted && stateCheck)
@@ -601,7 +623,6 @@ bool Planner::updateModule() {
             // check again if all actions in the list have been completed
             if(action_list.size() == 0)
             {
-                fulfill = false;
                 yInfo() << "resuming homeostatic dynamics.";
                 unfreeze_all();
             }
