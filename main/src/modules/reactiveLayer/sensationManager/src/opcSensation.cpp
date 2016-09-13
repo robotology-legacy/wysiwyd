@@ -220,6 +220,7 @@ Bottle OpcSensation::handleEntities()
 int OpcSensation::get_property(string name,string property)
 {
     Bottle b;
+
     if (property == "known")
     {
         b = k_entities;
@@ -232,13 +233,21 @@ int OpcSensation::get_property(string name,string property)
     {
         b = p_entities;
     }
-    for (int i=0;i<b.size();i++)
-    {
-        if (b.get(i).asList()->get(1).asString()==name)
-        {
+    if (name == any){
+        if (b.size()!=0){
             return 1;
+        }else{
+            return 0;
         }
-    }
+    }else{
+        for (int i=0;i<b.size();i++)
+        {
+            if (b.get(i).asList()->get(1).asString()==name)
+            {
+                return 1;
+            }
+        }
     return 0;
+    }
 }
 
