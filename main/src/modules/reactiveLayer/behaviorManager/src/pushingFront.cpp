@@ -26,8 +26,6 @@ void PushingFront::run(Bottle args/*=Bottle()*/) {
 
     if (!args.isNull())
     {
-//        obj_type = args.get(0).asString();
-//        obj_name = args.get(1).asString();
         obj_type = args.get(0).asList()->toString();
         obj_name = args.get(1).asList()->toString();
     }
