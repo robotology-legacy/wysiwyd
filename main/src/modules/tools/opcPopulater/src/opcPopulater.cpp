@@ -79,17 +79,18 @@ bool opcPopulater::close() {
 
 bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
-        " commands are: \n" +
-        "help \n" +
-        "quit \n" +
-        "populateSpecific1 entity_type entity_name \n" +
-        "populateSpecific2 \n" +
-        "populateSpecific3 \n"
-        "addUnknownEntity entity_type\n" +
-        "populateABM \n" +
-        "populateABMiCubStory \n" +
-        "storyFromPOV POV\n"
-        "setSaliencyEntity entity_name saliency_name\n";
+        " commands are: \n " +
+        "help \n " +
+        "quit \n " +
+        "populateSpecific1 entity_type entity_name \n " +
+        "populateSpecific2 \n " +
+        "populateSpecific3 \n " +
+        "populateMoving \n " +
+        "addUnknownEntity entity_type \n " +
+        "populateABM \n " +
+        "populateABMiCubStory \n " +
+        "storyFromPOV POV \n "
+        "setSaliencyEntity entity_name saliency_name \n ";
 
     reply.clear();
 
