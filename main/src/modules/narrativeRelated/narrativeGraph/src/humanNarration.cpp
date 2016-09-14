@@ -1075,20 +1075,20 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                         int iIg, iL;
                         if (kTmp.iIGARF != -1){
                             //currentIGARF = sm.vIGARF[kTmp.iIGARF];
+                            iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                            iL = sm.vIGARF[kTmp.iIGARF].iLevel;
 
 
                             //vIGARF.at(j).vGoal.at(k)
                             if (kTmp.cPart == 'A'){
-                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
-                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
-                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].iAction << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
-                                    << " [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
-                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
-                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
-                                    << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
+                                cout << "\t  " << iIg << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                    << " [" << sm.vActionEvts[iIg].agent
+                                    << "-" << sm.vActionEvts[iIg].predicate
+                                    << "-" << sm.vActionEvts[iIg].object
+                                    << "-" << sm.vActionEvts[iIg].recipient << "]" << endl;
                             }
                             else if (kTmp.cPart == 'G'){
-                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iIg = iIg;
                                 iL = sm.vIGARF[kTmp.iIGARF].iLevel;
                                 cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
                                     << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
@@ -1096,7 +1096,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
                             }
                             else if (kTmp.cPart == 'I'){
-                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iIg = iIg;
                                 iL = sm.vIGARF[kTmp.iIGARF].iLevel;
                                 cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
                                     << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
@@ -1104,7 +1104,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
                             }
                             else if (kTmp.cPart == 'F'){
-                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iIg = iIg;
                                 iL = sm.vIGARF[kTmp.iIGARF].iLevel;
                                 cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
                                     << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
@@ -1112,9 +1112,9 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
                             }
                             else if (kTmp.cPart == 'R'){
-                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iIg = iIg;
                                 iL = sm.vIGARF[kTmp.iIGARF].iLevel;
-                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].iAction << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                cout << "\t  " << iIg << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
                                     << " [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].agent
                                     << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].predicate
                                     << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].object

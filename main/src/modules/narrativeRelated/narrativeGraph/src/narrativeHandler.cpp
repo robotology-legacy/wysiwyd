@@ -207,7 +207,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
 
     //    cout << "linking scenarios 3 3" << endl;
-    //  linkMeaningScenario(3, 3);
+      linkMeaningScenario(4,3);
     //cout << "linking scenarios 2 2" << endl;
     //linkMeaningScenario(2, 2);
     //cout << endl << endl;
@@ -255,6 +255,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " cleanMental\n" +
         " cleanSM\n"
         " cleanLinks\n"
+        " cleanDFW\n"
         " ABMtoSM + storyNumber = last\n"
         " linkNarrationScenario + iNarration + iScenario\n" +
         " linkMeaningScenario + iNarration + iScenario\n" +
@@ -411,6 +412,12 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "cleanLinks") {
         yInfo(" clean the links in the situation model");
         sm.cleanLinks();
+        yInfo(" cleaning sucessful");
+        reply.addString("cleaning sucessful");
+    }
+    else if (command.get(0).asString() == "cleanDFW") {
+        yInfo(" clean the Discourse Function Words");
+        vDFW.clear();
         yInfo(" cleaning sucessful");
         reply.addString("cleaning sucessful");
     }

@@ -369,6 +369,7 @@ void SituationModel::ABMtoSM(const story &sto) {
             bool hasEnd = false;
             if (i + 1 < vEvents.size() && !vEvents.at(i + 1).begin && currentEvt.activity_name == vEvents.at(i + 1).activity_name) { // Is the next event the end event ?
                 endCurrent = vEvents.at(i + 1);
+//                cout << " level " << i +1 << " in an end." << endl;
                 hasEnd = true;
             }
             // New Action events and relations
@@ -447,6 +448,8 @@ void SituationModel::ABMtoSM(const story &sto) {
             }
 
             // Stock it
+            cout << "Pushing back: " << newEvent.toString() << endl;
+            cout << "Event is: " << currentEvt.predicate << " " << currentEvt.agent << " " << currentEvt.object << " " << currentEvt.recipient << " " << currentEvt.begin << endl;
             vIGARF.push_back(newEvent);
         }
     }
@@ -462,18 +465,26 @@ void SituationModel::makeStructure() {
     int N = vIGARF.size();
     for (int i = 0; i < N; i++) {
         // End chain?
+
+        cout << " current igarf is: " << i<<"/"<<N<< " " << vIGARF.at(i).toString() << endl;
+
         if ((vIGARF.at(i).tResult == ACTION_EVT && VocabularyHandler::sameMeaning(vActionEvts.at(vIGARF.at(i).iResult).predicate, "fail")) ||
             !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) && isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState)) ||
             i == N - 1) {
+            cout << "1/";
             if (!(vIGARF.at(i).tResult == ACTION_EVT &&
                 VocabularyHandler::sameMeaning(vActionEvts.at(vIGARF.at(i).iResult).predicate, "fail")) && // Not a failure
                 !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) &&
                 isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState))) { // Final and init state are differents
-                //vIGARF.at(i).vGoal = vIGARF.at(i).vFinalState;
+                cout << "dans comment" << endl;
+                vIGARF.at(i).vGoal = vIGARF.at(i).vFinalState;
             }
-            if (lastOfChain == -1)
+            if (lastOfChain == -1){
                 rep.push_back(i);
+                cout << " last of chain is -1" << endl;
+            }
             else {
+                cout << " last of chain not -1" << endl;
                 vIGARF.at(lastOfChain).iNext = i;
                 // New IGARF, pack the chain
                 sIGARF newEvent;
@@ -493,11 +504,14 @@ void SituationModel::makeStructure() {
             }
         }
         else {
+            cout << "2/";
             if (lastOfChain == -1) {
+                cout << "last of chain is -1" << endl;
                 firstOfChain = i;
                 lastOfChain = i;
             }
             else {
+                cout << " last chain not -1" << endl;
                 vIGARF.at(lastOfChain).iNext = i;
                 lastOfChain = i;
             }
@@ -647,12 +661,12 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
         return -1;
     const sRelation& r = vRelations.at(i);
     int score = 0;
-
+/*
     cout << "comparing: ";
     for (int ii = 0; ii < ocw.size(); ii++){
         cout << ocw[ii] << " ";
     }
-    cout << " <-> " << r.verb << " " << r.subject << " " << r.object << " ; score: ";
+    cout << " <-> " << r.verb << " " << r.subject << " " << r.object << " ; score: ";*/
 
     // if ocw has only 1 element:
     // check if predicate is predicate
@@ -687,7 +701,7 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     if (VocabularyHandler::shareMeaning(r.object, ocw))
         score += 2;
 
-    cout << score << "; relation: " << i << endl;
+//    cout << score << "; relation: " << i << endl;
 
     return score;// (score == 11) ? 1 : 0; // See proximityScoreAction(..)
 }
