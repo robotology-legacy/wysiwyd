@@ -61,13 +61,23 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             // other behaviors here
         }  else if (behavior_name == "greeting") {
             behaviors.push_back(new recognitionOrder(&mut, rf, "greeting"));
-        }  else {
-            yDebug() << "Behavior " + behavior_name + " not implemented";
-            return false;
 
         } else if (behavior_name == "pushingLeft") {
             behaviors.push_back(new PushingLeft(&mut, rf, "pushingLeft"));
+        } else if (behavior_name == "pushingRight") {
+            behaviors.push_back(new PushingRight(&mut, rf, "pushingRight"));
+        } else if (behavior_name == "pushingFront") {
+            behaviors.push_back(new PushingFront(&mut, rf, "pushingFront"));
         }
+
+
+
+        else {
+            yDebug() << "Behavior " + behavior_name + " not implemented";
+            return false;
+        }
+
+
 //        else if (behavior_name == "pushingRight") {
 //            behaviors.push_back(new PushingRight(&mut, rf, "pushingRight"));
 
@@ -122,12 +132,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             }   
         }
 
-        if (beh->from_planner_port_name != "None") {
-            while (!Network::connect(beh->from_planner_port_name, beh->planner_port_in.getName())) {
-                yInfo()<<"Connecting "<< beh->from_planner_port_name << " to " <<  beh->planner_port_in.getName();// <<endl;
-                yarp::os::Time::delay(0.5);
-            }
-        }
     }
 
     attach(rpc_in_port);
@@ -213,11 +217,11 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                     }   
                 }
 
-
                 Bottle args;
                 if (cmd.size()>1){
                     args = cmd.tail();
                 }
+                yDebug() << "arguments are " << args.toString().c_str();
                 beh->trigger(args);
                 behavior_triggered = true;
 

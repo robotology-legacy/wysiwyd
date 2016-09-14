@@ -28,6 +28,7 @@
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
 #include "wrdac/subsystems/subSystem_attention.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
 
 #define SUBSYSTEM_KARMA       "KARMA"
 
@@ -52,12 +53,19 @@ namespace wysiwyd {
             SubSystem_Attention* SubATT;
             bool ATTconnected;
 
+            SubSystem_ARE* SubARE;
+            bool AREconnected;
+
             std::string robot;
+            double tableHeight;
+            bool hasTable;
 
             yarp::os::RpcClient stopPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient visionPort;
             yarp::os::RpcClient finderPort;
+
+            yarp::os::RpcClient calibPort;
 
             //testing Cartesian interface
             yarp::dev::PolyDriver driverL;
@@ -73,9 +81,13 @@ namespace wysiwyd {
 
             void appendDouble(yarp::os::Bottle& b, const double &v);
 
+            void appendString(yarp::os::Bottle& b, const std::string &str);
+
             /********************************************************************************/
             bool prepare();
 
+            void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
+                                         const std::string handToUse="");
 
             /********************************************************************************/
             bool sendCmd(yarp::os::Bottle &cmd, const bool disableATT=false);
@@ -96,6 +108,36 @@ namespace wysiwyd {
             void Close();
 
             yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in);
+
+            /**
+             * @brief toolAttach (KARMA): wrapper for tool-attach of KARMA, can be used to choose the arm for actions with KARMA
+             * @param armType: string value of "left" or "right" arm
+             * @param dimTool: Vector of 3 dimension of tool in the frame attached to the hand
+             */
+            bool toolAttach(const std::string &armType, const yarp::sig::Vector &dimTool);
+
+            /**
+             * @brief toolRemove (KARMA): wrapper for tool-remove of Karma, use to clear the arm choise
+             */
+            void toolRemove();
+
+            bool pushLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
+                          const double &zOff = std::double_t(),
+                          const std::string &armType = "selectable",
+                          const yarp::os::Bottle &options = yarp::os::Bottle(),
+                          const std::string &sName = "target");
+
+            bool pushRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
+                           const double &zOff = std::double_t(),
+                           const std::string &armType = "selectable",
+                           const yarp::os::Bottle &options = yarp::os::Bottle(),
+                           const std::string &sName = "target");
+
+            bool pushFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+                           const double &zOff = std::double_t(),
+                           const std::string &armType = "selectable",
+                           const yarp::os::Bottle &options = yarp::os::Bottle(),
+                           const std::string &sName = "target");
 
             /**
              * @brief push (KARMA): push to certain position, along a direction

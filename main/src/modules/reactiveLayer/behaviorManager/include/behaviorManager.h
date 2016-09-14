@@ -15,6 +15,8 @@
 #include "followingOrder.h"
 #include "recognitionOrder.h"
 #include "pushingLeft.h"
+#include "pushingRight.h"
+#include "pushingFront.h"
 
 using namespace std;
 using namespace yarp::os;

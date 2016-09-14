@@ -1,28 +1,28 @@
-#include "pushingLeft.h"
+#include "pushingRight.h"
 
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 
-void PushingLeft::configure() {
+void PushingRight::configure() {
 
     external_port_name = "/karmaMotor/rpc";
 
     Bottle targetGroup = (rf.findGroup("targetPos"));
-    if (targetGroup.check("leftPos"))
+    if (targetGroup.check("rightPos"))
     {
-        target = targetGroup.find("leftPos").asDouble();
-        yInfo(" [pushingLeft]: leftPos is %f",target);
+        target = targetGroup.find("rightPos").asDouble();
+        yInfo(" [pushingRight]: rightPos is %f",target);
     }
     else
     {
-        target = -0.1;
-        yWarning(" [pushingLeft]: no leftPos. Set to default: %f", target);
+        target = 0.1;
+        yWarning(" [pushingRight]: no rightPos. Set to default: %f", target);
     }
 }
 
-void PushingLeft::run(Bottle args/*=Bottle()*/) {
-    yInfo() << "PushingLeft::run";
+void PushingRight::run(Bottle args/*=Bottle()*/) {
+    yInfo() << "PushingRight::run";
 
     if (!args.isNull())
     {
@@ -32,12 +32,12 @@ void PushingLeft::run(Bottle args/*=Bottle()*/) {
         obj_name = args.get(1).asList()->toString();
     }
 
-//    iCub->say("I will push the " + obj_name + "to the left");
+//    iCub->say("I will push the " + obj_name + "to the Right");
 
     yInfo() << "received context from planner:" << obj_type.c_str() << "and" << obj_name.c_str();
     iCub->home();
 
-    bool succeeded = iCub->pushKarmaLeft(obj_name,target);
+    bool succeeded = iCub->pushKarmaRight(obj_name,target);
     cout<<(succeeded?"success":"failed")<<endl;
     Time::delay(0.2);
 
@@ -49,6 +49,3 @@ void PushingLeft::run(Bottle args/*=Bottle()*/) {
 
     iCub->home();
 }
-
-
-

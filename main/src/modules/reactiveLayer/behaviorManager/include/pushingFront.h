@@ -1,5 +1,5 @@
-#ifndef PUSHINGLEFT
-#define PUSHINGLEFT
+#ifndef PUSHINGFRONT
+#define PUSHINGFRONT
 
 #include <string>
 #include <iostream>
@@ -11,7 +11,7 @@
 
 #include "behavior.h"
 
-class PushingLeft: public Behavior
+class PushingFront: public Behavior
 {
 private:
     void run(yarp::os::Bottle args=yarp::os::Bottle());
@@ -21,7 +21,7 @@ private:
     std::string obj_name, obj_type;
 
 public:
-    PushingLeft(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    PushingFront(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
 
@@ -31,5 +31,5 @@ public:
     }
 };
 
-#endif // PUSHINGLEFT
+#endif // PUSHINGFRONT
 

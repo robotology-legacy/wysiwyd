@@ -54,7 +54,8 @@ namespace wysiwyd{
             double xRangeMin, yRangeMin, zRangeMin;
             double xRangeMax, yRangeMax, zRangeMax;
 
-            std::string robot;
+            std::string robot;  // Name of robot
+            double zOff;        // Table offset
 
         public:
 
@@ -291,6 +292,31 @@ namespace wysiwyd{
             *         (Entity non existing, impossible to reach, etc.).
             */
             bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),std::string sName="target");
+
+
+            bool pushKarmaLeft(const std::string &objName, const double &targetPosYLeft,
+                               const std::string &armType = "selectable",
+                               const yarp::os::Bottle &options = yarp::os::Bottle());
+
+            bool pushKarmaRight(const std::string &objName, const double &targetPosYRight,
+                                const std::string &armType = "selectable",
+                                const yarp::os::Bottle &options = yarp::os::Bottle());
+
+            bool pushKarmaFront(const std::string &objName, const double &targetPosXFront,
+                                const std::string &armType = "selectable",
+                                const yarp::os::Bottle &options = yarp::os::Bottle());
+
+            bool pushKarmaLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
+                               const std::string &armType = "selectable",
+                               const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
+
+            bool pushKarmaRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
+                                const std::string &armType = "selectable",
+                                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
+
+            bool pushKarmaFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+                                const std::string &armType = "selectable",
+                                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
 
             /**
             * @brief pushKarma (KARMA): push to certain position, along a direction
