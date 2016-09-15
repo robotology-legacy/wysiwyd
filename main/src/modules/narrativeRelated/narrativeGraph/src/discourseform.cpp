@@ -8,7 +8,7 @@ using namespace std;
 
 // get a discrouse from speech recog, to lrh, to be put under the good format
 bool meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
-
+    cout << "Meaning to discourse ... ";
     // get each sentence
     for (vector<string>::iterator level1 = vMeaning.begin(); level1 != vMeaning.end(); level1++){
         //level1 is:  OCW, OCW OCW OCW, OCW OCW, P1, P2 A2 O2, P3 A3 ...
@@ -77,6 +77,11 @@ bool meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
             if (meaningPAOR.size() != meaningWords.size()){
                 yWarning() << " in narrativeGraph::discourseform.cpp::meaningToDiscourseForm: Size of PAOR and OCW different";
                 cout << "PAOR: " << meaningPAOR.size() << "\t OCW: " << meaningWords.size() << endl;
+                cout << "OCW are : ";
+                for (auto oc : meaningWords){
+                    cout << oc << "\t";
+                }
+                cout << endl;
                 return false;
             }
 
@@ -95,9 +100,13 @@ bool meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
                 currentSentence.vSentence[iNumberProposition - 1].vRole.push_back(&meaningPAOR[iWords].at(0));
             }
 
-            meanings.vDiscourse.push_back(currentSentence);
+            if (currentSentence.vSentence.size() != 0){
+                meanings.vDiscourse.push_back(currentSentence);
+            }
         }
     }
+
+    cout << "done." << endl;
 
     //    print();
 

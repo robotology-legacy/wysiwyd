@@ -834,7 +834,7 @@ void narrativeHandler::initializeScenarios(Bottle bNarrations, ResourceFinder &r
 void narrativeHandler::initializeMeaning(Bottle bMeaning, ResourceFinder &rf){
 
     for (int ii = 0; ii < bMeaning.size(); ii++){
-        cout << "meaning number: " << ii + 1 << ": " << bMeaning.get(ii).asString() << endl;
+        cout << "meaning number: " << ii + 1 << ": " << bMeaning.get(ii).asString() << " ... " << endl;;
         string currentNarration = rf.findFileByName(bMeaning.get(ii).asString());
 
         ifstream infile;
@@ -851,8 +851,9 @@ void narrativeHandler::initializeMeaning(Bottle bMeaning, ResourceFinder &rf){
         infile.close();
 
         listAutoMeaning[ii + 1] = vsMeaning;
-        cout << endl;
     }
+    
+    yInfo() << "Initialisation of meaning: " << bMeaning.size() << " found.";
 }
 
 /*
@@ -967,6 +968,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             //                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
             cout << *itLi << endl;
         }
+        cout << "initialized." << endl;
     }
 
     meaningDiscourse MD;
@@ -1011,7 +1013,6 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         level1++
         )
     { // for each sentence of the discourse
-
         DFW *currentDFW;
         bool isMultiple = false; // if a sentence is multiple (with a DFW)
         int iPreposition = 0;   // get the order of the preposition in the sentence
@@ -1022,9 +1023,6 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         vector<EVT_IGARF>  doubleAfter;
 
         bool bAllAction = true;  //depend of the score of findBest
-
-        bool firstsKeyMean = true; // in the case of DFW with 2 skeymean
-
 
         cout << "---------------------------------------------------------------------\n" << "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
 
@@ -1071,7 +1069,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                     for (int kk = 0; kk < vkTmp.size(); kk++)
                     {
                         sKeyMean kTmp = vkTmp[kk];
-                        cout << "\t result find: " << (kTmp.toString()) << endl;
+                        cout << "\t result find: " << (kTmp.toString());
                         int iIg, iL;
                         if (kTmp.iIGARF != -1){
                             //currentIGARF = sm.vIGARF[kTmp.iIGARF];
@@ -1125,9 +1123,8 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                         storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
 
                         if (iNbPreposition > 2){
-                            if (firstsKeyMean){
+                            if (iPreposition<2){
                                 doubleBefore.push_back(evtKM);
-                                firstsKeyMean = false;
                             }
                             else{
                                 doubleAfter.push_back(evtKM);
@@ -1150,27 +1147,27 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         if (bAllAction){
             if (isDFW && isMultiple){
                 if (iNbPreposition <= 2){
-                    cout << "filling single vector ...";
+                    //cout << "filling single vector ...";
                     for (int iSimple = 0; iSimple < singleIGARF.size(); iSimple++)
                     {
                         currentDFW->vSingleIGARF.push_back(singleIGARF[iSimple]);
                     }
-                    cout << " done !" << endl;
+                    //cout << " done !" << endl;
                 }
                 else{
-                    cout << "filling double vector ...";
-
-
+                    cout << "filling double vector ... " << doubleBefore.size() << "*" << doubleAfter.size() << " ";
+                    int doku = 0;
                     for (int iFirst = 0; iFirst < doubleBefore.size(); iFirst++){
                         pair<EVT_IGARF, EVT_IGARF>  kTmpDouble;
                         kTmpDouble.first = doubleBefore[iFirst];
                         for (int iSecond = 0; iSecond < doubleAfter.size(); iSecond++){
                             kTmpDouble.second = doubleAfter[iSecond];
                             currentDFW->vDoubleIGARF.push_back(kTmpDouble);
+                            doku++;
                         }
                     }
 
-                    cout << " done !" << endl;
+                    cout << doku << " done !" << endl;
                 }
             }
         }

@@ -1,8 +1,26 @@
+#   story: 13/10/2016 14:2:53 (2210)  to 13/10/2016 14:3:30 (2222)
+#   At the beginning, Sam have croco and Sam have mouse and iCub want croco
+#   iCub take the croco
+#   But it failed.
+#   iCub reason
+#   The goal was that: icub have the croco
+#   iCub reason
+#   iCub said to Sam: Give me the croco please
+#   Sam give the mouse iCub
+#   And now, Sam have croco and iCub want croco and iCub have mouse
+#   iCub said to partner: This is not the croco
+#   iCub said to partner: Can you give me the croco
+#   Sam give the croco iCub
+#   And now, iCub have mouse and iCub have croco
+#   In the end, iCub have mouse and iCub have croco
+
 first, have Sam croco, P1 P2 A2 O2
 first, have Sam mouse, P1 P2 A2 O2
 first, want iCub croco, P1 P2 A2 O2
-but, failed iCub take croco, P1 P2 A2 O2 R2
+so, say iCub Give_me_the_croco_please Sam, P1 P2 A2 O2 R2
+but, fail iCub take croco, P1 P2 A2 O2 R2
 but, want iCub croco, give Sam mouse iCub, P1 P2 A2 O2 P3 A3 O3 R3
 but, want iCub croco, have Sam croco, P1 P2 A2 O2 P3 A3 O3
 Because, have iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
+Because, have iCub mouse, give Sam mouse iCub, P1 P2 A2 O2 P3 A3 O3 R3
 Finally, have iCub croco, P1 P2 A2 O2

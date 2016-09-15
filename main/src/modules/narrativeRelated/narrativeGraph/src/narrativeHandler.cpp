@@ -207,7 +207,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
 
     //    cout << "linking scenarios 3 3" << endl;
-      linkMeaningScenario(4,3);
+      //linkMeaningScenario(4,3);
     //cout << "linking scenarios 2 2" << endl;
     //linkMeaningScenario(2, 2);
     //cout << endl << endl;

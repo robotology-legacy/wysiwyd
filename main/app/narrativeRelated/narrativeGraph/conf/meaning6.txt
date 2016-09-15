@@ -1,11 +1,16 @@
-#   story: 13/10/2016 14:4:5 (2223)  to 13/10/2016 14:4:31 (2230)
+#   story: 13/10/2016 14:11:8 (2249)  to 13/10/2016 14:11:41 (2262)
 #   At the beginning, box cover croco and iCub want croco
 #   iCub take the croco
 #   But it failed.
-#   iCub said to Robert: Robert can you remove the box please?
-#   iCub said to Larry: Then Larry can you give me the croco please
+#   iCub said to Robert: Can you remove the box please?
 #   Robert remove the box
 #   And now, iCub want croco and Larry have croco
+#   iCub take the croco
+#   But it failed.
+#   iCub reason
+#   The goal was that: icub have the croco
+#   iCub reason
+#   iCub said to Larry: Give me the croco please
 #   Larry give the croco iCub
 #   And now, iCub have croco
 #   In the end, iCub have croco
@@ -13,12 +18,13 @@
 first, cover box croco, P1 P2 A2 O2
 first, want iCub croco, P1 P2 A2 O2
 so, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 R2
-so, remove Robert box, P1 P2 A2 O2
-then, give Larry croco iCub, P1 P2 A2 O2 R2
+so, iCub reason, P1 P2 A2
+so, say iCub Give_me_the_croco_please Larry, P1 P2 A2 O2 R2
 and, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 R2
-and, say iCub can_you_remove_the_box_please? Robert, say iCub can_you_give_me_the_croco_please Larry, P1 P2 A2 O2 R2 P3 A3 O3 R3
+
 Because, give Larry croco iCub, say iCub Give_me_the_croco_please Larry, P1 P2 A2 O2 R2 P3 A3 O3 R3
 Because, remove Robert box, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
 Because, have Larry croco, remove Robert box, P1 P2 A2 O2 P3 A3 O3
 Because, have iCub croco, give Larry croco iCub, P1 P2 A2 O2 P3 A3 O3 R3
+
 Finally, have iCub croco, P1 P2 A2 O2

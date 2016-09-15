@@ -1,0 +1,18 @@
+#   At the beginning, box cover croco and iCub want croco
+#   iCub take the croco
+#   But it failed.
+#   iCub said to Sam: Can you remove the box please?
+#   Sam remove the box
+#   And now, iCub want croco
+#   iCub take the croco
+#   And now, iCub have croco
+#   In the end, iCub have croco
+
+first, want iCub croco, P1 P2 A2 O2
+first, cover box croco, P1 P2 A2 O2
+then, say iCub Can_you_remove_the_box_please? Sam, P1 P2 A2 O2 R2
+so, remove Sam box, P1 P2 A2 O2
+but, fail iCub take croco, P1 P2 A2 O2 R2
+Because, take iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+Because,  take iCub croco,want iCub croco, P1 P2 A2 O2 P3 A3 O3
+Finally, have iCub croco, P1 P2 A2 O2
