@@ -30,7 +30,7 @@ void PushingRight::run(Bottle args/*=Bottle()*/) {
         obj_name = args.get(1).asList()->toString();
     }
 
-//    iCub->say("I will push the " + obj_name + "to the Right");
+    iCub->say("I will push the " + obj_name + "to the Right");
 
     yInfo() << "received context from planner:" << obj_type.c_str() << "and" << obj_name.c_str();
     iCub->home();
@@ -39,11 +39,11 @@ void PushingRight::run(Bottle args/*=Bottle()*/) {
     cout<<(succeeded?"success":"failed")<<endl;
     Time::delay(0.2);
 
-//    if (succeeded) {
-//        iCub->lookAtPartner();
-//    } else {
-//        iCub->say(" I missed");
-//    }
+    if (succeeded) {
+        iCub->lookAtPartner();
+    } else {
+        iCub->say(" I missed");
+    }
 
     iCub->home();
 }

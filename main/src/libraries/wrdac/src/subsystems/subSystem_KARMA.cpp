@@ -18,12 +18,6 @@ void wysiwyd::wrdac::SubSystem_KARMA::appendDouble(yarp::os::Bottle &b, const do
     sub.addDouble(v);
 }
 
-void wysiwyd::wrdac::SubSystem_KARMA::appendString(yarp::os::Bottle &b, const std::string &str)
-{
-    yarp::os::Bottle &sub=b;
-    sub.addString(str);
-}
-
 void wysiwyd::wrdac::SubSystem_KARMA::selectHandCorrectTarget(yarp::os::Bottle &options, yarp::sig::Vector &target, const std::string handToUse)
 {
     std::string hand="";
@@ -251,12 +245,13 @@ bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
     return true;
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::toolAttach(const std::string &armType, const Vector &dimTool)
+bool wysiwyd::wrdac::SubSystem_KARMA::chooseArm(const std::string &armType)
 {
+    Vector dimTool(3,0.0);
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("tool"));
     bCmd.addVocab(yarp::os::Vocab::encode("attach"));
-    appendString(bCmd,armType);
+    bCmd.addString(armType);
     appendTarget(bCmd,dimTool);
 
     bool bReturn = sendCmd(bCmd,true);
@@ -266,7 +261,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::toolAttach(const std::string &armType, con
     return bReturn;
 }
 
-void wysiwyd::wrdac::SubSystem_KARMA::toolRemove()
+void wysiwyd::wrdac::SubSystem_KARMA::chooseArmAuto()
 {
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("tool"));
@@ -276,113 +271,75 @@ void wysiwyd::wrdac::SubSystem_KARMA::toolRemove()
     sendCmd(bCmd,true);
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::pushLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
-                                               const double &zOff,
-                                               const std::string &armType,
-                                               const yarp::os::Bottle &options, const std::string &sName)
-{
-    // Calculate the pushing distance (radius) for push with Karma
-    double radius;
-    Vector object = objCenter;
-    Bottle opt = options;
-    selectHandCorrectTarget(opt,object);    // target is calibrated by this method
-    radius = fabs(object[1] - targetPosYLeft);
-    yInfo ("objectY = %f",object[1]);
-    yInfo ("targetPosYLeft = %f",targetPosYLeft);
-    yInfo ("radius = %f",radius);
-    Vector targetCenter = object;
-    targetCenter[1] = targetPosYLeft;
-//    targetCenter[2] = std::max(zOff, targetCenter[2]);
-    if (hasTable)
-        targetCenter[2] = tableHeight + 0.1;
-    else
-        targetCenter[2] = zOff;
-    yInfo ("object height = %f",targetCenter[2]);
-
-    // Choose arm
-    bool armChoose = false;
-    if (armType =="right" || armType == "left")
-        armChoose = toolAttach(armType,Vector(3,0.0));
-
-    // Call push (no calibration)
-    bool pushSucceed = push(targetCenter,0,radius,options,sName);
-
-    if (armChoose)
-        toolRemove();
-
-    return pushSucceed;
-}
-
-bool wysiwyd::wrdac::SubSystem_KARMA::pushRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
-                                                const double &zOff,
+bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCenter, const double &targetPosY,
+                                                const double &theta,
                                                 const std::string &armType,
                                                 const yarp::os::Bottle &options, const std::string &sName)
 {
     // Calculate the pushing distance (radius) for push with Karma
-    double radius;
     Vector object = objCenter;
     Bottle opt = options;
+    double zOffset = 0.05;
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
-    radius = fabs(object[1] - targetPosYRight);
+    double radius = fabs(object[1] - targetPosY);
     yInfo ("objectY = %f",object[1]);
-    yInfo ("targetPosYRight = %f",targetPosYRight);
+    yInfo ("targetPosYRight = %f",targetPosY);
     yInfo ("radius = %f",radius);
     Vector targetCenter = object;
-    targetCenter[1] = targetPosYRight;
-//    targetCenter[2] = std::max(zOff, targetCenter[2]);
+    targetCenter[1] = targetPosY;
+
     if (hasTable)
-        targetCenter[2] = tableHeight + 0.1;
+        targetCenter[2] = tableHeight + zOffset;
     else
-        targetCenter[2] = zOff;
+        targetCenter[2] += zOffset ;
     yInfo ("object height = %f",targetCenter[2]);
 
     // Choose arm
     bool armChoose = false;
     if (armType =="right" || armType == "left")
-        armChoose = toolAttach(armType,Vector(3,0.0));
+        armChoose = chooseArm(armType);
 
     // Call push (no calibration)
-    bool pushSucceed = push(targetCenter,180,radius,options,sName);
+    bool pushSucceed = push(targetCenter,theta,radius,options,sName);
 
     if (armChoose)
-        toolRemove();
+        chooseArmAuto();
 
     return pushSucceed;
 }
 
 bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
-                                                const double &zOff,
                                                 const std::string &armType,
                                                 const yarp::os::Bottle &options, const std::string &sName)
 {
     // Calculate the pushing distance (radius) for push with Karma
-    double radius;
     Vector object = objCenter;
     Bottle opt = options;
+    double zOffset = 0.05;
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
-    radius = fabs(object[0] - targetPosXFront);
+    double radius = fabs(object[0] - targetPosXFront);
     yInfo ("objectX = %f",object[0]);
     yInfo ("targetPosXFront = %f",targetPosXFront);
     yInfo ("radius = %f",radius);
     Vector targetCenter = object;
     targetCenter[0] = targetPosXFront;
-//    targetCenter[2] = std::max(zOff, targetCenter[2]);
+
     if (hasTable)
-        targetCenter[2] = tableHeight + 0.1;
+        targetCenter[2] = tableHeight + zOffset;
     else
-        targetCenter[2] = zOff;
+        targetCenter[2] += zOffset;
     yInfo ("object height = %f",targetCenter[2]);
 
     // Choose arm
     bool armChoose = false;
     if (armType =="right" || armType == "left")
-        armChoose = toolAttach(armType,Vector(3,0.0));
+        armChoose = chooseArm(armType);
 
     // Call push (no calibration)
     bool pushSucceed = push(targetCenter,-90,radius,options,sName);
 
     if (armChoose)
-        toolRemove();
+        chooseArmAuto();
 
     return pushSucceed;
 }

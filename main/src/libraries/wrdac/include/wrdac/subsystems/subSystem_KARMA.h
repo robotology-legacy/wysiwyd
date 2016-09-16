@@ -81,8 +81,6 @@ namespace wysiwyd {
 
             void appendDouble(yarp::os::Bottle& b, const double &v);
 
-            void appendString(yarp::os::Bottle& b, const std::string &str);
-
             /********************************************************************************/
             bool prepare();
 
@@ -110,31 +108,42 @@ namespace wysiwyd {
             yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in);
 
             /**
-             * @brief toolAttach (KARMA): wrapper for tool-attach of KARMA, can be used to choose the arm for actions with KARMA
+             * @brief chooseArm (toolAttach in KARMA): wrapper for tool-attach of KARMA, can be used to choose the arm for actions with KARMA
              * @param armType: string value of "left" or "right" arm
-             * @param dimTool: Vector of 3 dimension of tool in the frame attached to the hand
              */
-            bool toolAttach(const std::string &armType, const yarp::sig::Vector &dimTool);
+            bool chooseArm(const std::string &armType);
 
             /**
-             * @brief toolRemove (KARMA): wrapper for tool-remove of Karma, use to clear the arm choise
+             * @brief chooseArmAuto (toolRemove in KARMA): wrapper for tool-remove of Karma, use to clear the arm choise
              */
-            void toolRemove();
+            void chooseArmAuto();
 
-            bool pushLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
-                          const double &zOff = std::double_t(),
-                          const std::string &armType = "selectable",
-                          const yarp::os::Bottle &options = yarp::os::Bottle(),
-                          const std::string &sName = "target");
-
-            bool pushRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
-                           const double &zOff = std::double_t(),
+            /**
+             * @brief pushAside (KARMA): push an object to a certain location along y-axis of robot RoF
+             * @param objCenter: coordinate of object
+             * @param targetPosY: y coordinate of location to push object to
+             * @param theta: angle to define pushing left (0) or right (180)
+             * @param armType: "left" or "right" arm to conduct action
+             * @param options
+             * @param sName
+             * @return true in case of success release, false otherwise
+             */
+            bool pushAside(const yarp::sig::Vector &objCenter, const double &targetPosY,
+                           const double &theta,
                            const std::string &armType = "selectable",
                            const yarp::os::Bottle &options = yarp::os::Bottle(),
                            const std::string &sName = "target");
 
+            /**
+             * @brief pushFront (KARMA): push an object to a certain location along x-axis of robot RoF
+             * @param objCenter: coordinate of object
+             * @param targetPosXFront: x coordinate of location to push object to
+             * @param armType: "left" or "right" arm to conduct action
+             * @param options
+             * @param sName
+             * @return true in case of success release, false otherwise
+             */
             bool pushFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
-                           const double &zOff = std::double_t(),
                            const std::string &armType = "selectable",
                            const yarp::os::Bottle &options = yarp::os::Bottle(),
                            const std::string &sName = "target");

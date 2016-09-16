@@ -60,17 +60,6 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
         yInfo("Robot name set to default, i.e. %s", robot.c_str());
     }
 
-    if (rfClient.check("zOffset"))
-    {
-        zOff = rfClient.find("zOffset").asDouble();
-        yInfo("zOffset is set to %f", zOff);
-    }
-    else
-    {
-        zOff = 0.0;
-        yInfo("zOffset is set to default, i.e. %f", zOff);
-    }
-
     if (bLoadPostures){
         yarp::os::ResourceFinder rfPostures;
         rfPostures.setVerbose(isRFVerbose);
@@ -664,7 +653,7 @@ bool ICubClient::pushKarmaLeft(const yarp::sig::Vector &objCenter, const double 
         yError() << "[iCubClient] Called pushKarmaLeft() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->pushLeft(objCenter,targetPosYLeft,zOff,armType,options,sName);
+    return karma->pushAside(objCenter,targetPosYLeft,0,armType,options,sName);
 }
 
 // Right push
@@ -709,7 +698,7 @@ bool ICubClient::pushKarmaRight(const yarp::sig::Vector &objCenter, const double
         yError() << "[iCubClient] Called pushKarmaRight() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->pushRight(objCenter,targetPosYRight,zOff,armType,options,sName);
+    return karma->pushAside(objCenter,targetPosYRight,180,armType,options,sName);
 }
 
 // Front push
@@ -754,7 +743,7 @@ bool ICubClient::pushKarmaFront(const yarp::sig::Vector &objCenter, const double
         yError() << "[iCubClient] Called pushKarmaFront() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->pushFront(objCenter,targetPosXFront,zOff,armType,options,sName);
+    return karma->pushFront(objCenter,targetPosXFront,armType,options,sName);
 }
 
 // Pure push in KARMA

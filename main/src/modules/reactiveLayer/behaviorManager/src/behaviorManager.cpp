@@ -76,21 +76,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             yDebug() << "Behavior " + behavior_name + " not implemented";
             return false;
         }
-
-
-//        else if (behavior_name == "pushingRight") {
-//            behaviors.push_back(new PushingRight(&mut, rf, "pushingRight"));
-
-//        } else if (behavior_name == "pushingFront") {
-//            behaviors.push_back(new PushingFront(&mut, rf, "pushingFront"));
-
-//        } else if (behavior_name == "pulling") {
-//            behaviors.push_back(new Pulling(&mut, rf, "pulling"));
-
-//        }  else {
-//            yDebug() << "Behavior " + behavior_name + " not implemented";
-//            return false;
-//        }
     }
 
     //Create an iCub Client and check that all dependencies are here before starting

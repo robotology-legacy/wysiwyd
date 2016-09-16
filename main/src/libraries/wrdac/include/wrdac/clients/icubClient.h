@@ -54,8 +54,7 @@ namespace wysiwyd{
             double xRangeMin, yRangeMin, zRangeMin;
             double xRangeMax, yRangeMax, zRangeMax;
 
-            std::string robot;  // Name of robot
-            double zOff;        // Table offset
+            std::string robot;  // Name of robot           
 
         public:
 
