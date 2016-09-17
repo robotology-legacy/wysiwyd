@@ -123,9 +123,9 @@ namespace wysiwyd {
              * @param objCenter: coordinate of object
              * @param targetPosY: y coordinate of location to push object to
              * @param theta: angle to define pushing left (0) or right (180)
-             * @param armType: "left" or "right" arm to conduct action
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
              * @param options
-             * @param sName
+             * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
             bool pushAside(const yarp::sig::Vector &objCenter, const double &targetPosY,
@@ -138,9 +138,9 @@ namespace wysiwyd {
              * @brief pushFront (KARMA): push an object to a certain location along x-axis of robot RoF
              * @param objCenter: coordinate of object
              * @param targetPosXFront: x coordinate of location to push object to
-             * @param armType: "left" or "right" arm to conduct action
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
              * @param options
-             * @param sName
+             * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
             bool pushFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
@@ -154,7 +154,7 @@ namespace wysiwyd {
              * @param theta: angle between the y-axis (in robot FoR) and starting position of push action, defines the direction of push action
              * @param radius: radius of the circle with center at @see targetCenter
              * @param options
-             * @param sName
+             * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
             bool push(const yarp::sig::Vector &targetCenter, const double theta, const double radius,
@@ -168,7 +168,7 @@ namespace wysiwyd {
              * @param radius: radius of the circle with center at @see targetCenter
              * @param dist: moving distance of draw action
              * @param options
-             * @param sName
+             * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
             bool draw(const yarp::sig::Vector &targetCenter, const double theta,
@@ -183,7 +183,7 @@ namespace wysiwyd {
              * @param radius: radius of the circle with center at @see targetCenter
              * @param dist: moving distance of draw action
              * @param options
-             * @param sName
+             * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
             bool vdraw(const yarp::sig::Vector &targetCenter, const double theta,

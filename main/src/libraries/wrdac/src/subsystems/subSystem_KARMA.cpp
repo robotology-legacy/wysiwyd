@@ -570,6 +570,7 @@ wysiwyd::wrdac::SubSystem_KARMA::~SubSystem_KARMA()
 {
     delete SubABM;
     delete SubATT;
+    delete SubARE;
     driverL.close();
     driverR.close();
     driverHL.close();
