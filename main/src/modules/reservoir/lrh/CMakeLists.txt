@@ -19,8 +19,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
                     ${wrdac_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
-                    ${PYTHON_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS})
+                    ${PYTHON_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
 target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${PYTHON_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER lrh)

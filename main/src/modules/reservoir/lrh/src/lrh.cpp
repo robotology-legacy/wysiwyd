@@ -24,7 +24,7 @@ using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
-using namespace boost::python;
+
 
 bool LRH::configure(ResourceFinder &rf) {
 
