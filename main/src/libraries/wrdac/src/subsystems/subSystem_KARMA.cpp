@@ -162,10 +162,8 @@ wysiwyd::wrdac::SubSystem_KARMA::SubSystem_KARMA(const std::string &masterName, 
     rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/rpc").c_str());
     visionPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/vision:i").c_str());
     finderPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/finder:rpc").c_str());
-
     calibPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/calib:io").c_str());
     m_type = SUBSYSTEM_KARMA;
-
 }
 
 void wysiwyd::wrdac::SubSystem_KARMA::Close()
@@ -174,6 +172,7 @@ void wysiwyd::wrdac::SubSystem_KARMA::Close()
     rpcPort.interrupt();
     visionPort.interrupt();
     finderPort.interrupt();
+    calibPort.interrupt();
 
     SubABM->Close();
     SubATT->Close();
@@ -188,6 +187,7 @@ void wysiwyd::wrdac::SubSystem_KARMA::Close()
     rpcPort.close();
     visionPort.close();
     finderPort.close();
+    calibPort.close();
 }
 
 yarp::sig::Vector wysiwyd::wrdac::SubSystem_KARMA::applySafetyMargins(const yarp::sig::Vector &in)
@@ -291,7 +291,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     if (hasTable)
         targetCenter[2] = tableHeight + zOffset;
     else
-        targetCenter[2] += zOffset ;
+        targetCenter[2] += zOffset;
     yInfo ("object height = %f",targetCenter[2]);
 
     // Choose arm
@@ -576,4 +576,3 @@ wysiwyd::wrdac::SubSystem_KARMA::~SubSystem_KARMA()
     driverHL.close();
     driverHR.close();
 }
-

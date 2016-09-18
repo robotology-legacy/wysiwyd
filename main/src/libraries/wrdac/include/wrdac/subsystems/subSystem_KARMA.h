@@ -64,7 +64,6 @@ namespace wysiwyd {
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient visionPort;
             yarp::os::RpcClient finderPort;
-
             yarp::os::RpcClient calibPort;
 
             //testing Cartesian interface
