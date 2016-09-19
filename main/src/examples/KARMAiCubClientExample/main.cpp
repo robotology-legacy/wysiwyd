@@ -51,7 +51,7 @@ int main()
     // object location in the iCub frame
     Vector x(4);
     x[0]=-0.35;
-    x[1]=-0.05;
+    x[1]=0.05;
     x[2]=0.05;
     x[3]=1.0;
 
@@ -67,7 +67,27 @@ int main()
     iCub.home();    // Home by using ARE
     x[1] =x[1] - 0.1;
     cout<<"try to push with KARMA...";
-    bool ok = iCub.pushKarma(x,0,0.2);
+    bool ok = iCub.pushKarma(x,180,0.2);
+    cout<<(ok?"success":"failed")<<endl;
+    Time::delay(4.0);
+
+    iCub.home();    // Home by using ARE
+    cout<<"try to pushLeft with KARMA by right hand..."<<endl;
+    ok = iCub.pushKarmaLeft(x,-.2,"right");
+    cout<<(ok?"success":"failed")<<endl;
+    Time::delay(4.0);
+
+    iCub.home();    // Home by using ARE
+    cout<<"try to pushRight with KARMA by left hand..."<<endl;
+    ok = iCub.pushKarmaRight(x,.2,"left");
+    cout<<(ok?"success":"failed")<<endl;
+    Time::delay(4.0);
+
+    iCub.home();    // Home by using ARE
+    x[0] = -0.1;
+    x[1] = 0.3;
+    cout<<"try to pushFront with KARMA ..."<<endl;
+    ok = iCub.pushKarmaFront(x,-0.35);
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
 

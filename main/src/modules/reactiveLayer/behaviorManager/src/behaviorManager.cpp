@@ -61,7 +61,12 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             // other behaviors here
         }  else if (behavior_name == "greeting") {
             behaviors.push_back(new recognitionOrder(&mut, rf, "greeting"));
-        }  else {
+
+        }
+
+
+
+        else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
             return false;
         }
@@ -105,6 +110,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
                 yarp::os::Time::delay(0.5);
             }   
         }
+
     }
 
     attach(rpc_in_port);
@@ -194,6 +200,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 if (cmd.size()>1){
                     args = cmd.tail();
                 }
+                yDebug() << "arguments are " << args.toString().c_str();
                 beh->trigger(args);
                 behavior_triggered = true;
 

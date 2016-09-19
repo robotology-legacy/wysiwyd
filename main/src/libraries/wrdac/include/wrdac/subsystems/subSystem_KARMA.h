@@ -28,6 +28,7 @@
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
 #include "wrdac/subsystems/subSystem_attention.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
 
 #define SUBSYSTEM_KARMA       "KARMA"
 
@@ -52,12 +53,18 @@ namespace wysiwyd {
             SubSystem_Attention* SubATT;
             bool ATTconnected;
 
+            SubSystem_ARE* SubARE;
+            bool AREconnected;
+
             std::string robot;
+            double tableHeight;
+            bool hasTable;
 
             yarp::os::RpcClient stopPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient visionPort;
             yarp::os::RpcClient finderPort;
+            yarp::os::RpcClient calibPort;
 
             //testing Cartesian interface
             yarp::dev::PolyDriver driverL;
@@ -76,6 +83,8 @@ namespace wysiwyd {
             /********************************************************************************/
             bool prepare();
 
+            void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
+                                         const std::string handToUse="");
 
             /********************************************************************************/
             bool sendCmd(yarp::os::Bottle &cmd, const bool disableATT=false);
@@ -98,12 +107,53 @@ namespace wysiwyd {
             yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in);
 
             /**
+             * @brief chooseArm (toolAttach in KARMA): wrapper for tool-attach of KARMA, can be used to choose the arm for actions with KARMA
+             * @param armType: string value of "left" or "right" arm
+             */
+            bool chooseArm(const std::string &armType);
+
+            /**
+             * @brief chooseArmAuto (toolRemove in KARMA): wrapper for tool-remove of Karma, use to clear the arm choise
+             */
+            void chooseArmAuto();
+
+            /**
+             * @brief pushAside (KARMA): push an object to a certain location along y-axis of robot RoF
+             * @param objCenter: coordinate of object
+             * @param targetPosY: y coordinate of location to push object to
+             * @param theta: angle to define pushing left (0) or right (180)
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @param sName: name of object to push
+             * @return true in case of success release, false otherwise
+             */
+            bool pushAside(const yarp::sig::Vector &objCenter, const double &targetPosY,
+                           const double &theta,
+                           const std::string &armType = "selectable",
+                           const yarp::os::Bottle &options = yarp::os::Bottle(),
+                           const std::string &sName = "target");
+
+            /**
+             * @brief pushFront (KARMA): push an object to a certain location along x-axis of robot RoF
+             * @param objCenter: coordinate of object
+             * @param targetPosXFront: x coordinate of location to push object to
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @param sName: name of object to push
+             * @return true in case of success release, false otherwise
+             */
+            bool pushFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+                           const std::string &armType = "selectable",
+                           const yarp::os::Bottle &options = yarp::os::Bottle(),
+                           const std::string &sName = "target");
+
+            /**
              * @brief push (KARMA): push to certain position, along a direction
              * @param targetCenter: position to push to.
              * @param theta: angle between the y-axis (in robot FoR) and starting position of push action, defines the direction of push action
              * @param radius: radius of the circle with center at @see targetCenter
              * @param options
-             * @param sName
+             * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
             bool push(const yarp::sig::Vector &targetCenter, const double theta, const double radius,
@@ -117,7 +167,7 @@ namespace wysiwyd {
              * @param radius: radius of the circle with center at @see targetCenter
              * @param dist: moving distance of draw action
              * @param options
-             * @param sName
+             * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
             bool draw(const yarp::sig::Vector &targetCenter, const double theta,
@@ -132,7 +182,7 @@ namespace wysiwyd {
              * @param radius: radius of the circle with center at @see targetCenter
              * @param dist: moving distance of draw action
              * @param options
-             * @param sName
+             * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
             bool vdraw(const yarp::sig::Vector &targetCenter, const double theta,

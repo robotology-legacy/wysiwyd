@@ -37,6 +37,7 @@ public:
     ICubClient *iCub;
     string from_sensation_port_name, external_port_name;
     BufferedPort<Bottle> sensation_port_in, behavior_start_stop_port;
+
     Port rpc_out_port;
     std::string behaviorName;
     ResourceFinder& rf;

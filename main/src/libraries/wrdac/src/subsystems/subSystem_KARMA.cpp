@@ -18,6 +18,52 @@ void wysiwyd::wrdac::SubSystem_KARMA::appendDouble(yarp::os::Bottle &b, const do
     sub.addDouble(v);
 }
 
+void wysiwyd::wrdac::SubSystem_KARMA::selectHandCorrectTarget(yarp::os::Bottle &options, yarp::sig::Vector &target, const std::string handToUse)
+{
+    std::string hand="";
+    for (int i=0; i<options.size(); i++)
+    {
+        yarp::os::Value val=options.get(i);
+        if (val.isString())
+        {
+            std::string item=val.asString();
+            if ((item=="left") || (item=="right"))
+            {
+                hand=item;
+                break;
+            }
+        }
+    }
+
+    // always choose hand
+    if (hand.empty())
+    {
+        if (handToUse.empty())
+        {
+            hand=(target[1]>0.0?"right":"left");
+//            options.addString(hand.c_str());
+        }
+        else
+            hand=handToUse;
+    }
+
+    // apply 3D correction
+    if (calibPort.getOutputCount()>0)
+    {
+        yarp::os::Bottle cmd,reply;
+        cmd.addString("get_location_nolook");
+        cmd.addString("iol-"+hand);
+        cmd.addDouble(target[0]);
+        cmd.addDouble(target[1]);
+        cmd.addDouble(target[2]);
+        calibPort.write(cmd,reply);
+        target[0]=reply.get(1).asDouble();
+        target[1]=reply.get(2).asDouble();
+        target[2]=reply.get(3).asDouble();
+    }
+
+//    lastlyUsedHand=hand;
+}
 
 bool wysiwyd::wrdac::SubSystem_KARMA::sendCmd(yarp::os::Bottle &cmd, const bool disableATT)
 {
@@ -60,6 +106,12 @@ bool wysiwyd::wrdac::SubSystem_KARMA::connect()
     else
         yWarning()<<"KARMA didn't connect to Attention";
 
+    AREconnected=SubARE->Connect();
+    if (AREconnected)
+        yInfo()<<"KARMA connected to ARE";
+    else
+        yWarning()<<"KARMA didn't connect to ARE";
+
     bool ret=true;
     ret&=yarp::os::Network::connect(stopPort.getName(),"/karmaMotor/stop:i");
     ret&=yarp::os::Network::connect(rpcPort.getName(),"/karmaMotor/rpc");
@@ -74,7 +126,26 @@ bool wysiwyd::wrdac::SubSystem_KARMA::connect()
     else
         yWarning()<<"KARMA didn't connect to tool dimensions solver";
 
+    if (yarp::os::Network::connect(calibPort.getName(),"/iolReachingCalibration/rpc"))
+        yInfo()<<"KARMA connected to calibrator";
+    else
+        yWarning()<<"KARMA didn't connect to calibrator";
+
     openCartesianClient();
+
+    if (AREconnected)
+    {
+        hasTable = SubARE->getTableHeight(tableHeight);
+        if (hasTable)
+            yInfo("[SubSystem_KARMA] table height: %f",tableHeight);
+        else
+            yWarning("[SubSystem_KARMA] no table object");
+    }
+    else
+    {
+        tableHeight = 0.0;
+        yWarning("[SubSystem_KARMA] not connected to ARE");
+    }
 
     return ret;
 }
@@ -83,6 +154,7 @@ wysiwyd::wrdac::SubSystem_KARMA::SubSystem_KARMA(const std::string &masterName, 
 {
     SubABM = new SubSystem_ABM(m_masterName+"/from_KARMA");
     SubATT = new SubSystem_Attention(m_masterName+"/from_KARMA");
+    SubARE = new SubSystem_ARE(m_masterName+"/from_KARMA");
 
     this->robot = robot;
 
@@ -90,6 +162,7 @@ wysiwyd::wrdac::SubSystem_KARMA::SubSystem_KARMA(const std::string &masterName, 
     rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/rpc").c_str());
     visionPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/vision:i").c_str());
     finderPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/finder:rpc").c_str());
+    calibPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/calib:io").c_str());
     m_type = SUBSYSTEM_KARMA;
 }
 
@@ -99,9 +172,11 @@ void wysiwyd::wrdac::SubSystem_KARMA::Close()
     rpcPort.interrupt();
     visionPort.interrupt();
     finderPort.interrupt();
+    calibPort.interrupt();
 
     SubABM->Close();
     SubATT->Close();
+    SubARE->Close();
 
     driverL.close();
     driverR.close();
@@ -112,6 +187,7 @@ void wysiwyd::wrdac::SubSystem_KARMA::Close()
     rpcPort.close();
     visionPort.close();
     finderPort.close();
+    calibPort.close();
 }
 
 yarp::sig::Vector wysiwyd::wrdac::SubSystem_KARMA::applySafetyMargins(const yarp::sig::Vector &in)
@@ -169,7 +245,108 @@ bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
     return true;
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter, const double theta, const double radius, const yarp::os::Bottle &options, const std::string &sName)
+bool wysiwyd::wrdac::SubSystem_KARMA::chooseArm(const std::string &armType)
+{
+    Vector dimTool(3,0.0);
+    yarp::os::Bottle bCmd;
+    bCmd.addVocab(yarp::os::Vocab::encode("tool"));
+    bCmd.addVocab(yarp::os::Vocab::encode("attach"));
+    bCmd.addString(armType);
+    appendTarget(bCmd,dimTool);
+
+    bool bReturn = sendCmd(bCmd,true);
+    std::string status;
+    bReturn ? status = "success" : status = "failed";
+
+    return bReturn;
+}
+
+void wysiwyd::wrdac::SubSystem_KARMA::chooseArmAuto()
+{
+    yarp::os::Bottle bCmd;
+    bCmd.addVocab(yarp::os::Vocab::encode("tool"));
+    bCmd.addVocab(yarp::os::Vocab::encode("remove"));
+
+
+    sendCmd(bCmd,true);
+}
+
+bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCenter, const double &targetPosY,
+                                                const double &theta,
+                                                const std::string &armType,
+                                                const yarp::os::Bottle &options, const std::string &sName)
+{
+    // Calculate the pushing distance (radius) for push with Karma
+    Vector object = objCenter;
+    Bottle opt = options;
+    double zOffset = 0.05;
+    selectHandCorrectTarget(opt,object);    // target is calibrated by this method
+    double radius = fabs(object[1] - targetPosY);
+    yInfo ("objectY = %f",object[1]);
+    yInfo ("targetPosYRight = %f",targetPosY);
+    yInfo ("radius = %f",radius);
+    Vector targetCenter = object;
+    targetCenter[1] = targetPosY;
+
+    if (hasTable)
+        targetCenter[2] = tableHeight + zOffset;
+    else
+        targetCenter[2] += zOffset;
+    yInfo ("object height = %f",targetCenter[2]);
+
+    // Choose arm
+    bool armChoose = false;
+    if (armType =="right" || armType == "left")
+        armChoose = chooseArm(armType);
+
+    // Call push (no calibration)
+    bool pushSucceed = push(targetCenter,theta,radius,options,sName);
+
+    if (armChoose)
+        chooseArmAuto();
+
+    return pushSucceed;
+}
+
+bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+                                                const std::string &armType,
+                                                const yarp::os::Bottle &options, const std::string &sName)
+{
+    // Calculate the pushing distance (radius) for push with Karma
+    Vector object = objCenter;
+    Bottle opt = options;
+    double zOffset = 0.05;
+    selectHandCorrectTarget(opt,object);    // target is calibrated by this method
+    double radius = fabs(object[0] - targetPosXFront);
+    yInfo ("objectX = %f",object[0]);
+    yInfo ("targetPosXFront = %f",targetPosXFront);
+    yInfo ("radius = %f",radius);
+    Vector targetCenter = object;
+    targetCenter[0] = targetPosXFront;
+
+    if (hasTable)
+        targetCenter[2] = tableHeight + zOffset;
+    else
+        targetCenter[2] += zOffset;
+    yInfo ("object height = %f",targetCenter[2]);
+
+    // Choose arm
+    bool armChoose = false;
+    if (armType =="right" || armType == "left")
+        armChoose = chooseArm(armType);
+
+    // Call push (no calibration)
+    bool pushSucceed = push(targetCenter,-90,radius,options,sName);
+
+    if (armChoose)
+        chooseArmAuto();
+
+    return pushSucceed;
+}
+
+bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter,
+                                           const double theta, const double radius,
+                                           const yarp::os::Bottle &options, const std::string &sName)
 {
     prepare();
 
@@ -198,6 +375,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
     appendTarget(bCmd,target);
     appendDouble(bCmd,theta);
     appendDouble(bCmd,radius);
+
     bCmd.append(opt);
 
     bool bReturn = sendCmd(bCmd,true);
@@ -304,7 +482,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const yarp::sig::Vector &targetCente
 
     yarp::sig::Vector target=targetCenter;
     yarp::os::Bottle opt=options;
-
+    selectHandCorrectTarget(opt,target);
     target=applySafetyMargins(target);
     appendTarget(bCmd,target);
     appendDouble(bCmd,theta);
@@ -392,9 +570,9 @@ wysiwyd::wrdac::SubSystem_KARMA::~SubSystem_KARMA()
 {
     delete SubABM;
     delete SubATT;
+    delete SubARE;
     driverL.close();
     driverR.close();
     driverHL.close();
     driverHR.close();
 }
-

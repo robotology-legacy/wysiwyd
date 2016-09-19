@@ -54,7 +54,7 @@ namespace wysiwyd{
             double xRangeMin, yRangeMin, zRangeMin;
             double xRangeMax, yRangeMax, zRangeMax;
 
-            std::string robot;
+            std::string robot;  // Name of robot           
 
         public:
 
@@ -291,6 +291,81 @@ namespace wysiwyd{
             *         (Entity non existing, impossible to reach, etc.).
             */
             bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),std::string sName="target");
+
+
+            /**
+             * @brief pushKarmaLeft: push an object to right side, this wrapper simplify pure push action of KARMA
+             * @param objName: name of object, which will be looked for in OPC
+             * @param targetPosYLeft: Y coordinate of object to push to
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @return true in case of success release, false otherwise
+             */
+            bool pushKarmaLeft(const std::string &objName, const double &targetPosYLeft,
+                               const std::string &armType = "selectable",
+                               const yarp::os::Bottle &options = yarp::os::Bottle());
+
+            /**
+             * @brief pushKarmaRight: push an object to right side, this wrapper simplify pure push action of KARMA
+             * @param objName: name of object, which will be looked for in OPC
+             * @param targetPosYRight: Y coordinate of object to push to
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @return true in case of success release, false otherwise
+             */
+            bool pushKarmaRight(const std::string &objName, const double &targetPosYRight,
+                                const std::string &armType = "selectable",
+                                const yarp::os::Bottle &options = yarp::os::Bottle());
+
+            /**
+             * @brief pushKarmaFront: push an object to front, this wrapper simplify pure push action of KARMA
+             * @param objName: name of object, which will be looked for in OPC
+             * @param targetPosXFront: Y coordinate of object to push to
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @return true in case of success release, false otherwise
+             */
+            bool pushKarmaFront(const std::string &objName, const double &targetPosXFront,
+                                const std::string &armType = "selectable",
+                                const yarp::os::Bottle &options = yarp::os::Bottle());
+
+            /**
+             * @brief pushKarmaLeft: push an object to left side, this wrapper simplify pure push action of KARMA
+             * @param objCenter: coordinate of object's center
+             * @param targetPosYLeft: Y coordinate of object to push to
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @param sName: name of object to push
+             * @return true in case of success release, false otherwise
+             */
+            bool pushKarmaLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
+                               const std::string &armType = "selectable",
+                               const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
+
+            /**
+             * @brief pushKarmaRight: push an object to right side, this wrapper simplify pure push action of KARMA
+             * @param objCenter: coordinate of object's center
+             * @param targetPosYRight: Y coordinate of object to push to
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @param sName: name of object to push
+             * @return true in case of success release, false otherwise
+             */
+            bool pushKarmaRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
+                                const std::string &armType = "selectable",
+                                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
+            /**
+             * @brief pushKarmaFront: push an object to front, this wrapper simplify pure push action of KARMA
+             * @param objCenter: coordinate of object's center
+             * @param targetPosXFront: X coordinate of object to push to
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @param sName: name of object to push
+             * @return true in case of success release, false otherwise
+             */
+            bool pushKarmaFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+                                const std::string &armType = "selectable",
+                                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
 
             /**
             * @brief pushKarma (KARMA): push to certain position, along a direction
