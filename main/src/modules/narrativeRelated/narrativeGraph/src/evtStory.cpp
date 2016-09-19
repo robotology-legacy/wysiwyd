@@ -7,28 +7,29 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 
 
-void evtStory::print(){
-    cout << "*************************************" << endl;
-    cout << "\tinstance:      " << instance << endl;
-    cout << "\tbegin:         " << begin<< endl;
-    cout << "\tactivityName:  " << activity_name << endl;
-    cout << "\tactivity_type: " << activity_type << endl;
-    cout << "\tpredicate:     " << predicate << endl;
-    cout << "\tagent:         " << agent << endl;
-    cout << "\tobject:        " << object << endl;
-    cout << "\trecipient:     " << recipient << endl;
-    cout << "\tisNarration:   " << isNarration << endl;
-    cout << "\tbRelations:    " << bRelations.toString() << endl;
-    cout << "\tvArgument:     " << endl;
+string evtStory::toString(){
+    ostringstream os;
+    os << "*************************************" << endl;
+    os << "\tinstance:      " << instance << endl;
+    os << "\tbegin:         " << begin<< endl;
+    os << "\tactivityName:  " << activity_name << endl;
+    os << "\tactivity_type: " << activity_type << endl;
+    os << "\tpredicate:     " << predicate << endl;
+    os << "\tagent:         " << agent << endl;
+    os << "\tobject:        " << object << endl;
+    os << "\trecipient:     " << recipient << endl;
+    os << "\tisNarration:   " << isNarration << endl;
+    os << "\tbRelations:    " << bRelations.toString() << endl;
+    os << "\tvArgument:     " << endl;
     for (auto ar : vArgument){
-        cout << "\t\t" << ar.first << " - " << ar.second << endl;
+        os << "\t\t" << ar.first << " - " << ar.second << endl;
     }
-    cout << "\tvFocus:        " << endl;
+    os << "\tvFocus:        " << endl;
     for (auto ar : mFocus){
-        cout << "\t\t" << ar.first << " - " << ar.second << endl;
+        os << "\t\t" << ar.first << " - " << ar.second << endl;
     }
-    cout << "*************************************" << endl;
-
+    os << "*************************************" << endl;
+    return os.str();
 }
 
 

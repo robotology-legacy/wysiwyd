@@ -59,7 +59,7 @@ public:
 
     void removeUnderscore();
     void addUnderscore();
-    void print();
+    std::string toString();
 
     //    void removeUnderscoreString(std::string &input);
     //    void addUnderscoreString(std::string &input);

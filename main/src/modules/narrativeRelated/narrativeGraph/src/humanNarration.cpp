@@ -958,6 +958,20 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     // getting scenario
     sm.ABMtoSM(listStories.at(iScenario));
 
+    cout << "in linkMeaningScenario: " << endl;
+    int doku = 0;
+    for (auto ig : sm.vIGARF){
+        cout << doku << ": " << ig.toString() << endl
+            << "\t [" << sm.vActionEvts[doku].agent
+            << "-" << sm.vActionEvts[doku].predicate
+            << "-" << sm.vActionEvts[doku].object
+            << "-" << sm.vActionEvts[doku].recipient << "]" << endl;
+        doku++;
+    }
+
+
+
+
     // getting narration
     if (iMeaning <= listAutoMeaning.size())
     {
@@ -1079,40 +1093,32 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
                             //vIGARF.at(j).vGoal.at(k)
                             if (kTmp.cPart == 'A'){
-                                cout << "\t  " << iIg << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                cout << "\t  " << iIg << " - " << iL
                                     << " [" << sm.vActionEvts[iIg].agent
                                     << "-" << sm.vActionEvts[iIg].predicate
                                     << "-" << sm.vActionEvts[iIg].object
                                     << "-" << sm.vActionEvts[iIg].recipient << "]" << endl;
                             }
                             else if (kTmp.cPart == 'G'){
-                                iIg = iIg;
-                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
-                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                cout << "\t  " << iIg << " - " << iL
                                     << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].verb
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
                             }
                             else if (kTmp.cPart == 'I'){
-                                iIg = iIg;
-                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
-                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                cout << "\t  " << iIg << " - " << iL
                                     << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].verb
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
                             }
                             else if (kTmp.cPart == 'F'){
-                                iIg = iIg;
-                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
-                                cout << "\t  " << sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel] << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                cout << "\t  " << iIg << " - " << iL
                                     << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].verb
                                     << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
                             }
                             else if (kTmp.cPart == 'R'){
-                                iIg = iIg;
-                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
-                                cout << "\t  " << iIg << " - " << sm.vIGARF[kTmp.iIGARF].iLevel
+                                cout << "\t  " << iIg << " - " << iL
                                     << " [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].agent
                                     << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].predicate
                                     << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].object

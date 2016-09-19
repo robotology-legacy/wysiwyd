@@ -41,7 +41,19 @@ namespace storygraph {
         int iLevel; /// level of depth of the IGARF
         std::string toString() {
             std::ostringstream os;
-            os << tAction << " " << tResult << " action: " << iAction << ", result: " << iResult << ", next: " << iNext;
+            os << "vInitState: ";
+            for (auto ini : vInitState){
+                os << ini << " ";
+            }
+            os << "; vGoal: ";
+            for (auto ini : vGoal){
+                os << ini << " ";
+            }
+            os << "; vFinalState: ";
+            for (auto ini : vFinalState){
+                os << ini << " ";
+            }
+            os << "; tAction: " << tAction << "; tResult: " << tResult << "; iAction: " << iAction << "; iResult: " << iResult << "; iNext: " << iNext << "; iLevel: " << iLevel;
             return os.str();
         }
     };

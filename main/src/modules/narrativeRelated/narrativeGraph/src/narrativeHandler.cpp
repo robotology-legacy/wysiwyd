@@ -1548,7 +1548,7 @@ void narrativeHandler::createNarration(story &sto)
         evtStory currentEvent = sto.vEvents[currentElement];
         currentEvent.addUnderscore();
 
-        if (VERBOSE) currentEvent.print();
+        if (VERBOSE) cout << currentEvent.toString();
 
         bool addEvt = true;
         if (!currentEvent.isNarration)
@@ -2014,7 +2014,7 @@ void narrativeHandler::createNarration(story &sto)
         }
         // else is not narrration
         else {
-            if (VERBOSE) currentEvent.print();
+            if (VERBOSE) cout << currentEvent.toString();
             for (auto arg : currentEvent.vArgument){
                 if (arg.first == "meaning"){
                     sto.meaningStory.push_back(arg.second);
@@ -2335,19 +2335,17 @@ void narrativeHandler::displayDFW(){
 
     cout << endl << "Displaying DFW: " << vDFW.size() << endl;
 
-    for (vector<storygraph::DFW>::iterator itD = vDFW.begin(); itD != vDFW.end(); itD++){
-        cout << "\t" << itD->sName << endl;
+    for (auto itD : vDFW){
+        cout << "\t" << itD.sName << endl;
 
         cout << "\t\t double:" << endl;
-        for (unsigned int jj = 0; jj < itD->vDoubleIGARF.size(); jj++){
-            cout << itD->vDoubleIGARF[jj].first.toString() << "\t" << itD->vDoubleIGARF[jj].second.toString() << endl;
+        for (unsigned int jj = 0; jj < itD.vDoubleIGARF.size(); jj++){
+            cout << itD.vDoubleIGARF[jj].first.toString() << "\t" << itD.vDoubleIGARF[jj].second.toString() << endl;
         }
 
         cout << "\t\t simple: " << endl;
-        for (vector<storygraph::EVT_IGARF>::iterator itI = itD->vSingleIGARF.begin();
-            itI != itD->vSingleIGARF.end();
-            itI++){
-            cout << "\t\t\t" << itI->toString() << endl;
+        for (auto itI : itD.vSingleIGARF){
+            cout << "\t\t\t" << itI.toString() << endl;
         }
     }
 }
