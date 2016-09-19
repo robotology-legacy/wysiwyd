@@ -62,12 +62,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         }  else if (behavior_name == "greeting") {
             behaviors.push_back(new recognitionOrder(&mut, rf, "greeting"));
 
-        } else if (behavior_name == "pushingLeft") {
-            behaviors.push_back(new PushingLeft(&mut, rf, "pushingLeft"));
-        } else if (behavior_name == "pushingRight") {
-            behaviors.push_back(new PushingRight(&mut, rf, "pushingRight"));
-        } else if (behavior_name == "pushingFront") {
-            behaviors.push_back(new PushingFront(&mut, rf, "pushingFront"));
         }
 
 
