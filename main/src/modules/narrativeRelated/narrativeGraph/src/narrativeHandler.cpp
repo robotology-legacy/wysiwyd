@@ -68,7 +68,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
 
-
+	sIGARFfile = rf.findFile(rf.check("IGARFfile", Value("igarffile.txt")).toString()); 
+	
+	
     // Closed Class Words (from LRH)
     yarp::os::ResourceFinder rfLRH;
     rfLRH.setVerbose(isRFVerbose);
@@ -423,10 +425,12 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "ABMtoSM") {
         yInfo(" create the situation model from ABM");
+		ofstream IGARFfile;
+		IGARFfile.open(sIGARFfile);
         if (command.size() >= 2) {
             int i = command.get(1).asInt();
             if (i >= 0 && i < (int)listStories.size()) {
-                sm.ABMtoSM(listStories.at(i));
+				sm.ABMtoSM(listStories.at(i),IGARFfile);
                 yInfo(" import and creation sucessful");
                 reply.addString("creation sucessful");
             }
@@ -437,14 +441,18 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             }
         }
         else {
-            sm.ABMtoSM(listStories.back());
+			sm.ABMtoSM(listStories.back(),IGARFfile);
             yInfo(" import of last story and creation sucessful");
             reply.addString("creation sucessful");
         }
+        IGARFfile.close();
     }
     else if (command.get(0).asString() == "autoStructSM") {
         yInfo(" auto structuration of the situation model");
-        sm.makeStructure();
+		ofstream IGARFfile;
+		IGARFfile.open(sIGARFfile);
+		sm.makeStructure(IGARFfile);
+		IGARFfile.close();
         yInfo(" autostruct sucessful");
         reply.addString("autostruct sucessful");
     }
@@ -489,8 +497,11 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "listIGARF") {
         yInfo(" list IGARF events of the situation model ");
         for (unsigned int i = 0; i < sm.vIGARF.size(); i++) {
-            sm.showIGARF(i);
+			ofstream IGARFfile;
+			IGARFfile.open(sIGARFfile);
+			sm.showIGARF(i, IGARFfile);
             std::cout << std::endl;
+			IGARFfile.close();
         }
         yInfo(" listing sucessful");
         reply.addString(" listing sucessful");
@@ -543,7 +554,10 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         if (command.size() >= 2) {
             int i = command.get(1).asInt();
             if (i >= 0 && i < (int)sm.vIGARF.size()) {
-                sm.showIGARF(i);
+				ofstream IGARFfile;
+				IGARFfile.open(sIGARFfile);
+				sm.showIGARF(i,IGARFfile);
+				IGARFfile.close();
                 cout << endl;
                 yInfo(" display sucessful");
                 reply.addString(" display sucessful");

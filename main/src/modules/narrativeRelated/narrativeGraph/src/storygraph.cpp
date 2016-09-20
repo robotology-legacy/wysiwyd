@@ -10,6 +10,11 @@ void margin(int level) {
         cout << "| ";
 }
 
+void marginInFile(int level, ofstream &IGARFfile) {
+	for (int i = 0; i < level; i++)
+		IGARFfile << "| ";
+}
+
 bool storygraph::operator==(const sKeyMean& A, const sKeyMean& B) {
     return (A.iIGARF == B.iIGARF &&
         A.cPart == B.cPart &&
@@ -64,52 +69,74 @@ void line(int level) {
     cout.fill(prevC);
 }
 
-void SituationModel::showIGARF(int i, int level) {
+void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level) {
     if (i < 0 || i >= (int)vIGARF.size())
         return;
-
+		
     const sIGARF &evt = vIGARF.at(i);
     vIGARF.at(i).iLevel= level;
     margin(level);
+	marginInFile(level,IGARFfile);
     cout << "[" << i << "] " << endl;
+	IGARFfile << endl;
     line(level);
     margin(level);
+	marginInFile(level,IGARFfile);
     cout << "+-INIT: " << dispRelations(evt.vInitState) << endl;
+	IGARFfile << "INIT " << dispRelations(evt.vInitState) << endl;
     margin(level);
+	marginInFile(level,IGARFfile);
     cout << "+-GOAL: " << dispRelations(evt.vGoal) << endl;
+	IGARFfile << "GOAL " << dispRelations(evt.vGoal) << endl;
     margin(level);
+	marginInFile(level,IGARFfile);
     cout << "+-ACTION: ";
+	IGARFfile << "ACTION ";
     if (evt.tAction == ACTION_EVT) {
         cout << "[" << evt.iAction << "] " << getSentenceEvt(evt.iAction) << endl;
-    }
+		IGARFfile << getSentenceEvt(evt.iAction) << endl;		
+	}
     else if (evt.tAction == IGARF_EVT) {
         cout << "[" << evt.iAction << "]" << endl;
-        showIGARF(evt.iAction, level + 1);
+		IGARFfile << endl;
+		showIGARF(evt.iAction, IGARFfile, level + 1);
     }
     else
         cout << endl;
     margin(level);
+	marginInFile(level,IGARFfile);
     cout << "+-RESULT: ";
+	IGARFfile << "RESULT ";
     if (evt.tResult == ACTION_EVT) {
         cout << "[" << evt.iResult << "] " << getSentenceEvt(evt.iResult) << endl;
-    }
+		IGARFfile << getSentenceEvt(evt.iResult) << endl;		
+	}
     else if (evt.tResult == IGARF_EVT) {
         cout << "[" << evt.iResult << "]" << endl;
-        showIGARF(evt.iResult, level + 1);
+		IGARFfile << endl;
+		showIGARF(evt.iResult, IGARFfile, level + 1);
     }
-    else
+    else{
         cout << endl;
+		IGARFfile << endl;
+	}
     margin(level);
+	marginInFile(level,IGARFfile);
     cout << "+-FINAL: " << dispRelations(evt.vFinalState) << endl;
+	IGARFfile << "FINAL " << dispRelations(evt.vFinalState) << endl;
     margin(level);
+	marginInFile(level,IGARFfile);
     cout << "+-NEXT: ";
+	IGARFfile << "NEXT ";
     if (evt.iNext != -1) {
         cout << "[" << evt.iNext << "]" << endl;
+		IGARFfile << endl;
         line(level);
-        showIGARF(evt.iNext, level);
+		showIGARF(evt.iNext, IGARFfile, level);
     }
     else {
         cout << endl;
+		IGARFfile << endl;
         line(level);
     }
 }
@@ -352,7 +379,7 @@ void SituationModel::createLink(sKeyMean from, sKeyMean to, string word) {
 /*---------*
  * ABMtoSM *
  *---------*/
-void SituationModel::ABMtoSM(const story &sto) {
+void SituationModel::ABMtoSM(const story &sto, ofstream &IGARFfile) {
     // Clearing
     clear();
 
@@ -472,11 +499,10 @@ void SituationModel::ABMtoSM(const story &sto) {
         }
     }
 
-    makeStructure();
-
+    makeStructure(IGARFfile);
 }
 
-void SituationModel::makeStructure() {
+void SituationModel::makeStructure(ofstream &IGARFfile) {
     // Step 2: Make chains
     // Each chain ends iff (1. Init and Final State are different) OR (2. Result is a failure) OR (3. End of the story)
     vector < int > rep; // Indexes of IGARF which packed chains (used for next step)
@@ -623,22 +649,9 @@ void SituationModel::makeStructure() {
             }
         }
     }
-    
-    cout << "Story from instance: " << instanceBegin << "; Head is: " << head << endl<< endl;
 
-
-    int doku = 0;
-    for (auto ig : vIGARF){
-        cout << doku << ": " << ig.toString() << endl
-            << "\t [" << vActionEvts[doku].agent
-            << "-" << vActionEvts[doku].predicate
-            << "-" << vActionEvts[doku].object
-            << "-" << vActionEvts[doku].recipient << "]" << endl;
-        doku++;
-    }
-
-
-    showIGARF(head);
+    cout << "Story from instance: " << instanceBegin << endl;
+    showIGARF(head, IGARFfile);
 }
 
 

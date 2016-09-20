@@ -20,6 +20,8 @@
 
 #include <semanticscanner.h>
 #include <discourseform.h>
+#include <iostream>
+#include <fstream>
 
 namespace storygraph {
 
@@ -95,6 +97,7 @@ namespace storygraph {
 
         std::set < int > vRelSaid;
         std::set < int > vActSaid;
+		
     public:
         int instanceBegin; /// ABM instance of the first event
 
@@ -113,7 +116,7 @@ namespace storygraph {
         std::string getSentenceEvt(int i); ///< Produces a naïve sentence from the i-th event
         std::string getSentenceRel(int i); ///< Produces a naïve sentence from the i-th relations
         std::string dispRelations(const std::vector < int >& rels); ///< Displays all relations in a [Subject Verb Object] format
-        void showIGARF(int i, int level = 0); ///< Displays a tree view of the i-th IGARF
+		void showIGARF(int i, std::ofstream &IGARFfile, int level = 0); ///< Displays a tree view of the i-th IGARF
         /**< @param level Used to set the margin recursively. You don't need to use it. **/
 
 
@@ -136,8 +139,8 @@ namespace storygraph {
         sActionEvt getEvent(const sKeyMean& km);
         void createLink(sKeyMean from, sKeyMean to, std::string word); ///< Creates and adds a link in the vDiscourseLinks
         // -- ABMtoSM
-        void ABMtoSM(const story &s); ///< Uses a story (its vector of evtStory) to automatically generate a Situation Model
-        void makeStructure(); ///< From all the IGARF, makes a structure with story arc, failure and consequence, etc...
+		void ABMtoSM(const story &s, std::ofstream &IGARFfile); ///< Uses a story (its vector of evtStory) to automatically generate a Situation Model
+		void makeStructure(std::ofstream &IGARFfile); ///< From all the IGARF, makes a structure with story arc, failure and consequence, etc...
         // -- SMtoTrain and SMandNarrativeToTrain
         int proximityScoreAction(int i, const std::vector <std::string>& ocw); ///< Mesures vocabulary coherence for sActionEvt
                                                                             ///< @param i Index of the sActionEvt in SituationModel::vActionEvts.

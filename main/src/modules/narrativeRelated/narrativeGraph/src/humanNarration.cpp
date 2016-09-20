@@ -914,10 +914,12 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
         yWarning(" in narrativeHandler::linkNarrationScenario - index out or range.");
         return;
     }
-
+	ofstream IGARFfile;
+	IGARFfile.open(sIGARFfile);
     // getting scenario
-    sm.ABMtoSM(listStories.at(iScenario));
-
+	sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
+	IGARFfile.close();
+	
     // getting narration
     if (iNarration < listAutoScenarios.size())
     {
@@ -956,22 +958,11 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
 
     // getting scenario
-    sm.ABMtoSM(listStories.at(iScenario));
 
-    cout << "in linkMeaningScenario: " << endl;
-    int doku = 0;
-    for (auto ig : sm.vIGARF){
-        cout << doku << ": " << ig.toString() << endl
-            << "\t [" << sm.vActionEvts[doku].agent
-            << "-" << sm.vActionEvts[doku].predicate
-            << "-" << sm.vActionEvts[doku].object
-            << "-" << sm.vActionEvts[doku].recipient << "]" << endl;
-        doku++;
-    }
-
-
-
-
+    ofstream IGARFfile;
+    IGARFfile.open(sIGARFfile);
+    sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
+    IGARFfile.close();
     // getting narration
     if (iMeaning <= listAutoMeaning.size())
     {
