@@ -11,8 +11,8 @@ void margin(int level) {
 }
 
 void marginInFile(int level, ofstream &IGARFfile) {
-	for (int i = 0; i < level; i++)
-		IGARFfile << "| ";
+    for (int i = 0; i < level; i++)
+        IGARFfile << "| ";
 }
 
 bool storygraph::operator==(const sKeyMean& A, const sKeyMean& B) {
@@ -72,71 +72,71 @@ void line(int level) {
 void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level) {
     if (i < 0 || i >= (int)vIGARF.size())
         return;
-		
+
     const sIGARF &evt = vIGARF.at(i);
-    vIGARF.at(i).iLevel= level;
+    vIGARF.at(i).iLevel = level;
     margin(level);
-	marginInFile(level,IGARFfile);
+    marginInFile(level, IGARFfile);
     cout << "[" << i << "] " << endl;
-	IGARFfile << endl;
+    IGARFfile << endl;
     line(level);
     margin(level);
-	marginInFile(level,IGARFfile);
+    marginInFile(level, IGARFfile);
     cout << "+-INIT: " << dispRelations(evt.vInitState) << endl;
-	IGARFfile << "INIT " << dispRelations(evt.vInitState) << endl;
+    IGARFfile << "INIT " << dispRelations(evt.vInitState) << endl;
     margin(level);
-	marginInFile(level,IGARFfile);
+    marginInFile(level, IGARFfile);
     cout << "+-GOAL: " << dispRelations(evt.vGoal) << endl;
-	IGARFfile << "GOAL " << dispRelations(evt.vGoal) << endl;
+    IGARFfile << "GOAL " << dispRelations(evt.vGoal) << endl;
     margin(level);
-	marginInFile(level,IGARFfile);
+    marginInFile(level, IGARFfile);
     cout << "+-ACTION: ";
-	IGARFfile << "ACTION ";
+    IGARFfile << "ACTION ";
     if (evt.tAction == ACTION_EVT) {
         cout << "[" << evt.iAction << "] " << getSentenceEvt(evt.iAction) << endl;
-		IGARFfile << getSentenceEvt(evt.iAction) << endl;		
-	}
+        IGARFfile << getSentenceEvt(evt.iAction) << endl;
+    }
     else if (evt.tAction == IGARF_EVT) {
         cout << "[" << evt.iAction << "]" << endl;
-		IGARFfile << endl;
-		showIGARF(evt.iAction, IGARFfile, level + 1);
+        IGARFfile << endl;
+        showIGARF(evt.iAction, IGARFfile, level + 1);
     }
     else
         cout << endl;
     margin(level);
-	marginInFile(level,IGARFfile);
+    marginInFile(level, IGARFfile);
     cout << "+-RESULT: ";
-	IGARFfile << "RESULT ";
+    IGARFfile << "RESULT ";
     if (evt.tResult == ACTION_EVT) {
         cout << "[" << evt.iResult << "] " << getSentenceEvt(evt.iResult) << endl;
-		IGARFfile << getSentenceEvt(evt.iResult) << endl;		
-	}
+        IGARFfile << getSentenceEvt(evt.iResult) << endl;
+    }
     else if (evt.tResult == IGARF_EVT) {
         cout << "[" << evt.iResult << "]" << endl;
-		IGARFfile << endl;
-		showIGARF(evt.iResult, IGARFfile, level + 1);
+        IGARFfile << endl;
+        showIGARF(evt.iResult, IGARFfile, level + 1);
     }
     else{
         cout << endl;
-		IGARFfile << endl;
-	}
+        IGARFfile << endl;
+    }
     margin(level);
-	marginInFile(level,IGARFfile);
+    marginInFile(level, IGARFfile);
     cout << "+-FINAL: " << dispRelations(evt.vFinalState) << endl;
-	IGARFfile << "FINAL " << dispRelations(evt.vFinalState) << endl;
+    IGARFfile << "FINAL " << dispRelations(evt.vFinalState) << endl;
     margin(level);
-	marginInFile(level,IGARFfile);
+    marginInFile(level, IGARFfile);
     cout << "+-NEXT: ";
-	IGARFfile << "NEXT ";
+    IGARFfile << "NEXT ";
     if (evt.iNext != -1) {
         cout << "[" << evt.iNext << "]" << endl;
-		IGARFfile << endl;
+        IGARFfile << endl;
         line(level);
-		showIGARF(evt.iNext, IGARFfile, level);
+        showIGARF(evt.iNext, IGARFfile, level);
     }
     else {
         cout << endl;
-		IGARFfile << endl;
+        IGARFfile << endl;
         line(level);
     }
 }
@@ -391,18 +391,18 @@ void SituationModel::ABMtoSM(const story &sto, ofstream &IGARFfile) {
     // Step 1 : Considering begin and end of activities, create events and relations
     for (unsigned int i = 0; i < vEvents.size(); i++) {
         const evtStory &currentEvt = vEvents.at(i);
-        cout <<"=======================================================================\n"<< "Current event is: \n" << vEvents.at(i).toString();
+        //        cout <<"=======================================================================\n"<< "Current event is: \n" << vEvents.at(i).toString();
 
 
         if (currentEvt.begin) { // For each begin of action
             evtStory endCurrent;
             bool hasEnd = false;
-            if (i + 1 < vEvents.size() 
-                && !vEvents.at(i + 1).begin 
+            if (i + 1 < vEvents.size()
+                && !vEvents.at(i + 1).begin
                 && currentEvt.activity_name == vEvents.at(i + 1).activity_name) { // Is the next event the end event ?
                 endCurrent = vEvents.at(i + 1);
-//                cout << " level " << i +1 << " in an end." << endl;
-                cout << " has end TRUE " << endl;
+                //                cout << " level " << i +1 << " in an end." << endl;
+//                cout << " has end TRUE " << endl;
                 hasEnd = true;
             }
             // New Action events and relations
@@ -477,25 +477,14 @@ void SituationModel::ABMtoSM(const story &sto, ofstream &IGARFfile) {
                 }
             }
             else { // No end event
-                cout << "No end event" << endl;
+//                cout << "No end event" << endl;
                 newEvent.vFinalState = newEvent.vInitState;
             }
 
             // Stock it
-            cout << "Pushing back: " << newEvent.toString() << endl;
-            cout << "Event is: " << currentEvt.predicate << " " << currentEvt.agent << " " << currentEvt.object << " " << currentEvt.recipient << " " << currentEvt.begin << endl;
+            //            cout << "Pushing back: " << newEvent.toString() << endl;
+            //            cout << "Event is: " << currentEvt.predicate << " " << currentEvt.agent << " " << currentEvt.object << " " << currentEvt.recipient << " " << currentEvt.begin << endl;
             vIGARF.push_back(newEvent);
-        }
-
-        int doku = 0;
-
-        for (auto ig : vIGARF){
-            cout << doku << ": " << ig.toString() << endl
-                << "\t [" << vActionEvts[doku].agent
-                << "-" << vActionEvts[doku].predicate
-                << "-" << vActionEvts[doku].object
-                << "-" << vActionEvts[doku].recipient << "]" << endl;
-            doku++;
         }
     }
 
@@ -512,11 +501,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     for (int i = 0; i < N; i++) {
         // End chain?
 
-        cout << " current igarf is: " << i<<"/"<<N<< " " << vIGARF.at(i).toString() << endl;
-        cout << "\t [" << vActionEvts[i].agent
-            << "-" << vActionEvts[i].predicate
-            << "-" << vActionEvts[i].object
-            << "-" << vActionEvts[i].recipient << "]" << endl;
+//        cout << " current igarf is: " << i << "/" << N << " " << vIGARF.at(i).toString() << endl;
         if ((vIGARF.at(i).tResult == ACTION_EVT && VocabularyHandler::sameMeaning(vActionEvts.at(vIGARF.at(i).iResult).predicate, "fail")) ||
             !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) && isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState)) ||
             i == N - 1) {
@@ -545,11 +530,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
                 newEvent.vFinalState = vIGARF.at(i).vFinalState;
                 newEvent.iNext = -1;
                 vIGARF.push_back(newEvent);
-                cout << " add IGARF BEFORE: " << newEvent.toString() << endl;
-                cout << "\t [" << vActionEvts[vIGARF.size() - 1].agent
-                    << "-" << vActionEvts[vIGARF.size() - 1].predicate
-                    << "-" << vActionEvts[vIGARF.size() - 1].object
-                    << "-" << vActionEvts[vIGARF.size() - 1].recipient << "]" << endl;
+//                cout << " add IGARF BEFORE: " << newEvent.toString() << endl;
 
                 rep.push_back(vIGARF.size() - 1);
                 firstOfChain = -1;
@@ -571,7 +552,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
         }
     }
 
-        if (rep.size() == 0)
+    if (rep.size() == 0)
         return;
     int head = rep.at(0);
 
@@ -590,11 +571,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
             newEvent.iResult = rep.at(i + 1);
             newEvent.vFinalState = vIGARF.at(rep.at(i + 1)).vFinalState;
             newEvent.iNext = -1;
-            cout << " add IGARF AFTER: " << newEvent.toString() << endl;
-            cout << "\t [" << vActionEvts[vIGARF.size() - 1].agent
-                << "-" << vActionEvts[vIGARF.size() - 1].predicate
-                << "-" << vActionEvts[vIGARF.size() - 1].object
-                << "-" << vActionEvts[vIGARF.size() - 1].recipient << "]" << endl;
+//            cout << " add IGARF AFTER: " << newEvent.toString() << endl;
 
             vIGARF.push_back(newEvent);
             if (head == j)
@@ -627,7 +604,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
         }
     }
 
-    
+
     // From Current to Action, Result and Next
     change = true;
     while (change) {
@@ -650,8 +627,31 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
         }
     }
 
-    cout << "Story from instance: " << instanceBegin << endl;
+
+    cout << "Story from instance: " << instanceBegin << "; Head is: " << head << endl << endl;
+
+
+    int doku = 0;
+    for (auto ig : vIGARF){
+        cout << doku << ": " << ig.toString() << endl;
+        if (ig.tAction == 1){
+            cout << "\t [" << vActionEvts[ig.iAction].agent
+                << "-" << vActionEvts[ig.iAction].predicate
+                << "-" << vActionEvts[ig.iAction].object
+                << "-" << vActionEvts[ig.iAction].recipient << "]" << endl;
+        }
+        else{
+            cout << "\t [" << vActionEvts[vIGARF.at(ig.iAction).iAction].agent
+                << "-" << vActionEvts[vIGARF.at(ig.iAction).iAction].predicate
+                << "-" << vActionEvts[vIGARF.at(ig.iAction).iAction].object
+                << "-" << vActionEvts[vIGARF.at(ig.iAction).iAction].recipient << "]" << endl;
+        }
+
+        doku++;
+    }
+
     showIGARF(head, IGARFfile);
+
 }
 
 
@@ -725,18 +725,18 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
         return -1;
     const sRelation& r = vRelations.at(i);
     int score = 0;
-/*
-    cout << "comparing: ";
-    for (int ii = 0; ii < ocw.size(); ii++){
+    /*
+        cout << "comparing: ";
+        for (int ii = 0; ii < ocw.size(); ii++){
         cout << ocw[ii] << " ";
-    }
-    cout << " <-> " << r.verb << " " << r.subject << " " << r.object << " ; score: ";*/
+        }
+        cout << " <-> " << r.verb << " " << r.subject << " " << r.object << " ; score: ";*/
 
     // if ocw has only 1 element:
     // check if predicate is predicate
     if (VocabularyHandler::shareMeaning(r.verb, ocw[0]))
     {
- //       cout << "IDEM: " << r.verb << " = " << ocw[0] << endl;
+        //       cout << "IDEM: " << r.verb << " = " << ocw[0] << endl;
         score += 10;
     }
 
@@ -744,7 +744,7 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     if (ocw.size() > 1){
         if (VocabularyHandler::shareMeaning(r.subject, ocw[1]))
         {
-//            cout << "IDEM: " << r.subject << " = " << ocw[1] << endl;
+            //            cout << "IDEM: " << r.subject << " = " << ocw[1] << endl;
             score += 8;
         }
     }
@@ -753,7 +753,7 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     if (ocw.size() > 2){
         if (VocabularyHandler::shareMeaning(r.object, ocw[2]))
         {
-//            cout << "IDEM: " << r.object << " = " << ocw[2] << endl;
+            //            cout << "IDEM: " << r.object << " = " << ocw[2] << endl;
             score += 6;
         }
     }
@@ -765,7 +765,7 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     if (VocabularyHandler::shareMeaning(r.object, ocw))
         score += 2;
 
-//    cout << score << "; relation: " << i << endl;
+    //    cout << score << "; relation: " << i << endl;
 
     return score;// (score == 11) ? 1 : 0; // See proximityScoreAction(..)
 }
@@ -853,10 +853,10 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
     }
 
     if (vkmBest.size() > 1){// && score_max != 0) {
-        cout << "several best target: " << vkmBest.size()<<endl;
+        cout << "several best target: " << vkmBest.size() << endl;
     }
     iScore = score_max;
-    cout << " **score: " << score_max << "** "<<endl;
+    cout << " **score: " << score_max << "** " << endl;
     return vkmBest;
 }
 
@@ -876,7 +876,7 @@ string SituationModel::SMtoTrain(string sentence) {
     //        return "NoMatch";
     //}
     //else
-        return "";
+    return "";
 }
 
 /*--------------------------*
