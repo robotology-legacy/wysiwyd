@@ -852,7 +852,7 @@ void narrativeHandler::initializeMeaning(Bottle bMeaning, ResourceFinder &rf){
 
         listAutoMeaning[ii + 1] = vsMeaning;
     }
-    
+
     yInfo() << "Initialisation of meaning: " << bMeaning.size() << " found.";
 }
 
@@ -914,12 +914,12 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
         yWarning(" in narrativeHandler::linkNarrationScenario - index out or range.");
         return;
     }
-	ofstream IGARFfile;
-	IGARFfile.open(sIGARFfile);
+    ofstream IGARFfile;
+    IGARFfile.open(sIGARFfile);
     // getting scenario
-	sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
-	IGARFfile.close();
-	
+    sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
+    IGARFfile.close();
+
     // getting narration
     if (iNarration < listAutoScenarios.size())
     {
@@ -958,6 +958,31 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
 
     // getting scenario
+
+    ofstream IGARFfile;
+    IGARFfile.open(sIGARFfile);
+    sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
+    IGARFfile.close();
+
+    cout << "in linkMeaningScenario: " << endl;
+    int doku = 0;
+    for (auto ig : sm.vIGARF){
+        cout << doku << ": " << ig.toString() << endl;
+        if (ig.tAction == 1){
+            cout << "\t [" << sm.vActionEvts[ig.iAction].agent
+                << "-" << sm.vActionEvts[ig.iAction].predicate
+                << "-" << sm.vActionEvts[ig.iAction].object
+                << "-" << sm.vActionEvts[ig.iAction].recipient << "]" << endl;
+        }
+        else{
+            cout << "\t [" << sm.vActionEvts[sm.vIGARF.at(ig.iAction).iAction].agent
+                << "-" << sm.vActionEvts[sm.vIGARF.at(ig.iAction).iAction].predicate
+                << "-" << sm.vActionEvts[sm.vIGARF.at(ig.iAction).iAction].object
+                << "-" << sm.vActionEvts[sm.vIGARF.at(ig.iAction).iAction].recipient << "]" << endl;
+        }
+
+        doku++;
+    }
 
     ofstream IGARFfile;
     IGARFfile.open(sIGARFfile);
@@ -1120,7 +1145,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                         storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
 
                         if (iNbPreposition > 2){
-                            if (iPreposition<2){
+                            if (iPreposition < 2){
                                 doubleBefore.push_back(evtKM);
                             }
                             else{
