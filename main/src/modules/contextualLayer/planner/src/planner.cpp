@@ -419,7 +419,7 @@ bool Planner::updateModule() {
                     // insert actions into the various lists
                     if (!rankPriority)
                     {
-                        for (unsigned a = action_store.size(); a-- > 0;)
+                        for (int a = (int)action_store.size() - 1; a >= 0; a--)
                         {
                             yInfo() << "adding action " << action_store[a];
                             action_list.push_back(action_store[a]);
