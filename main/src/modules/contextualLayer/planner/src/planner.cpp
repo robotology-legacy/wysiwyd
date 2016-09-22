@@ -321,58 +321,67 @@ bool Planner::updateModule() {
                     Bottle preconds = *grpPlans.find(planName + "-" + to_string(ii) + "pre").asList();
                     std::list<std::pair<std::string, std::string >> lArgument;
                     Bottle auxMsg;
-                    for (int k = 0; k < preconds.size(); k++)
+                    if (preconds.size() > 0)
                     {
-                        Bottle* msg = preconds.get(k).asList()->get(1).asList();
-                        // format message to sensationsManager
-                        for (int i = 0; i < msg->size(); i++)
-                        {
-                            string aux = msg->get(i).asString();
-                            for (int j = 0; j < args.size(); j++)
-                            {
-                                if (args.get(j).asString() == msg->get(i).asString())
-                                {
-                                    aux = object;
-                                }
-                            }
-                            auxMsg.addString(aux);
-                        }
-                        getState.write(auxMsg, rep);
-                        yDebug() << auxMsg.toString();
-                        auxMsg.clear();
-                        bool indiv;
-                        bool negate;
-                        string attach = preconds.get(k).asList()->get(0).toString();
-                        if (attach == "not")
-                        {
-                            yDebug() << "not";
-                            indiv = !rep.get(1).asBool();
-                            negate = true;
-                        }
-                        else
-                        {
-                            indiv = rep.get(1).asBool();
-                            negate = false;
-                        }
-                        yDebug() << "indiv from rep is " << indiv;
-                        yDebug() << "state before && is " << state;
-                        state = state && indiv;
+                        yInfo() << "there are preconditions to check for.";
 
-                        // formulate step for recording in ABM
-                        string recState;
-                        if (negate)
+                        for (int k = 0; k < preconds.size(); k++)
                         {
-                            recState = "not " + auxMsg.get(2).asString();
+                            Bottle* msg = preconds.get(k).asList()->get(1).asList();
+                            // format message to sensationsManager
+                            for (int i = 0; i < msg->size(); i++)
+                            {
+                                string aux = msg->get(i).asString();
+                                for (int j = 0; j < args.size(); j++)
+                                {
+                                    if (args.get(j).asString() == msg->get(i).asString())
+                                    {
+                                        aux = object;
+                                    }
+                                }
+                                auxMsg.addString(aux);
+                            }
+                            getState.write(auxMsg, rep);
+                            bool indiv;
+                            bool negate;
+                            string attach = preconds.get(k).asList()->get(0).toString();
+                            if (attach == "not")
+                            {
+                                yDebug() << "not";
+                                indiv = !rep.get(1).asBool();
+                                negate = true;
+                            }
+                            else
+                            {
+                                indiv = rep.get(1).asBool();
+                                negate = false;
+                            }
+                            yDebug() << "indiv from rep is " << indiv;
+                            yDebug() << "state before && is " << state;
+                            state = state && indiv;
+
+                            // formulate step for recording in ABM
+                            string recState;
+                            if (negate)
+                            {
+                                recState = "not " + auxMsg.get(2).asString();
+                            }
+                            else { recState = auxMsg.get(2).asString(); }
+                            string strind;
+                            if (indiv == true) { strind = "true"; }
+                            else { strind = "false"; }
+                            lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(0).asString(), "predicate"+to_string(k)));
+                            lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(1).asString(), "agent"+to_string(k)));
+                            lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(k)));
+                            lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(k)));
+                            yDebug() << "lArgument formed for condition";
+                            auxMsg.clear();
                         }
-                        else { recState = auxMsg.get(2).asString(); }
-                        string strind;
-                        if (indiv == true) { strind = "true"; }
-                        else { strind = "false"; }
-                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(0).asString(), "predicate"+to_string(k)));
-                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(1).asString(), "agent"+to_string(k)));
-                        lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(k)));
-                        lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(k)));
-                        yDebug() << "lArgument formed for condition";
+                    }
+                    else
+                    {
+                        yInfo() << "the action has no preconditions.";
+                        lArgument.push_back(std::pair<std::string, std::string>("none", "predicate"));
                     }
 
                     // record action selection reasoning in ABM
@@ -388,7 +397,6 @@ bool Planner::updateModule() {
                         yInfo() << actionName + " reasoning has been recorded in the ABM";
                     }
                     else { yInfo() << "ABMClient is not connected."; }
-
 
                     // insert actions into the various holding lists (IN REVERSE ORDER)
                     yInfo() << "storing action details:" << actionName;
