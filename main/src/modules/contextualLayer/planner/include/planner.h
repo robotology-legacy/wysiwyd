@@ -23,6 +23,7 @@ private:
     vector<int> priority_list;
     vector<int> actionPos_list;
     Bottle grpPlans;
+    Bottle set;
     int id;
     int attemptCnt;
 
