@@ -215,6 +215,12 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     //cout << endl << endl;
     //displayDFW();
 
+
+    ofstream IGARFfile;
+    IGARFfile.open(sIGARFfile);
+    listStories[0].displayNarration();
+    sm.ABMtoSM(listStories.at(0), IGARFfile);
+
     return true;
 }
 
@@ -430,6 +436,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         if (command.size() >= 2) {
             int i = command.get(1).asInt();
             if (i >= 0 && i < (int)listStories.size()) {
+                listStories.at(i).displayNarration();
                 sm.ABMtoSM(listStories.at(i), IGARFfile);
                 yInfo(" import and creation sucessful");
                 reply.addString("creation sucessful");
@@ -1146,18 +1153,20 @@ Bottle narrativeHandler::unfoldGoal(string goal)
         string sub;
         iss >> sub;
         if (sub[0] == '(') sub = sub.erase(0, 1);
-        if (sub[sub.size() - 1] == ')')   sub = sub.erase(sub.size() - 1);
-        if (bVerbose) cout << "Substring: " << sub << endl;
-        if (isRole){
-            if (!bIsFirst) bOutput.addList() = bTemp;
-            bTemp.clear();
-            bTemp.addString(sub);
+        if (sub.size() != 0){
+            if (sub[sub.size() - 1] == ')')   sub = sub.erase(sub.size() - 1);
+            if (bVerbose) cout << "Substring: " << sub << endl;
+            if (isRole){
+                if (!bIsFirst) bOutput.addList() = bTemp;
+                bTemp.clear();
+                bTemp.addString(sub);
+            }
+            else{
+                bTemp.addString(sub);
+            }
+            bIsFirst = false;
+            isRole = !isRole;
         }
-        else{
-            bTemp.addString(sub);
-        }
-        bIsFirst = false;
-        isRole = !isRole;
 
     } while (iss);
 

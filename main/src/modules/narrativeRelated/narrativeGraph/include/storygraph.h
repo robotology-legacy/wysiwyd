@@ -65,11 +65,11 @@ namespace storygraph {
         int iIGARF; ///< Instance number of the IGARF pointed at
         char cPart; ///< I (InitState) G (Goal) A (Action) R (Result) F (FinalState)
         int iRel; ///< Relation index, -1 if no relation is pointed at
-                  ///< @warning It is the index in the part pointed at, not in SituationModel::vRelations.
+        ///< @warning It is the index in the part pointed at, not in SituationModel::vRelations.
 
         std::string toString(){
             std::ostringstream os;
-//            std::cout << "IGARF: " << iIGARF << " char: " << cPart << " iRel: " << iRel << std::endl;
+            //            std::cout << "IGARF: " << iIGARF << " char: " << cPart << " iRel: " << iRel << std::endl;
             os << "IGARF: " << iIGARF << " char: " << cPart << " iRel: " << iRel;
             return os.str();
         }
@@ -97,7 +97,7 @@ namespace storygraph {
 
         std::set < int > vRelSaid;
         std::set < int > vActSaid;
-		
+
     public:
         int instanceBegin; /// ABM instance of the first event
 
@@ -105,7 +105,7 @@ namespace storygraph {
         std::vector < sActionEvt >     vActionEvts;
         std::vector < sIGARF >         vIGARF;
         std::vector < sDiscourseLink > vDiscourseLinks;
-
+        std::vector < int > vChronoIgarf; ///< Vector of the apparition of the IGARF in term of chronology
 
         SituationModel();
 
@@ -116,7 +116,7 @@ namespace storygraph {
         std::string getSentenceEvt(int i); ///< Produces a naïve sentence from the i-th event
         std::string getSentenceRel(int i); ///< Produces a naïve sentence from the i-th relations
         std::string dispRelations(const std::vector < int >& rels); ///< Displays all relations in a [Subject Verb Object] format
-		void showIGARF(int i, std::ofstream &IGARFfile, int level = 0); ///< Displays a tree view of the i-th IGARF
+        void showIGARF(int i, std::ofstream &IGARFfile, int level = 0); ///< Displays a tree view of the i-th IGARF
         /**< @param level Used to set the margin recursively. You don't need to use it. **/
 
 
@@ -124,14 +124,14 @@ namespace storygraph {
         // Create (or find) Relation, ActionEvt or IGARF event and stock them in the class vectors. Return their index.
         int addNewActionEvt(const sActionEvt& act); ///< Creates a new Action Event, returns its index in vActionEvts
         int findRelation(const sRelation& rel, bool create = false); ///< @param create When true, it creates the relation when it doesn't exist.
-                                                              ///< @return Index of the relation in vRelations or -1 if it doesn't exist
+        ///< @return Index of the relation in vRelations or -1 if it doesn't exist
         int createIGARF(); ///< Creates a blank new IGARF and returns its index in vIGARF
         // Modify
         void modifEventIGARF(int iIGARF, char cPart, int iActEvt); ///< Modifies index of Action Event for Action (cPart = 'A') or Result (cPart = 'R') in an IGARF
         void modifContentIGARF(int iIGARF, char cPart, int jIGARF); ///< Action or Result of iIGARF-th IGARF became jIGARF-th IGARF
         void remContentIGARF(int iIGARF, char cPart); ///< Sets Action or Result to None
         int addRelationIGARF(int iIGARF, char cPart, int iRel); ///< Adds the iRel-th relation to the iIGARF-th IGARF event
-                                                                ///< Return index of the relation in the state vector (for sKeyMean)
+        ///< Return index of the relation in the state vector (for sKeyMean)
         void removeRelationIGARF(int iIGARF, char cPart, int iRel); ///< @param iRel index in vRelations
         // Links and sKeyMean
         void cleanLinks(); ///< Removes all links and lose focus
@@ -139,25 +139,25 @@ namespace storygraph {
         sActionEvt getEvent(const sKeyMean& km);
         void createLink(sKeyMean from, sKeyMean to, std::string word); ///< Creates and adds a link in the vDiscourseLinks
         // -- ABMtoSM
-		void ABMtoSM(const story &s, std::ofstream &IGARFfile); ///< Uses a story (its vector of evtStory) to automatically generate a Situation Model
-		void makeStructure(std::ofstream &IGARFfile); ///< From all the IGARF, makes a structure with story arc, failure and consequence, etc...
+        void ABMtoSM(const story &s, std::ofstream &IGARFfile); ///< Uses a story (its vector of evtStory) to automatically generate a Situation Model
+        void makeStructure(std::ofstream &IGARFfile); ///< From all the IGARF, makes a structure with story arc, failure and consequence, etc...
         // -- SMtoTrain and SMandNarrativeToTrain
         int proximityScoreAction(int i, const std::vector <std::string>& ocw); ///< Mesures vocabulary coherence for sActionEvt
-                                                                            ///< @param i Index of the sActionEvt in SituationModel::vActionEvts.
-                                                                            ///< @return The coherence score. It may be weighted
-                                                                            /// (Predicate is more important thant Recipient) or binary (threshold of acceptance)
+        ///< @param i Index of the sActionEvt in SituationModel::vActionEvts.
+        ///< @return The coherence score. It may be weighted
+        /// (Predicate is more important thant Recipient) or binary (threshold of acceptance)
         int proximityScoreRelation(int i, const std::vector <std::string>& ocw); ///< @see proximityScoreAction
         std::vector<sKeyMean> findBest(const std::vector <std::string>& ocw, int& iScore); ///< Find the sActionEvt or sRelation that share the most vocabulary
-                                                              ///< @return Returns a sKeyMean to the best event or relation or a (-1 'A' -1) sKeyMean if none has been found
+        ///< @return Returns a sKeyMean to the best event or relation or a (-1 'A' -1) sKeyMean if none has been found
         std::string SMtoTrain(std::string sentence);
         // -- LRHtoSM and LRHtoBlankSM
         sActionEvt extractAction(const std::string& meaning); ///< Returns the sActionEvt describe by the meaning
         sKeyMean findEventOrRelation(sActionEvt a); // Return a (-1 'A' -1) sKeyMean if not found
         void LRHtoSM(const std::string& meaning, bool create); ///< Adds a link in the vDiscourseLinks from lastFocus to the event or relation describe in the meaning.
-                                                               ///< @param meaning Contains a meaning with format: "meaning1, meaning2, ... ". If the first meaning contains DFW,
-                                                               /// then they are used to make links.
-                                                               ///< @param create If true and if no known event or relation has been recognized in the meaning,
-                                                               /// then a new sActionEvt or sRelation is created and added to the SituationModel (it is integrated in an IGARF).
+        ///< @param meaning Contains a meaning with format: "meaning1, meaning2, ... ". If the first meaning contains DFW,
+        /// then they are used to make links.
+        ///< @param create If true and if no known event or relation has been recognized in the meaning,
+        /// then a new sActionEvt or sRelation is created and added to the SituationModel (it is integrated in an IGARF).
         std::vector <std::pair <int, int> >  SMtoStructure(int head);   /// return the list of IGARF with their levels
 
         void endSentence(); ///< Ends a sentence, avoid next event to be automatically link to last one
@@ -165,7 +165,7 @@ namespace storygraph {
         void AUXautoLink(int iIGARF); // Auxiliary
         void autoLink(int iIGARF);
         void SMtoLRH(std::string lang = "en"); ///< Use discourse links to create a story.
-                                               ///< Reads the link in order of input (FIFO). Use SituationModel::meaningFromKeyMean to produce meanings.
+        ///< Reads the link in order of input (FIFO). Use SituationModel::meaningFromKeyMean to produce meanings.
 
         // -- Rendering
         void initSizes(int _rendering_wEvtBox, int _rendering_hEvtBox, int _rendering_hOffset, int _rendering_vOffset); ///< Calculates all sizes for rendering
@@ -177,6 +177,8 @@ namespace storygraph {
         int addIGARFtoGrid(std::ofstream &fOutput, std::vector < int > &IGARFgrid, int currentIGARF, int level); ///< Auxiliary function: Draws the IGARF and its sons recursively at the corresponding level
         void writeSVG(std::ofstream &fOutput, int nIGARF); ///< Draws the IGARF by calling the appropriate auxiliary function
 
+        void displayEvent(); // display all event in the IGARF
+
     };
 
 
@@ -185,20 +187,22 @@ namespace storygraph {
         sKeyMean km;
         int iIgarf;
         int iLevel;
+        double dIGARF; ///< fraction of the IGARF (# divided par total)
 
         std::string toString(){
-           std::ostringstream os;
-            os << km.iIGARF << " " << km.cPart << " " << km.iRel << " - " << iIgarf << " / " << iLevel;
+            std::ostringstream os;
+            os << km.iIGARF << " " << km.cPart << " " << km.iRel << " - " << iIgarf << " / " << iLevel << " / " << dIGARF;
             return os.str();
         }
 
 
         EVT_IGARF(){}
 
-        EVT_IGARF(sKeyMean _km, int ig, int il){
+        EVT_IGARF(sKeyMean _km, int ig, int il, double dI){
             km = _km;
             iIgarf = ig;
             iLevel = il;
+            dIGARF = dI;
         }
     };
 
