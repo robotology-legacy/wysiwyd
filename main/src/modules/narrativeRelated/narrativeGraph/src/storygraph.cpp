@@ -643,12 +643,12 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     cout << "Story from instance: " << instanceBegin << "; Head is: " << head << endl << endl;
 
 
-    displayEvent();
+    //displayEvent();
 
     vChronoIgarf.clear();
     showIGARF(head, IGARFfile);
 
-    displayEvent();
+    //displayEvent();
 
     cout << "Chronology of IGARF: ";
     for (auto ii : vChronoIgarf){
@@ -856,11 +856,11 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
         }
     }
 
-    if (vkmBest.size() > 1){// && score_max != 0) {
-        cout << "several best target: " << vkmBest.size() << endl;
-    }
+    //if (vkmBest.size() > 1){// && score_max != 0) {
+    //    cout << "several best target: " << vkmBest.size() << endl;
+    //}
     iScore = score_max;
-    cout << " **score: " << score_max << "** " << endl;
+    //cout << " **score: " << score_max << "** " << endl;
     return vkmBest;
 }
 

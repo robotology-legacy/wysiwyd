@@ -966,7 +966,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
     cout << "in linkMeaningScenario: " << endl;
 
-    sm.displayEvent();
+//    sm.displayEvent();
 
     ofstream IGARFfile;
     IGARFfile.open(sIGARFfile);
@@ -1038,7 +1038,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
         bool bAllAction = true;  //depend of the score of findBest
 
-        cout << "---------------------------------------------------------------------\n" << "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
+        if (display) cout << "---------------------------------------------------------------------\n" << "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
 
 
         for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
@@ -1076,6 +1076,10 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             }
             else{
                 vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
+
+                if (vkTmp.size() == 0){
+                    yWarning() << " in narrativeGraph::humanNarration.cpp::linkMeaningScenario:: finBest : no target found." ;
+                }
 
                 bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
 
@@ -1164,7 +1168,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                     //cout << " done !" << endl;
                 }
                 else{
-                    cout << "filling double vector ... " << doubleBefore.size() << "*" << doubleAfter.size() << " ";
+                    if (display) cout << "filling double vector ... " << doubleBefore.size() << "*" << doubleAfter.size() << " ";
                     int doku = 0;
                     for (int iFirst = 0; iFirst < doubleBefore.size(); iFirst++){
                         pair<EVT_IGARF, EVT_IGARF>  kTmpDouble;
@@ -1174,9 +1178,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                             currentDFW->vDoubleIGARF.push_back(kTmpDouble);
                             doku++;
                         }
-                    }
-
-                    cout << doku << " done !" << endl;
+                    }                    
                 }
             }
         }

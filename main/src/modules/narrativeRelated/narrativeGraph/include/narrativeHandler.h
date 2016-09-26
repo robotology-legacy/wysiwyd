@@ -36,6 +36,9 @@ private:
     void initializeMeaning(yarp::os::Bottle bMeaning, yarp::os::ResourceFinder &rf);
     void checkScenarios(int iSce = -1);
 
+    void analyseDFW();      ///< run a set of analysis on the DFW
+    void exportDFW();       ///< export data of the DFW in a file csv
+
     double      period;
     bool lrh;
 

@@ -215,11 +215,11 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     //cout << endl << endl;
     //displayDFW();
 
-
-    ofstream IGARFfile;
-    IGARFfile.open(sIGARFfile);
-    listStories[0].displayNarration();
-    sm.ABMtoSM(listStories.at(0), IGARFfile);
+    /*
+        ofstream IGARFfile;
+        IGARFfile.open(sIGARFfile);
+        listStories[0].displayNarration();
+        sm.ABMtoSM(listStories.at(0), IGARFfile);*/
 
     return true;
 }
@@ -264,6 +264,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " cleanSM\n"
         " cleanLinks\n"
         " cleanDFW\n"
+        " exportDFW\n" +
         " ABMtoSM + storyNumber = last\n"
         " linkNarrationScenario + iNarration + iScenario\n" +
         " linkMeaningScenario + iNarration + iScenario\n" +
@@ -428,6 +429,11 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         vDFW.clear();
         yInfo(" cleaning sucessful");
         reply.addString("cleaning sucessful");
+    }
+    else if (command.get(0).asString() == "exportDFW") {
+        yInfo(" exporting the Discourse Function Words");
+        exportDFW();
+        reply.addString("export sucessful");
     }
     else if (command.get(0).asString() == "ABMtoSM") {
         yInfo(" create the situation model from ABM");
@@ -2371,4 +2377,49 @@ void narrativeHandler::displayDFW(){
             cout << "\t\t\t" << itI.toString() << endl;
         }
     }
+}
+
+
+void narrativeHandler::analyseDFW(){
+    ///< for each DFW:
+
+
+    for (auto dfw : vDFW){
+
+        ///< Check simple times:
+        int iI = 0,
+            iG = 0,
+            iA = 0,
+            iR = 0,
+            iF = 0;
+
+        for (auto evt : dfw.vSingleIGARF){
+            iI += (evt.km.cPart == 'I');
+            iG += (evt.km.cPart == 'G');
+            iA += (evt.km.cPart == 'A');
+            iR += (evt.km.cPart == 'R');
+            iF += (evt.km.cPart == 'F');
+        }
+    }
+}
+
+
+void narrativeHandler::exportDFW(){
+    string dfw_file_path = "C:/Users/rclab/data.csv";
+    ofstream file(dfw_file_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+    file << "name\tsimple\tdouble\tfrom\tto\n";
+
+
+    for (auto dfw : vDFW){
+        for (auto evt : dfw.vSingleIGARF){
+
+            file << dfw.sName << "\t" << evt.dIGARF << "\t" << -1 << "\t" << evt.km.cPart << "\t" << 'Z' << endl;
+        }
+        for (auto evt : dfw.vDoubleIGARF){
+
+            file << dfw.sName << "\t" << evt.first.dIGARF << "\t" << evt.second.dIGARF << "\t" << evt.first.km.cPart << "\t" << evt.second.km.cPart << endl;
+        }
+    }
+
+    yInfo() << "\t" << "file " << dfw_file_path << " written";
 }

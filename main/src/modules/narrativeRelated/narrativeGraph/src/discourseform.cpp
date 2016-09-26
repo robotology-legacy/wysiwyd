@@ -76,32 +76,39 @@ bool meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
 
             if (meaningPAOR.size() != meaningWords.size()){
                 yWarning() << " in narrativeGraph::discourseform.cpp::meaningToDiscourseForm: Size of PAOR and OCW different";
-                cout << "PAOR: " << meaningPAOR.size() << "\t OCW: " << meaningWords.size() << endl;
+                for (auto pa : meaningPAOR){
+                    cout << pa << " ";
+                }
+                cout << "\t";
+                for (auto mea : meaningWords){
+                    cout << mea << " ";
+                }
+                cout << endl << "PAOR: " << meaningPAOR.size() << "\t OCW: " << meaningWords.size() << endl;
                 cout << "OCW are : ";
                 for (auto oc : meaningWords){
                     cout << oc << "\t";
                 }
                 cout << endl;
-                return false;
             }
+            else{
+                for (int iWords = 0; iWords < meaningPAOR.size(); iWords++){
+                    int iNumberProposition = atoi(&(meaningPAOR[iWords].at(1)));
 
-            for (int iWords = 0; iWords < meaningPAOR.size(); iWords++){
-                int iNumberProposition = atoi(&(meaningPAOR[iWords].at(1)));
+                    // if new proposition
+                    if (currentSentence.vSentence.size() < iNumberProposition){
+                        meaningProposition tmp;
 
-                // if new proposition
-                if (currentSentence.vSentence.size() < iNumberProposition){
-                    meaningProposition tmp;
+                        currentSentence.vSentence.push_back(tmp);
+                    }
 
-                    currentSentence.vSentence.push_back(tmp);
+                    // add the OCW and PAOR
+                    currentSentence.vSentence[iNumberProposition - 1].vOCW.push_back(meaningWords[iWords]);
+                    currentSentence.vSentence[iNumberProposition - 1].vRole.push_back(&meaningPAOR[iWords].at(0));
                 }
 
-                // add the OCW and PAOR
-                currentSentence.vSentence[iNumberProposition - 1].vOCW.push_back(meaningWords[iWords]);
-                currentSentence.vSentence[iNumberProposition - 1].vRole.push_back(&meaningPAOR[iWords].at(0));
-            }
-
-            if (currentSentence.vSentence.size() != 0){
-                meanings.vDiscourse.push_back(currentSentence);
+                if (currentSentence.vSentence.size() != 0){
+                    meanings.vDiscourse.push_back(currentSentence);
+                }
             }
         }
     }

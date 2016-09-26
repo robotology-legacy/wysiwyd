@@ -79,7 +79,7 @@ namespace storygraph {
     /// Describes a dicourse link
     struct sDiscourseLink {
         sKeyMean fromEvt; ///< The left part of the link in discourse
-        sKeyMean toEvt; ///< The right part of the link in discourse
+        sKeyMean toEvt; ///< The right part of the link in discourse  (can be null)
         std::string word; ///< Discourse Function Word attached to this link
     };
 
@@ -203,6 +203,9 @@ namespace storygraph {
             iIgarf = ig;
             iLevel = il;
             dIGARF = dI;
+
+            if (_km.cPart == 'F' && dI == 0) dIGARF = 1.0;
+
         }
     };
 
