@@ -205,6 +205,7 @@ namespace storygraph {
             dIGARF = dI;
 
             if (_km.cPart == 'F' && dI == 0) dIGARF = 1.0;
+            if (_km.cPart == 'G' && dI == 0) dIGARF = 1.0;
 
         }
     };

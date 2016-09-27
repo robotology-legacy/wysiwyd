@@ -334,7 +334,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             reply.addString("linkMeaningScenario takes 2 arguments (narration and scenario)");
         }
         else{
-            linkMeaningScenario(command.get(1).asInt(), command.get(2).asInt() - 1);
+            reply.addString(linkMeaningScenario(command.get(1).asInt(), command.get(2).asInt() - 1));
         }
     }
     else if (command.get(0).asString() == "displayKnownNarrations"){

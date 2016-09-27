@@ -943,12 +943,12 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
 * Try to link the meaning of a narration to a SM
 *
 */
-void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
+string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
     // check sizes:
     if (iMeaning > listAutoMeaning.size() || iScenario > listStories.size()){
         yWarning(" in narrativeHandler::linkMeaningScenario - index out or range.");
-        return;
+        return " in narrativeHandler::linkMeaningScenario - index out or range.";
     }
 
     bool display = false;
@@ -965,6 +965,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     IGARFfile.close();
 
     cout << "in linkMeaningScenario: " << endl;
+    int iLost = 0;
 
 //    sm.displayEvent();
 
@@ -987,7 +988,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
     meaningDiscourse MD;
     // creatino of the MD from the discourse
-    MD.meaningToDiscourseForm(listAutoMeaning[iMeaning]);
+    string sReturn = MD.meaningToDiscourseForm(listAutoMeaning[iMeaning]);
 
     int indice = 0;
     // check for each proposition, if it can be asociated to a event of the Scenario
@@ -1078,7 +1079,9 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                 vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
 
                 if (vkTmp.size() == 0){
-                    yWarning() << " in narrativeGraph::humanNarration.cpp::linkMeaningScenario:: finBest : no target found." ;
+                    iLost++;
+                    yWarning() << " in narrativeGraph::humanNarration.cpp::linkMeaningScenario:: findBest : no target found." ;
+                    yWarning() << level1->getSentence();
                 }
 
                 bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
@@ -1189,6 +1192,8 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     displayDFW();
 
     //MD.print();
+    sReturn += to_string(iLost) + " sentences lost.";
+    return sReturn;
 
 }
 

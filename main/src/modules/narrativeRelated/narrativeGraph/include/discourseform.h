@@ -40,6 +40,17 @@ namespace discourseform {
 
     struct meaningSentence{
         std::vector<meaningProposition> vSentence;
+
+        std::string getSentence(){
+            std::ostringstream os;
+            for (auto prop : vSentence){
+                for (auto OCW : prop.vOCW){
+                    os << " " << OCW;
+                }
+            }
+
+            return os.str();
+        }
     };
 
     struct discourse {
@@ -54,7 +65,7 @@ namespace discourseform {
     public:
         discourseform::discourse meanings;
 
-        bool meaningToDiscourseForm(std::vector<std::string> vMeaning); // goes from a vector of meaning from lrh, to a discourse form
+        std::string meaningToDiscourseForm(std::vector<std::string> vMeaning); // goes from a vector of meaning from lrh, to a discourse form
         void print();
     };
 

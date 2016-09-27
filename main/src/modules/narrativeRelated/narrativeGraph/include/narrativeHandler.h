@@ -122,7 +122,7 @@ private:
     void createNarration(story &sto);
     std::string createMeaning(std::string agent, std::string predicate, std::string object = "", std::string recipient = "");
     void linkNarrationScenario(int iNarration, int iScenario);
-    void linkMeaningScenario(int iMeaning, int iScenario);
+    std::string linkMeaningScenario(int iMeaning, int iScenario);
 
     // SituationModel
     storygraph::SituationModel sm; ///< Current Situation Model
