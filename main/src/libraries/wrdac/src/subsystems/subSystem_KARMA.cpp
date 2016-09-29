@@ -353,9 +353,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "vector"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "double"));
+        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "targetCenter"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "theta"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "radius"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("push", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -385,9 +385,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "vector"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "double"));
+        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "targetCenter"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "theta"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "radius"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("push", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -409,10 +409,10 @@ bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "vector"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "double"));
+        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "targetCenter"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "theta"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "radius"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "dist"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("draw", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -442,10 +442,10 @@ bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "vector"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "double"));
+        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "targetCenter"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "theta"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "radius"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "dist"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("draw", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -464,10 +464,10 @@ bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const yarp::sig::Vector &targetCente
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "vector"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "double"));
+        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "targetCenter"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "theta"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "radius"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "dist"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("virtual-draw", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -497,10 +497,10 @@ bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const yarp::sig::Vector &targetCente
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "vector"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "double"));
-        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "double"));
+        lArgument.push_back(std::pair<std::string, std::string>(targetCenter.toString().c_str(), "targetCenter"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(theta).c_str(), "theta"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "radius"));
+        lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "dist"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("virtual-draw", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
