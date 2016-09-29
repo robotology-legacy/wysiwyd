@@ -472,6 +472,26 @@ void SituationModel::ABMtoSM(const story &sto, ofstream &IGARFfile) {
                     newEvent.vGoal.push_back(i);
                 }
 
+                // > Goal
+                if (findValue(endCurrent.vArgument, "want") != "") {
+                    // Extract the goal relation
+                    string goal = findValue(endCurrent.vArgument, "want");
+                    size_t pos = goal.find("predicate") + 10;
+                    string pred = goal.substr(pos, goal.find(")", pos) - pos);
+                    pos = goal.find("agent") + 6;
+                    string agent = goal.substr(pos, goal.find(")", pos) - pos);
+                    pos = goal.find("object") + 7;
+                    string object = goal.substr(pos, goal.find(")", pos) - pos);
+                    sRelation g;
+                    if (agent == "icub") agent = "iCub";
+                    g.subject = agent;
+                    g.verb = pred;
+                    g.object = object;
+                    vRelations.push_back(g);
+                    int i = findRelation(g, true);
+                    newEvent.vGoal.push_back(i);
+                }
+
                 // > Final State
                 for (int i = 0; i < endCurrent.bRelations.size(); i++) {
                     if (endCurrent.bRelations.get(i).isList()) {
