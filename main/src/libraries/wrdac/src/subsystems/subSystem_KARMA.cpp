@@ -362,7 +362,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
         lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
         lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
         lArgument.push_back(std::pair<std::string, std::string>("KARMA", "subsystem"));
-        SubABM->sendActivity("action", "push", "action", lArgument, true);
+        SubABM->sendActivity("action", "karmapush", "action", lArgument, true);
     }
 
     yarp::os::Bottle bCmd;
@@ -395,7 +395,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
         lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
         lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
         lArgument.push_back(std::pair<std::string, std::string>("KARMA", "subsystem"));
-        SubABM->sendActivity("action", "push", "action", lArgument, false);
+        SubABM->sendActivity("action", "karmapush", "action", lArgument, false);
     }
 
     return bReturn;
