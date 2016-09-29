@@ -368,6 +368,30 @@ namespace wysiwyd{
                                 const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
 
             /**
+            * Take at a specified location.
+            * @param oName is the name of the entity in the OPC where the
+            *              robot should take at.
+            * @param options bottle containing a list of options (e.g. force
+            *                to use specific hand with "left"|"right"
+            *                option).
+            * @return true in case of success grasp, false otherwise
+            *         (Entity non existing, impossible to reach, etc.).
+            */
+            bool take(const std::string &oLocation, const yarp::os::Bottle &options = yarp::os::Bottle());
+
+            /**
+            * Take at a specified location.
+            * @param target contains spatial information about the location
+            *               where taking at.
+            * @param options bottle containing a list of options (e.g. force
+            *                to use specific hand with "left"|"right"
+            *                option).
+            * @return true in case of success grasp, false otherwise
+            *         (Entity non existing, impossible to reach, etc.).
+            */
+            bool take(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),std::string sName="target");
+
+            /**
             * @brief pushKarma (KARMA): push to certain position, along a direction
             * @param targetCenter: position to push to.
             * @param theta: angle between the y-axis (in robot FoR) and starting position of push action, defines the direction of push action

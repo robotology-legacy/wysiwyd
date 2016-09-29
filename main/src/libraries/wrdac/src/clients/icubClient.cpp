@@ -609,6 +609,40 @@ bool ICubClient::push(const Vector &target, const Bottle &options, std::string s
     return are->push(target, opt, sName);
 }
 
+bool ICubClient::take(const string &oLocation, const Bottle &options)
+{
+    Entity *target = opc->getEntity(oLocation, true);
+    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
+    {
+        yWarning() << "[iCubClient] Called take() on a unallowed location: \"" << oLocation << "\"";
+        return false;
+    }
+
+    Object *oTarget = dynamic_cast<Object*>(target);
+    if (oTarget->m_present!=1.0)
+    {
+        yWarning() << "[iCubClient] Called take() on an unavailable entity: \"" << oLocation << "\"";
+        return false;
+    }
+
+    return take(oTarget->m_ego_position, options, oTarget->name());
+}
+
+
+bool ICubClient::take(const Vector &target, const Bottle &options, std::string sName)
+{
+    SubSystem_ARE *are = getARE();
+    if (are == NULL)
+    {
+        yError() << "[iCubClient] Called take() but ARE subsystem is not available.";
+        return false;
+    }
+
+    Bottle opt(options);
+    opt.addString("still"); // always avoid automatic homing after point
+    return are->take(target, opt, sName);
+}
+
 // KARMA
 
 // Left push
