@@ -10,15 +10,66 @@
 #   And now, iCub have croco
 #   In the end, iCub have croco
 
+
+# FIRST
 first, cover box croco, P1 P2 A2 O2
 first, want iCub croco, P1 P2 A2 O2
+
+# BUT
+but, want iCub croco, cover box croco, P1 P2 A2 O2 P3 A3 O3
+but, want iCub croco, have Larry croco, P1 P2 A2 O2 P3 A3 O3
+but, take iCub croco, cover box croco, P1 P2 A2 O2 P3 A3 O3
+but, take iCub croco, fail iCub take, P1 P2 A2 O2 P3 A3 O3
+
+# SO
+so, take iCub croco, P1 P2 A2 O2
 so, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 R2
 so, remove Robert box, P1 P2 A2 O2
+so, say iCub can_you_give_me_the_croco_please Larry, P1 P2 A2 O2 R2
+so, give Larry croco iCub, P1 P2 A2 O2 R2
+so, have iCub croco, P1 P2 A2 O2
+so, have Larry croco, P1 P2 A2 O2
+
+# THEN
+then, take iCub croco, P1 P2 A2 O2
 then, give Larry croco iCub, P1 P2 A2 O2 R2
+then, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 R2
+then, remove Robert box, P1 P2 A2 O2
+then, say iCub can_you_give_me_the_croco_please Larry, P1 P2 A2 O2 R2
+then, give Larry croco iCub, P1 P2 A2 O2 R2
+then, have iCub croco, P1 P2 A2 O2
+
+# AND
+and, cover box croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
 and, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 R2
+and, say iCub can_you_give_me_the_croco_please Larry, P1 P2 A2 O2 R2
 and, say iCub can_you_remove_the_box_please? Robert, say iCub can_you_give_me_the_croco_please Larry, P1 P2 A2 O2 R2 P3 A3 O3 R3
-Because, give Larry croco iCub, say iCub Give_me_the_croco_please Larry, P1 P2 A2 O2 R2 P3 A3 O3 R3
-Because, remove Robert box, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
-Because, have Larry croco, remove Robert box, P1 P2 A2 O2 P3 A3 O3
-Because, have iCub croco, give Larry croco iCub, P1 P2 A2 O2 P3 A3 O3 R3
-Finally, have iCub croco, P1 P2 A2 O2
+and, say iCub can_you_remove_the_box_please? Robert, remove Robert box, P1 P2 A2 O2 R2 P3 A3 O3
+and, say iCub can_you_give_me_the_croco_please Larry, give Larry croco iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+
+# AFTER
+after, say iCub can_you_remove_the_box_please? Robert, remove Robert box, P1 P2 A2 O2 R2 P3 A3 O3
+after, say iCub can_you_give_me_the_croco_please Larry, give Larry croco iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+after, remove Robert box, give Larry croco iCub, P1 P2 A2 O2 P3 A3 O3 R3
+after, remove Robert box, have Larry croco, P1 P2 A2 O2 P3 A3 O3
+after, take iCub croco, give Larry croco iCub, P1 P2 A2 O2 P3 A3 O3 R3
+after, take iCub croco, remove Robert box, P1 P2 A2 O2 P3 A3 O3
+
+# BEFORE
+before, remove Robert box, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
+before, give Larry croco iCub, say iCub can_you_give_me_the_croco_please Larry, P1 P2 A2 O2 R2 P3 A3 O3 R3
+before, give Larry croco iCub, remove Robert box, P1 P2 A2 O2 R2 P3 A3 O3
+before, have Larry croco, remove Robert box, P1 P2 A2 O2 P3 A3 O3
+before, give Larry croco iCub, take iCub croco, P1 P2 A2 O2 R2 P3 A3 O3
+before, remove Robert box, take iCub croco, P1 P2 A2 O2 P3 A3 O3
+
+# BECAUSE
+because, give Larry croco iCub, say iCub Give_me_the_croco_please Larry, P1 P2 A2 O2 R2 P3 A3 O3 R3
+because, remove Robert box, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
+because, have Larry croco, remove Robert box, P1 P2 A2 O2 P3 A3 O3
+because, have iCub croco, give Larry croco iCub, P1 P2 A2 O2 P3 A3 O3 R3
+because, have iCub croco, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
+because, have iCub croco, say iCub Give_me_the_croco_please Larry, P1 P2 A2 O2 P3 A3 O3 R3
+
+# FINALLY
+finally, have iCub croco, P1 P2 A2 O2

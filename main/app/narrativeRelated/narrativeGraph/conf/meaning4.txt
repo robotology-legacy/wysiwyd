@@ -8,11 +8,56 @@
 #   And now, iCub have croco
 #   In the end, iCub have croco
 
+# FIRST
 first, want iCub croco, P1 P2 A2 O2
 first, cover box croco, P1 P2 A2 O2
-then, say iCub Can_you_remove_the_box_please? Sam, P1 P2 A2 O2 R2
+
+# SO
+so, take iCub croco, P1 P2 A2 O2
+so, say iCub Can_you_remove_the_box_please? Sam, P1 P2 A2 O2 R2
 so, remove Sam box, P1 P2 A2 O2
-but, fail iCub take croco, P1 P2 A2 O2 R2
-Because, take iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
-Because,  take iCub croco,want iCub croco, P1 P2 A2 O2 P3 A3 O3
-Finally, have iCub croco, P1 P2 A2 O2
+so, take iCub croco, P1 P2 A2 O2
+so, have iCub croco, P1 P2 A2 O2
+
+# THEN
+then, take iCub croco, P1 P2 A2 O2
+then, say iCub Can_you_remove_the_box_please? Sam, P1 P2 A2 O2 R2
+then, remove Sam box, P1 P2 A2 O2
+then, take iCub croco, P1 P2 A2 O2
+then, have iCub croco, P1 P2 A2 O2
+
+# AND
+and, want iCub croco, cover box croco, P1 P2 A2 O2 P3 A3 O3
+and, say iCub Can_you_remove_the_box_please? Sam, remove Sam box, P1 P2 A2 O2 R2 P3 A3 O3
+and, take iCub croco, have iCub croco, P1 P2 A2 O2 P3 A3 O3
+
+# BEFORE
+before, take iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+before, take iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
+before, have iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
+before, have iCub croco, take iCub croco, P1 P2 A2 O2 P3 A3 O3
+before, remove Sam box, want iCub croco, P1 P2 A2 O2 P3 A3 O3
+before, remove Sam box, say iCub Can_you_remove_the_box_please? croco, P1 P2 A2 O2 P3 A3 O3 R3
+
+# AFTER
+after, take iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+after, want iCub croco, take iCub croco, P1 P2 A2 O2 P3 A3 O3
+after, remove Sam box, take iCub croco, P1 P2 A2 O2 P3 A3 O3
+after, remove Sam box, have iCub croco, P1 P2 A2 O2 P3 A3 O3
+after, take iCub croco, have iCub croco, P1 P2 A2 O2 P3 A3 O3
+after, want iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+after, say iCub Can_you_remove_the_box_please? croco, remove Sam box, P1 P2 A2 O2 R2 P3 A3 O3
+
+# BUT
+but, want iCub croco, cover box croco, P1 P2 A2 O2 P3 A3 O3
+but, take iCub croco, cover box croco, P1 P2 A2 O2 P3 A3 O3
+but, take iCub croco, fail iCub take, P1 P2 A2 O2 P3 A3 O3
+
+# BECAUSE
+because, take iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+because,  take iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
+because,  have iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
+because,  have iCub croco, take iCub croco, P1 P2 A2 O2 P3 A3 O3
+
+#FINALLY
+finally, have iCub croco, P1 P2 A2 O2
