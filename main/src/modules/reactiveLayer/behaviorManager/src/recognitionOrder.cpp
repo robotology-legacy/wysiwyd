@@ -3,7 +3,7 @@
 using namespace std;
 using namespace yarp::os;
 
-void recognitionOrder::configure() {
+void RecognitionOrder::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "/sam/rpc:i";
     from_sensation_port_name = "None";
@@ -18,7 +18,7 @@ void recognitionOrder::configure() {
     manual = false;
 }
 
-void recognitionOrder::run(const Bottle &args) {
+void RecognitionOrder::run(const Bottle &args) {
     yInfo() << "recognitionOrder::run";
 
     if (!Network::isConnected(port_to_homeo_name,homeoPort)){

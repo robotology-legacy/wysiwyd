@@ -5,8 +5,6 @@
 class BehaviorManager: public yarp::os::RFModule
 {
 private:
-
-
     std::vector<Behavior*> behaviors;
 
     std::string moduleName;
