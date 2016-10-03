@@ -454,10 +454,30 @@ namespace wysiwyd{
             bool lookAtPartner();
 
             /**
+            * Looks at the agent specific bodypart if present in the scene.
+            * @param sBodypartName is the name of the bodypart (kinect skeleton node) to be looked at
+            */
+            bool lookAtBodypart(const std::string &sBodypartName);
+
+            /**
+            * Points at the agent specific bodypart if present in the scene.
+            * @param sBodypartName is the name of the bodypart (kinect skeleton node) to be looked at
+            */
+            bool pointAtBodypart(const std::string &sBodypartName);
+
+
+            /**
             * Extract the name of the agent interaction with the iCub (present, not iCub nor 'unnamed' partner)
             * @return string, the name of the agent
             */
             std::string getPartnerName();
+
+            /**
+            * Extract the localisation of the bodypart name of the partner
+            * @param sBodypartName is the name of the bodypart (kinect skeleton node) to be looked at
+            * @return vLoc, the vector of the bodypart localisation
+            */
+            yarp::sig::Vector getPartnerBodypartLoc(std::string sBodypartName);
 
             /**
             * Babbling a single joint

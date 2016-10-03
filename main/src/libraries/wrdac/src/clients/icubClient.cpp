@@ -858,9 +858,73 @@ std::string ICubClient::getPartnerName()
     return partnerName;
 }
 
+yarp::sig::Vector ICubClient::getPartnerBodypartLoc(std::string sBodypartName){
+
+    Vector vLoc;
+
+    //we extract the coordinates of a specific bodypart of the partner and we look with ARE
+    string partnerName = getPartnerName();
+    if(partnerName == ""){
+        yWarning() << "[iCubclient] Called getPartnerBodypartLoc :No partner present was found: cannot look at his/her ";
+        return vLoc;
+    }
+
+
+    if (Agent *oPartner = dynamic_cast<Agent*>(opc->getEntity(partnerName))){
+        if (oPartner->m_present==1.0){
+            if(oPartner->m_body.m_parts.find(sBodypartName) != oPartner->m_body.m_parts.end()){
+                vLoc = oPartner->m_body.m_parts[sBodypartName];
+                yDebug() << "The bodypart " << sBodypartName << "of the agemt " << partnerName << " is  at position " << vLoc.toString() ;
+                return vLoc;
+            } else {
+                yError() << "[iCubClient] Called getPartnerBodypartLoc() on an unavalid bodypart (" << sBodypartName << ")";
+                return vLoc;
+            }
+        } else {
+            yError() << "[iCubClient] Called getPartnerBodypartLoc() on a non-present agent (" << partnerName << ")";
+            return vLoc;
+        }
+    }
+
+    return vLoc;
+}
+
 bool ICubClient::lookAtPartner()
 {
     return look(getPartnerName());
+}
+
+
+bool ICubClient::lookAtBodypart(const std::string &sBodypartName)
+{
+    if (SubSystem_ARE *are = getARE())
+    {
+        Vector vLoc;
+        vLoc = getPartnerBodypartLoc(sBodypartName);
+        if (vLoc.size() == 3){
+            return are->look(vLoc, yarp::os::Bottle() , sBodypartName);
+        }
+
+        yWarning() << "[iCubClient] Called lookAtBodypart() on an unvalid/unpresent agent or bodypart (" << sBodypartName << ")";
+        return false;
+    }
+    return false;
+}
+
+bool ICubClient::pointAtBodypart(const std::string &sBodypartName)
+{
+    if (SubSystem_ARE *are = getARE())
+    {
+        Vector vLoc;
+        vLoc = getPartnerBodypartLoc(sBodypartName);
+        if (vLoc.size() == 3){
+            return are->point(vLoc, yarp::os::Bottle() , sBodypartName);
+        }
+
+        yWarning() << "[iCubClient] Called pointAtBodypart() on an unvalid/unpresent agent or bodypart (" << sBodypartName << ")";
+        return false;
+    }
+    return false;
 }
 
 bool ICubClient::lookAround()
