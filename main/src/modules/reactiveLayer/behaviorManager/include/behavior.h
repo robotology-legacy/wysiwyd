@@ -42,7 +42,7 @@ public:
     std::string behaviorName;
     ResourceFinder& rf;
 
-    void trigger(Bottle args=Bottle()) {
+    bool trigger(Bottle args=Bottle()) {
         yDebug() << "Behavior::trigger starts"; 
         if (mut->tryLock()) {
             yDebug() << "Behavior::trigger mutex closed"; 
@@ -57,10 +57,11 @@ public:
             msg.clear();
             msg.addString("stop");
             behavior_start_stop_port.write();
-            // Time::delay(0.0);
             mut->unlock();
+            return true;
         }
         yDebug() << "Behavior::trigger ends";
+        return false;
     }
 
     virtual void configure() = 0;

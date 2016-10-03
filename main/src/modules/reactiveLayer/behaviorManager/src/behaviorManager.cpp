@@ -201,8 +201,8 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                     args = cmd.tail();
                 }
                 yDebug() << "arguments are " << args.toString().c_str();
-                beh->trigger(args);
-                behavior_triggered = true;
+                // beh->trigger(args);
+                behavior_triggered = beh->trigger(args);
 
                 // Add event into ABM
                 if (iCub->getABMClient()->Connect()) {

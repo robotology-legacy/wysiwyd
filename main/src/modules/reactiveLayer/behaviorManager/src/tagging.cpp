@@ -16,8 +16,8 @@ void Tagging::run(Bottle args/*=Bottle()*/) {
     if (args.size()!=0){
         if(args.size()<=2){
             yDebug()<<args.toString() << args.size();
-            target = args.get(0).asList()->toString();
-            type = args.get(1).asList()->toString();
+            target = args.get(0).asList()->get(0).asString();
+            type = args.get(0).asList()->get(1).asString();
             yDebug() << "Object selected: " << target << "Type: "<<type;
             list<Entity*> lEntities = iCub->opc->EntitiesCache();
             for (auto& entity: lEntities)
