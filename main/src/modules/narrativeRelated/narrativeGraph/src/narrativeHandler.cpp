@@ -2374,7 +2374,7 @@ void narrativeHandler::displayDFW(){
 
         cout << "\t\t simple: " << endl;
         for (auto itI : itD.vSingleIGARF){
-            cout << "\t\t\t" << itI.toString() << endl;
+            cout << "\t" << itI.toString() << endl;
         }
     }
 }
@@ -2407,17 +2407,17 @@ void narrativeHandler::analyseDFW(){
 void narrativeHandler::exportDFW(){
     string dfw_file_path = "C:/Users/rclab/data.csv";
     ofstream file(dfw_file_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
-    file << "name\tsimple\tdouble\tfrom\tto\n";
+    file << "name\tsimple\tdouble\tfrom\tto\trange1\trange2\n";
 
 
     for (auto dfw : vDFW){
         for (auto evt : dfw.vSingleIGARF){
 
-            file << dfw.sName << "\t" << evt.dIGARF << "\t" << -1 << "\t" << evt.km.cPart << "\t" << 'Z' << endl;
+            file << dfw.sName << "\t" << evt.dIGARF << "\t" << -1 << "\t" << evt.km.cPart << "\t" << 'Z' << "\t" << evt.rangeIGARF << "\t" << -1 << endl;
         }
         for (auto evt : dfw.vDoubleIGARF){
 
-            file << dfw.sName << "\t" << evt.first.dIGARF << "\t" << evt.second.dIGARF << "\t" << evt.first.km.cPart << "\t" << evt.second.km.cPart << endl;
+            file << dfw.sName << "\t" << evt.first.dIGARF << "\t" << evt.second.dIGARF << "\t" << evt.first.km.cPart << "\t" << evt.second.km.cPart << "\t" << evt.first.rangeIGARF << "\t" << evt.second.rangeIGARF << endl;
         }
     }
 

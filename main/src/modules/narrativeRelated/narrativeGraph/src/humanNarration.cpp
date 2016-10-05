@@ -967,7 +967,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     cout << "in linkMeaningScenario: " << endl;
     int iLost = 0;
 
-//    sm.displayEvent();
+    //    sm.displayEvent();
 
     ofstream IGARFfile;
     IGARFfile.open(sIGARFfile);
@@ -1045,17 +1045,16 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
             level2 != level1->vSentence.end();
             level2++){  // for each preposition of the sentence
-            if (display){
-                cout << "===============" << endl << "Preposition: [ ";
+            if (true){
+                cout << " [ ";
                 for (int iWord = 0; iWord < level2->vOCW.size(); iWord++){
 
                     cout << level2->vOCW[iWord] << " ";
                 }
-                cout << "]" << endl;
+                cout << "]  " ;
             }
 
             int iScore = 0;
-
             if (isDFW && iPreposition == 0){ // only one OCW: DFW
                 //cout << "\t\t\t sentence has a DFW." << endl;
                 string nameDFW = level2->vOCW[0];
@@ -1080,7 +1079,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
                 if (vkTmp.size() == 0){
                     iLost++;
-                    yWarning() << " in narrativeGraph::humanNarration.cpp::linkMeaningScenario:: findBest : no target found." ;
+                    yWarning() << " in narrativeGraph::humanNarration.cpp::linkMeaningScenario:: findBest : no target found.";
                     yWarning() << level1->getSentence();
                 }
 
@@ -1135,8 +1134,9 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                             }
                         }
 
-                        double dI = iIg / (sm.vChronoIgarf.size() *1.0);
-                        storygraph::EVT_IGARF evtKM(kTmp, iIg, iL, dI);
+                        //                        double dI = iIg / (sm.vChronoIgarf.size() *1.0);
+                        storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
+                        sm.checkEVTIGARF(evtKM);
 
                         if (iNbPreposition > 2){
                             if (iPreposition < 2){
@@ -1181,7 +1181,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                             currentDFW->vDoubleIGARF.push_back(kTmpDouble);
                             doku++;
                         }
-                    }                    
+                    }
                 }
             }
         }
@@ -1198,3 +1198,8 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 }
 
 
+Bottle narrativeHandler::useDFW(string sdfw){
+
+    Bottle bRet;
+    return bRet;
+}

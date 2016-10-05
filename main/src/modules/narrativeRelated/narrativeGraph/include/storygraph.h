@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Solène Mirliaz
- * email:   solene.mirliaz@ens-rennes.fr
- * Permission is granted to copy, distribute, and/or modify this program
- * under the terms of the GNU General Public License, version 2 or any
- * later version published by the Free Software Foundation.
- *
- * A copy of the license can be found at
- * wysiwyd/license/gpl.txt
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details
- */
+* Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+* Authors: Solène Mirliaz
+* email:   solene.mirliaz@ens-rennes.fr
+* Permission is granted to copy, distribute, and/or modify this program
+* under the terms of the GNU General Public License, version 2 or any
+* later version published by the Free Software Foundation.
+*
+* A copy of the license can be found at
+* wysiwyd/license/gpl.txt
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+* Public License for more details
+*/
 
 #ifndef _STORYGRAPH_H_
 #define _STORYGRAPH_H_
@@ -83,6 +83,31 @@ namespace storygraph {
         std::string word; ///< Discourse Function Word attached to this link
     };
 
+    class EVT_IGARF{
+    public:
+        sKeyMean km;
+        int iIgarf;
+        int iLevel;
+        double dIGARF; ///< fraction of the IGARF (# divided par total)
+        int rangeIGARF;
+
+        std::string toString(){
+            std::ostringstream os;
+            os << km.iIGARF << " " << km.cPart << " " << km.iRel << " - " << iIgarf << " / " << iLevel << " / " << dIGARF;
+            return os.str();
+        }
+
+
+        EVT_IGARF(){}
+
+        EVT_IGARF(sKeyMean _km, int ig, int il){
+            km = _km;
+            iIgarf = ig;
+            iLevel = il;
+        }
+    };
+
+
     class SituationModel {
     private:
         int rendering_wEvtBox; // Width of the Atom Event boxes
@@ -106,6 +131,7 @@ namespace storygraph {
         std::vector < sIGARF >         vIGARF;
         std::vector < sDiscourseLink > vDiscourseLinks;
         std::vector < int > vChronoIgarf; ///< Vector of the apparition of the IGARF in term of chronology
+        std::vector < std::pair<int, std::string > > vChronoEvent; ///< Vector of the apparition of the events in term of chronology: first element is the chronolog of the IGARF, second element is I,G,A,R or F
 
         SituationModel();
 
@@ -178,36 +204,8 @@ namespace storygraph {
         void writeSVG(std::ofstream &fOutput, int nIGARF); ///< Draws the IGARF by calling the appropriate auxiliary function
 
         void displayEvent(); // display all event in the IGARF
+        void checkEVTIGARF(EVT_IGARF &evtKM);
 
-    };
-
-
-    class EVT_IGARF{
-    public:
-        sKeyMean km;
-        int iIgarf;
-        int iLevel;
-        double dIGARF; ///< fraction of the IGARF (# divided par total)
-
-        std::string toString(){
-            std::ostringstream os;
-            os << km.iIGARF << " " << km.cPart << " " << km.iRel << " - " << iIgarf << " / " << iLevel << " / " << dIGARF;
-            return os.str();
-        }
-
-
-        EVT_IGARF(){}
-
-        EVT_IGARF(sKeyMean _km, int ig, int il, double dI){
-            km = _km;
-            iIgarf = ig;
-            iLevel = il;
-            dIGARF = dI;
-
-            if (_km.cPart == 'F' && dI == 0) dIGARF = 1.0;
-            if (_km.cPart == 'G' && dI == 0) dIGARF = 1.0;
-
-        }
     };
 
 

@@ -28,6 +28,8 @@ void SituationModel::clear() {
     vActionEvts.clear();
     vIGARF.clear();
     vDiscourseLinks.clear();
+    vChronoEvent.clear();
+    vChronoIgarf.clear();
     endSentence();
 }
 
@@ -85,14 +87,17 @@ void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level) {
     marginInFile(level, IGARFfile);
     cout << "+-INIT: " << dispRelations(evt.vInitState) << endl;
     IGARFfile << "INIT " << dispRelations(evt.vInitState) << endl;
+    vChronoEvent.push_back(pair<int, string>(i, "I"));
     margin(level);
     marginInFile(level, IGARFfile);
     cout << "+-GOAL: " << dispRelations(evt.vGoal) << endl;
     IGARFfile << "GOAL " << dispRelations(evt.vGoal) << endl;
+    vChronoEvent.push_back(pair<int, string>(i, "G"));
     margin(level);
     marginInFile(level, IGARFfile);
     cout << "+-ACTION: ";
     IGARFfile << "ACTION ";
+    vChronoEvent.push_back(pair<int, string>(i, "A"));
     if (evt.tAction == ACTION_EVT) {
         cout << "[" << evt.iAction << "] " << getSentenceEvt(evt.iAction) << endl;
         IGARFfile << getSentenceEvt(evt.iAction) << endl;
@@ -108,6 +113,7 @@ void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level) {
     marginInFile(level, IGARFfile);
     cout << "+-RESULT: ";
     IGARFfile << "RESULT ";
+    vChronoEvent.push_back(pair<int, string>(i, "R"));
     if (evt.tResult == ACTION_EVT) {
         cout << "[" << evt.iResult << "] " << getSentenceEvt(evt.iResult) << endl;
         IGARFfile << getSentenceEvt(evt.iResult) << endl;
@@ -125,6 +131,7 @@ void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level) {
     marginInFile(level, IGARFfile);
     cout << "+-FINAL: " << dispRelations(evt.vFinalState) << endl;
     IGARFfile << "FINAL " << dispRelations(evt.vFinalState) << endl;
+    vChronoEvent.push_back(pair<int, string>(i, "F"));
     margin(level);
     marginInFile(level, IGARFfile);
     cout << "+-NEXT: ";
@@ -674,6 +681,12 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     for (auto ii : vChronoIgarf){
         cout << "\t" << ii;
     }
+
+    cout << endl<<"Chronology of events: " << vChronoEvent.size() << endl;
+    for (auto ii : vChronoEvent){
+        cout << ii.first << "\t" << ii.second << endl;
+    }
+
     cout << endl;
 
 }
@@ -1441,6 +1454,28 @@ void SituationModel::displayEvent(){
 
         doku++;
     }
+}
+
+
+void SituationModel::checkEVTIGARF(EVT_IGARF &IGA_Input){
+    if ((IGA_Input.km.cPart == 'F' || IGA_Input.km.cPart == 'G') && IGA_Input.iIgarf == 0) {
+        IGA_Input.iIgarf = vChronoIgarf.back();
+        IGA_Input.rangeIGARF = vChronoIgarf.size();
+    }
+    else{
+        IGA_Input.rangeIGARF = find(vChronoIgarf.begin(), vChronoIgarf.end(), IGA_Input.iIgarf) - vChronoIgarf.begin() ;
+    }
+
+    ostringstream ss;
+    ss << IGA_Input.km.cPart;
+    pair<int, string> pTmp(IGA_Input.iIgarf, ss.str());
+
+    int pos = find(vChronoEvent.begin(), vChronoEvent.end(), pTmp) - vChronoEvent.begin();
+    double dPos = (pos*1.0) / (vChronoEvent.size() *1.0);
+
+    IGA_Input.dIGARF = dPos;
+
+
 }
 
 
