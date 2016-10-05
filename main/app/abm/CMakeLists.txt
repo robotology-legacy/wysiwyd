@@ -9,4 +9,4 @@ endif(WYSIWYD_USE_PGSQL)
 add_subdirectory(ABMRosToYarpBridge)
 add_subdirectory(abmHandler)
 add_subdirectory(abmReasoning)
-
+add_subdirectory(abmVision)

@@ -8,3 +8,4 @@ endif(WYSIWYD_USE_PGSQL AND WYSIWYD_USE_OpenCV AND WYSIWYD_USE_ACE)
 
 add_subdirectory(abmHandler)
 add_subdirectory(abmReasoning)
+add_subdirectory(abmVision)
