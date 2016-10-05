@@ -27,11 +27,14 @@ int main(int argc, char * argv[]) {
     }
 
     abmVision mod;
+
+
     yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("abmVision");
     rf.setDefaultConfigFile("abmVision.ini");
-    rf.configure(argc, argv);
+    rf.configure(argc, argv);   
+
     return mod.runModule(rf);
 }
 

@@ -21,6 +21,11 @@
 #include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
 
+#include <iCub/ctrl/math.h>
+#include <iCub/iKin/iKinFwd.h>
+#include <yarp/math/Math.h>
+#include <yarp/math/SVD.h>
+
 
 class abmVision : public yarp::os::RFModule {
 private:
@@ -28,10 +33,29 @@ private:
     std::string sKeyWord;
 
     std::string handlerPortName;
-
     yarp::os::Port handlerPort;             // a port to handle messages 
 
     wysiwyd::wrdac::ICubClient *iCub;
+
+    iCub::iKin::iCubEye *eyeL;
+    iCub::iKin::iCubEye *eyeR;
+
+    yarp::sig::Matrix *PrjL, *invPrjL;
+    yarp::sig::Matrix *PrjR, *invPrjR;
+    double  cxl, cyl;
+    double  cxr, cyr;
+
+    yarp::os::Mutex                 mutex;
+
+    yarp::os::ResourceFinder rf_cameras;
+    yarp::os::ResourceFinder rf_tweak;
+    std::string tweakFile;
+    bool tweakOverwrite;
+
+    bool projectPoint(const std::string &type, const yarp::sig::Vector &vTarget, const yarp::sig::Vector vHead, const yarp::sig::Vector vTorso, yarp::sig::Vector &vPixels); //based on iKinGazeCtrl/localizer
+    bool initializeEye();
+
+    bool getCamPrj(const yarp::os::ResourceFinder &rf, const std::string &type, yarp::sig::Matrix **Prj, const bool verbose);
 
 public:
     /**
