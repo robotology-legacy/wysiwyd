@@ -8,16 +8,6 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
-
-    //Create an iCub Client and check that all dependencies are here before starting
-    bool isRFVerbose = false;
-    iCub = new ICubClient(moduleName, "planner", "client.ini", isRFVerbose);
-    iCub->opc->isVerbose = false;
-    while (!iCub->connect())
-    {
-       yInfo() << " iCubClient : Some dependencies are not running...";
-       Time::delay(1.0);
-    }
     
     grpPlans = rf.findGroup("PLANS");
     avaiPlansList = *grpPlans.find("plans").asList();
@@ -26,8 +16,22 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 
     bool ears = rf.check("ears",Value("true")).asBool();
     bool homeo = rf.check("homeostasis",Value("true")).asBool();
+    useABM = rf.check("ABM",Value("true")).asBool();
     bool SM = 1;
     bool BM = 1;
+
+    if (useABM)
+    {
+        //Create an iCub Client and check that all dependencies are here before starting
+        bool isRFVerbose = false;
+        iCub = new ICubClient(moduleName, "planner", "client.ini", isRFVerbose);
+        iCub->opc->isVerbose = false;
+        while (!iCub->connect())
+        {
+           yInfo() << " iCubClient : Some dependencies are not running...";
+           Time::delay(1.0);
+        }
+    }
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
@@ -384,19 +388,22 @@ bool Planner::updateModule() {
                         lArgument.push_back(std::pair<std::string, std::string>("none", "predicate"));
                     }
 
-                    // record action selection reasoning in ABM
-                    yDebug() << "recording in ABM";
-                    if (iCub->getABMClient()->Connect())
+                    if (useABM)
                     {
-                        yDebug() << "ABM is connected";
-                        iCub->getABMClient()->sendActivity("reasoning",
-                            actionName,
-                        "planner",  // expl: "pasar", "drives"...
-                        lArgument,
-                        true);
-                        yInfo() << actionName + " reasoning has been recorded in the ABM";
+                        // record action selection reasoning in ABM
+                        yDebug() << "recording in ABM";
+                        if (iCub->getABMClient()->Connect())
+                        {
+                            yDebug() << "ABM is connected";
+                            iCub->getABMClient()->sendActivity("reasoning",
+                                actionName,
+                            "planner",  // expl: "pasar", "drives"...
+                            lArgument,
+                            true);
+                            yInfo() << actionName + " reasoning has been recorded in the ABM";
+                        }
+                        else { yInfo() << "ABMClient is not connected."; }
                     }
-                    else { yInfo() << "ABMClient is not connected."; }
 
                     // insert actions into the various holding lists (IN REVERSE ORDER)
                     yInfo() << "storing action details:" << actionName;
@@ -429,22 +436,25 @@ bool Planner::updateModule() {
                             type_list.push_back(type_store[a]);
                             actionPos_list.push_back(actionPos_store[a]);
 
-                            // log in ABM
-                            if (iCub->getABMClient()->Connect())
+                            if (useABM)
                             {
-                                std::list<std::pair<std::string, std::string> > lArgument;
-                                lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
-                                lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
-                                lArgument.push_back(std::pair<std::string, std::string>(action_store[a], "object"));
-                                lArgument.push_back(std::pair<std::string, std::string>("bottom", "result"));
-                                iCub->getABMClient()->sendActivity("reasoning",
-                                    "priority",
-                                "planner",  // expl: "pasar", "drives"...
-                                lArgument,
-                                true);
-                                yInfo() << "addition of " + action_store[a] + " to bottom of list has been recorded in the ABM";
+                                // log in ABM
+                                if (iCub->getABMClient()->Connect())
+                                {
+                                    std::list<std::pair<std::string, std::string> > lArgument;
+                                    lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
+                                    lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
+                                    lArgument.push_back(std::pair<std::string, std::string>(action_store[a], "object"));
+                                    lArgument.push_back(std::pair<std::string, std::string>("bottom", "result"));
+                                    iCub->getABMClient()->sendActivity("reasoning",
+                                        "priority",
+                                    "planner",  // expl: "pasar", "drives"...
+                                    lArgument,
+                                    true);
+                                    yInfo() << "addition of " + action_store[a] + " to bottom of list has been recorded in the ABM";
+                                }
+                                else { yInfo() << "ABMClient is not connected."; }
                             }
-                            else { yInfo() << "ABMClient is not connected."; }
                         }
                     }
                     else
@@ -459,22 +469,25 @@ bool Planner::updateModule() {
                             actionPos_list.insert(actionPos_list.begin() + insertID, actionPos_store[a]);
                             priority_list.insert(priority_list.begin() + insertID, priority_store[a]);
 
-                            // log in ABM
-                            if (iCub->getABMClient()->Connect())
+                            if (useABM)
                             {
-                                std::list<std::pair<std::string, std::string> > lArgument;
-                                lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
-                                lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
-                                lArgument.push_back(std::pair<std::string, std::string>(action_store[a], "object"));
-                                lArgument.push_back(std::pair<std::string, std::string>(to_string(insertID), "result"));
-                                iCub->getABMClient()->sendActivity("reasoning",
-                                    "priority",
-                                    "planner",  // expl: "pasar", "drives"...
-                                    lArgument,
-                                    true);
-                                yInfo() << "addition of " + action_store[a] + " to index" << insertID << "of list has been recorded in the ABM";
+                                // log in ABM
+                                if (iCub->getABMClient()->Connect())
+                                {
+                                    std::list<std::pair<std::string, std::string> > lArgument;
+                                    lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
+                                    lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
+                                    lArgument.push_back(std::pair<std::string, std::string>(action_store[a], "object"));
+                                    lArgument.push_back(std::pair<std::string, std::string>(to_string(insertID), "result"));
+                                    iCub->getABMClient()->sendActivity("reasoning",
+                                        "priority",
+                                        "planner",  // expl: "pasar", "drives"...
+                                        lArgument,
+                                        true);
+                                    yInfo() << "addition of " + action_store[a] + " to index" << insertID << "of list has been recorded in the ABM";
+                                }
+                                else { yInfo() << "ABMClient is not connected"; }
                             }
-                            else { yInfo() << "ABMClient is not connected"; }
                         }
                     }
 
@@ -538,19 +551,22 @@ bool Planner::updateModule() {
             actionCompleted = triggerBehavior(Bottle(act));
             yInfo() << "action has been completed: " << actionCompleted;
 
-            // record list of action in the ABM
-            std::list<std::pair<std::string, std::string >> lArgument;
-            for (unsigned int i = 0; i < action_list.size(); i++)
+            if (useABM)
             {
-                lArgument.push_back(std::pair<std::string, std::string>(action_list[i], "action"));
+                // record list of action in the ABM
+                std::list<std::pair<std::string, std::string >> lArgument;
+                for (unsigned int i = 0; i < action_list.size(); i++)
+                {
+                    lArgument.push_back(std::pair<std::string, std::string>(action_list[i], "action"));
+                }
+                iCub->getABMClient()->sendActivity("reasoning",
+                    "action_list",
+                    "planner",  // expl: "pasar", "drives"...
+                    lArgument,
+                    true);
+                yInfo() << "sent action_list to ABM";
+                lArgument.clear();
             }
-            iCub->getABMClient()->sendActivity("reasoning",
-                "action_list",
-                "planner",  // expl: "pasar", "drives"...
-                lArgument,
-                true);
-            yInfo() << "sent action_list to ABM";
-            lArgument.clear();
 
             // check for completed state
             string planName = plan_list[0];
@@ -619,28 +635,32 @@ bool Planner::updateModule() {
             {
                 attemptCnt += 1;
 
-                // log in ABM
-                if (iCub->getABMClient()->Connect())
+                if (useABM)
                 {
-                    std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("keep_action", "predicate"));
-                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-                    lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
-                    iCub->getABMClient()->sendActivity("reasoning",
-                        "iCub",
-                    "planner",  // expl: "pasar", "drives"...
-                    lArgument,
-                    true);
-                    yInfo() << action_list[0] + " failure and reattempt has been recorded in the ABM";
+                    // log in ABM
+                    if (iCub->getABMClient()->Connect())
+                    {
+                        std::list<std::pair<std::string, std::string> > lArgument;
+                        lArgument.push_back(std::pair<std::string, std::string>("keep_action", "predicate"));
+                        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+                        lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
+                        iCub->getABMClient()->sendActivity("reasoning",
+                            "iCub",
+                        "planner",  // expl: "pasar", "drives"...
+                        lArgument,
+                        true);
+                        yInfo() << action_list[0] + " failure and reattempt has been recorded in the ABM";
+                    }
+                    else { yInfo() << "ABMClient is not connected."; }
                 }
-                else { yInfo() << "ABMClient is not connected."; }
 
                 if (attemptCnt > 2)
                 {
                     yInfo() << "reached threshold for action attempts.";
                     iCub->say("I have tried too many times and failed to do " + action_list[0] + ". Do it yourself or help me.");
 
-                    // remove action and/or plan?
+                    // remove action and/or plan? Temporarily keep trying
+                    attemptCnt = 0;
                 }
                 // wait for a second before trying again
                 Time::delay(1.0);

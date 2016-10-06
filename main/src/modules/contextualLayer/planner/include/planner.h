@@ -32,6 +32,7 @@ private:
     yarp::os::Mutex mutex;
     bool ordering;
     bool fulfill;
+    bool useABM;
     void run(Bottle args=Bottle());
 
 
