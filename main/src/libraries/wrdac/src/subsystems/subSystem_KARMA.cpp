@@ -201,7 +201,7 @@ yarp::sig::Vector wysiwyd::wrdac::SubSystem_KARMA::applySafetyMargins(const yarp
 bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
 {
     Vector xd(3,0.0), xdL(3,0.0), xdR(3,0.0), odL(3,0.0), odR(3,0.0);
-    double travelTime = 0.5;
+    double travelTime = 2.0;
 
     int contextL, contextR;
     iCartCtrlL->storeContext(&contextL);
@@ -241,6 +241,62 @@ bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
 
     iCartCtrlR->restoreContext(contextR);
     iCartCtrlR->deleteContext(contextR);
+
+    return true;
+}
+
+bool wysiwyd::wrdac::SubSystem_KARMA::returnArmSafely(std::string armType)
+{
+    Vector xL(3,0.0), xR(3,0.0), xdL(3,0.0), xdR(3,0.0), odL(3,0.0), odR(3,0.0);
+    double travelTime = 2.0;
+
+    int contextL, contextR;
+    iCartCtrlL->storeContext(&contextL);
+    iCartCtrlR->storeContext(&contextR);
+
+    iCartCtrlL->setTrajTime(travelTime);
+    iCartCtrlR->setTrajTime(travelTime);
+
+    Bottle options;
+    Bottle &straightOpt=options.addList();
+    straightOpt.addString("straightness");
+    straightOpt.addDouble(10.0);
+    iCartCtrlL->tweakSet(options);
+    iCartCtrlR->tweakSet(options);
+
+    iCartCtrlL->getPose(xL,odL);
+    iCartCtrlR->getPose(xR,odR);
+
+    if (armType == "selectable")
+    {
+        if (xL[2]<xR[2])
+            armType = "left";
+        else
+            armType = "right";
+    }
+    yInfo("[SubSystem_KARMA] return %s arm before home",armType.c_str());
+    if (armType == "left")
+    {
+        xdL = xL;
+        xdL[2] = std::min(0.1,xL[2] + 0.1);
+        yInfo("[SubSystem_KARMA] xdL = %s",xdL.toString().c_str());
+        iCartCtrlL->goToPose(xdL,odL,1.0);
+        iCartCtrlL->waitMotionDone(0.1,4.0);
+        iCartCtrlL->stopControl();
+        iCartCtrlL->restoreContext(contextL);
+        iCartCtrlL->deleteContext(contextL);
+    }
+    else if (armType == "right")
+    {
+        xdR = xR;
+        xdR[2] = std::min(0.1,xR[2] + 0.1);
+        yInfo("[SubSystem_KARMA] xdR = %s",xdR.toString().c_str());
+        iCartCtrlR->goToPose(xdR,odR,1.0);
+        iCartCtrlR->waitMotionDone(0.1,4.0);
+        iCartCtrlR->stopControl();
+        iCartCtrlR->restoreContext(contextR);
+        iCartCtrlR->deleteContext(contextR);
+    }
 
     return true;
 }
@@ -302,6 +358,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     // Call push (no calibration)
     bool pushSucceed = push(targetCenter,theta,radius,options,sName);
 
+    if (pushSucceed)
+        returnArmSafely(armType);
+
     if (armChoose)
         chooseArmAuto();
 
@@ -337,6 +396,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
 
     // Call push (no calibration)
     bool pushSucceed = push(targetCenter,-90,radius,options,sName);
+
+    if (pushSucceed)
+        returnArmSafely(armType);
 
     if (armChoose)
         chooseArmAuto();
