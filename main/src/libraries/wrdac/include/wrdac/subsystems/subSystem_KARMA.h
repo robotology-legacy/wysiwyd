@@ -83,6 +83,8 @@ namespace wysiwyd {
             /********************************************************************************/
             bool prepare();
 
+            bool returnArmSafely(std::string armType);
+
             void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
                                          const std::string handToUse="");
 
