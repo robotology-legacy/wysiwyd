@@ -206,6 +206,8 @@ namespace storygraph {
         void displayEvent(); // display all event in the IGARF
         void checkEVTIGARF(EVT_IGARF &evtKM);
 
+        void removeDoubleEvt(std::vector<sKeyMean> &vkmBest);
+
     };
 
 

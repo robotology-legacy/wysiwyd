@@ -5,6 +5,16 @@
 using namespace storygraph;
 using namespace std;
 
+template<typename Cont, typename It>
+auto ToggleIndices(Cont &cont, It beg, It end) -> decltype(std::end(cont))
+{
+    int helpIndx(0);
+    return std::stable_partition(std::begin(cont), std::end(cont),
+        [&](typename Cont::value_type const& val) -> bool {
+        return std::find(beg, end, helpIndx++) != end;
+    });
+}
+
 void margin(int level) {
     for (int i = 0; i < level; i++)
         cout << "| ";
@@ -682,7 +692,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
         cout << "\t" << ii;
     }
 
-    cout << endl<<"Chronology of events: " << vChronoEvent.size() << endl;
+    cout << endl << "Chronology of events: " << vChronoEvent.size() << endl;
     for (auto ii : vChronoEvent){
         cout << ii.first << "\t" << ii.second << endl;
     }
@@ -848,8 +858,8 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
         if (s >= score_max && s > 0) {
             equal = (s == score_max);
             score_max = s;
+            bool hasClear = false;
             for (int j = 0; j < (int)vIGARF.size(); j++) {
-                bool hasClear = false;
                 for (int k = 0; k < (int)vIGARF.at(j).vGoal.size(); k++) {
                     if (vIGARF.at(j).vGoal.at(k) == i) {
                         km = createKey(j, 'G', k);
@@ -866,6 +876,7 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
                     if (vIGARF.at(j).vFinalState.at(k) == i) {
                         km = createKey(j, 'F', k);
                         if (!equal && !hasClear) {
+                            hasClear = true;
                             vkmBest.clear();
                             vScore.clear();
                         }
@@ -876,7 +887,7 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
                 for (int k = 0; k < (int)vIGARF.at(j).vInitState.size(); k++) {
                     if (vIGARF.at(j).vInitState.at(k) == i) {
                         km = createKey(j, 'I', k);
-                        if (!equal) {
+                        if (!equal && !hasClear) {
                             vkmBest.clear();
                             vScore.clear();
                             hasClear = true;
@@ -889,6 +900,9 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
         }
     }
 
+
+    removeDoubleEvt(vkmBest);
+
     //if (vkmBest.size() > 1){// && score_max != 0) {
     //    cout << "several best target: " << vkmBest.size() << endl;
     //}
@@ -896,6 +910,129 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
     //cout << " **score: " << score_max << "** " << endl;
     return vkmBest;
 }
+
+///< check in a vector of sKeyMean, if there are several identical states, if so, keep only the first
+void SituationModel::removeDoubleEvt(vector<sKeyMean> &vkmBest){
+
+    int ii = 0;
+    int iRange = vChronoEvent.size();
+    int toKeep = 0;
+    vector<int>  toRemove;
+
+    // check if several "goal" states.
+    ii = 0;
+    iRange = vChronoEvent.size();
+    toKeep = 0;
+    toRemove.clear();
+    for (auto km : vkmBest){
+        ostringstream ss;
+        ss << km.cPart;
+        pair<int, string> pTmp(km.iIGARF, ss.str());
+        if (km.cPart == 'G'){
+            int pos = find(vChronoEvent.begin(), vChronoEvent.end(), pTmp) - vChronoEvent.begin();
+            if (pos < iRange){
+                iRange = pos;
+                toKeep = toRemove.size();
+            }
+            toRemove.push_back(ii);
+        }
+        ii++;
+    }
+    if (toRemove.size() > 1){
+        toRemove.erase(toRemove.begin() + toKeep);
+        sort(toRemove.rbegin(), toRemove.rend());
+        for (auto er : toRemove){
+            vkmBest.erase(vkmBest.begin() + er);
+        }
+    }
+
+    // check if several "initial" states.
+    ii = 0;
+    iRange = vChronoEvent.size();
+    toKeep = 0;
+    toRemove.clear();
+    for (auto km : vkmBest){
+        ostringstream ss;
+        ss << km.cPart;
+        pair<int, string> pTmp(km.iIGARF, ss.str());
+        if (km.cPart == 'I'){
+            int pos = find(vChronoEvent.begin(), vChronoEvent.end(), pTmp) - vChronoEvent.begin();
+            if (pos < iRange){
+                iRange = pos;
+                toKeep = toRemove.size();
+            }
+            toRemove.push_back(ii);
+        }
+        ii++;
+    }
+    if (toRemove.size() > 1){
+        toRemove.erase(toRemove.begin() + toKeep);
+        sort(toRemove.rbegin(), toRemove.rend());
+        for (auto er : toRemove){
+            vkmBest.erase(vkmBest.begin() + er);
+        }
+    }
+
+
+    // check if several "final" states.
+    ii = 0;
+    iRange = vChronoEvent.size();
+    toKeep = 0;
+    toRemove.clear();
+    for (auto km : vkmBest){
+        ostringstream ss;
+        ss << km.cPart;
+        pair<int, string> pTmp(km.iIGARF, ss.str());
+        if (km.cPart == 'F'){
+            int pos = find(vChronoEvent.begin(), vChronoEvent.end(), pTmp) - vChronoEvent.begin();
+            if (pos < iRange){
+                iRange = pos;
+                toKeep = toRemove.size();
+            }
+            toRemove.push_back(ii);
+        }
+        ii++;
+    }
+    if (toRemove.size() > 1){
+        toRemove.erase(toRemove.begin() + toKeep);
+        sort(toRemove.rbegin(), toRemove.rend());
+        for (auto er : toRemove){
+            vkmBest.erase(vkmBest.begin() + er);
+        }
+    }
+
+    // check if several "final" states.
+    ii = 0;
+    iRange = vChronoEvent.size();
+    toKeep = 0;
+    toRemove.clear();
+    for (auto km : vkmBest){
+        ostringstream ss;
+        ss << km.cPart;
+        pair<int, string> pTmp(km.iIGARF, ss.str());
+        if (km.cPart == 'R'){
+            int pos = find(vChronoEvent.begin(), vChronoEvent.end(), pTmp) - vChronoEvent.begin();
+            if (pos < iRange){
+                iRange = pos;
+                toKeep = toRemove.size();
+            }
+            toRemove.push_back(ii);
+        }
+        ii++;
+    }
+    if (toRemove.size() > 1){
+        toRemove.erase(toRemove.begin() + toKeep);
+        sort(toRemove.rbegin(), toRemove.rend());
+        for (auto er : toRemove){
+            vkmBest.erase(vkmBest.begin() + er);
+        }
+    }
+
+
+}
+
+
+
 
 string SituationModel::SMtoTrain(string sentence) {
     //to do
@@ -1458,23 +1595,19 @@ void SituationModel::displayEvent(){
 
 
 void SituationModel::checkEVTIGARF(EVT_IGARF &IGA_Input){
-    if ((IGA_Input.km.cPart == 'F' || IGA_Input.km.cPart == 'G') && IGA_Input.iIgarf == 0) {
-        IGA_Input.iIgarf = vChronoIgarf.back();
-        IGA_Input.rangeIGARF = vChronoIgarf.size();
-    }
-    else{
-        IGA_Input.rangeIGARF = find(vChronoIgarf.begin(), vChronoIgarf.end(), IGA_Input.iIgarf) - vChronoIgarf.begin() ;
-    }
+
+    IGA_Input.rangeIGARF = find(vChronoIgarf.begin(), vChronoIgarf.end(), IGA_Input.iIgarf) - vChronoIgarf.begin();
 
     ostringstream ss;
     ss << IGA_Input.km.cPart;
-    pair<int, string> pTmp(IGA_Input.iIgarf, ss.str());
+    pair<int, string> pTmp(IGA_Input.km.iIGARF, ss.str());
 
     int pos = find(vChronoEvent.begin(), vChronoEvent.end(), pTmp) - vChronoEvent.begin();
+
     double dPos = (pos*1.0) / (vChronoEvent.size() *1.0);
+    cout << "Event: " << IGA_Input.km.iIGARF << "-" << pTmp.first << "-" << pTmp.second << " is at pos: " << pos << ", -> " << dPos << endl;
 
     IGA_Input.dIGARF = dPos;
-
 
 }
 

@@ -32,8 +32,11 @@ private:
 
     std::map<int, std::vector<std::string>>  listAutoScenarios;
     std::map<int, std::vector<std::string>>  listAutoMeaning;
+    std::map<int, std::vector<std::string>>  listAutoNaives;
     void initializeScenarios(yarp::os::Bottle bNarration, yarp::os::ResourceFinder &rf);
     void initializeMeaning(yarp::os::Bottle bMeaning, yarp::os::ResourceFinder &rf);
+    void initializeNaives(yarp::os::Bottle bNaives, yarp::os::ResourceFinder &rf);
+    void NaiveToPAOR();
     void checkScenarios(int iSce = -1);
 
     void analyseDFW();      ///< run a set of analysis on the DFW

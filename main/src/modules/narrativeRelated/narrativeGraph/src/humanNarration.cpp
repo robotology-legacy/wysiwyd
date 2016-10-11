@@ -1138,6 +1138,8 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                         storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
                         sm.checkEVTIGARF(evtKM);
 
+                        cout << "KM is: " << evtKM.toString() << endl;
+
                         if (iNbPreposition > 2){
                             if (iPreposition < 2){
                                 doubleBefore.push_back(evtKM);
@@ -1203,3 +1205,63 @@ Bottle narrativeHandler::useDFW(string sdfw){
     Bottle bRet;
     return bRet;
 }
+
+
+
+/*
+* Get sentence from naive subject
+*/
+void narrativeHandler::initializeNaives(Bottle bNaives, ResourceFinder &rf){
+
+    for (int ii = 0; ii < bNaives.size(); ii++){
+        cout << "naive number: " << ii + 1 << ": " << bNaives.get(ii).asString() << " ... " << endl;;
+        string currentNarration = rf.findFileByName(bNaives.get(ii).asString());
+
+        ifstream infile;
+        string currentLine;
+        infile.open(currentNarration);
+        vector<string>  vsNaives;
+        while (!infile.eof()){
+            getline(infile, currentLine);
+            if (currentLine.find("#")){
+                cout << currentLine << endl;
+                if (currentLine != ""){
+                    vsNaives.push_back(currentLine);
+                }
+            }
+        }
+        infile.close();
+
+        listAutoNaives[ii + 1] = vsNaives;
+    }
+
+    yInfo() << "Initialisation of naives: " << bNaives.size() << " found.";
+}
+
+
+/*
+* Send the sentence from the naive subjects to lrh to get it as PAOR
+*/
+void narrativeHandler::NaiveToPAOR(){
+    
+    // for each scenario
+    for (auto scenario : listAutoNaives){
+        // for each sentence for the given scenario
+        for (auto &sentence : scenario.second){
+            //send the sentence to lrh and get the result as PAOR
+
+            sentence = iCub->getLRH()->SentenceToMeaning(sentence);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+

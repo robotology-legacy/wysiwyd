@@ -66,6 +66,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     Bottle *bMeaning = rf.find("listMeaning").asList();
     initializeMeaning(*bMeaning, rf);
 
+    Bottle *bNaives = rf.find("listNaives").asList();
+    initializeNaives(*bNaives, rf);
+    NaiveToPAOR();
+
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
 
     sIGARFfile = rf.findFile(rf.check("IGARFfile", Value("igarffile.txt")).toString());
