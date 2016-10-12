@@ -33,8 +33,13 @@ private:
     yarp::dev::ICartesianControl *iLeftArm = NULL;
     yarp::dev::ICartesianControl *iRightArm =  NULL;
 
+    unsigned int torsoJointsNb = 3;
+    unsigned int armJointsNb   = 7;
+    bool isTorsoDone = false;
 
-    bool configCartesian(yarp::dev::PolyDriver& driver, yarp::dev::ICartesianControl* icart, yarp::os::BufferedPort<Bottle>& port, string part);
+
+    bool configCartesian(yarp::dev::PolyDriver& driver, yarp::os::BufferedPort<Bottle>& port, string part);
+    bool streamCartesian(yarp::dev::PolyDriver& driver, yarp::os::BufferedPort<Bottle>& port, string part);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

@@ -44,18 +44,20 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
     robot   = rf.check("robot", Value("icub")).asString().c_str();
 
     if(arm == "left_arm"){
-
-        bEveryThingisGood = configCartesian(leftArmClientCartCtrl, iLeftArm, armLeftPort, arm);
+        bEveryThingisGood = configCartesian(leftArmClientCartCtrl, armLeftPort, arm);
     } else if (arm == "right_arm") {
-        bEveryThingisGood = configCartesian(rightArmClientCartCtrl, iRightArm, armLeftPort, arm);
+        bEveryThingisGood = configCartesian(rightArmClientCartCtrl, armRightPort, arm);
     } else if (arm == "both"){
-        bEveryThingisGood = configCartesian(leftArmClientCartCtrl, iLeftArm, armLeftPort, "left_arm");
-        bEveryThingisGood = configCartesian(rightArmClientCartCtrl, iRightArm, armLeftPort, "right_arm");
+
+        yDebug() << "Both arm are used!" ;
+        bEveryThingisGood = configCartesian(leftArmClientCartCtrl, armLeftPort, "left_arm");
+        bEveryThingisGood = configCartesian(rightArmClientCartCtrl, armRightPort, "right_arm");
     } else {
         yError() << "The arm used (" << arm << ") is NOT a valid one! Closing jointsAwareness!" ;
         return false ;
     }
     torsoPort.open(("/" + moduleName + "/" + "torso" + "/" + "jointsLoc:o").c_str());
+
 
     /*if (!iCub->connect())
     {
@@ -72,7 +74,7 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
     return true;
 }
 
-bool jointsAwareness::configCartesian(PolyDriver& driver, ICartesianControl *icart, BufferedPort<Bottle> &port, string part){
+bool jointsAwareness::configCartesian(PolyDriver& driver, BufferedPort<Bottle> &port, string part){
 
     port.open(("/" + moduleName + "/" + part + "/" + "jointsLoc:o").c_str());
 
@@ -87,8 +89,20 @@ bool jointsAwareness::configCartesian(PolyDriver& driver, ICartesianControl *ica
         return false;
     }
 
+    yDebug() << "Check is driver is valid" ;
     if (driver.isValid()) {
-       driver.view(icart);
+        yDebug() << "driver IS valid" ;
+        if(part == "left_arm"){
+            driver.view(iLeftArm);
+        } else if (part == "right_arm") {
+            driver.view(iRightArm);
+        } else {
+            yError() << "The arm used (" << part << ") is NOT a valid one! Closing jointsAwareness!" ;
+            return false;
+        }
+    } else {
+        yError() << "Invalid PolyDriver: exit!";
+        return false;
     }
 
     return true;
@@ -122,25 +136,69 @@ bool jointsAwareness::respond(const Bottle& command, Bottle& reply) {
 bool jointsAwareness::updateModule() {
 
     //yDebug() << "update Loop" ;
+    isTorsoDone = false;
 
+    isTorsoDone = streamCartesian(leftArmClientCartCtrl, armLeftPort, "left_arm");
+    isTorsoDone = streamCartesian(rightArmClientCartCtrl, armRightPort, "right_arm");
 
-    if(leftArmClientCartCtrl.isValid()){
+    return true;
+}
+
+bool jointsAwareness::streamCartesian(PolyDriver& driver, BufferedPort<Bottle> &port, string part){
+
+    if(driver.isValid()){
+
         Vector location, orientation;
 
-        //yDebug() << "before getPose" ;
+        /**************************** Torso if not done with a previous driver ****************************/
 
-        //iLeftArm->getPose(location, orientation);
+        if(!isTorsoDone){ //do the torso only if not done before
+            Bottle& bLocTorso = torsoPort.prepare();
+            bLocTorso.clear();
+            for(unsigned int axis = 0; axis < torsoJointsNb; axis++){
+                if(part == "left_arm"){
+                    iLeftArm->getPose(axis, location, orientation);
+                } else if (part == "right_arm"){
+                    iRightArm->getPose(axis, location, orientation);
+                } else {
+                    yError() << "The arm used (" << part << ") is NOT a valid one! Closing jointsAwareness!" ;
+                    return false ;
+                }
 
-        yDebug() << "Location size = " << location.size() ;
+                for(unsigned int i = 0; i < location.size(); i++){
+                    bLocTorso.addDouble(location[i]);
+                }
 
-        Bottle& bLoc = armLeftPort.prepare();
-        for(unsigned int i = 0; i < location.size(); i++){
-            bLoc.addDouble(location[i]);
+            }
+
+            torsoPort.write();
+            yDebug() << "bLoc for " << "torso" << " : (" << bLocTorso.toString() << ")" ;
         }
 
-        armLeftPort.write();
-    }
+        /**************************** Arm ****************************/
 
+        Bottle& bLoc = port.prepare();
+        bLoc.clear();
+        for(unsigned int axis = 3; axis < armJointsNb+3; axis++){
+            if(part == "left_arm"){
+                iLeftArm->getPose(axis, location, orientation); //+3 because the first 3 are torso
+            } else if (part == "right_arm"){
+                iRightArm->getPose(axis, location, orientation); //+3 because the first 3 are torso
+            } else {
+                yError() << "The arm used (" << arm << ") is NOT a valid one! Closing jointsAwareness!" ;
+                return false ;
+            }
+
+            for(unsigned int i = 0; i < location.size(); i++){
+                bLoc.addDouble(location[i]);
+            }
+
+        }
+
+        port.write();
+        yDebug() << "bLoc for " << part << " : (" << bLoc.toString() << ")" ;
+
+    }
 
     return true;
 }
