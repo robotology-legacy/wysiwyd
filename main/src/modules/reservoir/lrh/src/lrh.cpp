@@ -813,7 +813,7 @@ std::string LRH::construal(std::string svector, int iquestion)
             std::list<int>::iterator it;
             int cpt=0;
 
-            int tab[lposElements.size()];
+            vector<int> tab(lposElements.size(),0);
             for(it=lposElements.begin(); it!=lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
@@ -834,8 +834,8 @@ std::string LRH::construal(std::string svector, int iquestion)
             cout << "nb elements " << nb << endl;
             std::list<int>::iterator it;
             int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
@@ -863,8 +863,8 @@ std::string LRH::construal(std::string svector, int iquestion)
             cout << "nb elements " << nb << endl;
             std::list<int>::iterator it;
             int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
@@ -914,7 +914,7 @@ std::string LRH::construal(std::string svector, int iquestion)
             std::list<int>::iterator it;
             int cpt=0;
 
-            int tab[lposElements.size()];
+            vector<int> tab(lposElements.size(), 0);
             for(it=lposElements.begin(); it!=lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
@@ -935,8 +935,8 @@ std::string LRH::construal(std::string svector, int iquestion)
             cout << "nb elements " << nb;
             std::list<int>::iterator it;
             int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
@@ -966,8 +966,8 @@ std::string LRH::construal(std::string svector, int iquestion)
             cout << "nb elements " << nb;
             std::list<int>::iterator it;
             int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
