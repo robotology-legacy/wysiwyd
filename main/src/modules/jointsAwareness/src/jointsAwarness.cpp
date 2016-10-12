@@ -19,12 +19,13 @@
 
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace wysiwyd::wrdac;
+using namespace yarp::dev;
+//using namespace wysiwyd::wrdac;
 using namespace std;
 
 bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
 {
-    string moduleName = rf.check("name", Value("jointsAwareness")).asString().c_str();
+    moduleName = rf.check("name", Value("jointsAwareness")).asString().c_str();
     setName(moduleName.c_str());
 
     yInfo() << "findFileByName " << rf.findFileByName("jointsAwareness.ini") ;
@@ -32,31 +33,35 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
 
-    //bool    bEveryThingisGood = true;
+    bool    bEveryThingisGood = true;
 
     //Create an iCub Client and check that all dependencies are here before starting
-    bool isRFVerbose = true;
-    iCub = new ICubClient(moduleName, "jointsAwareness", "client.ini", isRFVerbose);
-    iCub->opc->isVerbose &= true;
+    //bool isRFVerbose = true;
+    //iCub = new ICubClient(moduleName, "jointsAwareness", "client.ini", isRFVerbose);
+    //iCub->opc->isVerbose &= true;
 
     arm   = rf.check("arm", Value("both")).asString().c_str();
     robot   = rf.check("robot", Value("icub")).asString().c_str();
 
-    /*portToArm.open(("/" + moduleName + "/toArm:rpc").c_str());
-    string portRobotArmName = "/" + robot + "/" + arm + "/rpc:i";
+    if(arm == "left_arm"){
 
-    yInfo() << "================> port controlling the arm : " << portRobotArmName;
-    if (!Network::connect(portToArm.getName().c_str(),portRobotArmName))
-    {
-        yWarning() << "WARNING PORT TO CONTROL ARM (" << portRobotArmName << ") IS NOT CONNECTED";
-    }*/
+        bEveryThingisGood = configCartesian(leftArmClientCartCtrl, iLeftArm, armLeftPort, arm);
+    } else if (arm == "right_arm") {
+        bEveryThingisGood = configCartesian(rightArmClientCartCtrl, iRightArm, armLeftPort, arm);
+    } else if (arm == "both"){
+        bEveryThingisGood = configCartesian(leftArmClientCartCtrl, iLeftArm, armLeftPort, "left_arm");
+        bEveryThingisGood = configCartesian(rightArmClientCartCtrl, iRightArm, armLeftPort, "right_arm");
+    } else {
+        yError() << "The arm used (" << arm << ") is NOT a valid one! Closing jointsAwareness!" ;
+        return false ;
+    }
+    torsoPort.open(("/" + moduleName + "/" + "torso" + "/" + "jointsLoc:o").c_str());
 
-
-    if (!iCub->connect())
+    /*if (!iCub->connect())
     {
         cout << "iCubClient : Some dependencies are not running..." << endl;
         Time::delay(1.0);
-    }
+    }*/
 
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
@@ -64,9 +69,27 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    iCub->say("joints awareness is ready!", false);
+    return true;
+}
 
+bool jointsAwareness::configCartesian(PolyDriver& driver, ICartesianControl *icart, BufferedPort<Bottle> &port, string part){
 
+    port.open(("/" + moduleName + "/" + part + "/" + "jointsLoc:o").c_str());
+
+    Property option;
+    option.put("device","cartesiancontrollerclient");
+    option.put("remote","/icub/cartesianController/" + part);
+    option.put("local","/client/" + part);
+
+    if (!driver.open(option)) {
+        cout << "Device not available.  Here are the known devices:\n"<< endl;
+        cout << Drivers::factory().toString().c_str() << endl;;
+        return false;
+    }
+
+    if (driver.isValid()) {
+       driver.view(icart);
+    }
 
     return true;
 }
@@ -97,6 +120,28 @@ bool jointsAwareness::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool jointsAwareness::updateModule() {
+
+    //yDebug() << "update Loop" ;
+
+
+    if(leftArmClientCartCtrl.isValid()){
+        Vector location, orientation;
+
+        //yDebug() << "before getPose" ;
+
+        //iLeftArm->getPose(location, orientation);
+
+        yDebug() << "Location size = " << location.size() ;
+
+        Bottle& bLoc = armLeftPort.prepare();
+        for(unsigned int i = 0; i < location.size(); i++){
+            bLoc.addDouble(location[i]);
+        }
+
+        armLeftPort.write();
+    }
+
+
     return true;
 }
 
@@ -108,8 +153,6 @@ bool jointsAwareness::interruptModule() {
 }
 
 bool jointsAwareness::close() {
-    iCub->close();
-    delete iCub;
 
     rpcPort.interrupt();
     rpcPort.close();
