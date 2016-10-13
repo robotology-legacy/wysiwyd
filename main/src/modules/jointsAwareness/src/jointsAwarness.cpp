@@ -59,15 +59,26 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
     torsoPort.open(("/" + moduleName + "/" + "torso" + "/" + "jointsLoc:o").c_str());
 
 
-    /*if (!iCub->connect())
-    {
-        cout << "iCubClient : Some dependencies are not running..." << endl;
-        Time::delay(1.0);
-    }*/
+    Property optionGaze("(device gazecontrollerclient)");
+    optionGaze.put("remote","/iKinGazeCtrl");
+    optionGaze.put("local",("/"+moduleName+"/gaze").c_str());
+    if (!gazeClientCtrl.open(optionGaze))
+        yWarning("Gaze controller not available!");
+    if(gazeClientCtrl.isValid()){
+        gazeClientCtrl.view(iGaze);
+    } else {
+        yError() << "Invalid PolyDriver iGaze: exit!";
+        return false;
+    }
 
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
+
+    if(!bEveryThingisGood){
+        yError() << "Some dependencies or polydriver are not present/valid! Closing jointsAwareness!" ;
+        return false ;
+    }
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -165,14 +176,22 @@ bool jointsAwareness::streamCartesian(PolyDriver& driver, BufferedPort<Bottle> &
                     return false ;
                 }
 
+                //project 3D coordinates into the gaze 2D
+                Vector projection2D;
+                iGaze->get2DPixel(0, location, projection2D); // 0 = left, 1 = right
+                yDebug() << "Projection in 2D" << projection2D.toString() ;
+
+                Bottle bCurrentJointLoc;
                 for(unsigned int i = 0; i < location.size(); i++){
-                    bLocTorso.addDouble(location[i]);
+                    //bLocTorso.addDouble(location[i]);
+                    bCurrentJointLoc.addDouble(location[i]);
                 }
+                bLocTorso.addList() = bCurrentJointLoc;
 
             }
 
             torsoPort.write();
-            yDebug() << "bLoc for " << "torso" << " : (" << bLocTorso.toString() << ")" ;
+            //yDebug() << "bLoc for " << "torso" << " : (" << bLocTorso.toString() << ")" ;
         }
 
         /**************************** Arm ****************************/
@@ -189,14 +208,17 @@ bool jointsAwareness::streamCartesian(PolyDriver& driver, BufferedPort<Bottle> &
                 return false ;
             }
 
+            Bottle bCurrentJointLoc;
             for(unsigned int i = 0; i < location.size(); i++){
-                bLoc.addDouble(location[i]);
+                //bLocTorso.addDouble(location[i]);
+                bCurrentJointLoc.addDouble(location[i]);
             }
+            bLoc.addList() = bCurrentJointLoc;
 
         }
 
         port.write();
-        yDebug() << "bLoc for " << part << " : (" << bLoc.toString() << ")" ;
+        //yDebug() << "bLoc for " << part << " : (" << bLoc.toString() << ")" ;
 
     }
 
@@ -207,6 +229,14 @@ bool jointsAwareness::streamCartesian(PolyDriver& driver, BufferedPort<Bottle> &
 bool jointsAwareness::interruptModule() {
     rpcPort.interrupt();
 
+    armLeftPort.interrupt();
+    armRightPort.interrupt();
+    torsoPort.interrupt();
+
+    armLeft_2DProj_Port.interrupt();
+    armRight_2DProj_Port.interrupt();
+    torso_2DProj_Port.interrupt();
+
     return true;
 }
 
@@ -214,6 +244,22 @@ bool jointsAwareness::close() {
 
     rpcPort.interrupt();
     rpcPort.close();
+
+    armLeftPort.interrupt();
+    armRightPort.interrupt();
+    torsoPort.interrupt();
+
+    armLeft_2DProj_Port.interrupt();
+    armRight_2DProj_Port.interrupt();
+    torso_2DProj_Port.interrupt();
+
+    armLeftPort.close();
+    armRightPort.close();
+    torsoPort.close();
+
+    armLeft_2DProj_Port.close();
+    armRight_2DProj_Port.close();
+    torso_2DProj_Port.close();
 
     return true;
 }

@@ -3,6 +3,7 @@
 #include <string>
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/CartesianControl.h>
+#include <yarp/dev/GazeControl.h>
 #include <yarp/dev/PolyDriver.h>
 #include "wrdac/clients/icubClient.h"
 
@@ -28,15 +29,21 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle>   armRightPort;
     yarp::os::BufferedPort<yarp::os::Bottle>   torsoPort;
 
+    yarp::os::BufferedPort<yarp::os::Bottle>   armLeft_2DProj_Port;
+    yarp::os::BufferedPort<yarp::os::Bottle>   armRight_2DProj_Port;
+    yarp::os::BufferedPort<yarp::os::Bottle>   torso_2DProj_Port;
+
     yarp::dev::PolyDriver leftArmClientCartCtrl;
     yarp::dev::PolyDriver rightArmClientCartCtrl;
     yarp::dev::ICartesianControl *iLeftArm = NULL;
     yarp::dev::ICartesianControl *iRightArm =  NULL;
 
+    yarp::dev::PolyDriver gazeClientCtrl;
+    yarp::dev::IGazeControl *iGaze;
+
     unsigned int torsoJointsNb = 3;
     unsigned int armJointsNb   = 7;
     bool isTorsoDone = false;
-
 
     bool configCartesian(yarp::dev::PolyDriver& driver, yarp::os::BufferedPort<Bottle>& port, string part);
     bool streamCartesian(yarp::dev::PolyDriver& driver, yarp::os::BufferedPort<Bottle>& port, string part);
