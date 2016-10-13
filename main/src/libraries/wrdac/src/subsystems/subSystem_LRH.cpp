@@ -49,7 +49,7 @@ void wysiwyd::wrdac::SubSystem_LRH::Close() {
     delete SubABM;
 }
 
-std::string wysiwyd::wrdac::SubSystem_LRH::meaningToSentence(std::string sInput)
+std::string wysiwyd::wrdac::SubSystem_LRH::meaningToSentence(std::string sInput, bool display)
 {
     yarp::os::Bottle bMessenger,
             bReturn;
@@ -83,7 +83,9 @@ std::string wysiwyd::wrdac::SubSystem_LRH::meaningToSentence(std::string sInput)
             }
         }
         portSAM.write(toSAM);
+        if (display){
         std::cout << "to SAM is: " << toSAM.toString() << std::endl;
+        }
     }
 
     if (connect()){
@@ -111,7 +113,7 @@ std::string wysiwyd::wrdac::SubSystem_LRH::meaningToSentence(std::string sInput)
     }
 }
 
-std::string wysiwyd::wrdac::SubSystem_LRH::SentenceToMeaning(std::string sInput)
+std::string wysiwyd::wrdac::SubSystem_LRH::SentenceToMeaning(std::string sInput, bool display)
 {
     yarp::os::Bottle bMessenger,
             bReturn;
@@ -138,7 +140,9 @@ std::string wysiwyd::wrdac::SubSystem_LRH::SentenceToMeaning(std::string sInput)
                 std::string word;
                 yarp::os::Bottle toSAM;
                 std::vector<std::string> allElement;
-                std::cout << "iss " << iss.str() << std::endl;
+                if (display){
+                    std::cout << "iss " << iss.str() << std::endl;
+                }
                 // split by spaces
 
                 while (iss >> word)
@@ -164,8 +168,9 @@ std::string wysiwyd::wrdac::SubSystem_LRH::SentenceToMeaning(std::string sInput)
                 }
                 portSAM.write(toSAM);
             }
-
-            std::cout << sInput << " -> " << bReturn.get(1).asString() << std::endl;
+            if (display){
+                std::cout << sInput << " -> " << bReturn.get(1).asString() << std::endl;
+            }
             return bReturn.get(1).asString();
         }
         else{

@@ -54,8 +54,8 @@ namespace wysiwyd{
 
             virtual void Close();
 
-            std::string meaningToSentence(std::string sInput);
-            std::string SentenceToMeaning(std::string sInput);
+            std::string meaningToSentence(std::string sInput, bool display = true);
+            std::string SentenceToMeaning(std::string sInput, bool display = true);
             std::string SentenceFromPAORSimple(std::string P1, std::string A1, std::string O1 = "none", std::string R1 = "none");
             std::string SentenceFromPAORDouble(std::string P1, std::string A1, std::string P2, std::string A2, std::string O1 = "none", std::string R1 = "none", std::string O2 = "none", std::string R2 = "none");
 
