@@ -1,35 +1,19 @@
 <train data>
 , wanted I , get I giraffe <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>; I wanted to get the giraffe
-
 whenever previously , wanted I , get something , was it easy <o> [P-_-_-_-_-A-_-_-_][_-A-P-_-_-_-_-_-_][_-A-_-P-O-_-_-_-_][_-_-_-_-_-_-A-P-O]  <o>; whenever I wanted to get something previously it was easy
-
 but now here, failed I , grasp I it <o> [P-A-O-_-_-_-_-_][_-_-_-A-P-_-_-_][_-_-_-A-_-P-O-_] <o> ; but now here I failed to grasp it
-
 because , laid it outofreach <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_] <o>; because it laid outofreach
-
 never , seemed it like, would I , get I giraffe <o> [_-_-_-_-_-P-_-_][A-P-O-_-_-_-_-_][_-_-_-A-P-_-_-_][_-_-_-A-_-_-P-O] <o>; it seemed like I would never get that giraffe 
-
 but , had I, have I it <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-_-_-_] <o> ; but I had to have it
-
 so , found I action different <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>; so I found a different action
-
 if , could I , ask I you , give  you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-R-_-_-_][_-A-_-_-_-P-O-R] <o>; if I could ask you to give it to me
-
 then , would you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>; then you would give it to me
-
 so , asked I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-O-R-_] <o>; so I asked you to give it to me
-
 and then , gave you it me <o> [P-A-_-_-_-_-_-_][_-_-A-P-O-R-_-_] <o>; and then you gave it to me 
-
 now because, have I giraffe , gave you it me because <o> [_-_-_-P-A-_-_-_-_][A-P-O-_-W-_-_-_-_][_-_-_-_-V-A-P-O-R] <o>; I have the giraffe now because you gave it to me
-
-
 #because, gave you giraffe me, wanted I you  <o>[_-_-_-_-P-_-_-_][A-P-R-O-W-_-_-_][_-_-_-_-V-A-P-O]<o>;	you gave me the giraffe because I wanted you to
-
 again, is life good <o> [_-_-_-P-_-_-_-_][A-P-O-_-_-_-_-_] <o>; life is good again
-
-#because, are you hero my, helped you me <o> [_-_-_-_-P-_-_-_][A-P-R-O-_-_-_-_][_-_-_-_-_-A-P-O] <o>; you are my hero because you helped me
-
+because, are you hero my, helped you me <o> [_-_-_-_-P-_-_-_][A-P-R-O-_-_-_-_][_-_-_-_-_-A-P-O] <o>; you are my hero because you helped me
 from today, want I, be I like you <o> [P-A-_-_-_-_-_-_][_-_-A-P-_-_-_-_][_-_-A-_-P-O-R-_] <o>; from today I want to be like you
-
 because, gave you giraffe me, wanted I you <o> [_-_-_-_-P-_-_-_][A-P-R-O-W-_-_-_][_-_-_-_-V-A-P-O] <o>; you gave me the giraffe because I wanted you to
+then, recognizes he croco, ask he it <o> [_-_-_-_-P-_-_-_][A-P-O-_-_-_-_-_][A-_-O-_-_-P-_-_] <o>; he recognizes the croco then ask for it

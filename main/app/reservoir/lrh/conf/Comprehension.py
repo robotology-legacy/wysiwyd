@@ -27,6 +27,7 @@ class Comprehension:
         self.mainFunc()
                 
     def meaning_stim_to_meaning_code(self, stim, ocw_array, l_m_elt):
+        
         """
         inputs:
             -stim: meaning stim for one time step
@@ -58,15 +59,16 @@ class Comprehension:
             for i_elt_pred in range(0,len(self.l_elt_pred)):
                 meaning.append(None)
             meanings.append(meaning)
-
-            
+   
         if self.verbose:
             print "self.l_elt_pred : ", self.l_elt_pred  #  ['P', 'A', 'O', 'R', 'V', 'W']
             print "  initial meanings:", meanings
             print "l_m_elt : ", l_m_elt
         # for each signal in stim/output
+
         for i in range(len(l_m_elt)):
-            if stim[i]==1:
+            #print "stim[i]==1: ", stim[i]==1
+            if stim[i]==True:
                 m_elt = l_m_elt[i]
                 pos1 = m_elt.find('_')
                 pos2 = m_elt.find('-')
@@ -86,7 +88,7 @@ class Comprehension:
                     tmp=[]
                     tmp.append(word)
                     tmp.append(m_elt.split("-",1)[1])
-                    PAOR.append(tmp);                
+                    PAOR.append(tmp);
                     
         for i_m in range(0,self.imax_nr_actionrelation):
             while True:
@@ -102,19 +104,22 @@ class Comprehension:
 	  # create proper meaning
         isUsed = []
         properPAOR = []
+        
         for jj in range(0,len(meanings)):
             for ii in range(0,len(meanings[jj])):
                 isUsed.append(True)
-
+        
         for jj in range(0,len(meanings)):
             for ii in range(0,len(meanings[jj])):
-                missing = True        
+                missing = True
                 for kk in range(0,len(PAOR)):
-                    if missing and PAOR[kk][0] ==  meanings[jj][ii] and isUsed[kk]:
-                        properPAOR.append(PAOR[kk][1])
-                        isUsed[kk] = False
-                        missing = False
-        
+                    try:
+                        if missing and PAOR[kk][0] ==  meanings[jj][ii] and isUsed[kk]:
+                            properPAOR.append(PAOR[kk][1])
+                            isUsed[kk] = False
+                            missing = False
+                    except:
+                        print " "
         meanings.append(properPAOR)
         return meanings
     
@@ -894,27 +899,30 @@ if __name__ == '__main__':
     closed_class_wordsAP = sys.argv[4].split(',') # ['after', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now']
     l_elt_pred= sys.argv[5].split(',')     #['P','A','O','R','V']
     nbNeurons = int(sys.argv[6])  # 500
-
+    print "corpusFile : ", corpusFile
+    print "fileResult : ", fileResult
+    print "sMode : ", sMode
+    print "closed_class_wordsAP : ", closed_class_wordsAP
+    print "l_elt_pred : ", l_elt_pred
+    print "nbNeurons : ", nbNeurons
     Comprehension(corpusFile, fileResult, sMode, closed_class_wordsAP, l_elt_pred, nbNeurons, False)
 
     
 #    sdir = os.path.dirname(os.path.abspath(__file__))
-#
-#    #corpusFile = sdir + "/Corpus/Corpus2.txt"
-#    corpusFile = "/home/anne/.local/share/yarp/contexts/lrh/conf/Corpus/corpus2.txt"
+#    #corpusFile = sdir + "/Corpus/corpus.txt"
+#    corpusFile = sdir +  "/Corpus/temporaryCorpus.txt"
 #    fileResult = sdir + "/Corpus/output.txt"
-#    closed_class_wordsAP = ['to', 'the', 'with', 'that', 'a', 'an']
+#    closed_class_wordsAP = ['to', 'the', 'with', 'that', 'a', 'an','for']
 #    #closed_class_wordsAP = ['wa','wo','no','ni','ga','you','koto']  
 #    l_elt_pred = ['P','A','O','R','V','W']
-#    nbNeurons = 500
-#      
-#    
-#    lMode = ["train"]
+#    nbNeurons = 1000         
+#    lMode = ["test"]    
 #    for sMode in lMode:    
 #        Comprehension(corpusFile, fileResult, sMode, closed_class_wordsAP, l_elt_pred, nbNeurons, False)
 
 
     print "*********END OF PROGRAM********"
+
 
 
 
