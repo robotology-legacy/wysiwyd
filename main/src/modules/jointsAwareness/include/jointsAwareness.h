@@ -1,11 +1,13 @@
 #include <map>
 #include <fstream>
 #include <string>
+#include <map>
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/CartesianControl.h>
 #include <yarp/dev/GazeControl.h>
 #include <yarp/dev/PolyDriver.h>
 #include "wrdac/clients/icubClient.h"
+
 
 using namespace wysiwyd::wrdac;
 using namespace std;
@@ -41,10 +43,21 @@ private:
     yarp::dev::PolyDriver gazeClientCtrl;
     yarp::dev::IGazeControl *iGaze;
 
+    std::map<string, yarp::os::BufferedPort<yarp::os::Bottle>*> locPorts_map;
+    std::map<string, yarp::os::BufferedPort<yarp::os::Bottle>*> projPorts_map;
+    std::map<string, yarp::dev::PolyDriver*> polydriver_map;
+    std::map<string, yarp::dev::ICartesianControl*> cartesian_map;
+
+    std::map<string, yarp::os::Bottle> test_map;
+
+
+
     unsigned int torsoJointsNb = 3;
     unsigned int armJointsNb   = 7;
     bool isTorsoDone = false;
 
+    bool configMaps();
+    bool configCartesian(string part);
     bool configCartesian(yarp::dev::PolyDriver& driver, yarp::os::BufferedPort<Bottle>& port, string part);
     bool streamCartesian(yarp::dev::PolyDriver& driver, yarp::os::BufferedPort<Bottle>& port, string part);
 
