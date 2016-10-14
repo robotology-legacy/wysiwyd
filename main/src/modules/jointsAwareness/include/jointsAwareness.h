@@ -58,8 +58,7 @@ private:
 
     bool configMaps();
     bool configCartesian(string part);
-    bool configCartesian(yarp::dev::PolyDriver& driver, yarp::os::BufferedPort<Bottle>& port, string part);
-    bool streamCartesian(yarp::dev::PolyDriver& driver, yarp::os::BufferedPort<Bottle>& port, string part);
+    bool streamCartesian(string part, string cartesianPart = "default");
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
