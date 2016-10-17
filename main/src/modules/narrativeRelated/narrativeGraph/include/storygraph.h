@@ -219,6 +219,8 @@ namespace storygraph {
 
         std::vector <EVT_IGARF>   vSingleIGARF;
         std::vector <std::pair <EVT_IGARF, EVT_IGARF> >   vDoubleIGARF;
+
+        int corIGARF[5][5];     // correlation matrix of From/TO IGARF
     };
 
 }

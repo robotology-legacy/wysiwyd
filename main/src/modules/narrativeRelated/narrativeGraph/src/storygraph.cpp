@@ -1615,5 +1615,12 @@ void SituationModel::checkEVTIGARF(EVT_IGARF &IGA_Input){
 
 DFW::DFW(string name){
     sName = name;
+
+    for (int ii = 0; ii < 5; ii++){
+        for (int jj = 0; jj < 5; jj++){
+            corIGARF[ii][jj] = 0;
+        }
+    }
+
 }
 
