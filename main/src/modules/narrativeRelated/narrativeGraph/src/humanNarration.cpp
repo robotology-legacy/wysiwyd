@@ -1243,15 +1243,32 @@ void narrativeHandler::initializeNaives(Bottle bNaives, ResourceFinder &rf){
 * Send the sentence from the naive subjects to lrh to get it as PAOR
 */
 void narrativeHandler::NaiveToPAOR(){
-    
+    vector<int> vFound;
+    string tmpResp = "";
+    yInfo(" Starting to change sentence from naive to PAOR");
     // for each scenario
     for (auto scenario : listAutoNaives){
+        yInfo() << " New scenario: " << scenario.first;
+        int count = 0;
         // for each sentence for the given scenario
         for (auto &sentence : scenario.second){
+            string sBef = sentence;
             //send the sentence to lrh and get the result as PAOR
-
-            sentence = iCub->getLRH()->SentenceToMeaning(sentence);
+//            cout << sentence;
+            sentence = iCub->getLRH()->SentenceToMeaning(sentence, false);
+ //           cout << "\t" << sentence << endl;
+            if (sentence != "" && sentence != "none" && sentence != tmpResp){
+                count++;
+                cout << sBef << "\t->\t" << sentence << endl;
+            }
+            tmpResp = sentence;
         }
+        vFound.push_back(count);
+    }
+
+
+    for (int ii = 0; ii < vFound.size() ; ii++){
+        cout << "scenario " << ii + 1 << " found: " << vFound[ii] << " meaning" << endl;
     }
 }
 

@@ -66,9 +66,11 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     Bottle *bMeaning = rf.find("listMeaning").asList();
     initializeMeaning(*bMeaning, rf);
 
-    Bottle *bNaives = rf.find("listNaives").asList();
-    initializeNaives(*bNaives, rf);
-    NaiveToPAOR();
+    if (rf.find("loadNaives").asInt() == 1){
+        Bottle *bNaives = rf.find("listNaives").asList();
+        initializeNaives(*bNaives, rf);
+        NaiveToPAOR();
+    }
 
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
 
