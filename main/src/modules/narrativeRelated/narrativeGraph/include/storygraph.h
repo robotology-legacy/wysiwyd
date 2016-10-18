@@ -221,6 +221,20 @@ namespace storygraph {
         std::vector <std::pair <EVT_IGARF, EVT_IGARF> >   vDoubleIGARF;
 
         int corIGARF[5][5];     // correlation matrix of From/TO IGARF
+        int simpleIGARF[5];     // simple vector of From IGARF
+        void analyseCorr();
+
+        void clearCorIG();
+        void printCorMatrix();
+
+        void createHistSimple();
+        void createHistDouble();
+
+        void initializeHist();
+
+        std::vector<int> vTimeSimple;   // histogram of time
+        std::vector<int> vTimeDouble;   // histogram of time
+
     };
 
 }

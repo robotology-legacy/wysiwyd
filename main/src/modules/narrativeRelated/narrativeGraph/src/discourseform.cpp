@@ -6,7 +6,7 @@ using namespace yarp::os;
 using namespace discourseform;
 using namespace std;
 
-// get a discrouse from speech recog, to lrh, to be put under the good format
+// get a discourse from speech recog, to lrh, to be put under the good format
 string meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
     cout << "Meaning to discourse ... ";
     ostringstream os;

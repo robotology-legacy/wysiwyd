@@ -1,9 +1,12 @@
 #include "storygraph.h"
 #include <regex>
 #include <map>
+#include <algorithm>
 
 using namespace storygraph;
 using namespace std;
+
+const int histoSize = 20;
 
 template<typename Cont, typename It>
 auto ToggleIndices(Cont &cont, It beg, It end) -> decltype(std::end(cont))
@@ -686,16 +689,6 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     showIGARF(head, IGARFfile);
 
     //displayEvent();
-
-    cout << "Chronology of IGARF: ";
-    for (auto ii : vChronoIgarf){
-        cout << "\t" << ii;
-    }
-
-    cout << endl << "Chronology of events: " << vChronoEvent.size() << endl;
-    for (auto ii : vChronoEvent){
-        cout << ii.first << "\t" << ii.second << endl;
-    }
 
     cout << endl;
 
@@ -1616,11 +1609,125 @@ void SituationModel::checkEVTIGARF(EVT_IGARF &IGA_Input){
 DFW::DFW(string name){
     sName = name;
 
+    clearCorIG();
+}
+
+
+
+void DFW::analyseCorr(){
+
+    cout << "/*----------------------------------*/" << endl;
+    cout << sName << endl;
+    clearCorIG();
+
+    map<char, int>  dict = {
+        { 'I', 0 },
+        { 'G', 1 },
+        { 'A', 2 },
+        { 'R', 3 },
+        { 'F', 4 }
+    };
+
+
+    // fill correlation map
+    for (auto doIG : vDoubleIGARF){
+        corIGARF[dict.find(doIG.first.km.cPart)->second][dict.find(doIG.second.km.cPart)->second]++;
+    }
+
+    // fill simple vector
+    for (auto doIG : vSingleIGARF){
+        simpleIGARF[dict.find(doIG.km.cPart)->second]++;
+    }
+
+    cout << endl;
+}
+
+
+/// clear the correlation matrix (fill it with 0)
+void DFW::clearCorIG(){
     for (int ii = 0; ii < 5; ii++){
         for (int jj = 0; jj < 5; jj++){
             corIGARF[ii][jj] = 0;
         }
+        simpleIGARF[ii] = 0;
     }
-
 }
 
+
+
+void DFW::printCorMatrix(){
+
+    cout << "Correlation Matrix " << sName << endl << endl;
+
+    cout << " " << "\t" << "I" << "\t" << "G" << "\t" << "A" << "\t" << "R" << "\t" << "F" << endl;
+    cout << "I";
+    for (int ii = 0; ii < 5; ii++){
+        cout << "\t" << corIGARF[0][ii];
+    }
+    cout << endl;
+    cout << "G";
+    for (int ii = 0; ii < 5; ii++){
+        cout << "\t" << corIGARF[1][ii];
+    }
+    cout << endl;
+    cout << "A";
+    for (int ii = 0; ii < 5; ii++){
+        cout << "\t" << corIGARF[2][ii];
+    }
+    cout << endl;
+    cout << "R";
+    for (int ii = 0; ii < 5; ii++){
+        cout << "\t" << corIGARF[3][ii];
+    }
+    cout << endl;
+    cout << "F";
+    for (int ii = 0; ii < 5; ii++){
+        cout << "\t" << corIGARF[4][ii];
+    }
+    cout << endl;
+}
+
+
+
+void DFW::createHistSimple(){
+    // take the time data of simple events and ordinate them in an histogram
+
+    vTimeSimple.clear();
+    for (int ii = 0; ii < histoSize; ii++){
+        vTimeSimple.push_back(0);
+    }
+
+    double stepSize = 1.0 / (histoSize*1.);
+
+    for (auto single : vSingleIGARF){
+
+        for (int step = 0; step < histoSize; step++){
+            double lower = step*stepSize;
+            double upper = (step + 1)*stepSize;
+            if (single.dIGARF >= lower && single.dIGARF < upper){
+                vTimeSimple[step]++;
+            }
+        }
+    }
+}
+
+
+void DFW::createHistDouble(){
+    // take the time data of simple events and ordinate them in an histogram
+
+    vTimeDouble.clear();
+    for (int ii = 0; ii < histoSize; ii++){
+        vTimeDouble.push_back(0);
+    }
+
+    double stepSize = 2.0 / (histoSize*1.);
+
+    for (auto doubleIG : vDoubleIGARF){
+        for (int step = 0; step < histoSize; step++){
+            if (doubleIG.second.dIGARF - doubleIG.first.dIGARF >= (step*stepSize - 1) 
+                && doubleIG.second.dIGARF - doubleIG.first.dIGARF < ((step + 1)*stepSize - 1)){
+                vTimeDouble[step]++;
+            }
+        }
+    }
+}

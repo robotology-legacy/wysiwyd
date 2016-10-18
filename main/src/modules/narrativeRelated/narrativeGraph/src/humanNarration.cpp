@@ -834,9 +834,8 @@ void narrativeHandler::initializeScenarios(Bottle bNarrations, ResourceFinder &r
 void narrativeHandler::initializeMeaning(Bottle bMeaning, ResourceFinder &rf){
 
     for (int ii = 0; ii < bMeaning.size(); ii++){
-        cout << "meaning number: " << ii + 1 << ": " << bMeaning.get(ii).asString() << " ... " << endl;;
+        int count = 0;
         string currentNarration = rf.findFileByName(bMeaning.get(ii).asString());
-
         ifstream infile;
         string currentLine;
         infile.open(currentNarration);
@@ -844,11 +843,13 @@ void narrativeHandler::initializeMeaning(Bottle bMeaning, ResourceFinder &rf){
         while (!infile.eof()){
             getline(infile, currentLine);
             if (currentLine.find("#")){
-                cout << currentLine << endl;
+                count++;
+                //cout << currentLine << endl;
                 vsMeaning.push_back(currentLine);
             }
         }
         infile.close();
+        cout << "meaning number: " << ii + 1 << ": " << bMeaning.get(ii).asString() << " ... " << count << " meaning(s) found." << endl;
 
         listAutoMeaning[ii + 1] = vsMeaning;
     }
@@ -914,11 +915,8 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
         yWarning(" in narrativeHandler::linkNarrationScenario - index out or range.");
         return;
     }
-    ofstream IGARFfile;
-    IGARFfile.open(sIGARFfile);
-    // getting scenario
-    sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
-    IGARFfile.close();
+
+    loadSM(iScenario);
 
     // getting narration
     if (iNarration < listAutoScenarios.size())
@@ -958,11 +956,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
 
     // getting scenario
-
-    ofstream IGARFfile;
-    IGARFfile.open(sIGARFfile);
-    sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
-    IGARFfile.close();
+    loadSM(iScenario);
 
     cout << "in linkMeaningScenario: " << endl;
     int iLost = 0;
@@ -1051,7 +1045,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
                     cout << level2->vOCW[iWord] << " ";
                 }
-                cout << "]  " ;
+                cout << "]  ";
             }
 
             int iScore = 0;
@@ -1200,12 +1194,6 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 }
 
 
-Bottle narrativeHandler::useDFW(string sdfw){
-
-    Bottle bRet;
-    return bRet;
-}
-
 
 
 /*
@@ -1254,9 +1242,9 @@ void narrativeHandler::NaiveToPAOR(){
         for (auto &sentence : scenario.second){
             string sBef = sentence;
             //send the sentence to lrh and get the result as PAOR
-//            cout << sentence;
+            //            cout << sentence;
             sentence = iCub->getLRH()->SentenceToMeaning(sentence, false);
- //           cout << "\t" << sentence << endl;
+            //           cout << "\t" << sentence << endl;
             if (sentence != "" && sentence != "none" && sentence != tmpResp){
                 count++;
                 cout << sBef << "\t->\t" << sentence << endl;
@@ -1267,7 +1255,7 @@ void narrativeHandler::NaiveToPAOR(){
     }
 
 
-    for (int ii = 0; ii < vFound.size() ; ii++){
+    for (int ii = 0; ii < vFound.size(); ii++){
         cout << "scenario " << ii + 1 << " found: " << vFound[ii] << " meaning" << endl;
     }
 }

@@ -271,6 +271,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " cleanLinks\n"
         " cleanDFW\n"
         " exportDFW\n" +
+        " useDFW\n" +
         " ABMtoSM + storyNumber = last\n"
         " linkNarrationScenario + iNarration + iScenario\n" +
         " linkMeaningScenario + iNarration + iScenario\n" +
@@ -441,6 +442,10 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         exportDFW();
         reply.addString("export sucessful");
     }
+    else if (command.get(0).asString() == "useDFW") {
+        yInfo(" using a Discourse Function Words");
+        reply = useDFW(command);
+    }
     else if (command.get(0).asString() == "ABMtoSM") {
         yInfo(" create the situation model from ABM");
         ofstream IGARFfile;
@@ -448,8 +453,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         if (command.size() >= 2) {
             int i = command.get(1).asInt();
             if (i >= 0 && i < (int)listStories.size()) {
-                listStories.at(i).displayNarration();
-                sm.ABMtoSM(listStories.at(i), IGARFfile);
+                loadSM(i);
                 yInfo(" import and creation sucessful");
                 reply.addString("creation sucessful");
             }
@@ -2366,66 +2370,128 @@ string narrativeHandler::lowerKey(string input){
 
 
 
-void narrativeHandler::displayDFW(){
 
-    cout << endl << "Displaying DFW: " << vDFW.size() << endl;
-
-    for (auto itD : vDFW){
-        cout << "\t" << itD.sName << endl;
-
-        cout << "\t\t double:" << endl;
-        for (unsigned int jj = 0; jj < itD.vDoubleIGARF.size(); jj++){
-            cout << itD.vDoubleIGARF[jj].first.toString() << "\t" << itD.vDoubleIGARF[jj].second.toString() << endl;
-        }
-
-        cout << "\t\t simple: " << endl;
-        for (auto itI : itD.vSingleIGARF){
-            cout << "\t" << itI.toString() << endl;
-        }
+void narrativeHandler::loadSM(int iScenario){
+    if (iScenario < 0 || iScenario >= listStories.size()) {
+        yWarning(" in NarrativeGraph::useDFW check instance scenario (out of range, sent to 0");
+        iScenario = 0;
     }
+
+    listStories.at(iScenario).displayNarration();
+
+    ofstream IGARFfile;
+    IGARFfile.open(sIGARFfile);
+    sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
+    IGARFfile.close();
 }
 
 
-void narrativeHandler::analyseDFW(){
-    ///< for each DFW:
 
+discourseform::meaningSentence narrativeHandler::meaningToEvent(string level1){
 
-    for (auto dfw : vDFW){
+    ostringstream os;
 
-        ///< Check simple times:
-        int iI = 0,
-            iG = 0,
-            iA = 0,
-            iR = 0,
-            iF = 0;
+    if (level1 != ""){
 
-        for (auto evt : dfw.vSingleIGARF){
-            iI += (evt.km.cPart == 'I');
-            iG += (evt.km.cPart == 'G');
-            iA += (evt.km.cPart == 'A');
-            iR += (evt.km.cPart == 'R');
-            iF += (evt.km.cPart == 'F');
+        // get the meaning:
+        //cout << "level1 is: " << *level1 << endl;
+        string delimiter = ",";
+        size_t pos = 0;
+        string token;
+        string s = level1;
+        ostringstream osMeaning;
+        int iPAORWordsInProp = 0;
+        bool isFirst = true;
+        while ((pos = s.find(delimiter)) != string::npos) {
+            token = s.substr(0, pos);
+            if (!isFirst) { osMeaning << " , "; }
+            osMeaning << token;
+            iPAORWordsInProp++;
+            s.erase(0, pos + delimiter.length());
+            //cout << "\t meaning is: " << osMeaning.str() << " - iPAORWordsInProp " << iPAORWordsInProp << endl;
+            isFirst = false;
         }
+        //cout << s << endl;
+
+        vector<string>  meaningParsed;
+        // meaning parsed by spaces and colon
+        stringstream stringStream(level1);
+        string line;
+        while (getline(stringStream, line))
+        {
+            size_t prev = 0, pos;
+            while ((pos = line.find_first_of(" ,", prev)) != string::npos)
+            {
+                if (pos > prev)
+                    meaningParsed.push_back(line.substr(prev, pos - prev));
+                prev = pos + 1;
+            }
+            if (prev < line.length())
+                meaningParsed.push_back(line.substr(prev, string::npos));
+        }
+
+        // remove PAOR from meaningParsed:
+        vector<string> meaningWords = vector<string>(meaningParsed.begin(), meaningParsed.begin() + meaningParsed.size() / 2);
+        vector<string> meaningPAOR = vector<string>(meaningParsed.begin() + meaningParsed.size() / 2, meaningParsed.end());
+
+        //        cout << "    meaningWords:  | ";
+        for (vector < string >::iterator itWo = meaningWords.begin();
+            itWo != meaningWords.end();
+            itWo++){
+            //            cout << *itWo << " | ";
+        }
+        //       cout << endl;
+
+        //       cout << "    meaningPAOR:  | ";
+        for (vector < string >::iterator itWo = meaningPAOR.begin();
+            itWo != meaningPAOR.end();
+            itWo++){
+            //         cout << *itWo << " | ";
+        }
+        //       cout << endl;
+        //separation of the propositions
+
+        discourseform::meaningSentence currentSentence;
+
+        if (meaningPAOR.size() != meaningWords.size()){
+            yWarning() << " in narrativeGraph::discourseform.cpp::meaningToDiscourseForm: Size of PAOR and OCW different";
+            os << " in narrativeGraph::discourseform.cpp::meaningToDiscourseForm: Size of PAOR and OCW different" << endl;
+            for (auto pa : meaningPAOR){
+                cout << pa << " ";
+                os << pa << " ";
+            }
+            cout << "\t";
+            os << "\t";
+            for (auto mea : meaningWords){
+                cout << mea << " ";
+                os << mea << " ";
+            }
+            cout << endl << "PAOR: " << meaningPAOR.size() << "\t OCW: " << meaningWords.size() << endl;
+            os << endl << "PAOR: " << meaningPAOR.size() << "\t OCW: " << meaningWords.size() << endl;
+            cout << "OCW are : ";
+            os << "OCW are: ";
+            for (auto oc : meaningWords){
+                cout << oc << "\t";
+                os << oc << "\t";
+            }
+            cout << endl;
+        }
+        else{
+            for (int iWords = 0; iWords < meaningPAOR.size(); iWords++){
+                int iNumberProposition = atoi(&(meaningPAOR[iWords].at(1)));
+
+                // if new proposition
+                if (currentSentence.vSentence.size() < iNumberProposition){
+                    discourseform::meaningProposition tmp;
+
+                    currentSentence.vSentence.push_back(tmp);
+                }
+
+                // add the OCW and PAOR
+                currentSentence.vSentence[iNumberProposition - 1].vOCW.push_back(meaningWords[iWords]);
+                currentSentence.vSentence[iNumberProposition - 1].vRole.push_back(&meaningPAOR[iWords].at(0));
+            }
+        }
+        return currentSentence;
     }
-}
-
-
-void narrativeHandler::exportDFW(){
-    string dfw_file_path = "C:/Users/rclab/data.csv";
-    ofstream file(dfw_file_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
-    file << "name\tsimple\tdouble\tfrom\tto\trange1\trange2\n";
-
-
-    for (auto dfw : vDFW){
-        for (auto evt : dfw.vSingleIGARF){
-
-            file << dfw.sName << "\t" << evt.dIGARF << "\t" << -1 << "\t" << evt.km.cPart << "\t" << 'Z' << "\t" << evt.rangeIGARF << "\t" << -1 << endl;
-        }
-        for (auto evt : dfw.vDoubleIGARF){
-
-            file << dfw.sName << "\t" << evt.first.dIGARF << "\t" << evt.second.dIGARF << "\t" << evt.first.km.cPart << "\t" << evt.second.km.cPart << "\t" << evt.first.rangeIGARF << "\t" << evt.second.rangeIGARF << endl;
-        }
-    }
-
-    yInfo() << "\t" << "file " << dfw_file_path << " written";
 }

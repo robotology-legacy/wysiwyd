@@ -39,8 +39,6 @@ private:
     void NaiveToPAOR();
     void checkScenarios(int iSce = -1);
 
-    void analyseDFW();      ///< run a set of analysis on the DFW
-    void exportDFW();       ///< export data of the DFW in a file csv
 
     double      period;
     bool lrh;
@@ -62,8 +60,6 @@ private:
     yarp::os::Port  Port2abmReasoning;
 
     std::vector<story> listStories;
-    std::vector <storygraph::DFW> vDFW;
-    void displayDFW();
 
 
     bool tellingStoryFromMeaning(story st);
@@ -129,6 +125,7 @@ private:
 
     // SituationModel
     storygraph::SituationModel sm; ///< Current Situation Model
+    void loadSM(int iScenario);
     std::ofstream fTrainOutput; ///< File stream for LRH train
     std::string sNarrativeFolderName;
     std::string sNarrativeFileName;
@@ -139,7 +136,16 @@ private:
     void addLink(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     void LRHtoSM(std::string m, yarp::os::Bottle& reply, bool create = false);
     void sentenceToTrain(std::string s, yarp::os::Bottle& reply);
-    yarp::os::Bottle useDFW(std::string sdfw); ///< Create a sentence using the specified DFW
+    discourseform::meaningSentence meaningToEvent(std::string level1); ///< transform a meaning from lrh to an properly formatted event
+    
+    ///< DFW related
+    void analyseDFW();      ///< run a set of analysis on the DFW
+    void exportDFW();       ///< export data of the DFW in a file csv
+    std::vector <storygraph::DFW> vDFW;
+    void displayDFW();
+    yarp::os::Bottle useDFW(yarp::os::Bottle bInput); ///< Create a sentence using the specified DFW
+    storygraph::DFW foundDFW(std::string sdfw);
+
 
     std::string lowerKey(std::string input);
 };
