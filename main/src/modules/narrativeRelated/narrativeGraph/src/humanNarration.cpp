@@ -1128,7 +1128,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                             }
                         }
 
-                        //                        double dI = iIg / (sm.vChronoIgarf.size() *1.0);
+                        // double dI = iIg / (sm.vChronoIgarf.size() *1.0);
                         storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
                         sm.checkEVTIGARF(evtKM);
 

@@ -6,7 +6,7 @@
 using namespace storygraph;
 using namespace std;
 
-const int histoSize = 20;
+const int histoSize = 10;
 
 template<typename Cont, typename It>
 auto ToggleIndices(Cont &cont, It beg, It end) -> decltype(std::end(cont))
@@ -1598,7 +1598,7 @@ void SituationModel::checkEVTIGARF(EVT_IGARF &IGA_Input){
     int pos = find(vChronoEvent.begin(), vChronoEvent.end(), pTmp) - vChronoEvent.begin();
 
     double dPos = (pos*1.0) / (vChronoEvent.size() *1.0);
-    cout << "Event: " << IGA_Input.km.iIGARF << "-" << pTmp.first << "-" << pTmp.second << " is at pos: " << pos << ", -> " << dPos << endl;
+    //cout << "Event: " << IGA_Input.km.iIGARF << "-" << pTmp.first << "-" << pTmp.second << " is at pos: " << pos << ", -> " << dPos << endl;
 
     IGA_Input.dIGARF = dPos;
 
@@ -1637,6 +1637,28 @@ void DFW::analyseCorr(){
     // fill simple vector
     for (auto doIG : vSingleIGARF){
         simpleIGARF[dict.find(doIG.km.cPart)->second]++;
+    }
+
+
+    // Normalize
+    int sumS = 0;
+    int sumD = 0;
+    for (int ii = 0; ii < 5; ii++){
+        for (int jj = 0; jj < 5; jj++){
+            sumD += corIGARF[ii][jj];
+        }
+        sumS += simpleIGARF[ii];
+    }
+
+    for (int ii = 0; ii < 5; ii++){
+        for (int jj = 0; jj < 5; jj++){
+            if (sumD != 0){
+                corIGARF[ii][jj] /= (1.0*sumD);
+            }
+        }
+        if (sumS != 0){
+            simpleIGARF[ii] /= (1.0*sumS);
+        }
     }
 
     cout << endl;
@@ -1709,6 +1731,16 @@ void DFW::createHistSimple(){
             }
         }
     }
+
+    int sum = 0;
+    for (auto elt : vTimeSimple){
+        sum += elt;
+    }
+    if (sum != 0){
+        for (auto &elt : vTimeSimple){
+            elt /= (1.0*sum);
+        }
+    }
 }
 
 
@@ -1724,10 +1756,21 @@ void DFW::createHistDouble(){
 
     for (auto doubleIG : vDoubleIGARF){
         for (int step = 0; step < histoSize; step++){
-            if (doubleIG.second.dIGARF - doubleIG.first.dIGARF >= (step*stepSize - 1) 
+            if (doubleIG.second.dIGARF - doubleIG.first.dIGARF >= (step*stepSize - 1)
                 && doubleIG.second.dIGARF - doubleIG.first.dIGARF < ((step + 1)*stepSize - 1)){
                 vTimeDouble[step]++;
             }
+        }
+    }
+
+    int sum = 0;
+    for (auto elt : vTimeDouble){
+        sum += elt;
+    }
+
+    if (sum != 0){
+        for (auto &elt : vTimeDouble){
+            elt /= (1.0*sum);
         }
     }
 }

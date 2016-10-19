@@ -38,6 +38,8 @@ using namespace std;
 */
 Bottle narrativeHandler::useDFW(Bottle bInput){
     Bottle bRet;
+    bRet.addVocab(Vocab::encode("many"));
+
 
     if (bInput.size() < 3){
         yWarning("in narrativeGraph::useDFW wrong size of input (min 2)");
@@ -61,7 +63,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
 
     if (dfw.sName == "none"){
         yWarning() << " in narrativeGraph::usedDFW dfw not found: " << sdfw;
-        bRet.addString(" in narrativeGraph::usedDFW dfw not found: " + sdfw);
+        bRet.addString(" in narrativeGraph::usedDFW dfw not found: " + sdfw + ")");
         return bRet;
     }
     // DFW CHECKED
@@ -69,7 +71,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
 
     // CHECK IF PAOR
     discourseform::meaningSentence meaning;
-    if (bInput.size() < 3){
+    if (bInput.size() > 3){
         string tmpPAOR = bInput.get(3).asString();
         meaning = meaningToEvent(tmpPAOR);
     }
@@ -97,27 +99,45 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
     if (!hasPAOR){
         // THEN GET THE SENTENCE THE BEST ADAPTED
 
+
+        // DOES THIS DFW CAN BE USE WITH ONE SENTENCE ONLY:
+        if (dfw.vTimeSimple.size() == 0){
+            bRet.addString("DFW about 2 preposition. At least one needed.");
+            return bRet;
+        }
+
         // get a score for each sentence: esperance of IGARF * esperence of the time in HISTO
         double dScore = 0;
 
         vector<pair<int, double>> vpScore; // vector with each event and associated score
         int range = 0;
-        int best = 0;
+        double best = 0;
+
+        // for each evenement calcultate a score
         for (auto evt : sm.vChronoEvent){
+
+            // score is distribution of the role of IGARF according to the dfw
             dScore = dfw.simpleIGARF[dict.find(evt.second)->second];
 
             int histoSize = dfw.vTimeSimple.size();
             double stepSize = 1. / (histoSize*1.);
 
-            double dPos = (evt.first*1.0) / (sm.vChronoEvent.size() *1.0);
+            double dPos = (range*1.0) / (sm.vChronoEvent.size() *1.0);
+
+            //cout << "evt: " << range <<
+            //  ", IGARF: " << sm.vChronoEvent[range].first << " " << sm.vChronoEvent[range].second
+            //  << ", pos: " << dPos << ", hist: ";
 
             // find position in the histo and multiply score by esperence
             for (int step = 0; step < histoSize; step++){
-                if (dPos >=(step*stepSize)
+                if (dPos >= (step*stepSize)
                     && dPos < ((step + 1)*stepSize)){
                     dScore *= dfw.vTimeSimple[step];
+                    cout << step;
                 }
             }
+
+            //cout << ", score: " << dScore << endl;
             if (dScore > best){
                 best = dScore;
             }
@@ -126,20 +146,223 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         }
 
         // find bests elements with score dScore
+        ostringstream os;
 
         for (auto posibilities : vpScore){
             // I can talk of this element
             if (posibilities.second == best){
-                cout << "I should talk about evt: " << sm.vChronoEvent[posibilities.first].first << " " << sm.vChronoEvent[posibilities.first].second << endl;
-//                pair<int, string> pTmp(IGA_Input.km.iIGARF, ss.str());
+                int iIGARF = sm.vChronoEvent[posibilities.first].first;
+                string sIGARF = sm.vChronoEvent[posibilities.first].second;
+                os << "I should talk about evt: " << iIGARF << " " << sIGARF << " : ";
 
-//                int pos = find(vChronoEvent.begin(), vChronoEvent.end(), pTmp) - vChronoEvent.begin();
-
+                // INIT
+                if (sIGARF == "I"){
+                    for (auto init : sm.vIGARF[iIGARF].vInitState){
+                        os << sm.vRelations[init].subject
+                            << " " << sm.vRelations[init].verb
+                            << " " << sm.vRelations[init].object
+                            << " ";
+                    }
+                }
+                // FINAL
+                if (sIGARF == "F"){
+                    for (auto i : sm.vIGARF[iIGARF].vFinalState){
+                        os << sm.vRelations[i].subject
+                            << " " << sm.vRelations[i].verb
+                            << " " << sm.vRelations[i].object
+                            << " ";
+                    }
+                }
+                // GOAL
+                if (sIGARF == "G"){
+                    for (auto i : sm.vIGARF[iIGARF].vGoal){
+                        os << sm.vRelations[i].subject
+                            << " " << sm.vRelations[i].verb
+                            << " " << sm.vRelations[i].object
+                            << " ";
+                    }
+                }
+                // ACTION
+                if (sIGARF == "A"&& sm.vIGARF[iIGARF].iAction >= 0){
+                    os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
+                }
+                // RESULT
+                if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
+                    os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
+                }
+                os << endl;
             }
         }
+        bRet.addString(os.str());
+        cout << os.str();
     }
-    //
 
+    // ELSE IS DFW HAS A PAOR AS INPUT:
+    if (hasPAOR){
+
+        dfw.printCorMatrix();
+
+        // FIND THE CORREPONDANT EVT
+        int iScore = 0;
+        vector<storygraph::sKeyMean> vKM = sm.findBest(meaning.vSentence[0].vOCW, iScore);
+
+        // IF NO EVENT:
+        if (vKM.size() == 0){
+            yWarning(" in narrativeGraph::useDFW::hasPAOR - cannot recognize event");
+            bRet.addString("none - cannot recognize event");
+            return bRet;
+        }
+
+        // DOES THIS DFW CAN BE USE WITH ONE SENTENCE ONLY:
+        if (dfw.vTimeDouble.size() == 0){
+            bRet.addString("DFW about 1 preposition only. 2 given.");
+            return bRet;
+        }
+
+        vector<pair<int, double>> vpScore; // vector with each event and associated score
+
+        int range = 0;
+        double best = 0;
+
+        for (auto km : vKM){
+            range = 0;
+            // for each evenement calcultate a score
+            for (auto evt : sm.vChronoEvent){
+
+                // CHECK IF EVENT IS NOT THE EVENT WE RELIE TO
+
+                int iIGARF = sm.vChronoEvent[range].first;
+                string sIGARF = sm.vChronoEvent[range].second;
+                ostringstream ss;
+                ss << km.cPart;
+
+                if (iIGARF != km.iIGARF || sIGARF != ss.str()){
+
+                    storygraph::EVT_IGARF evtKM(km, sm.vIGARF[km.iIGARF].iAction, sm.vIGARF[km.iIGARF].iLevel);
+                    sm.checkEVTIGARF(evtKM);
+
+                    double dScore;
+
+                    // if the PAOR given is the first of the two elements
+                    if (isFirst){
+                        dScore = dfw.corIGARF[dict.find(ss.str())->second][dict.find(evt.second)->second];
+                    }
+                    else{
+                        dScore = dfw.corIGARF[dict.find(evt.second)->second][dict.find(ss.str())->second];
+                    }
+
+                    // get timing between events:
+                    double dPos = range / (1.0*sm.vChronoEvent.size());
+                    if (isFirst){
+                        dPos = dPos - evtKM.dIGARF;
+                    }
+                    else{
+                        dPos = evtKM.dIGARF - dPos;
+                    }
+
+                    int histoSize = dfw.vTimeDouble.size();
+                    double stepSize = 2. / (histoSize*1.);
+
+                    //cout << "evt: " << range <<
+                    //    ", IGARF: " << sm.vChronoEvent[range].first << " " << sm.vChronoEvent[range].second
+                    //    << ", pos: " << dPos << ", hist: ";
+
+                    // find position in the histo and multiply score by esperence
+                    for (int step = 0; step < histoSize; step++){
+                        if (dPos >= (step*stepSize - 1)
+                            && dPos < ((step + 1)*stepSize - 1)){
+                            dScore *= dfw.vTimeDouble[step];
+                        }
+                    }
+
+                    //cout << ", scoreIG: " << dScoreIGARF << ", scoreTiming: " << dScoreTiming << ", dScore: " << dScore << endl;
+                    if (dScore > best){
+                        best = dScore;
+                    }
+                    vpScore.push_back(pair<int, double>(range, dScore));
+                }
+                range++;
+            }
+        }
+
+        ostringstream os;
+
+
+        for (unsigned int i = 0; i < vpScore.size(); i++)
+        {
+            for (unsigned int j = 0; j < vpScore.size(); j++)
+            {
+                if (i != j)
+                {
+                    if (vpScore[i] == vpScore[j])
+                    {
+                        vpScore.erase(vpScore.begin() + i);
+                    }
+                }
+            }
+        }
+
+
+        for (auto posibilities : vpScore){
+            // I can talk of this element
+            if (posibilities.second == best){
+                int iIGARF = sm.vChronoEvent[posibilities.first].first;
+                string sIGARF = sm.vChronoEvent[posibilities.first].second;
+                os << "I should talk about evt: " << iIGARF << " " << sIGARF << " : ";
+
+                // INIT
+                if (sIGARF == "I"){
+                    for (auto init : sm.vIGARF[iIGARF].vInitState){
+                        os << sm.vRelations[init].subject
+                            << " " << sm.vRelations[init].verb
+                            << " " << sm.vRelations[init].object
+                            << " ";
+                    }
+                }
+                // FINAL
+                if (sIGARF == "F"){
+                    for (auto i : sm.vIGARF[iIGARF].vFinalState){
+                        os << sm.vRelations[i].subject
+                            << " " << sm.vRelations[i].verb
+                            << " " << sm.vRelations[i].object
+                            << " ";
+                    }
+                }
+                // GOAL
+                if (sIGARF == "G"){
+                    for (auto i : sm.vIGARF[iIGARF].vGoal){
+                        os << sm.vRelations[i].subject
+                            << " " << sm.vRelations[i].verb
+                            << " " << sm.vRelations[i].object
+                            << " ";
+                    }
+                }
+                // ACTION
+                if (sIGARF == "A"&& sm.vIGARF[iIGARF].iAction >= 0){
+                    os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
+                }
+                // RESULT
+                if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
+                    os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
+                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
+                }
+                os << endl;
+            }
+        }
+        bRet.addString(os.str());
+        cout << os.str();
+    }
 
 
     return bRet;
