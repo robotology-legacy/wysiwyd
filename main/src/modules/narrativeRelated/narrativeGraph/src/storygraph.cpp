@@ -1615,9 +1615,6 @@ DFW::DFW(string name){
 
 
 void DFW::analyseCorr(){
-
-    cout << "/*----------------------------------*/" << endl;
-    cout << sName << endl;
     clearCorIG();
 
     map<char, int>  dict = {
@@ -1641,8 +1638,8 @@ void DFW::analyseCorr(){
 
 
     // Normalize
-    int sumS = 0;
-    int sumD = 0;
+    double sumS = 0;
+    double sumD = 0;
     for (int ii = 0; ii < 5; ii++){
         for (int jj = 0; jj < 5; jj++){
             sumD += corIGARF[ii][jj];
@@ -1660,8 +1657,6 @@ void DFW::analyseCorr(){
             simpleIGARF[ii] /= (1.0*sumS);
         }
     }
-
-    cout << endl;
 }
 
 
@@ -1683,6 +1678,7 @@ void DFW::printCorMatrix(){
 
     cout << " " << "\t" << "I" << "\t" << "G" << "\t" << "A" << "\t" << "R" << "\t" << "F" << endl;
     cout << "I";
+    cout.precision(3);
     for (int ii = 0; ii < 5; ii++){
         cout << "\t" << corIGARF[0][ii];
     }
@@ -1732,7 +1728,7 @@ void DFW::createHistSimple(){
         }
     }
 
-    int sum = 0;
+    double sum = 0;
     for (auto elt : vTimeSimple){
         sum += elt;
     }
@@ -1763,7 +1759,7 @@ void DFW::createHistDouble(){
         }
     }
 
-    int sum = 0;
+    double sum = 0;
     for (auto elt : vTimeDouble){
         sum += elt;
     }

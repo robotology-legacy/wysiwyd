@@ -125,15 +125,14 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
             double dPos = (range*1.0) / (sm.vChronoEvent.size() *1.0);
 
             //cout << "evt: " << range <<
-            //  ", IGARF: " << sm.vChronoEvent[range].first << " " << sm.vChronoEvent[range].second
-            //  << ", pos: " << dPos << ", hist: ";
+            //    ", IGARF: " << sm.vChronoEvent[range].first << " " << sm.vChronoEvent[range].second
+            //    << ", pos: " << dPos << ", hist: ";
 
             // find position in the histo and multiply score by esperence
             for (int step = 0; step < histoSize; step++){
                 if (dPos >= (step*stepSize)
                     && dPos < ((step + 1)*stepSize)){
                     dScore *= dfw.vTimeSimple[step];
-                    cout << step;
                 }
             }
 
@@ -148,55 +147,69 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         // find bests elements with score dScore
         ostringstream os;
 
+        vector<pair <int, string> > AddedEvt;
         for (auto posibilities : vpScore){
             // I can talk of this element
-            if (posibilities.second == best){
+            if (posibilities.second > 0.5 * best){
+
                 int iIGARF = sm.vChronoEvent[posibilities.first].first;
                 string sIGARF = sm.vChronoEvent[posibilities.first].second;
-                os << "I should talk about evt: " << iIGARF << " " << sIGARF << " : ";
 
-                // INIT
-                if (sIGARF == "I"){
-                    for (auto init : sm.vIGARF[iIGARF].vInitState){
-                        os << sm.vRelations[init].subject
-                            << " " << sm.vRelations[init].verb
-                            << " " << sm.vRelations[init].object
-                            << " ";
+                pair<int, string> currentPair(iIGARF, sIGARF);
+                bool toAdd = true;
+                for (auto passed : AddedEvt){
+                    if (currentPair == passed){
+                        toAdd = false;
                     }
                 }
-                // FINAL
-                if (sIGARF == "F"){
-                    for (auto i : sm.vIGARF[iIGARF].vFinalState){
-                        os << sm.vRelations[i].subject
-                            << " " << sm.vRelations[i].verb
-                            << " " << sm.vRelations[i].object
-                            << " ";
+
+                if (toAdd){
+                    os << "I should talk about evt: " << iIGARF << " " << sIGARF << " : ";
+
+                    // INIT
+                    if (sIGARF == "I"){
+                        for (auto init : sm.vIGARF[iIGARF].vInitState){
+                            os << sm.vRelations[init].subject
+                                << " " << sm.vRelations[init].verb
+                                << " " << sm.vRelations[init].object
+                                << " ";
+                        }
                     }
-                }
-                // GOAL
-                if (sIGARF == "G"){
-                    for (auto i : sm.vIGARF[iIGARF].vGoal){
-                        os << sm.vRelations[i].subject
-                            << " " << sm.vRelations[i].verb
-                            << " " << sm.vRelations[i].object
-                            << " ";
+                    // FINAL
+                    if (sIGARF == "F"){
+                        for (auto i : sm.vIGARF[iIGARF].vFinalState){
+                            os << sm.vRelations[i].subject
+                                << " " << sm.vRelations[i].verb
+                                << " " << sm.vRelations[i].object
+                                << " ";
+                        }
                     }
+                    // GOAL
+                    if (sIGARF == "G"){
+                        for (auto i : sm.vIGARF[iIGARF].vGoal){
+                            os << sm.vRelations[i].subject
+                                << " " << sm.vRelations[i].verb
+                                << " " << sm.vRelations[i].object
+                                << " ";
+                        }
+                    }
+                    // ACTION
+                    if (sIGARF == "A"&& sm.vIGARF[iIGARF].iAction >= 0){
+                        os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
+                    }
+                    // RESULT
+                    if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
+                        os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
+                    }
+                    os << " , " << posibilities.second << endl;
+                    AddedEvt.push_back(currentPair);
                 }
-                // ACTION
-                if (sIGARF == "A"&& sm.vIGARF[iIGARF].iAction >= 0){
-                    os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
-                }
-                // RESULT
-                if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
-                    os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
-                }
-                os << endl;
             }
         }
         bRet.addString(os.str());
@@ -281,7 +294,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
                         }
                     }
 
-                    //cout << ", scoreIG: " << dScoreIGARF << ", scoreTiming: " << dScoreTiming << ", dScore: " << dScore << endl;
+                    //cout << ", dScore: " << dScore << endl;
                     if (dScore > best){
                         best = dScore;
                     }
@@ -293,71 +306,69 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
 
         ostringstream os;
 
-
-        for (unsigned int i = 0; i < vpScore.size(); i++)
-        {
-            for (unsigned int j = 0; j < vpScore.size(); j++)
-            {
-                if (i != j)
-                {
-                    if (vpScore[i] == vpScore[j])
-                    {
-                        vpScore.erase(vpScore.begin() + i);
-                    }
-                }
-            }
-        }
-
-
+        vector<pair <int, string> > AddedEvt;
         for (auto posibilities : vpScore){
             // I can talk of this element
-            if (posibilities.second == best){
+            if (posibilities.second > 0.5 * best){
+
                 int iIGARF = sm.vChronoEvent[posibilities.first].first;
                 string sIGARF = sm.vChronoEvent[posibilities.first].second;
-                os << "I should talk about evt: " << iIGARF << " " << sIGARF << " : ";
 
-                // INIT
-                if (sIGARF == "I"){
-                    for (auto init : sm.vIGARF[iIGARF].vInitState){
-                        os << sm.vRelations[init].subject
-                            << " " << sm.vRelations[init].verb
-                            << " " << sm.vRelations[init].object
-                            << " ";
+                pair<int, string> currentPair(iIGARF, sIGARF);
+                bool toAdd = true;
+                for (auto passed : AddedEvt){
+                    if (currentPair == passed){
+                        toAdd = false;
                     }
                 }
-                // FINAL
-                if (sIGARF == "F"){
-                    for (auto i : sm.vIGARF[iIGARF].vFinalState){
-                        os << sm.vRelations[i].subject
-                            << " " << sm.vRelations[i].verb
-                            << " " << sm.vRelations[i].object
-                            << " ";
+
+                if (toAdd){
+                    os << "I should talk about evt: " << iIGARF << " " << sIGARF << " : ";
+
+                    // INIT
+                    if (sIGARF == "I"){
+                        for (auto init : sm.vIGARF[iIGARF].vInitState){
+                            os << sm.vRelations[init].subject
+                                << " " << sm.vRelations[init].verb
+                                << " " << sm.vRelations[init].object
+                                << " ";
+                        }
                     }
-                }
-                // GOAL
-                if (sIGARF == "G"){
-                    for (auto i : sm.vIGARF[iIGARF].vGoal){
-                        os << sm.vRelations[i].subject
-                            << " " << sm.vRelations[i].verb
-                            << " " << sm.vRelations[i].object
-                            << " ";
+                    // FINAL
+                    if (sIGARF == "F"){
+                        for (auto i : sm.vIGARF[iIGARF].vFinalState){
+                            os << sm.vRelations[i].subject
+                                << " " << sm.vRelations[i].verb
+                                << " " << sm.vRelations[i].object
+                                << " ";
+                        }
                     }
+                    // GOAL
+                    if (sIGARF == "G"){
+                        for (auto i : sm.vIGARF[iIGARF].vGoal){
+                            os << sm.vRelations[i].subject
+                                << " " << sm.vRelations[i].verb
+                                << " " << sm.vRelations[i].object
+                                << " ";
+                        }
+                    }
+                    // ACTION
+                    if (sIGARF == "A"&& sm.vIGARF[iIGARF].iAction >= 0){
+                        os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
+                    }
+                    // RESULT
+                    if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
+                        os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
+                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
+                    }
+                    os << " , " << posibilities.second << endl;
+                    AddedEvt.push_back(currentPair);
                 }
-                // ACTION
-                if (sIGARF == "A"&& sm.vIGARF[iIGARF].iAction >= 0){
-                    os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
-                }
-                // RESULT
-                if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
-                    os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
-                        << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
-                }
-                os << endl;
             }
         }
         bRet.addString(os.str());
