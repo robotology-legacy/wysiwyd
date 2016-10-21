@@ -357,6 +357,9 @@ bool jointsAwareness::interruptModule() {
     armRight_2DProj_Port.interrupt();
     torso_2DProj_Port.interrupt();
 
+    read_ObjLoc_Port.interrupt();
+    write_Obj2DProj_Port.interrupt();
+
     return true;
 }
 
@@ -373,6 +376,9 @@ bool jointsAwareness::close() {
     armRight_2DProj_Port.interrupt();
     torso_2DProj_Port.interrupt();
 
+    read_ObjLoc_Port.interrupt();
+    write_Obj2DProj_Port.interrupt();
+
     armLeftPort.close();
     armRightPort.close();
     torsoPort.close();
@@ -380,6 +386,9 @@ bool jointsAwareness::close() {
     armLeft_2DProj_Port.close();
     armRight_2DProj_Port.close();
     torso_2DProj_Port.close();
+
+    read_ObjLoc_Port.close();
+    write_Obj2DProj_Port.close();
 
     return true;
 }
