@@ -1,3 +1,5 @@
+#include <iostream>
+#include <sstream>
 #include <map>
 #include <fstream>
 #include <string>
@@ -7,6 +9,7 @@
 #include <yarp/dev/GazeControl.h>
 #include <yarp/dev/PolyDriver.h>
 #include "wrdac/clients/icubClient.h"
+
 
 
 using namespace wysiwyd::wrdac;
@@ -35,6 +38,9 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle>   armRight_2DProj_Port;
     yarp::os::BufferedPort<yarp::os::Bottle>   torso_2DProj_Port;
 
+    yarp::os::BufferedPort<yarp::os::Bottle>   read_ObjLoc_Port;
+    yarp::os::BufferedPort<yarp::os::Bottle>   write_Obj2DProj_Port;
+
     yarp::dev::PolyDriver leftArmClientCartCtrl;
     yarp::dev::PolyDriver rightArmClientCartCtrl;
     yarp::dev::ICartesianControl *iLeftArm = NULL;
@@ -59,6 +65,8 @@ private:
     bool configMaps();
     bool configCartesian(string part);
     bool streamCartesian(string part, string cartesianPart = "default");
+
+    bool streamObjects();
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

@@ -43,15 +43,15 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
     arm   = rf.check("arm", Value("both")).asString().c_str();
     robot   = rf.check("robot", Value("icub")).asString().c_str();
 
-    bEveryThingisGood = configMaps();
+    bEveryThingisGood &= configMaps();
 
     if(arm == "left_arm" || arm == "right_arm"){
-        bEveryThingisGood = configCartesian(arm);
+        bEveryThingisGood &= configCartesian(arm);
     } else if (arm == "both"){
 
         yDebug() << "Both arm are used!" ;
-        bEveryThingisGood = configCartesian("left_arm");
-        bEveryThingisGood = configCartesian("right_arm");
+        bEveryThingisGood &= configCartesian("left_arm");
+        bEveryThingisGood &= configCartesian("right_arm");
     } else {
         yError() << "The arm used (" << arm << ") is NOT a valid one! Closing jointsAwareness!" ;
         return false ;
@@ -74,6 +74,27 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
     }
 
     //rpc port
+    string read_ObjLoc_PortName = "/" + moduleName + "/" + "objects" + "/ojectsLoc:i";
+    read_ObjLoc_Port.open(read_ObjLoc_PortName);
+
+    string objLocStreamPortName = "/iol2opc/objLoc:o";
+
+    unsigned int counter = 0;
+    bool isConnected = false;
+    while(!isConnected && counter < 3){
+        yInfo() << "Trying to connect to " << read_ObjLoc_PortName ;
+        isConnected = Network::connect(objLocStreamPortName, read_ObjLoc_PortName);
+        counter++;
+        Time::delay(1.0);
+    }
+    if(!isConnected){
+               yWarning() << "The port " << objLocStreamPortName << " from iol2opc is needed to stream the 2D proj of objects! jointsAwareness will NOT be able to stream this inforations. Please connect by hand with " << read_ObjLoc_PortName ;
+    }
+
+    string write_Obj2DProj_PortName = "/" + moduleName + "/" + "objects" + "/objects2DProj:o";
+    write_Obj2DProj_Port.open(write_Obj2DProj_PortName);
+
+    //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
@@ -82,7 +103,7 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
         return false ;
     }
 
-    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
+    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready and streaming!!!!! \n \n ";
 
     return true;
 }
@@ -118,6 +139,83 @@ bool jointsAwareness::updateModule() {
 
     isTorsoDone = streamCartesian("left_arm");
     isTorsoDone = streamCartesian("right_arm");
+
+    bool boolObjProj = streamObjects();
+
+    return true;
+}
+
+bool jointsAwareness::streamObjects() {
+
+    Bottle *b = read_ObjLoc_Port.read(false);
+    if (b!=NULL) {
+      // data received in *b
+
+        Bottle& bObjProj = write_Obj2DProj_Port.prepare();
+        bObjProj.clear();
+
+        //bottle from the port: (objName ("x y z")) (objName ("x y z"))
+        for(int i = 0; i < b->size(); i++){
+
+            Bottle bCurrentObject;
+            Vector vObjLoc;
+            Vector projection2D;
+            string objName = b->get(i).asList()->get(0).toString();
+            string s_objLoc = b->get(i).asList()->get(1).toString();
+            string s_objProj;
+
+            //yDebug() << "Object " << objName << " with loc: " << s_objLoc;
+
+            Bottle bCurrentObjectLoc;
+
+            std::string::size_type sz; // alias of size_t
+
+            std::vector<std::string> result;
+            std::istringstream iss(s_objLoc);
+            //separe the string into 'word' separated by space
+            for(std::string s; iss >> s; )
+                result.push_back(s);
+
+
+            unsigned int counter = 0;
+            for(vector<string>::iterator it = result.begin(); it != result.end(); it++) { //assume there is only one space between doubles
+
+                if(counter >= 3){
+                    yWarning() << "something is weird: we have more than 3 doubles for an object location, the last one is " << *it;
+                }
+
+                string s = *it ;
+                if(s == " "){
+                    break;
+                }
+                //cast the double from string to proper double
+                double d = stod(s, &sz);
+                bCurrentObjectLoc.addDouble(d);
+                vObjLoc.push_back(d);
+                counter ++;
+            }
+
+            iGaze->get2DPixel(0, vObjLoc, projection2D);
+
+            for(unsigned int p = 0; p < projection2D.size(); p++){
+                if(p == 0){                                          //begin with a space otherwrise
+                    s_objProj = to_string(projection2D[p]);
+                } else {
+                    s_objProj = s_objProj + " " + to_string(projection2D[p]);
+                }
+            }
+
+            //for ABM: should be under the form: (objName stringOfProj) (objName2 stringOfProj2)
+            bCurrentObject.addString(objName);
+            bCurrentObject.addString(s_objProj);
+
+            bObjProj.addList() = bCurrentObject;
+
+        }
+
+      write_Obj2DProj_Port.write();
+    }
+
 
 
     return true;
@@ -183,8 +281,8 @@ bool jointsAwareness::streamCartesian(string part, string cartesianPart){
         locPorts_map.find(part)->second->write();
         projPorts_map.find(part)->second->write();
 
-        yDebug() << "bLoc for " << part << " : (" << bLoc.toString() << ")" ;
-        yDebug() << "bProj for " << part << " : (" << bProj.toString() << ")" ;
+        //yDebug() << "bLoc for " << part << " : (" << bLoc.toString() << ")" ;
+        //yDebug() << "bProj for " << part << " : (" << bProj.toString() << ")" ;
 
     } else {
         yError() << "Invalid PolyDriver: exit!";
