@@ -5,12 +5,12 @@
 
    <name>jointsAwareness</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
-   <description>Stream the 3d location of all the iCub joints in root reference frame</description>
+   <description>Stream the 3d location of the iCub joints (default: both arms + torso) in root reference frame, as well as their projection on the image from the camera (default: left) and thee projection of potential objects.</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
    
    <description-long>
-   Stream the 3d location of all the iCub joints in root reference frame.
+   Stream the 3d location of the iCub joints (default: both arms + torso) in root reference frame, as well as their projection on the image from the camera (default: left). Provide also the object projections by parsing iol2opc buffered port about object location.
    </description-long>
 
    <arguments>

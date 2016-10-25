@@ -35,23 +35,29 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
 
     bool    bEveryThingisGood = true;
 
-    //Create an iCub Client and check that all dependencies are here before starting
-    //bool isRFVerbose = true;
-    //iCub = new ICubClient(moduleName, "jointsAwareness", "client.ini", isRFVerbose);
-    //iCub->opc->isVerbose &= true;
-
-    arm   = rf.check("arm", Value("both")).asString().c_str();
     robot   = rf.check("robot", Value("icub")).asString().c_str();
+    arm   = rf.check("arm", Value("both")).asString().c_str();
+    camera   = rf.check("camera", Value("left")).asString().c_str();
 
     bEveryThingisGood &= configMaps();
 
+    string cameraSuffix ;
+    if(camera == "left" || camera == "right"){
+        cameraSuffix = "to";
+        cameraSuffix += camera;
+        cameraSuffix += "Cam";
+    } else {
+        yError() << "The camera used (" << camera << ") is NOT a valid one (left or right only)! Closing jointsAwareness!" ;
+        return false ;
+    }
+
     if(arm == "left_arm" || arm == "right_arm"){
-        bEveryThingisGood &= configCartesian(arm);
+        bEveryThingisGood &= configCartesian(arm, cameraSuffix);
     } else if (arm == "both"){
 
         yDebug() << "Both arm are used!" ;
-        bEveryThingisGood &= configCartesian("left_arm");
-        bEveryThingisGood &= configCartesian("right_arm");
+        bEveryThingisGood &= configCartesian("left_arm", cameraSuffix);
+        bEveryThingisGood &= configCartesian("right_arm", cameraSuffix);
     } else {
         yError() << "The arm used (" << arm << ") is NOT a valid one! Closing jointsAwareness!" ;
         return false ;
@@ -59,7 +65,7 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
 
     string baseTorsoPortName = "/" + moduleName + "/" + "torso" + "/";
     locPorts_map.find("torso")->second->open((baseTorsoPortName + "jointsLoc:o").c_str());
-    projPorts_map.find("torso")->second->open((baseTorsoPortName + "joints2DProj:o").c_str());
+    projPorts_map.find("torso")->second->open((baseTorsoPortName + cameraSuffix +"/joints2DProj:o").c_str());
 
     Property optionGaze("(device gazecontrollerclient)");
     optionGaze.put("remote","/iKinGazeCtrl");
@@ -88,18 +94,21 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
     if(!isConnected){
-               yWarning() << "The port " << objLocStreamPortName << " from iol2opc is needed to stream the 2D proj of objects! jointsAwareness will NOT be able to stream this inforations. Please connect by hand with " << read_ObjLoc_PortName ;
+               yWarning() << "The port " << objLocStreamPortName << " from iol2opc is needed to stream the 2D proj of objects! jointsAwareness will NOT be able to stream this inforations" ;
+               isObjectStreamed = false;
     }
 
-    string write_Obj2DProj_PortName = "/" + moduleName + "/" + "objects" + "/objects2DProj:o";
-    write_Obj2DProj_Port.open(write_Obj2DProj_PortName);
+    if(isObjectStreamed == true){
+        string write_Obj2DProj_PortName = "/" + moduleName + "/" + "objects" + "/" + cameraSuffix + "/objects2DProj:o";
+        write_Obj2DProj_Port.open(write_Obj2DProj_PortName);
+    }
 
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
     if(!bEveryThingisGood){
-        yError() << "Some dependencies or polydriver are not present/valid! Closing jointsAwareness!" ;
+        yError() << "Some dependencies/polydriver/options are not present/valid! Closing jointsAwareness!" ;
         return false ;
     }
 
@@ -140,12 +149,14 @@ bool jointsAwareness::updateModule() {
     isTorsoDone = streamCartesian("left_arm");
     isTorsoDone = streamCartesian("right_arm");
 
-    bool boolObjProj = streamObjects();
+    if(isObjectStreamed == true){
+        streamObjects();
+    }
 
     return true;
 }
 
-bool jointsAwareness::streamObjects() {
+void jointsAwareness::streamObjects() {
 
     Bottle *b = read_ObjLoc_Port.read(false);
     if (b!=NULL) {
@@ -195,9 +206,13 @@ bool jointsAwareness::streamObjects() {
                 counter ++;
             }
 
-            iGaze->get2DPixel(0, vObjLoc, projection2D);
+            if(camera == "left") {
+                iGaze->get2DPixel(0, vObjLoc, projection2D); //project to left cam
+            } else {
+                iGaze->get2DPixel(1, vObjLoc, projection2D); //project to right cam
+            }
 
-            for(unsigned int p = 0; p < projection2D.size(); p++){
+            for(unsigned int p = 0; p < projection2D.size(); p++){   //to be inside ABM, the projection has to be a string with the x/y
                 if(p == 0){                                          //begin with a space otherwrise
                     s_objProj = to_string(projection2D[p]);
                 } else {
@@ -216,9 +231,7 @@ bool jointsAwareness::streamObjects() {
       write_Obj2DProj_Port.write();
     }
 
-
-
-    return true;
+    //return true;
 }
 
 bool jointsAwareness::streamCartesian(string part, string cartesianPart){
@@ -228,7 +241,12 @@ bool jointsAwareness::streamCartesian(string part, string cartesianPart){
         return false;
     }
 
-    yarp::dev::PolyDriver *driver = polydriver_map.find(part)->second;
+    yarp::dev::PolyDriver *driver;
+    if(part == "torso"){ //if torso, we take the associated cartesianPart (e.g. left_arm or right_arm)
+        driver = polydriver_map.find(cartesianPart)->second;
+    } else {
+        driver = polydriver_map.find(part)->second;
+    }
 
     if(driver->isValid()){
         Vector location, orientation;
@@ -251,30 +269,31 @@ bool jointsAwareness::streamCartesian(string part, string cartesianPart){
             axisEnd  = torsoJointsNb;
         } else { //necessarily left_arm or right_arm because of protection at the beginning
             axisInit = torsoJointsNb;
-            axisEnd  = armJointsNb+torsoJointsNb;
+            axisEnd  = torsoJointsNb + armJointsNb;
             cartesianPart = part;
         }
 
         for(unsigned int axis = axisInit; axis < axisEnd; axis++){
             Vector projection2D;
-            cartesian_map.find(cartesianPart)->second->getPose(axis, location, orientation); //+3 because the first 3 are torso
+            cartesian_map.find(cartesianPart)->second->getPose(axis, location, orientation);
             //yDebug() << "Cartesian pos of " << part << " is " << location.toString() ;
-            iGaze->get2DPixel(0, location, projection2D); // 0 = left, 1 = right
+
+            if(camera == "left"){
+                iGaze->get2DPixel(0, location, projection2D); // 0 = left, 1 = right
+            } else {
+                iGaze->get2DPixel(1, location, projection2D);
+            }
             //yDebug() << " and 2Dprojection is " << projection2D.toString();
 
-            //Bottle bCurrentJointProj;
-            for(unsigned int i = 0; i < projection2D.size(); i++){
-                //bCurrentJointProj.addDouble(projection2D[i]);
-                bProj.addDouble(projection2D[i]);
-            }
-            //bProj.addList() = bCurrentJointProj;
-
-            //Bottle bCurrentJointLoc;
+            //prepare the bottle for the location
             for(unsigned int i = 0; i < location.size(); i++){
-                //bCurrentJointLoc.addDouble(location[i]);
                 bLoc.addDouble(location[i]);
             }
-            //bLoc.addList() = bCurrentJointLoc;
+
+            //prepare the bottle for the projection
+            for(unsigned int i = 0; i < projection2D.size(); i++){
+                bProj.addDouble(projection2D[i]);
+            }
 
         }
 
@@ -292,7 +311,7 @@ bool jointsAwareness::streamCartesian(string part, string cartesianPart){
     return true;
 }
 
-bool jointsAwareness::configCartesian(string part){
+bool jointsAwareness::configCartesian(string part, string cameraSuffix){
 
     if(part != "left_arm" && part != "right_arm"){
         yError() << "The arm used (" << part << ") is NOT a valid one! Closing jointsAwareness!" ;
@@ -317,7 +336,7 @@ bool jointsAwareness::configCartesian(string part){
 
     if (driver->isValid()) {
         driver->view(cartesian_map.find(part)->second);
-        projPorts_map.find(part)->second->open((basePartPortName + "joints2DProj:o").c_str());
+        projPorts_map.find(part)->second->open((basePartPortName + cameraSuffix + "/" + "joints2DProj:o").c_str());
     } else {
         yError() << "Invalid PolyDriver: exit!";
         return false;

@@ -26,7 +26,7 @@ private:
     //wysiwyd::wrdac::ICubClient  *iCub;
     double      period;
 
-    string arm, robot, moduleName;
+    string arm, camera, robot, moduleName;
 
     yarp::os::Port   rpcPort;
 
@@ -61,12 +61,13 @@ private:
     unsigned int torsoJointsNb = 3;
     unsigned int armJointsNb   = 7;
     bool isTorsoDone = false;
+    bool isObjectStreamed = true;
 
     bool configMaps();
-    bool configCartesian(string part);
+    bool configCartesian(string part, string cameraSuffix);
     bool streamCartesian(string part, string cartesianPart = "default");
 
-    bool streamObjects();
+    void streamObjects();
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
