@@ -21,6 +21,7 @@ add_subdirectory(systemHaptic)
 add_subdirectory(systemMotor)
 add_subdirectory(tools)
 add_subdirectory(samRelated)
+add_subdirectory(jointsAwareness)
 
 #Add modules with dependencies here
 if(WYSIWYD_USE_OpenCV)
