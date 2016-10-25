@@ -1262,8 +1262,162 @@ void narrativeHandler::NaiveToPAOR(){
 
 
 
+///< Get a number of IGARF and the type of action (I,G,A,R orF) and return the meaning under PAOR format
+meaningSentence narrativeHandler::evtToMeaning(string sIGARF, int iIGARF){
+    meaningSentence  meaning;
+
+    ostringstream os;
+    if (sIGARF == "I"){
+        for (auto init : sm.vIGARF[iIGARF].vInitState){
+            meaningProposition MP;
+
+            if (sm.vRelations[init].verb != ""){
+                MP.vOCW.push_back(sm.vRelations[init].verb);
+                MP.vRole.push_back("P");
+            }
+
+            if (sm.vRelations[init].subject != ""){
+                MP.vOCW.push_back(sm.vRelations[init].subject);
+                MP.vRole.push_back("A");
+            }
+
+            if (sm.vRelations[init].object != ""){
+                MP.vOCW.push_back(sm.vRelations[init].object);
+                MP.vRole.push_back("O");
+            }
+            meaning.vSentence.push_back(MP);
+
+            os << sm.vRelations[init].subject
+                << " " << sm.vRelations[init].verb
+                << " " << sm.vRelations[init].object
+                << " ";
+
+        }
+    }
+
+    // FINAL
+    if (sIGARF == "F"){
+        for (auto i : sm.vIGARF[iIGARF].vFinalState){
+            meaningProposition MP;
+
+            if (sm.vRelations[i].verb != ""){
+                MP.vOCW.push_back(sm.vRelations[i].verb);
+                MP.vRole.push_back("P");
+            }
+
+            if (sm.vRelations[i].subject != ""){
+                MP.vOCW.push_back(sm.vRelations[i].subject);
+                MP.vRole.push_back("A");
+            }
+
+            if (sm.vRelations[i].object != ""){
+                MP.vOCW.push_back(sm.vRelations[i].object);
+                MP.vRole.push_back("O");
+            }
+                        meaning.vSentence.push_back(MP);
+
+            os << sm.vRelations[i].subject
+                << " " << sm.vRelations[i].verb
+                << " " << sm.vRelations[i].object
+                << " ";
+        }
+    }
+
+    // GOAL
+    if (sIGARF == "G"){
+        for (auto i : sm.vIGARF[iIGARF].vGoal){
+            meaningProposition MP;
+
+            if (sm.vRelations[i].verb != ""){
+                MP.vOCW.push_back(sm.vRelations[i].verb);
+                MP.vRole.push_back("P");
+            }
+
+            if (sm.vRelations[i].subject != ""){
+                MP.vOCW.push_back(sm.vRelations[i].subject);
+                MP.vRole.push_back("A");
+            }
+
+            if (sm.vRelations[i].object != ""){
+                MP.vOCW.push_back(sm.vRelations[i].object);
+                MP.vRole.push_back("O");
+            }
+            meaning.vSentence.push_back(MP);
+
+            os << sm.vRelations[i].subject
+                << " " << sm.vRelations[i].verb
+                << " " << sm.vRelations[i].object
+                << " ";
+        }
+    }
 
 
+    // ACTION
+    if (sIGARF == "A" && sm.vIGARF[iIGARF].iAction >= 0){
+        meaningProposition MP;
+        if (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate != ""){
+            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate);
+            MP.vRole.push_back("P");
+        }
+
+        if (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent != ""){
+            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent);
+            MP.vRole.push_back("A");
+        }
+
+        if (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object != ""){
+            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object);
+            MP.vRole.push_back("O");
+        }
+
+        if (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient != ""){
+            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient);
+            MP.vRole.push_back("R");
+        }
+
+        meaning.vSentence.push_back(MP);
+
+        os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
+            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
+            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
+            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
+    }
+
+    // RESULT
+    if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
+        meaningProposition MP;
+        if (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate != ""){
+            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate);
+            MP.vRole.push_back("P");
+        }
+
+        if (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent != ""){
+            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent);
+            MP.vRole.push_back("A");
+        }
+
+        if (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object != ""){
+            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object);
+            MP.vRole.push_back("O");
+        }
+
+        if (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient != ""){
+            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient);
+            MP.vRole.push_back("R");
+        }
+
+        meaning.vSentence.push_back(MP);
+
+        os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
+            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
+            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
+            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
+    }
+
+    //cout << os.str() << endl;
+
+    return meaning;
+}
 
 
 

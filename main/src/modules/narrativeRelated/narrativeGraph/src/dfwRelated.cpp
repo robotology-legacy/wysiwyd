@@ -25,6 +25,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 using namespace std;
+using namespace discourseform;
 
 
 
@@ -70,10 +71,10 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
 
 
     // CHECK IF PAOR
-    discourseform::meaningSentence meaning;
+    meaningSentence meaning;
     if (bInput.size() > 3){
         string tmpPAOR = bInput.get(3).asString();
-        meaning = meaningToEvent(tmpPAOR);
+        meaning = sentenceToEvent(tmpPAOR);
     }
     hasPAOR = meaning.vSentence.size() != 0;
     // PAOR CHECKED
@@ -132,7 +133,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
             for (int step = 0; step < histoSize; step++){
                 if (dPos >= (step*stepSize)
                     && dPos < ((step + 1)*stepSize)){
-                    dScore *= dfw.vTimeSimple[step];
+                    dScore += dfw.vTimeSimple[step];
                 }
             }
 
@@ -148,6 +149,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         ostringstream os;
 
         vector<pair <int, string> > AddedEvt;
+        vector<pair <meaningSentence, double> > vMeaningScore; // vector of the meaning of event with their scores
         for (auto posibilities : vpScore){
             // I can talk of this element
             if (posibilities.second > 0.5 * best){
@@ -164,62 +166,31 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
                 }
 
                 if (toAdd){
-                    os << "I should talk about evt: " << iIGARF << " " << sIGARF << " : ";
-
-                    // INIT
-                    if (sIGARF == "I"){
-                        for (auto init : sm.vIGARF[iIGARF].vInitState){
-                            os << sm.vRelations[init].subject
-                                << " " << sm.vRelations[init].verb
-                                << " " << sm.vRelations[init].object
-                                << " ";
-                        }
-                    }
-                    // FINAL
-                    if (sIGARF == "F"){
-                        for (auto i : sm.vIGARF[iIGARF].vFinalState){
-                            os << sm.vRelations[i].subject
-                                << " " << sm.vRelations[i].verb
-                                << " " << sm.vRelations[i].object
-                                << " ";
-                        }
-                    }
-                    // GOAL
-                    if (sIGARF == "G"){
-                        for (auto i : sm.vIGARF[iIGARF].vGoal){
-                            os << sm.vRelations[i].subject
-                                << " " << sm.vRelations[i].verb
-                                << " " << sm.vRelations[i].object
-                                << " ";
-                        }
-                    }
-                    // ACTION
-                    if (sIGARF == "A"&& sm.vIGARF[iIGARF].iAction >= 0){
-                        os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
-                    }
-                    // RESULT
-                    if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
-                        os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
-                    }
-                    os << " , " << posibilities.second << endl;
+                    //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
+                    meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
+                    vMeaningScore.push_back(pair<meaningSentence, double>(meaning, posibilities.second));
                     AddedEvt.push_back(currentPair);
                 }
             }
         }
+
+        // REMOVE DOUBLES
+        removeDoubleMeaning(vMeaningScore);
+
+        for (auto toSend : vMeaningScore){
+            string preparedMeaning = prepareMeaningForLRH(sdfw, toSend.first);
+
+            if (preparedMeaning != "none")
+            {
+                cout << preparedMeaning << " : " << toSend.second << endl;
+                os << iCub->getLRH()->meaningToSentence(preparedMeaning, true) << " " << toSend.second << endl;
+            }
+        }
         bRet.addString(os.str());
-        cout << os.str();
     }
 
     // ELSE IS DFW HAS A PAOR AS INPUT:
     if (hasPAOR){
-
-        dfw.printCorMatrix();
 
         // FIND THE CORREPONDANT EVT
         int iScore = 0;
@@ -282,15 +253,10 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
                     int histoSize = dfw.vTimeDouble.size();
                     double stepSize = 2. / (histoSize*1.);
 
-                    //cout << "evt: " << range <<
-                    //    ", IGARF: " << sm.vChronoEvent[range].first << " " << sm.vChronoEvent[range].second
-                    //    << ", pos: " << dPos << ", hist: ";
-
-                    // find position in the histo and multiply score by esperence
                     for (int step = 0; step < histoSize; step++){
                         if (dPos >= (step*stepSize - 1)
                             && dPos < ((step + 1)*stepSize - 1)){
-                            dScore *= dfw.vTimeDouble[step];
+                            dScore += dfw.vTimeDouble[step];
                         }
                     }
 
@@ -307,6 +273,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         ostringstream os;
 
         vector<pair <int, string> > AddedEvt;
+        vector<pair <meaningSentence, double> > vMeaningScore; // vector of the meaning of event with their scores
         for (auto posibilities : vpScore){
             // I can talk of this element
             if (posibilities.second > 0.5 * best){
@@ -323,56 +290,34 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
                 }
 
                 if (toAdd){
-                    os << "I should talk about evt: " << iIGARF << " " << sIGARF << " : ";
-
-                    // INIT
-                    if (sIGARF == "I"){
-                        for (auto init : sm.vIGARF[iIGARF].vInitState){
-                            os << sm.vRelations[init].subject
-                                << " " << sm.vRelations[init].verb
-                                << " " << sm.vRelations[init].object
-                                << " ";
-                        }
-                    }
-                    // FINAL
-                    if (sIGARF == "F"){
-                        for (auto i : sm.vIGARF[iIGARF].vFinalState){
-                            os << sm.vRelations[i].subject
-                                << " " << sm.vRelations[i].verb
-                                << " " << sm.vRelations[i].object
-                                << " ";
-                        }
-                    }
-                    // GOAL
-                    if (sIGARF == "G"){
-                        for (auto i : sm.vIGARF[iIGARF].vGoal){
-                            os << sm.vRelations[i].subject
-                                << " " << sm.vRelations[i].verb
-                                << " " << sm.vRelations[i].object
-                                << " ";
-                        }
-                    }
-                    // ACTION
-                    if (sIGARF == "A"&& sm.vIGARF[iIGARF].iAction >= 0){
-                        os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient;
-                    }
-                    // RESULT
-                    if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
-                        os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object
-                            << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient;
-                    }
-                    os << " , " << posibilities.second << endl;
+                    //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
+                    meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
+                    vMeaningScore.push_back(pair<meaningSentence, double>(meaning, posibilities.second));
                     AddedEvt.push_back(currentPair);
                 }
             }
         }
+
+        // REMOVE DOUBLES
+        removeDoubleMeaning(vMeaningScore);
+
+        for (auto toSend : vMeaningScore){
+            string preparedMeaning;
+            if (isFirst){
+                preparedMeaning = prepareMeaningForLRH(sdfw, meaning, toSend.first, !isFirst);
+            }
+            else{
+                preparedMeaning = prepareMeaningForLRH(sdfw, toSend.first, meaning, !isFirst);
+            }
+
+            if (preparedMeaning != "none")
+            {
+                cout << preparedMeaning << " : " << toSend.second << endl;
+                os << iCub->getLRH()->meaningToSentence(preparedMeaning, true) << " " << toSend.second << endl;
+            }
+        }
+
         bRet.addString(os.str());
-        cout << os.str();
     }
 
 
@@ -455,4 +400,229 @@ storygraph::DFW narrativeHandler::foundDFW(string sdfw){
         yWarning() << " in narrativeGraph::foundDFW cannot find dfw: " << sdfw;
     }
     return dfw;
+}
+
+
+bool checkMeaning(pair <meaningSentence, double> M1, pair <meaningSentence, double> M2){
+    return (M1.first.getSentence() == M2.first.getSentence());
+}
+
+bool checkMeaningSort(pair <meaningSentence, double> M1, pair <meaningSentence, double> M2){
+    return (M1.first.getSentence() < M2.first.getSentence());
+}
+
+void narrativeHandler::removeDoubleMeaning(vector<pair <meaningSentence, double> > &vec){
+
+    // check for each meaning if already present and remove them.
+    sort(vec.begin(), vec.end(), checkMeaningSort);
+    vec.erase(unique(vec.begin(), vec.end(), checkMeaning), vec.end());
+}
+
+
+string narrativeHandler::prepareMeaningForLRH(string dfw, meaningSentence M1, meaningSentence M2, bool DFWAB){
+    string sReturn;
+    ostringstream osFocus,
+        osOCW;
+
+    // if order is: M1 DFW M2
+    if (!DFWAB){
+        if (M1.vSentence.size() == 0 || M2.vSentence.size() == 0){
+            yWarning("in narrativeHandler::prepareMeaningForLRH  one of the meaning is empty.");
+            return "none";
+        }
+
+        if (M1.getSentence() == M2.getSentence()){
+            yWarning(" in narrativeHandler::prepareMeaningForLRH meanings identical");
+            return "none";
+        }
+
+        osOCW << dfw << ", ";
+
+        // ADD OCW SENTENCE 1
+        for (auto ocw : M1.vSentence[0].vOCW){
+            osOCW << ocw << " ";
+        }
+        osOCW << ", ";
+
+        // ADD OCW SENTENCE 2
+        for (auto ocw : M2.vSentence[0].vOCW){
+            osOCW << ocw << " ";
+        }
+
+        osFocus << " <o>[";
+
+        // First bracket
+        // ONLY THE DFW
+        for (auto foc : M1.vSentence[0].vRole){
+            osFocus << "_-";
+        }
+        osFocus << "P";
+        // blanck evt for sentence 2
+        for (auto foc : M2.vSentence[0].vRole){
+            osFocus << "-_";
+        }
+        osFocus << "][";
+
+        // Second bracket for DFW
+        // add the role of the first sentence with order: A P O R
+        osFocus << "A-P-";
+        // IF OBJECT EXIST
+        if (M1.vSentence[0].vRole.size() > 2){
+            osFocus << "O-";
+        }
+        //if recipient exist
+        if (M1.vSentence[0].vRole.size() > 3){
+            osFocus << "R-";
+        }
+        // add the effect of DFW
+        osFocus << "_";
+
+        // blanck evt for sentence 2
+        for (auto foc : M2.vSentence[0].vRole){
+            osFocus << "-_";
+        }
+        osFocus << "][";
+
+        // Third bracket
+        for (auto foc : M1.vSentence[0].vRole){
+            osFocus << "_-";
+        }
+        // add the effect of DFW
+        osFocus << "_";
+
+        // blanck evt for sentence 2
+        osFocus << "-A-P";
+        if (M2.vSentence[0].vRole.size() > 2){
+            osFocus << "-O";
+        }
+        //if recipient exist
+        if (M2.vSentence[0].vRole.size() > 3){
+            osFocus << "-R";
+        }
+        osFocus << "]<o>";
+
+        sReturn = osOCW.str() + osFocus.str();
+    }
+    // if order is DFW M2 M1
+    else {
+        if (M1.vSentence.size() == 0 || M2.vSentence.size() == 0){
+            yWarning("in narrativeHandler::prepareMeaningForLRH  one of the meaning is empty.");
+            return "none";
+        }
+
+        if (M1.getSentence() == M2.getSentence()){
+            yWarning(" in narrativeHandler::prepareMeaningForLRH meanings identical");
+            return "none";
+        }
+
+        osOCW << dfw << ", ";
+
+        // ADD OCW SENTENCE 1
+        for (auto ocw : M1.vSentence[0].vOCW){
+            osOCW << ocw << " ";
+        }
+        osOCW << ", ";
+
+        // ADD OCW SENTENCE 2
+        for (auto ocw : M2.vSentence[0].vOCW){
+            osOCW << ocw << " ";
+        }
+
+        osFocus << " <o>[P";
+
+        // First bracket
+        // ONLY THE DFW
+        for (auto foc : M1.vSentence[0].vRole){
+            osFocus << "-_";
+        }
+        // blanck evt for sentence 2
+        for (auto foc : M2.vSentence[0].vRole){
+            osFocus << "-_";
+        }
+
+
+        // SECOND BRACKET IS M1 THIRD ELEMENT OF SENTENCE
+        osFocus << "][_";
+        // blanck evt for sentence 2
+        for (auto foc : M2.vSentence[0].vRole){
+            osFocus << "-_";
+        }
+        // add the role of the first sentence with order: A P O R
+        osFocus << "-A-P";
+        // IF OBJECT EXIST
+        if (M1.vSentence[0].vRole.size() > 2){
+            osFocus << "-O";
+        }
+        //if recipient exist
+        if (M1.vSentence[0].vRole.size() > 3){
+            osFocus << "-R";
+        }
+
+        osFocus << "][_";
+        // THIRD BRACKET IS M2 SECOND ELEMENT
+        osFocus << "-A-P";
+        // IF OBJECT EXIST
+        if (M2.vSentence[0].vRole.size() > 2){
+            osFocus << "-O";
+        }
+        //if recipient exist
+        if (M2.vSentence[0].vRole.size() > 3){
+            osFocus << "-R";
+        }
+        // blanck evt for sentence 2
+        for (auto foc : M2.vSentence[0].vRole){
+            osFocus << "-_";
+        }
+        osFocus << "]<o>";
+
+        sReturn = osOCW.str() + osFocus.str();
+    }
+
+    return sReturn;
+}
+
+
+
+string narrativeHandler::prepareMeaningForLRH(string dfw, meaningSentence M1){
+    string sReturn;
+    ostringstream osFocus,
+        osOCW;
+
+    if (M1.vSentence.size() == 0){
+        yWarning("in narrativeHandler::prepareMeaningForLRH  meaning is empty.");
+        return "none";
+    }
+
+    osOCW << dfw << ", ";
+
+    // ADD OCW SENTENCE 1
+    for (auto ocw : M1.vSentence[0].vOCW){
+        osOCW << ocw << " ";
+    }
+
+    osFocus << " <o> [P";
+
+    // First bracket
+    // add the empty for each OCW
+    for (auto foc : M1.vSentence[0].vRole){
+        osFocus << "-_";
+    }
+
+    // Second bracket for DFW
+    // add the effect of DFW
+    osFocus << "][_-A-P";
+
+    // IF OBJECT EXIST
+    if (M1.vSentence[0].vRole.size() > 2){
+        osFocus << "-O";
+    }
+    //if recipient exist
+    if (M1.vSentence[0].vRole.size() > 3){
+        osFocus << "-R";
+    }
+    osFocus << "] <o>";
+
+    sReturn = osOCW.str() + osFocus.str();
+
+    return sReturn;
 }

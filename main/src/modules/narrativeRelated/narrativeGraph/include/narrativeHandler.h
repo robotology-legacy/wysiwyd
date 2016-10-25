@@ -136,7 +136,9 @@ private:
     void addLink(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     void LRHtoSM(std::string m, yarp::os::Bottle& reply, bool create = false);
     void sentenceToTrain(std::string s, yarp::os::Bottle& reply);
-    discourseform::meaningSentence meaningToEvent(std::string level1); ///< transform a meaning from lrh to an properly formatted event
+    discourseform::meaningSentence sentenceToEvent(std::string level1); ///< transform a meaning from lrh to an properly formatted event
+    discourseform::meaningSentence evtToMeaning(std::string sIGARF, int iIGARF);
+    void removeDoubleMeaning(std::vector<std::pair <discourseform::meaningSentence, double> > &vMeaningScore);
     
     ///< DFW related
     void analyseDFW();      ///< run a set of analysis on the DFW
@@ -145,6 +147,8 @@ private:
     void displayDFW();
     yarp::os::Bottle useDFW(yarp::os::Bottle bInput); ///< Create a sentence using the specified DFW
     storygraph::DFW foundDFW(std::string sdfw);
+    std::string prepareMeaningForLRH(std::string dfw, discourseform::meaningSentence M1);
+    std::string prepareMeaningForLRH(std::string dfw, discourseform::meaningSentence M1, discourseform::meaningSentence M2, bool DFWAB);
 
 
     std::string lowerKey(std::string input);

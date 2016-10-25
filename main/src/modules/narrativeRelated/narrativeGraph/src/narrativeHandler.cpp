@@ -2387,9 +2387,10 @@ void narrativeHandler::loadSM(int iScenario){
 
 
 
-discourseform::meaningSentence narrativeHandler::meaningToEvent(string level1){
+discourseform::meaningSentence narrativeHandler::sentenceToEvent(string level1){
 
     ostringstream os;
+    discourseform::meaningSentence currentSentence;
 
     if (level1 != ""){
 
@@ -2451,8 +2452,6 @@ discourseform::meaningSentence narrativeHandler::meaningToEvent(string level1){
         //       cout << endl;
         //separation of the propositions
 
-        discourseform::meaningSentence currentSentence;
-
         if (meaningPAOR.size() != meaningWords.size()){
             yWarning() << " in narrativeGraph::discourseform.cpp::meaningToDiscourseForm: Size of PAOR and OCW different";
             os << " in narrativeGraph::discourseform.cpp::meaningToDiscourseForm: Size of PAOR and OCW different" << endl;
@@ -2487,11 +2486,14 @@ discourseform::meaningSentence narrativeHandler::meaningToEvent(string level1){
                     currentSentence.vSentence.push_back(tmp);
                 }
 
-                // add the OCW and PAOR
-                currentSentence.vSentence[iNumberProposition - 1].vOCW.push_back(meaningWords[iWords]);
-                currentSentence.vSentence[iNumberProposition - 1].vRole.push_back(&meaningPAOR[iWords].at(0));
+                if (iNumberProposition > 0){
+
+                    // add the OCW and PAOR
+                    currentSentence.vSentence[iNumberProposition - 1].vOCW.push_back(meaningWords[iWords]);
+                    currentSentence.vSentence[iNumberProposition - 1].vRole.push_back(&meaningPAOR[iWords].at(0));
+                }
             }
         }
-        return currentSentence;
     }
+    return currentSentence;
 }
