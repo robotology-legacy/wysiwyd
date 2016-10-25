@@ -17,11 +17,12 @@
 
 #include "jointsAwareness.h"
 
+using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;
-//using namespace wysiwyd::wrdac;
-using namespace std;
+using namespace wysiwyd::wrdac;
+
 
 bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
 {
@@ -94,11 +95,10 @@ bool jointsAwareness::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
     if(!isConnected){
-               yWarning() << "The port " << objLocStreamPortName << " from iol2opc is needed to stream the 2D proj of objects! jointsAwareness will NOT be able to stream this inforations" ;
-               isObjectStreamed = false;
+               yWarning() << "The port " << objLocStreamPortName << " from iol2opc is needed to stream the 2D proj of objects! jointsAwareness will NOT be able to stream this informations" ;
     }
 
-    if(isObjectStreamed == true){
+    if(read_ObjLoc_Port.getInputCount() > 0){
         string write_Obj2DProj_PortName = "/" + moduleName + "/" + "objects" + "/" + cameraSuffix + "/objects2DProj:o";
         write_Obj2DProj_Port.open(write_Obj2DProj_PortName);
     }
@@ -149,7 +149,7 @@ bool jointsAwareness::updateModule() {
     isTorsoDone = streamCartesian("left_arm");
     isTorsoDone = streamCartesian("right_arm");
 
-    if(isObjectStreamed == true){
+    if(read_ObjLoc_Port.getInputCount() > 0){
         streamObjects();
     }
 
@@ -179,8 +179,6 @@ void jointsAwareness::streamObjects() {
 
             Bottle bCurrentObjectLoc;
 
-            std::string::size_type sz; // alias of size_t
-
             std::vector<std::string> result;
             std::istringstream iss(s_objLoc);
             //separe the string into 'word' separated by space
@@ -200,7 +198,7 @@ void jointsAwareness::streamObjects() {
                     break;
                 }
                 //cast the double from string to proper double
-                double d = stod(s, &sz);
+                double d = stod(s);
                 bCurrentObjectLoc.addDouble(d);
                 vObjLoc.push_back(d);
                 counter ++;
@@ -213,7 +211,7 @@ void jointsAwareness::streamObjects() {
             }
 
             for(unsigned int p = 0; p < projection2D.size(); p++){   //to be inside ABM, the projection has to be a string with the x/y
-                if(p == 0){                                          //begin with a space otherwrise
+                if(p == 0){                                          //begin with a space otherwise
                     s_objProj = to_string(projection2D[p]);
                 } else {
                     s_objProj = s_objProj + " " + to_string(projection2D[p]);

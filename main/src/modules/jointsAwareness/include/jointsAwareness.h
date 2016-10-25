@@ -10,23 +10,13 @@
 #include <yarp/dev/PolyDriver.h>
 #include "wrdac/clients/icubClient.h"
 
-
-
-using namespace wysiwyd::wrdac;
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-
-
-
-class jointsAwareness : public RFModule {
+class jointsAwareness : public yarp::os::RFModule {
 private:
 
     //conf options
-    //wysiwyd::wrdac::ICubClient  *iCub;
     double      period;
 
-    string arm, camera, robot, moduleName;
+    std::string arm, camera, robot, moduleName;
 
     yarp::os::Port   rpcPort;
 
@@ -49,12 +39,12 @@ private:
     yarp::dev::PolyDriver gazeClientCtrl;
     yarp::dev::IGazeControl *iGaze;
 
-    std::map<string, yarp::os::BufferedPort<yarp::os::Bottle>*> locPorts_map;
-    std::map<string, yarp::os::BufferedPort<yarp::os::Bottle>*> projPorts_map;
-    std::map<string, yarp::dev::PolyDriver*> polydriver_map;
-    std::map<string, yarp::dev::ICartesianControl*> cartesian_map;
+    std::map<std::string, yarp::os::BufferedPort<yarp::os::Bottle>*> locPorts_map;
+    std::map<std::string, yarp::os::BufferedPort<yarp::os::Bottle>*> projPorts_map;
+    std::map<std::string, yarp::dev::PolyDriver*> polydriver_map;
+    std::map<std::string, yarp::dev::ICartesianControl*> cartesian_map;
 
-    std::map<string, yarp::os::Bottle> test_map;
+    std::map<std::string, yarp::os::Bottle> test_map;
 
 
 
@@ -64,8 +54,8 @@ private:
     bool isObjectStreamed = true;
 
     bool configMaps();
-    bool configCartesian(string part, string cameraSuffix);
-    bool streamCartesian(string part, string cartesianPart = "default");
+    bool configCartesian(std::string part, std::string cameraSuffix);
+    bool streamCartesian(std::string part, std::string cartesianPart = "default");
 
     void streamObjects();
 
@@ -84,5 +74,5 @@ public:
     bool updateModule();
 
     //RPC & scenarios
-    bool respond(const Bottle& cmd, Bottle& reply);
+    bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
 };
