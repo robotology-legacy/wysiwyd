@@ -487,7 +487,11 @@ void SituationModel::ABMtoSM(const story &sto, ofstream &IGARFfile) {
                     g.subject = agent;
                     g.verb = pred;
                     g.object = object;
-                    vRelations.push_back(g);
+
+                    if (g.verb == "have") {
+                        g.verb = "want";
+                    }
+                    //vRelations.push_back(g);
                     int i = findRelation(g, true);
                     newEvent.vGoal.push_back(i);
                 }
@@ -506,8 +510,11 @@ void SituationModel::ABMtoSM(const story &sto, ofstream &IGARFfile) {
                     if (agent == "icub") agent = "iCub";
                     g.subject = agent;
                     g.verb = pred;
+                    if (g.verb == "have"){
+                        g.verb = "want";
+                    }
                     g.object = object;
-                    vRelations.push_back(g);
+                    //vRelations.push_back(g);
                     int i = findRelation(g, true);
                     newEvent.vGoal.push_back(i);
                 }
@@ -542,6 +549,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     int firstOfChain = -1;
     int lastOfChain = -1;
     int N = vIGARF.size();
+    displayGoals(); 
     for (int i = 0; i < N; i++) {
         // End chain?
         sIGARF currentIGARF = vIGARF.at(i);
@@ -555,8 +563,15 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
                 VocabularyHandler::sameMeaning(vActionEvts.at(currentIGARF.iResult).predicate, "fail")) && // Not a failure
                 !(isRelationsBInA(currentIGARF.vInitState, currentIGARF.vFinalState) &&
                 isRelationsBInA(currentIGARF.vFinalState, currentIGARF.vInitState))) { // Final and init state are differents
-                //cout << "dans comment" << endl;
-                vIGARF.at(i).vGoal = vIGARF.at(i).vFinalState;
+                // if a final staéte should be set as goal, change have by "want"
+                for (auto fin : vIGARF.at(i).vFinalState){
+                    sRelation newR = vRelations[fin];
+                    if (vRelations[fin].verb == "have"){                        
+                        newR.verb = "want";                        
+                    }
+                    int kk = findRelation(newR, true);
+                    vIGARF.at(i).vGoal.push_back(kk);
+                }
             }
             if (lastOfChain == -1){
                 rep.push_back(i);
@@ -598,6 +613,9 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
         }
     }
 
+
+    displayGoals();
+
     if (rep.size() == 0)
         return;
     int head = rep.at(0);
@@ -636,6 +654,8 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     //displayEvent();
 
 
+    displayGoals();
+
     // Step 4: Spreading goals
     // (Naïve)
     // From Result and Next to Current
@@ -656,6 +676,8 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
         }
     }
 
+
+    displayGoals();
 
     // From Current to Action, Result and Next
     change = true;
@@ -682,6 +704,8 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
 
     cout << "Story from instance: " << instanceBegin << "; Head is: " << head << endl << endl;
 
+
+    displayGoals();
 
     //displayEvent();
 
@@ -1582,6 +1606,23 @@ void SituationModel::displayEvent(){
                 << "-" << vActionEvts[vIGARF.at(ig.iAction).iAction].recipient << "]" << endl;
         }
 
+        doku++;
+    }
+}
+
+
+
+
+void SituationModel::displayGoals(){
+    int doku = 0;
+    cout << endl;
+    for (auto ig : vIGARF){
+        cout << doku << ": " << ig.toString() << endl;
+        for (auto goal : ig.vGoal){
+            cout << "\t" << vRelations[goal].subject << " "
+                << vRelations[goal].verb << " "
+                << vRelations[goal].object << endl;
+        }
         doku++;
     }
 }

@@ -204,6 +204,7 @@ namespace storygraph {
         void writeSVG(std::ofstream &fOutput, int nIGARF); ///< Draws the IGARF by calling the appropriate auxiliary function
 
         void displayEvent(); // display all event in the IGARF
+        void displayGoals();
         void checkEVTIGARF(EVT_IGARF &evtKM);
 
         void removeDoubleEvt(std::vector<sKeyMean> &vkmBest);
