@@ -907,12 +907,13 @@ bool autobiographicalMemory::updateModule() {
             if (bListContData.toString() != "NULL") {
                 Bottle &bCmd = dataStreamPortOut.second->prepare();
                 bCmd.clear();
-                // for joints, begin with the command to set the position
+                // for joints, begin with the command to set the position, also for objects2DProj
                 if (dataStreamPortOut.first.find("state:o") != std::string::npos) {
                     bCmd.fromString("[set] [poss]");
                 }
 
                 Bottle bJoints;
+                map<int, double> jointsMap;
 
                 // Append bottle of ports for all the subtypes
                 for (int i = 0; i < bListContData.size(); i++) {
@@ -920,11 +921,18 @@ bool autobiographicalMemory::updateModule() {
                         timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                         //yDebug() << "Set new timeLastImageSentCurrentIteration " << timeLastImageSentCurrentIteration;
                     }
-                    if (dataStreamPortOut.first.find("skeleton:o") != std::string::npos) {
+                    // for skeleton joints, also for objects2DProj where subtype is the name of the joints/objects and value is a string with the info
+                    if ((dataStreamPortOut.first.find("skeleton:o") != std::string::npos)  || (dataStreamPortOut.first.find("objects2DProj:o") != std::string::npos)) {
                         bJoints.addString(bListContData.get(i).asList()->get(3).asString());
                     } else {
-                        bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
+                        jointsMap[atoi(bListContData.get(i).asList()->get(0).asString().c_str())] = atof(bListContData.get(i).asList()->get(3).asString().c_str());
+                        //bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
                     }
+                }
+
+                //because key is int, the map should already be ordered. Dont do anything if jointsMap is empty
+                for(auto const& jointItem : jointsMap){
+                    bJoints.addDouble(jointItem.second);
                 }
 
                 bCmd.addList() = bJoints;
