@@ -921,9 +921,15 @@ bool autobiographicalMemory::updateModule() {
                         timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                         //yDebug() << "Set new timeLastImageSentCurrentIteration " << timeLastImageSentCurrentIteration;
                     }
-                    // for skeleton joints, also for objects2DProj where subtype is the name of the joints/objects and value is a string with the info
-                    if ((dataStreamPortOut.first.find("skeleton:o") != std::string::npos)  || (dataStreamPortOut.first.find("objects2DProj:o") != std::string::npos)) {
+                    // for skeleton joints, subtype 0->n , value "hand x y z"
+                    if (dataStreamPortOut.first.find("skeleton:o") != std::string::npos) {
                         bJoints.addString(bListContData.get(i).asList()->get(3).asString());
+                    } else if ((dataStreamPortOut.first.find("objects2DProj:o") != std::string::npos) || (dataStreamPortOut.first.find("agentLoc:o") != std::string::npos)) {
+                        // for objProj or agentLoc, subtype = object/joint name, value = "x y"
+                        Bottle bSubtype;
+                        bSubtype.addString(bListContData.get(i).asList()->get(0).asString()); //element 0 is the subtype
+                        bSubtype.addString(bListContData.get(i).asList()->get(3).asString()); //element 3 is the value
+                        bJoints.addList() = bSubtype;
                     } else {
                         jointsMap[atoi(bListContData.get(i).asList()->get(0).asString().c_str())] = atof(bListContData.get(i).asList()->get(3).asString().c_str());
                         //bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
