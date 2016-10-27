@@ -549,7 +549,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     int firstOfChain = -1;
     int lastOfChain = -1;
     int N = vIGARF.size();
-    displayGoals(); 
+
     for (int i = 0; i < N; i++) {
         // End chain?
         sIGARF currentIGARF = vIGARF.at(i);
@@ -613,9 +613,6 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
         }
     }
 
-
-    displayGoals();
-
     if (rep.size() == 0)
         return;
     int head = rep.at(0);
@@ -651,11 +648,6 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
         }
     }
 
-    //displayEvent();
-
-
-    displayGoals();
-
     // Step 4: Spreading goals
     // (Naïve)
     // From Result and Next to Current
@@ -675,9 +667,6 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
             }
         }
     }
-
-
-    displayGoals();
 
     // From Current to Action, Result and Next
     change = true;
@@ -704,15 +693,8 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
 
     cout << "Story from instance: " << instanceBegin << "; Head is: " << head << endl << endl;
 
-
-    displayGoals();
-
-    //displayEvent();
-
     vChronoIgarf.clear();
     showIGARF(head, IGARFfile);
-
-    //displayEvent();
 
     cout << endl;
 

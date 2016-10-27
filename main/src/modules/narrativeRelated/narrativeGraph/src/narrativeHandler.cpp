@@ -41,6 +41,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     // get grammar file
     GrammarNarration = rf.findFileByName(rf.check("GrammarNarration", Value("GrammarNarration.xml")).toString());
     GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
+    GrammarQuestionDFW = rf.findFileByName(rf.check("GrammarQuestionDFW", Value("nodeYesNo.xml")).toString());
 
     if (!iCub->connect())
     {
@@ -214,12 +215,18 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
-    //    cout << "linking scenarios 3 3" << endl;
-    //linkMeaningScenario(4,3);
-    //cout << "linking scenarios 2 2" << endl;
-    //linkMeaningScenario(2, 2);
-    //cout << endl << endl;
-    //displayDFW();
+    cout << "linking scenarios 2 2" << endl;
+    linkMeaningScenario(2, 1);
+    cout << "linking scenarios 3 3" << endl;
+    linkMeaningScenario(3, 2);
+    cout << "linking scenarios 4 4" << endl;
+    linkMeaningScenario(4, 3);
+    cout << "linking scenarios 5 5" << endl;
+    linkMeaningScenario(5, 4);
+    cout << endl << endl;
+
+    questionHRI_DFW();
+
 
     /*
         ofstream IGARFfile;
@@ -272,6 +279,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " cleanDFW\n"
         " exportDFW\n" +
         " useDFW\n" +
+        " HRI\n" +
         " ABMtoSM + storyNumber = last\n"
         " linkNarrationScenario + iNarration + iScenario\n" +
         " linkMeaningScenario + iNarration + iScenario\n" +
@@ -445,6 +453,10 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "useDFW") {
         yInfo(" using a Discourse Function Words");
         reply = useDFW(command);
+    }
+    else if (command.get(0).asString() == "HRI") {
+        yInfo(" launching HRI");
+        reply = questionHRI_DFW();
     }
     else if (command.get(0).asString() == "ABMtoSM") {
         yInfo(" create the situation model from ABM");

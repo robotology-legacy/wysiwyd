@@ -38,6 +38,9 @@ using namespace discourseform;
 * 4: first or second element of double dfw (0/1) default = first
 */
 Bottle narrativeHandler::useDFW(Bottle bInput){
+
+    cout << "useDFW launched: " << bInput.toString() <<endl;
+
     Bottle bRet;
     bRet.addVocab(Vocab::encode("many"));
 
@@ -50,11 +53,6 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
 
     bool hasPAOR = false;   ///< check if dfw will have to be double
     bool isFirst = true;    ///< if dfw is double, does PAOR sent has to be first or second (first by default)
-
-    // LOAD SCENARIO
-    int iScenario = bInput.get(1).asInt() - 1;
-    loadSM(iScenario);
-    // SCENARIO LOADED
 
 
     // CHECK DFW
@@ -96,13 +94,18 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         { "F", 4 }
     };
 
+    // LOAD SCENARIO
+    int iScenario = bInput.get(1).asInt() - 1;
+    loadSM(iScenario);
+    // SCENARIO LOADED
+
     // IF HASN'T PAOR:
     if (!hasPAOR){
         // THEN GET THE SENTENCE THE BEST ADAPTED
 
-
         // DOES THIS DFW CAN BE USE WITH ONE SENTENCE ONLY:
-        if (dfw.vTimeSimple.size() == 0){
+        if (dfw.vSingleIGARF.size() == 0){
+            yWarning("DFW about 2 preposition. At least one needed.");
             bRet.addString("DFW about 2 preposition. At least one needed.");
             return bRet;
         }
@@ -204,7 +207,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         }
 
         // DOES THIS DFW CAN BE USE WITH ONE SENTENCE ONLY:
-        if (dfw.vTimeDouble.size() == 0){
+        if (dfw.vDoubleIGARF.size() == 0){
             bRet.addString("DFW about 1 preposition only. 2 given.");
             return bRet;
         }

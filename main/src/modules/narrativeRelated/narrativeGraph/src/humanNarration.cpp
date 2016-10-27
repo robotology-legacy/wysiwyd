@@ -44,9 +44,7 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
     ostringstream osError;
     Bottle bOutput;
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-        bAnswer, //response from speech recog without transfer information, including raw sentence
-        bSemantic, // semantic information of the content of the recognition
-        bSendReasoning; // send the information of recall to the abmReasoning
+        bAnswer; //response from speech recog without transfer information, including raw sentence
 
     vector<string> vNewStory;
 
@@ -73,9 +71,7 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
         else{
             cout << "confirmation: " << sSentence << endl;
 
-            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarYesNo), 20, false, false);
-
-            if (bRecognized.get(1).asList()->get(0).toString() == "yes"){
+            if (speechConfirmation()){
                 vNewStory.push_back(sSentence);
             }
         }
@@ -942,6 +938,7 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
 *
 */
 string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
+    cout << "in linkMeaningScenario: meaning " << iMeaning << " - scenario " << iScenario << endl;
 
     // check sizes:
     if (iMeaning > listAutoMeaning.size() || iScenario > listStories.size()){
@@ -954,11 +951,9 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
     listStories.at(iScenario).displayNarration();
 
-
     // getting scenario
     loadSM(iScenario);
 
-    cout << "in linkMeaningScenario: " << endl;
     int iLost = 0;
 
     //    sm.displayEvent();
@@ -1132,7 +1127,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                         storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
                         sm.checkEVTIGARF(evtKM);
 
-                        cout << "KM is: " << evtKM.toString() << endl;
+                        //cout << "KM is: " << evtKM.toString() << endl;
 
                         if (iNbPreposition > 2){
                             if (iPreposition < 2){
@@ -1185,7 +1180,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     } // end sentence
     //cout << "end of the loop, starting to display" << endl;
 
-    displayDFW();
+    //displayDFW();
 
     //MD.print();
     sReturn += to_string(iLost) + " sentences lost.";

@@ -76,24 +76,6 @@ private:
     std::string adaptMeaning(std::string oriMeaning);
     evtStory adaptMeaning(evtStory& evt);
 
-    void addNarrationToStory(story &target, bool overWrite = false);
-    void addTextNarration(story &target, bool overWrite = false);    // add narration through text
-    void addAutoNarration(story &target, int iScena, bool overWrite = false);    // add a full narration (# iScena) to the story iIns
-
-    void recordNarrationABM(story &target);
-    void listeningStory();
-    
-    std::string GrammarNarration; // the file for the grammar narration
-    std::string GrammarYesNo;
-    bool shouldSpeak;
-    bool narrate(int iIns);
-    
-    bool addHumanNarration(int iIns, std::string sModality = "speech", int iScena = 1);   // add narration through speech
-
-    bool narrationToSpeech(story sto);
-    bool narrationToMeaning(story& target);
-    void imagineStory(story& target);
-
     void enrichMeaning(std::string &meaning, std::string sentence);
     bool configure(yarp::os::ResourceFinder &rf);
 
@@ -139,7 +121,7 @@ private:
     discourseform::meaningSentence sentenceToEvent(std::string level1); ///< transform a meaning from lrh to an properly formatted event
     discourseform::meaningSentence evtToMeaning(std::string sIGARF, int iIGARF);
     void removeDoubleMeaning(std::vector<std::pair <discourseform::meaningSentence, double> > &vMeaningScore);
-    
+
     ///< DFW related
     void analyseDFW();      ///< run a set of analysis on the DFW
     void exportDFW();       ///< export data of the DFW in a file csv
@@ -149,6 +131,33 @@ private:
     storygraph::DFW foundDFW(std::string sdfw);
     std::string prepareMeaningForLRH(std::string dfw, discourseform::meaningSentence M1);
     std::string prepareMeaningForLRH(std::string dfw, discourseform::meaningSentence M1, discourseform::meaningSentence M2, bool DFWAB);
+
+
+
+    ///< HRI Related   
+    std::string GrammarNarration; // the file for the grammar narration
+    std::string GrammarQuestionDFW; // file for HRI interaction with DFW
+    std::string GrammarYesNo;
+
+    bool addHumanNarration(int iIns, std::string sModality = "speech", int iScena = 1);   // add narration through speech
+    bool narrationToSpeech(story sto);
+    bool narrationToMeaning(story& target);
+    bool speechConfirmation();
+    void imagineStory(story& target);
+    void addNarrationToStory(story &target, bool overWrite = false);
+    void addTextNarration(story &target, bool overWrite = false);    // add narration through text
+    void addAutoNarration(story &target, int iScena, bool overWrite = false);    // add a full narration (# iScena) to the story iIns
+
+    void recordNarrationABM(story &target);
+    void listeningStory();
+
+    bool shouldSpeak;
+    bool narrate(int iIns);
+
+    yarp::os::Bottle questionHRI_DFW();
+    yarp::os::Bottle what_DFW_Simple(yarp::os::Bottle bInput, int iScenario = 5);
+    yarp::os::Bottle what_DFW_Double(yarp::os::Bottle bInput, int iScenario = 5);
+    yarp::os::Bottle whyPAOR(yarp::os::Bottle bInput, int iScenario = 5);
 
 
     std::string lowerKey(std::string input);
