@@ -45,7 +45,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     if (!iCub->connect())
     {
-        yInfo() << "iCubClient : Some dependencies are not running...";
+        yWarning() << "iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
 

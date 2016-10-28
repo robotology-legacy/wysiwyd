@@ -39,7 +39,7 @@ using namespace discourseform;
 */
 Bottle narrativeHandler::useDFW(Bottle bInput){
 
-    cout << "useDFW launched: " << bInput.toString() <<endl;
+    cout << "useDFW launched: " << bInput.toString() << endl;
 
     Bottle bRet;
     bRet.addVocab(Vocab::encode("many"));
@@ -186,10 +186,13 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
             if (preparedMeaning != "none")
             {
                 cout << preparedMeaning << " : " << toSend.second << endl;
-                os << iCub->getLRH()->meaningToSentence(preparedMeaning, true) << " " << toSend.second << endl;
+                Bottle bTemp;
+                bTemp.addString(iCub->getLRH()->meaningToSentence(preparedMeaning, true));
+                bTemp.addDouble(toSend.second);
+                cout << bTemp.toString() << endl;
+                bRet.addList() = bTemp;
             }
         }
-        bRet.addString(os.str());
     }
 
     // ELSE IS DFW HAS A PAOR AS INPUT:
@@ -316,12 +319,15 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
             if (preparedMeaning != "none")
             {
                 cout << preparedMeaning << " : " << toSend.second << endl;
-                os << iCub->getLRH()->meaningToSentence(preparedMeaning, true) << " " << toSend.second << endl;
+                Bottle bTemp;
+                bTemp.addString(iCub->getLRH()->meaningToSentence(preparedMeaning, true));
+                bTemp.addDouble(toSend.second);
+                cout << bTemp.toString() << endl;
+                bRet.addList() = bTemp;
             }
         }
-
-        bRet.addString(os.str());
     }
+
 
 
     return bRet;
