@@ -390,7 +390,10 @@ bool Babbling::doBabbling()
     Bottle abmCommand;
     abmCommand.addString("babbling");
     abmCommand.addString("arm");
-    abmCommand.addString(part);
+    if(single_joint != -1){
+        yDebug() << "This is  single joint babbling, add into abm bottle";
+        abmCommand.addInt(single_joint);
+    }
     reply = dealABM(abmCommand,1);
 
     //check ABM reply
@@ -768,7 +771,6 @@ bool Babbling::doBabblingKinStruct()
     Bottle abmCommand;
     abmCommand.addString("babbling");
     abmCommand.addString("arm");
-    abmCommand.addString(part);
     reply = dealABM(abmCommand,1);
 
     //check ABM reply
@@ -1311,7 +1313,7 @@ bool Babbling::init_iCub(string &part)
 
 Bottle Babbling::dealABM(const Bottle& command, int begin)
 {
-    yDebug() << "Dealing with ABM";
+    yDebug() << "Dealing with ABM: bottle received = " << command.toString() << " of size = " << command.size();
     if (begin<0 || begin>1)
     {
         yError() << "begin parameter must be 1 or 0.";
@@ -1332,18 +1334,19 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     Bottle bSubSubArgument;
     bSubSubArgument.addString(command.get(1).toString());
     bSubSubArgument.addString("limb");
-    if(command.size()==3)
-    {
-        Bottle bSubSubArgument;
-        bSubSubArgument.addInt(command.get(2).asInt());
-        bSubSubArgument.addString("index");
-    }
     Bottle bSubSubArgument2;
     bSubSubArgument2.addString(part);
     bSubSubArgument2.addString("side");
     Bottle bSubSubArgument3;
     bSubSubArgument3.addString(robot);
     bSubSubArgument3.addString("agent1");
+    if(command.size()>=3)
+    {
+        Bottle bSubSubArgument4;
+        bSubSubArgument4.addString(command.get(2).toString());
+        bSubSubArgument4.addString("joint");
+        bSubArgument.addList() = bSubSubArgument4;
+    }
     Bottle bBegin;
     bBegin.addString("begin");
     bBegin.addInt(begin);
@@ -1352,6 +1355,7 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     bSubArgument.addList() = bSubSubArgument;
     bSubArgument.addList() = bSubSubArgument2;
     bSubArgument.addList() = bSubSubArgument3;
+
     bABM.addList() = bSubArgument;
     bABM.addList() = bBegin;
     yInfo() << "Bottle to ABM: " << bABM.toString();
