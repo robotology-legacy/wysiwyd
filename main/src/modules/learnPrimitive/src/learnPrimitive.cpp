@@ -445,7 +445,6 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
         //    "print(head(mySubset[c('instanceProto', 'value','frame_number')]));";
         //R.parseEval(cmd);
 
-
         cmd = "library(ggplot2);"
               "for(babbling in as.numeric(levels(as.factor(myCleanedData$instanceBabbling)))){"
               "     df.current.babbling <- subset(myCleanedData, myCleanedData$instanceBabbling == babbling);"
@@ -464,6 +463,7 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
         R.parseEval(cmd);
 
 
+        /************************************************ commands.R in cloudstation ************************************************/
 
         cmd =   "df.babbling <- myCleanedData;print(head(df.babbling));"
                 "par_nrow <- 3;"        //number of row in X11() plot 1st lm proto
