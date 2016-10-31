@@ -366,7 +366,7 @@ def main():
         if optModel.configured[0]:
             myBopt = GPyOpt.methods.BayesianOptimization(f=optModel.f,  # function to optimize
                                                          domain=optModel.domain,  # box-constrains of the problem
-                                                         initial_design_numdata=10,  # number data initial design
+                                                         initial_design_numdata=2,  # number data initial design
                                                          acquisition_type=optModel.acquisitionFunction)
             max_iter = 200
 

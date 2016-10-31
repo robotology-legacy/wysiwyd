@@ -63,7 +63,10 @@ class SAMDriver:
         self.modelLabel = None
         self.textLabels = None
         self.participantList = None
+        self.varianceThreshold = None
         self.fname = None
+        self.optimiseRecall = True
+        self.modelLoaded = False
 
         self.Yall = None
         self.Lall = None
@@ -113,10 +116,12 @@ class SAMDriver:
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
         yTesting = SAMTesting.formatDataFunc(Yall)
-        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTesting, Lall, verbose)
+        [self.segTrainConf, self.segTrainPerc, _] = SAMTesting.testSegments(testModel, yTesting, Lall, verbose,
+                                                                            label='Training')
 
         yTesting = SAMTesting.formatDataFunc(YtestAll)
-        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTesting, LtestAll, verbose)
+        [self.segTestConf, self.segTestPerc, _] = SAMTesting.testSegments(testModel, yTesting, LtestAll, verbose,
+                                                                          label='Testing')
 
         return self.segTestConf
 
@@ -227,7 +232,7 @@ class SAMDriver:
     #
     # Outputs: None
     # """"""""""""""""
-    def prepareData(self, model='mrd', Ntr=50, randSeed=0):
+    def prepareData(self, model='mrd', Ntr=50, randSeed=0, normalise=True):
         # currently does not take equal number of samples from different classes
 
         Nts = self.Y.shape[0] - Ntr
@@ -246,35 +251,51 @@ class SAMDriver:
         Lall = self.L[indTr].copy()
         self.L = self.L[indTr]
 
-        # Center data to zero mean and 1 std
-        self.Ymean = self.Y.mean()
-        self.Yn = self.Y - self.Ymean
-        self.Ystd = self.Yn.std()
-        self.Yn /= self.Ystd
-        # Normalise test data similarly to training data
-        self.Ytestn = self.Ytest - self.Ymean
-        self.Ytestn /= self.Ystd
+        if normalise:
+            print 'Normalising data'
+            # Center data to zero mean and 1 std
+            self.Ymean = self.Y.mean()
+            self.Yn = self.Y - self.Ymean
+            self.Ystd = self.Yn.std()
+            self.Yn /= self.Ystd
+            # Normalise test data similarly to training data
+            self.Ytestn = self.Ytest - self.Ymean
+            self.Ytestn /= self.Ystd
 
-        # As above but for the labels
-        # self.Lmean = self.L.mean()
-        # self.Ln = self.L - self.Lmean
-        # self.Lstd = self.Ln.std()
-        # self.Ln /= self.Lstd
-        # self.Ltestn = self.Ltest - self.Lmean
-        # self.Ltestn /= self.Lstd
+            # As above but for the labels
+            # self.Lmean = self.L.mean()
+            # self.Ln = self.L - self.Lmean
+            # self.Lstd = self.Ln.std()
+            # self.Ln /= self.Lstd
+            # self.Ltestn = self.Ltest - self.Lmean
+            # self.Ltestn /= self.Lstd
 
-        if model == 'mrd':
-            self.X = None
-            self.Y = {'Y': self.Yn, 'L': self.L}
-            self.data_labels = self.L.copy()
-        elif model == 'gp':
-            self.X = self.Y.copy()
-            self.Y = {'L': self.Ln.copy()+0.08*numpy.random.randn(self.Ln.shape[0], self.Ln.shape[1])}
-            self.data_labels = None
-        elif model == 'bgplvm':
-            self.X = None
-            self.Y = {'Y': self.Yn}
-            self.data_labels = self.L.copy()
+            if model == 'mrd':
+                self.X = None
+                self.Y = {'Y': self.Yn, 'L': self.L}
+                self.data_labels = self.L.copy()
+            elif model == 'gp':
+                self.X = self.Y.copy()
+                self.Y = {'L': self.Ln.copy() + 0.08 * numpy.random.randn(self.Ln.shape[0], self.Ln.shape[1])}
+                self.data_labels = None
+            elif model == 'bgplvm':
+                self.X = None
+                self.Y = {'Y': self.Yn}
+                self.data_labels = self.L.copy()
+        else:
+            print 'Not normalising data'
+            if model == 'mrd':
+                self.X = None
+                self.Y = {'Y': self.Y, 'L': self.L}
+                self.data_labels = self.L.copy()
+            elif model == 'gp':
+                self.X = self.Y.copy()
+                self.Y = {'L': self.Ln.copy() + 0.08 * numpy.random.randn(self.Ln.shape[0], self.Ln.shape[1])}
+                self.data_labels = None
+            elif model == 'bgplvm':
+                self.X = None
+                self.Y = {'Y': self.Y}
+                self.data_labels = self.L.copy()
 
         return Yall, Lall, YtestAll, LtestAll
 
@@ -303,7 +324,7 @@ class SAMDriver:
     #
     # Outputs: None
     # """"""""""""""""
-    def processLiveData(self, dataList, thisModel):
+    def processLiveData(self, dataList, thisModel, verbose=False):
         raise NotImplementedError("this needs to be implemented to use the model class")
 
     # """"""""""""""""

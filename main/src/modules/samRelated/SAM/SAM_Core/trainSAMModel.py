@@ -27,9 +27,9 @@ driverName = sys.argv[3]
 
 mm = initialiseModels(sys.argv[1:4], sys.argv[4])
 
-if len(mm) > 1:
-    SAMTesting.calibrateMultipleModelRecall(mm)
+SAMTesting.calibrateModelRecall(mm)
 
+overallPerformance = 100000
 if mm[0].model_mode != 'temporal':
     overallPerformance = mm[0].testPerformance(mm, mm[0].Yall, mm[0].Lall, mm[0].YtestAll, mm[0].LtestAll, True)
 elif mm[0].model_mode == 'temporal':
@@ -62,6 +62,8 @@ for k in range(numParts):
 
     if k == 0:
         mm[0].paramsDict['listOfModels'] = mm[0].listOfModels
+        mm[0].paramsDict['avgClassTime'] = mm[0].avgClassTime
+        mm[0].paramsDict['optimiseRecall'] = mm[0].optimiseRecall
         if numParts > 1:
             mm[0].paramsDict['classifiers'] = mm[0].classifiers
             mm[0].paramsDict['classif_thresh'] = mm[0].classif_thresh
@@ -73,6 +75,11 @@ for k in range(numParts):
 
             if mm[0].model_mode != 'temporal':
                 mm[0].paramsDict['Y'] = mm[k].Y['Y'].shape
+
+            if mm[0].varianceThreshold is not None:
+                mm[0].paramsDict['bestDistanceIDX'] = mm[0].bestDistanceIDX
+                mm[0].paramsDict['varianceThreshold'] = mm[0].varianceThreshold
+                mm[0].paramsDict['varianceDirection'] = mm[0].varianceDirection
 
     elif numParts > 1:
         # fname = mm[0].listOfModels[k-1]

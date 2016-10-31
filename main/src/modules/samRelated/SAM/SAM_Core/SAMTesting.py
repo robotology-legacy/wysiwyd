@@ -12,19 +12,21 @@
 # """"""""""""""""""""""""""""""""""""""""""""""
 from IPython.display import clear_output
 from sklearn.mixture import GMM
-from SAM.SAM_Core import SAM_utils
+from SAM.SAM_Core import SAM_utils as utils
 import ipyparallel as ipp
 import time
 import matplotlib.pyplot as plt
+import numpy.matlib
 import sys
-import operator
 import copy
 import psutil
-from scipy.spatial import distance
+import timeit
 import numpy as np
 from collections import Mapping, Container
 from sys import getsizeof
+
 np.set_printoptions(threshold=np.nan)
+
 
 # thisModel = None
 
@@ -56,8 +58,68 @@ def deep_getsizeof(o, ids):
     return r
 
 
-def calibrateMultipleModelRecall(thisModel):
+def calibrateModelRecall(thisModel):
+    if len(thisModel) > 1:
+        calibrateMultipleModelRecall(thisModel)
+    elif hasattr(thisModel[0], 'allDataDict'):
+        print 'calibrating model'
+        calibrateSingleModelRecall(thisModel)
+    else:
+        print 'no calibration'
 
+
+def calibrateSingleModelRecall(thisModel):
+    yCalib = formatDataFunc(thisModel[0].allDataDict['Y'])
+    print 'entering segment testing'
+    labelList, confMatrix, ret, variancesKnown, variancesUnknown = segmentTesting(thisModel, yCalib,
+                                                                                  thisModel[0].allDataDict['L'],
+                                                                                  thisModel[0].verbose, 'calib',
+                                                                                  serialMode=False,
+                                                                                  optimise=thisModel[0].optimiseRecall,
+                                                                                  calibrate=True)
+
+    [mk, vk, rk] = utils.meanVar_varianceDistribution(variancesKnown)
+    [muk, vuk, ruk] = utils.meanVar_varianceDistribution(variancesUnknown)
+
+    distance = []
+    for j in range(len(mk)):
+        distance.append(utils.bhattacharyya_distance(mk[j], muk[j], vk[j], vuk[j]))
+
+    if distance is not None:
+        maxIdx = distance.index(max(distance))
+    thisModel[0].bestDistanceIDX = maxIdx
+    thisModel[0].bestDistance_props = {'KnownMean': mk[maxIdx], 'UnknownMean': muk[maxIdx],
+                                       'KnownVar': vk[maxIdx], 'UnknownVar': vuk[maxIdx]}
+    if maxIdx < len(mk) - 2:
+        thisModel[0].bestSegOperation = maxIdx
+    elif maxIdx == len(mk) - 2:
+        thisModel[0].bestSegOperation = 'sum'
+    elif maxIdx == len(mk) - 1:
+        thisModel[0].bestSegOperation = 'mean'
+
+    intersection = utils.solve_intersections(mk[maxIdx], muk[maxIdx], np.sqrt(vk[maxIdx]), np.sqrt(vuk[maxIdx]))
+
+    maxLim = max(rk[maxIdx][1], ruk[maxIdx][1])
+    minLim = min(rk[maxIdx][0], ruk[maxIdx][0])
+
+    delList = []
+    for j in range(len(intersection)):
+        if intersection[j] > maxLim or intersection[j] < minLim:
+            delList.append(j)
+
+    thisModel[0].segIntersections = np.delete(intersection, delList)
+    thisModel[0].bhattaDistances = distance
+
+    print 'Num Intersections: ', len(thisModel[0].segIntersections)
+
+    [thisModel[0].varianceThreshold,
+     thisModel[0].varianceDirection] = calculateVarianceThreshold(thisModel[0].segIntersections,
+                                                                  mk[maxIdx], muk[maxIdx], vk[maxIdx], vuk[maxIdx])
+    print 'varianceThreshold', thisModel[0].varianceThreshold
+    print 'varianceDirection', thisModel[0].varianceDirection
+
+
+def calibrateMultipleModelRecall(thisModel):
     cmSize = len(thisModel[0].textLabels)
     confMatrix = np.zeros((cmSize, cmSize))
 
@@ -70,7 +132,7 @@ def calibrateMultipleModelRecall(thisModel):
             yy_test = thisModel[i].Ytestn.copy()
             yy_test *= thisModel[i].Ystd
             yy_test += thisModel[i].Ymean
-            y_valid_tmp, y_test_tmp, _, _ = SAM_utils.random_data_split(yy_test, [0.5, 0.5])
+            y_valid_tmp, y_test_tmp, _, _ = utils.random_data_split(yy_test, [0.5, 0.5])
             Y_valid.append(y_valid_tmp.copy())
             Y_testing.append(y_test_tmp.copy())
 
@@ -79,28 +141,28 @@ def calibrateMultipleModelRecall(thisModel):
     for i in range(len(thisModel)):
         if thisModel[i].SAMObject.model:
             # N_test x N_labels matrix.
-            familiarities[i-1] = np.zeros((Y_valid[i-1].shape[0], (len(thisModel) - 1)))
+            familiarities[i - 1] = np.zeros((Y_valid[i - 1].shape[0], (len(thisModel) - 1)))
             print("## True label is " + thisModel[i].modelLabel)
-            for k in range(Y_valid[i-1].shape[0]):
+            for k in range(Y_valid[i - 1].shape[0]):
                 sstest = []
                 print('# k=' + str(k))
                 for j in range(len(thisModel)):
                     if thisModel[j].SAMObject.model:
-                        yy_test = Y_valid[i-1][k, :][None, :].copy()
+                        yy_test = Y_valid[i - 1][k, :][None, :].copy()
                         # Normalize according to the model to predict
                         yy_test -= thisModel[j].Ymean
                         yy_test /= thisModel[j].Ystd
-                        sstest.append(thisModel[j].SAMObject.familiarity(yy_test))
-                        familiarities[i-1][k, j-1] = sstest[-1]
+                        sstest.append(thisModel[j].SAMObject.familiarity(yy_test, optimise=thisModel[0].optimiseRecall))
+                        familiarities[i - 1][k, j - 1] = sstest[-1]
                 for j in range(len(sstest)):
                     if j == np.argmax(sstest):
                         print '   *',
                     else:
                         print '    ',
-                    print('      Familiarity of model ' + thisModel[j+1].modelLabel + ' given label: ' +
+                    print('      Familiarity of model ' + thisModel[j + 1].modelLabel + ' given label: ' +
                           thisModel[i].modelLabel + ' in valid: ' + str(sstest[j]))
 
-                confMatrix[i-1, np.argmax(sstest)] += 1
+                confMatrix[i - 1, np.argmax(sstest)] += 1
     calculateData(thisModel[0].textLabels, confMatrix)
 
     # At this point we have:
@@ -149,78 +211,83 @@ def formatDataFunc(Ydata):
     return yDataList
 
 
-def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
+def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimise=True):
     # Returns the predictive mean, the predictive variance and the axis (pp) of the latent space backwards mapping.
     # mm,vv,pp=self.SAMObject.pattern_completion(testFace, visualiseInfo=visualiseInfo)
     # if verbose:
-        # print 'single model recall'
+    # print 'single model recall'
     textStringOut = ''
     # normalize incoming data
     testValue = testInstance - thisModel.Ymean
     testValue /= thisModel.Ystd
 
-    ret = thisModel.SAMObject.pattern_completion(testValue, visualiseInfo=visualiseInfo)
+    ret = thisModel.SAMObject.pattern_completion(testValue, visualiseInfo=visualiseInfo, optimise=optimise)
 
     mm = ret[0]
-    vv = ret[1]
+    vv = list(ret[1][0])
+
     # post = ret[3]
 
     # find nearest neighbour of mm and SAMObject.model.X
-    dists = np.zeros((thisModel.SAMObject.model.X.shape[0], 1))
 
-    for j in range(dists.shape[0]):
-        dists[j, :] = distance.euclidean(thisModel.SAMObject.model.X.mean[j, :], mm[0].values)
-    nn, min_value = min(enumerate(dists), key=operator.itemgetter(1))
+    k = np.matlib.repmat(mm[0].values, thisModel.SAMObject.model.X.mean.shape[0], 1)
+    pow2 = np.power(thisModel.SAMObject.model.X.mean - k, 2)
+    s = np.power(np.sum(pow2, 1), 0.5)
+    nn = np.argmin(s)
+    min_value = s[nn]
+
+    applyThresholding = thisModel.varianceThreshold is not None
+
     if thisModel.SAMObject.type == 'mrd':
-        if verbose:
-            print "With " + str(vv.mean()) + " prob. error the new instance is " \
-                  + thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
-        # if vv.mean() < 0.1:
-        textStringOut = thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
-        # else:
-            # textStringOut = 'unknown'
+        if applyThresholding:
+            if utils.varianceClass(thisModel.varianceDirection, vv[thisModel.bestDistanceIDX], thisModel.varianceThreshold):
+                textStringOut = thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
+                if verbose:
+                    print "With", vv[thisModel.bestDistanceIDX], "prob. error the new instance is", textStringOut
+            else:
+                textStringOut = 'unknown'
+                if verbose:
+                    print "With ", vv[thisModel.bestDistanceIDX], "prob. error the new instance is ", \
+                        thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
+                    print 'But', thisModel.varianceThreshold, thisModel.varianceDirection, 'than', \
+                        vv[thisModel.bestDistanceIDX], 'so class as', textStringOut
+        else:
+            textStringOut = thisModel.textLabels[int(thisModel.SAMObject.model.bgplvms[1].Y[nn, :])]
+            if verbose:
+                print "With ", vv, "prob. error the new instance is", textStringOut
 
-    elif thisModel.SAMObject.type == 'bgplvm':
-        if verbose:
-            print "With " + str(vv.mean()) + " prob. error the new instance is " \
-                  + thisModel.textLabels[int(thisModel.L[nn, :])]
-        # if vv.mean() < 0.1:
-        textStringOut = thisModel.textLabels[int(thisModel.L[nn, :])]
-        # else:
-        #     textStringOut = 'unknown'
+    if thisModel.SAMObject.type == 'bgplvm':
+        if applyThresholding:
+            if utils.varianceClass(thisModel.varianceDirection, vv[thisModel.bestDistanceIDX], thisModel.varianceThreshold):
+                textStringOut = thisModel.textLabels[int(thisModel.L[nn, :])]
+                if verbose:
+                    print "With ", vv[thisModel.bestDistanceIDX], "prob. error the new instance is", textStringOut
+            else:
+                textStringOut = 'unknown'
+                if verbose:
+                    print "With ", vv[thisModel.bestDistanceIDX], "prob. error the new instance is", \
+                        thisModel.textLabels[int(thisModel.L[nn, :])]
+                    print 'But', thisModel.varianceThreshold, thisModel.varianceDirection, 'than', \
+                        vv[thisModel.bestDistanceIDX], 'so class as', textStringOut
+        else:
+            textStringOut = thisModel.textLabels[int(thisModel.L[nn, :])]
+            if verbose:
+                print "With", vv, "prob. error the new instance is", textStringOut
 
-    # if(vv.mean()<0.00012):
-    #     print "The action is " + textStringOut
-    # elif(vv.mean()>0.00012):
-    #     print "I think the action is " + textStringOut + " but I am not sure"
-
-    # # Plot the training NN of the test image (the NN is found in the INTERNAl, compressed (latent) memory space!!!)
-    # if visualiseInfo is not None:
-    #     fig_nn = visualiseInfo['fig_nn']
-    #     fig_nn = pb.figure(11)
-    #     pb.title('Training NN')
-    #     fig_nn.clf()
-    #     pl_nn = fig_nn.add_subplot(111)
-    #     pl_nn.imshow(numpy.reshape(self.SAMObject.recall(nn),(self.imgHeightNew, self.imgWidthNew)),
-    #     cmap=plt.cm.Greys_r)
-    #     pb.title('Training NN')
-    #     pb.show()
-    #     pb.draw()
-    #     pb.waitforbuttonpress(0.1)
-    return [textStringOut, vv.mean()]
+    return [textStringOut, vv]
 
 
-def multipleRecall_noCalib(thisModel, testInstance, verbose, visualiseInfo=None):
+def multipleRecall_noCalib(thisModel, testInstance, verbose, visualiseInfo=None, optimise=True):
     result = []
     if verbose:
         pass
-    #     print 'multiple model recall'
+    # print 'multiple model recall'
 
     for j in thisModel:
         if j.SAMObject.model:
             tempTest = testInstance - j.Ymean
             tempTest /= j.Ystd
-            yy_test = j.SAMObject.familiarity(tempTest)
+            yy_test = j.SAMObject.familiarity(tempTest, optimise=optimise)
             if verbose:
                 print('Familiarity with ' + j.modelLabel + ' given current instance is: ' + str(yy_test))
             # yy_test -= thisModel[j].Ymean
@@ -234,30 +301,25 @@ def multipleRecall_noCalib(thisModel, testInstance, verbose, visualiseInfo=None)
     return [thisModel[0].textLabels[maxIdx - 1], result[maxIdx][0]]
 
 
-def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
-
+def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimise=True):
     cmSize = len(thisModel[0].textLabels)
     familiarities_tmp = []
     classif_tmp = []
 
     label = 'unknown'
 
-    # if verbose:
-    #     pass
-    #     print 'multiple model recall'
-
     if not thisModel[0].classifiers:
         calibrateMultipleModelRecall(thisModel)
 
     for j in range(cmSize):
-        tempTest = testInstance - thisModel[j+1].Ymean
-        tempTest /= thisModel[j+1].Ystd
-        yy_test = thisModel[j+1].SAMObject.familiarity(tempTest)[:, None]
-        yy_test += thisModel[j].Ymean
-        yy_test *= thisModel[j].Ystd
+        tempTest = testInstance - thisModel[j + 1].Ymean
+        tempTest /= thisModel[j + 1].Ystd
+        yy_test = thisModel[j + 1].SAMObject.familiarity(tempTest, optimise=optimise)[:, None]
+        # yy_test *= thisModel[j+1].Ystd
+        # yy_test += thisModel[j+1].Ymean
         cc = thisModel[0].classifiers[j].predict_proba(yy_test)[:, j]
         if verbose:
-            print('Familiarity with ' + thisModel[j+1].modelLabel + ' given current instance is: ' + str(yy_test) +
+            print('Familiarity with ' + thisModel[j + 1].modelLabel + ' given current instance is: ' + str(yy_test) +
                   ' ' + str(cc[0]))
         familiarities_tmp.append(yy_test)
         classif_tmp.append(cc)
@@ -266,12 +328,11 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
 
     for j in range(cmSize):
         if thisModel[0].classif_thresh[j][0] <= classif_tmp[j] <= thisModel[0].classif_thresh[j][1]:
-            print 'GEWWAAA'
             bestConfidence = j
             label = thisModel[0].textLabels[j]
 
-        print 'min, classifier, max = ' + str(thisModel[0].classif_thresh[j][0]) + ' ' + str(classif_tmp[j]) + ' ' + \
-              str(thisModel[0].classif_thresh[j][1])
+            # print 'min, classifier, max = ' + str(thisModel[0].classif_thresh[j][0]) + ' ' + str(classif_tmp[j]) + ' ' + \
+            #       str(thisModel[0].classif_thresh[j][1])
 
     # if visualiseInfo:
     #     pass
@@ -280,16 +341,16 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
 
 
 def plot_confusion_matrix(cm, targetNames, title='Confusion matrix', cmap=plt.cm.inferno):
-        plt.figure()
-        plt.imshow(cm, interpolation='nearest', cmap=cmap)
-        plt.title(title)
-        plt.colorbar()
-        tick_marks = np.arange(len(targetNames))
-        plt.xticks(tick_marks, targetNames, rotation=45)
-        plt.yticks(tick_marks, targetNames)
-        plt.tight_layout()
-        plt.ylabel('True label')
-        plt.xlabel('Predicted label')
+    plt.figure()
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(targetNames))
+    plt.xticks(tick_marks, targetNames, rotation=45)
+    plt.yticks(tick_marks, targetNames)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
 
 
 def wait_watching_stdout(ar, dt=1, truncate=1000):
@@ -307,18 +368,17 @@ def wait_watching_stdout(ar, dt=1, truncate=1000):
         time.sleep(dt)
 
 
-def testSegment(thisModel, Ysample, verbose, visualiseInfo=None):
+def testSegment(thisModel, Ysample, verbose, visualiseInfo=None, optimise=False):
     if len(thisModel) > 1:
-        d = multipleRecall(thisModel, Ysample, verbose, visualiseInfo)
+        d = multipleRecall(thisModel, Ysample, verbose, visualiseInfo, optimise=optimise)
     else:
-        d = singleRecall(thisModel[0], Ysample, verbose, visualiseInfo)
+        d = singleRecall(thisModel[0], Ysample, verbose, visualiseInfo, optimise=optimise)
     return d
 
 
-def testSegments(thisModel, Ysample, Lnum, verbose):
-
+def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, optimise=True, calibrate=False):
     def testFunc(data, lab):
-        d = testSegment(thisModel, data, verbose)
+        d = testSegment(thisModel, data, verbose, visualiseInfo=None, optimise=optimise)
         if verbose:
             if lab == d[0]:
                 res = True
@@ -330,28 +390,18 @@ def testSegments(thisModel, Ysample, Lnum, verbose):
 
     print
 
-    # cmSize = len(set(self.data2Labels))
-    # confMatrix = np.zeros((cmSize, cmSize))
-    # labelList = copy.deepcopy(list(set(self.data2Labels)))
     if type(Lnum).__module__ == np.__name__:
         useModelLabels = True
     else:
         useModelLabels = False
 
-    if useModelLabels:
-        if len(thisModel) > 1:
-            labelList = copy.deepcopy(thisModel[0].textLabels)
-            labelList.append('unknown')
-        else:
-            labelList = copy.deepcopy(thisModel[0].textLabels)
-            labelList.append('unknown')
+    if len(thisModel) > 1:
+        labelList = copy.deepcopy(thisModel[0].textLabels)
+        labelList.append('unknown')
     else:
-        if len(thisModel) > 1:
-            labelList = copy.deepcopy(list(set(Lnum)))
-            labelList.append('unknown')
-        else:
-            labelList = copy.deepcopy(list(set(Lnum)))
-            labelList.append('unknown')
+        labelList = copy.deepcopy(thisModel[0].textLabels)
+        labelList.append('unknown')
+
     confMatrix = np.zeros((len(labelList), len(labelList)))
 
     numItems = len(Ysample)
@@ -364,65 +414,178 @@ def testSegments(thisModel, Ysample, Lnum, verbose):
     else:
         Lsample = Lnum
 
-    print 'estimated time: ' + str(numItems/60) + 'mins for ' + str(numItems) + ' items'
-
     parallelOperation = True
     c = None
-    try:
-        c = ipp.Client()
-        numWorkers = len(c._engines)
-    except:
-        print "Parallel workers not found"
+    print 'serialMode', serialMode
+    if not serialMode:
+        try:
+            print 'Trying engines ...'
+            c = ipp.Client()
+            numWorkers = len(c._engines)
+            print 'Number of engines:', numWorkers
+        except:
+            print "Parallel workers not found"
+            parallelOperation = False
+            numWorkers = 1
+    else:
+        print serialMode, '= True'
         parallelOperation = False
         numWorkers = 1
+        print 'Number of engines:', numWorkers
 
+    # average 5 classifications before providing this time
+    vTemp = copy.deepcopy(verbose)
+    verbose = False
+    numTrials = 50
+    t0 = time.time()
+    for j in range(numTrials):
+        testFunc(Ysample[j], Lsample[j])
+    t1 = time.time()
+    verbose = vTemp
+    thisModel[0].avgClassTime = (t1 - t0) / numTrials
+    print 'classification rate:', 1.0 / thisModel[0].avgClassTime, 'fps'
+    print 'estimated time: ' + str(thisModel[0].avgClassTime * numItems / (60*numWorkers)) + 'mins for ' + str(numItems) + ' items with ' + str(numWorkers) + 'workers' 
+    t0 = time.time()
+    print t0
     # check size of model
     # modelSize is size in megabytes
     modelSize = deep_getsizeof(thisModel, set()) / 1024.0 / 1024.0
     print "modelSize: ", modelSize
-    print "required testing size: ", (modelSize*numWorkers*2)+400, " MB"
+    print "required testing size: ", (modelSize * numWorkers * 2) + 400, " MB"
     # check available system memory in megabytes
     freeSystemMem = float(psutil.virtual_memory()[4]) / 1024.0 / 1024.0
     print "free memory:", freeSystemMem, " MB"
 
-    if (modelSize*numWorkers*2) > 250 or not parallelOperation:
+    if modelSize > 100 or not parallelOperation or serialMode:
         # serial testing
         print 'Testing serially'
         ret = []
         for j in range(len(Lsample)):
+            print j, '/', len(Lsample)
             ret.append(testFunc(Ysample[j], Lsample[j]))
     else:
         # parallel testing
         print 'Testing in parallel'
-        dview = c[:]
+        dview = c[:]  # not load balanced
+        lb = c.load_balanced_view()  # load balanced
 
         # with dview.sync_imports():
-        #     from SAM.SAM_Core import SAM_utils
-
+        #     from SAM.SAM_Core import utils
+        # if not thisModel[0].modelLoaded :
         dview.push({'thisModel': thisModel})
         dview.push({'verbose': verbose})
-
-        syn = dview.map_async(testFunc, Ysample, Lsample)
+        dview.push({'optimise': optimise})
+        # thisModel[0].modelLoaded = True
+        syn = lb.map_async(testFunc, Ysample, Lsample)
         wait_watching_stdout(syn, dt=1, truncate=1000)
         ret = syn.get()
+        # maybe these are upsetting the ipcluster
+        # dview.clear()
+        # dview.purge_results('all')
+    t1 = time.time()
+    print t1
+    print 'Actual time taken =', t1-t0
+    if calibrate:
+        variancesKnown = []
+        variancesUnknown = []
+        for i in range(len(ret)):
+            currLabel = Lsample[i]
 
-    for i in range(len(ret)):
-        currLabel = Lsample[i]
+            if verbose:
+                if currLabel == ret[i][0]:
+                    result = True
+                else:
+                    result = False
+                print str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: ' + ret[
+                    i][0].ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) + ' confidence: ' + str(result)
 
-        if verbose:
-            if currLabel == ret[i][0]:
-                result = True
+            if currLabel in thisModel[0].textLabels:
+                knownLabel = True
             else:
-                result = False
-            print str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: ' + ret[
-                i][0].ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) + ' confidence: ' + str(result)
+                knownLabel = False
+                currLabel = 'unknown'
 
-        confMatrix[labelList.index(currLabel), labelList.index(ret[i][0])] += 1
+            if knownLabel:
+                variancesKnown.append(ret[i][1])
+            else:
+                variancesUnknown.append(ret[i][1])
 
-    return calculateData(labelList, confMatrix)
+            confMatrix[labelList.index(currLabel), labelList.index(ret[i][0])] += 1
+
+        return labelList, confMatrix, ret, variancesKnown, variancesUnknown
+    else:
+        for i in range(len(ret)):
+            currLabel = Lsample[i]
+            retLabel = ret[i][0]
+
+            if currLabel not in thisModel[0].textLabels:
+                currLabel = 'unknown'
+
+            if verbose:
+                if currLabel == retLabel:
+                    result = True
+                else:
+                    result = False
+                print str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: ' + \
+                      retLabel.ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) + \
+                      ' confidence: ' + str(result)
+
+            confMatrix[labelList.index(currLabel), labelList.index(retLabel)] += 1
+        return labelList, confMatrix
+
+
+def testSegments(thisModel, Ysample, Lnum, verbose, label, serialMode=False):
+    labelList, confMatrix = segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=serialMode,
+                                           optimise=thisModel[0].optimiseRecall, calibrate=False)
+
+    dCalc = calculateData(labelList, confMatrix)
+
+    return [dCalc[0], dCalc[1]]
+
+
+def calculateVarianceThreshold(segIntersections, mk, muk, vk, vuk):
+    thresh = None
+    direction = None
+    if len(segIntersections) == 0:
+        # either gaussians exactly equal to each other(worst) or no overlap(best)
+        if mk == muk:
+            # gaussians on top of each other .. can only happen with 0 intersections when mean is identical
+            # and var is identical
+            thresh = [mk]
+            direction = ['smaller']
+        else:
+            # gaussians completely separated, threshold set equidistant to means
+            thresh = [(max(mk, muk) - min(mk, muk)) / 2 + min(mk, muk)]
+            if thresh[0] > mk:
+                direction = ['smaller']
+    elif len(segIntersections) == 1:
+        thresh = [segIntersections]
+        if thresh[0] > mk:
+            direction = ['smaller']
+            # set threshold at this point
+    elif len(segIntersections) == 2:
+        if mk == muk:
+            # set upper and lower bounds on threshold
+            thresh = [min(segIntersections), max(segIntersections)]
+            # works
+            if vk > vuk:
+                direction = ['smaller', 'greater']
+            else:
+                direction = ['greater', 'smaller']
+        else:
+            thresh = [np.ptp(segIntersections) / 2 + min(segIntersections)]
+            if thresh[0] < muk:
+                direction = ['smaller']
+                # set threshold equidistant from intersection
+
+    if direction is None:
+        direction = ['greater']
+
+    return [thresh, direction]
 
 
 def calculateData(textLabels, confMatrix, numItems=None):
+    print confMatrix
     if not numItems:
         numItems = np.sum(confMatrix)
 
@@ -433,21 +596,22 @@ def calculateData(textLabels, confMatrix, numItems=None):
 
     for l in range(h.shape[0]):
         if total[l] != 0:
-            normConf[l, :] = normConf[l, :].astype(np.float)*100/total[l].astype(np.float)
+            normConf[l, :] = normConf[l, :].astype(np.float) * 100 / total[l].astype(np.float)
 
     print normConf
 
     # if plotting
-    confMatLabels = copy.deepcopy(textLabels)
-    plot_confusion_matrix(normConf, confMatLabels)
+    # confMatLabels = copy.deepcopy(textLabels)
+    # plot_confusion_matrix(normConf, confMatLabels)
 
-    percCorect = 100*np.diag(h.astype(np.float)).sum()/numItems
+    # percCorect = 100 * np.diag(h.astype(np.float)).sum() / numItems
+    percCorect = 100 * np.diag(normConf.astype(np.float)).sum() / np.sum(normConf)
 
     print str(percCorect)[:5].ljust(7) + "% correct for training data"
     print
     for i in range(confMatrix.shape[0]):
         for j in range(confMatrix.shape[0]):
-            print str(normConf[i, j])[:5].ljust(7) + '% of ' + str(textLabels[i]) +\
+            print str(normConf[i, j])[:5].ljust(7) + '% of ' + str(textLabels[i]) + \
                   ' classified as ' + str(textLabels[j])
         print
     return [normConf, percCorect]
@@ -473,4 +637,4 @@ def combineClassifications(thisModel, labels, likelihoods):
 
     m = max(sumLikelihoods)
     maxIdx = [j for j, k in enumerate(sumLikelihoods) if k == m][0]
-    return [labelList[maxIdx], m/counts[maxIdx]]
+    return [labelList[maxIdx], m / counts[maxIdx]]

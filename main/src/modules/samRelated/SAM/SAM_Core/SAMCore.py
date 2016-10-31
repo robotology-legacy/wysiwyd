@@ -268,7 +268,7 @@ class LFM(object):
         elif self.type == 'mrd':
             return self.model.bgplvms[0].Y[locations, :].values
 
-    def pattern_completion(self, test_data, view=0, verbose=False, visualiseInfo=None):
+    def pattern_completion(self, test_data, view=0, verbose=False, visualiseInfo=None, optimise=True):
         """
         In the case of supervised learning, pattern completion means that we 
         give new inputs and infer their corresponding outputs. In the case of
@@ -282,12 +282,14 @@ class LFM(object):
             # pred_mean = tmp.mean
             # pred_variance = tmp.variance #np.zeros(pred_mean.shape)
             tmp = self.model.infer_newX(test_data, optimize=False)[1]
-            tmp.optimize(max_iters=2000, messages=verbose)
+            if optimise:
+                tmp.optimize(max_iters=2000, messages=verbose)
             pred_mean = tmp.X.mean
             pred_variance = tmp.X.variance
         elif self.type == 'mrd':
             tmp = self.model.bgplvms[view].infer_newX(test_data, optimize=False)[1]
-            tmp.optimize(max_iters=2000, messages=verbose)
+            if optimise:
+                tmp.optimize(max_iters=2000, messages=verbose)
             pred_mean = tmp.X.mean
             pred_variance = tmp.X.variance
         elif self.type == 'gp':
@@ -344,7 +346,7 @@ class LFM(object):
             pred_mean, pred_variance = self.model.predict(X)
         return pred_mean, pred_variance
 
-    def familiarity(self, Ytest, ytrmean=None, ytrstd=None):
+    def familiarity(self, Ytest, ytrmean=None, ytrstd=None, optimise=True):
         assert(self.type == 'bgplvm')
 
         N = Ytest.shape[0]
@@ -354,12 +356,13 @@ class LFM(object):
 
         from SAM.SAM_Core.svi_ratio import SVI_Ratio
         s = SVI_Ratio()
-        _, _, _, qX = self.pattern_completion(Ytest, verbose=False)
+        _, _, _, qX = self.pattern_completion(Ytest, verbose=False, optimise=optimise)
         qX = qX.X
 
         ll = 0
         for i in range(N):
-            ll += s.inference(self.model.kern, qX[i, :][None, :],self.model.Z, self.model.likelihood, Ytest[i, :][None, :], self.model.posterior)[0]
+            ll += s.inference(self.model.kern, qX[i, :][None, :], self.model.Z, self.model.likelihood,
+                              Ytest[i, :][None, :], self.model.posterior)[0]
         ll /= N
         return ll
         

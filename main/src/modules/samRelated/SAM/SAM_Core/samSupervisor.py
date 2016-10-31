@@ -15,25 +15,63 @@ import readline
 import yarp
 from ConfigParser import SafeConfigParser
 import SAM.SAM_Core.SAM_utils as utils
-from time import sleep
+# from time import sleep
 
 
 class SamSupervisorModule(yarp.RFModule):
 
     def __init__(self):
         yarp.RFModule.__init__(self)
+        self.SIGNALS_TO_NAMES_DICT = None
+        self.terminal = None
+        self.rootPath = None
+        self.interactionConfPath = None
+        self.startModels = None
+        self.persistence = None
+        self.windowed = None
+        self.verbose = None
+        self.modelPath = None
+        self.dataPath = None
+        self.trainingFunctionsPath = None
+        self.trainingListHandles = dict()
+        self.loadedListHandles = dict()
+        self.iter = 0
+        self.rpcConnections = []
+        self.inputBottle = yarp.Bottle()
+        self.sendingBottle = yarp.Bottle()
+        self.responseBottle = yarp.Bottle()
+        self.outputBottle = yarp.Bottle()
+        self.devnull = None
+        self.supervisorPort = None
+        self.interactionConfFile = None
+        self.interactionParser = None
+        self.interactionSectionList = None
+        self.cluster = None
+        self.functionsList = None
+        self.trainableModels = None
+        self.modelsList = None
+        self.updateModels = None
+        self.updateModelsNames = None
+        self.noModels = None
+        self.noModelsNames = None
+        self.uptodateModels = None
+        self.uptodateModelsNames = None
+        self.nonResponsiveDict = dict()
+        self.nonResponsiveThreshold = 5
+        self.modelConnections = dict()
+        self.connectionCheckCount = 0
 
     def configure(self, rf):
         yarp.Network.init()
-        self.SIGNALS_TO_NAMES_DICT = dict((getattr(signal, n), n) \
-            for n in dir(signal) if n.startswith('SIG') and '_' not in n )
+        self.SIGNALS_TO_NAMES_DICT = dict(
+            (getattr(signal, n), n) for n in dir(signal) if n.startswith('SIG') and '_' not in n)
         
         self.terminal = 'xterm'
 
         rootPath = rf.check("root_path")
         interactionConfPath = rf.check("config_path")
 
-        if(interactionConfPath == False and rootPath == False):
+        if not interactionConfPath and not rootPath:
             print "Cannot find .ini settings"
             return False
         else:
@@ -43,6 +81,25 @@ class SamSupervisorModule(yarp.RFModule):
             windowed = rf.check("windowed", yarp.Value("True")).asString()
             verbose = rf.check("verbose", yarp.Value("True")).asString()
             startModels = rf.check("startModels", yarp.Value("True")).asString()
+            controllerIP = rf.check("controllerIP", yarp.Value("None")).asString()
+
+            nodesGroupString = rf.findGroup('nodes').toString()
+            print 'nodesGroupString lenght:', len(nodesGroupString)
+            if len(nodesGroupString) > 7:
+                nodesList = nodesGroupString.replace('"', '').replace(')', '').split(' (')[1:]
+                nodesDict = dict()
+                for j in nodesList:
+                    t = j.split(' ')
+                    if utils.RepresentsInt(t[1]):
+                        nodesDict[t[0]] = int(t[1])
+
+                lenList = []
+                for j in nodesDict.keys():
+                    lenList.append(len(j))
+
+                nodeMaxLen = max(lenList)
+            else:
+                nodesDict = dict()
 
             self.startModels = startModels == 'True'
             self.persistence = True if(persistence == "True") else False
@@ -54,14 +111,20 @@ class SamSupervisorModule(yarp.RFModule):
             print 'Bash Persistence set to:  \t', self.persistence
             print 'Windowed set to:          \t', self.windowed
             print 'Verbose set to:           \t', self.verbose
+            print 'Controller IP:            \t', controllerIP
+            print 'Nodes:'
+            if len(nodesDict) > 0:
+                for j in nodesDict.keys():
+                    print '                          \t', j.ljust(nodeMaxLen+4), nodesDict[j]
+                print
 
             self.modelPath = self.rootPath + '/Models'
             self.dataPath = self.rootPath + '/Data' 
-            #OLD
+            # OLD
             # self.trainingFunctionsPath = os.environ.get("WYSIWYD_DIR")+"/bin"
-            #NEW
+            # NEW
             self.trainingFunctionsPath = SAM.SAM_Drivers.__path__
-            self.trainingListHandles = dict() #make this a dict to have a label attached to each subprocess
+            self.trainingListHandles = dict()
             self.loadedListHandles = dict()
             self.iter = 0
             self.rpcConnections = []
@@ -70,25 +133,33 @@ class SamSupervisorModule(yarp.RFModule):
             self.responseBottle = yarp.Bottle()
             self.outputBottle = yarp.Bottle()
 
-            if(not self.windowed): self.devnull = open('/dev/null', 'w')
+            if not self.windowed:
+                self.devnull = open('/dev/null', 'w')
             
             out = yarp.Bottle()
             self.checkAvailabilities(out)
-            if(self.verbose): print out.toString()
+            if self.verbose:
+                print out.toString()
 
             self.supervisorPort = yarp.Port()
             self.supervisorPort.open('/sam/rpc:i')
             self.attach(self.supervisorPort)
 
-            cmd = 'ipcluster start -n 4'
-            command = "bash -c \"" + cmd + "\""
+            if len(nodesDict) > 0:
+                self.cluster = utils.ipyClusterManager(nodesDict, controllerIP, self.devnull, totalControl=True)
+                success = self.cluster.startCluster()
 
-            if self.windowed:
-                c = subprocess.Popen([self.terminal, '-e', command], shell=False)
-            else:
-                c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
+                if not success:
+                    self.cluster = None
+                    cmd = 'ipcluster start -n 4'
+                    command = "bash -c \"" + cmd + "\""
 
-            self.trainingListHandles['Cluster'] = c
+                    if self.windowed:
+                        c = subprocess.Popen([self.terminal, '-e', command], shell=False)
+                    else:
+                        c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
+
+                    self.trainingListHandles['Cluster'] = c
 
             if len(self.uptodateModels) + len(self.updateModels) > 0:
                 if self.verbose:
@@ -98,7 +169,7 @@ class SamSupervisorModule(yarp.RFModule):
                 rfModel = yarp.ResourceFinder()
                 rfModel.setVerbose(self.verbose)
                 rfModel.setDefaultContext("samSupervisor")
-                self.interactionConfFile = rfModel.findFile(self.interactionConfPath);
+                self.interactionConfFile = rfModel.findFile(self.interactionConfPath)
                 
                 # Iterate over all sections within the interactionConfPath,
                 # create a list and check against the available models
@@ -152,7 +223,10 @@ class SamSupervisorModule(yarp.RFModule):
 
         for v in self.rpcConnections:
             v[4].send_signal(signal.SIGINT)
-            v[4].wait() 
+            v[4].wait()
+
+        if self.cluster is not None:
+            self.cluster.terminateProcesses()
 
     def checkAvailabilities(self, reply):
         # after finding the root path, go to models folder and compile list of all
@@ -178,8 +252,8 @@ class SamSupervisorModule(yarp.RFModule):
         # NEW
         self.functionsList = []
         for importer, modname, ispkg in pkgutil.iter_modules(SAM.SAM_Drivers.__path__): 
-           if 'SAMDriver_' in modname:
-               self.functionsList += [modname]
+            if 'SAMDriver_' in modname:
+                self.functionsList += [modname]
         self.functionsList.sort()
 
         if self.verbose:
@@ -234,7 +308,8 @@ class SamSupervisorModule(yarp.RFModule):
                                     for dirName, dirs, filenames in os.walk(loc):
                                         t.append(os.path.getmtime(dirName))
                                     lastMod = max(t)
-                                    if self.verbose: print "Data folder last modified: %s" % time.ctime(lastMod)
+                                    if self.verbose:
+                                        print "Data folder last modified: %s" % time.ctime(lastMod)
                                     # format of trainableModels is: dataFolder name, corresponding training function,
                                     # date data last modified, train boolean
                                     self.trainableModels += [[f, availableFuncs[0], lastMod, True]]
@@ -250,7 +325,8 @@ class SamSupervisorModule(yarp.RFModule):
                                       + f + "\nCheck config.ini is formatted correctly"
                 except IOError:
                     pass
-                if self.verbose: print
+                if self.verbose:
+                    print
             if self.verbose:
                 print '-------------------'
                 print 'Checking corresponding models'
@@ -261,41 +337,47 @@ class SamSupervisorModule(yarp.RFModule):
                 t = []
                 currModels = []
                 for g in self.modelsList:
-                    if(f[0]+'_' in g and '~' not in g):
-                        #compare time of model and data
+                    if str(f[0]) + '_' in g and '~' not in g:
+                        # compare time of model and data
                         currModels.append(g)
                         g += ".pickle"
-                        loc = join(self.modelPath,g)
+                        loc = join(self.modelPath, g)
                         t.append(os.path.getmtime(loc))
-                if(len(t) > 0):
+                if len(t) > 0:
                     lastMod = max(t)
                     currModels = currModels[t.index(lastMod)]
                     self.trainableModels[self.trainableModels.index(f)].append(currModels)
-                    if(self.verbose): print f[0] + " Model last modified: %s" % time.ctime(lastMod)
-                    if(lastMod < f[2]):
-                        tdiff =  datetime.datetime.fromtimestamp(f[2]).replace(microsecond = 0) - datetime.datetime.fromtimestamp(lastMod).replace(microsecond = 0)
-                        if(self.verbose): print f[0] +' Model outdated by ' + str(tdiff) + '. Will be trained'
+                    if self.verbose:
+                        print str(f[0]) + " Model last modified: %s" % time.ctime(lastMod)
+                    if lastMod < f[2]:
+                        tdiff = datetime.datetime.fromtimestamp(f[2]).replace(microsecond=0) - \
+                                datetime.datetime.fromtimestamp(lastMod).replace(microsecond=0)
+                        if self.verbose:
+                            print str(f[0]) + ' Model outdated by ' + str(tdiff) + '. Will be trained'
                     else:
-                        if(self.verbose): print f[0] +' Model up-to-date'
+                        if self.verbose:
+                            print str(f[0]) + ' Model up-to-date'
                         f[3] = False
                 else:
                     self.trainableModels[self.trainableModels.index(f)].append('')
-                    if(self.verbose): print f[0] + ' Model not found. Training Required'
-                if(self.verbose): print
-            if(self.verbose):
+                    if self.verbose:
+                        print str(f[0]) + ' Model not found. Training Required'
+                if self.verbose:
+                    print
+            if self.verbose:
                 print '-------------------'
                 print
 
             # provide option to train now or on close
             # if train now provide option to change experiment number or leave default
-            self.updateModels = [s for s in self.trainableModels if s[3] == True if s[4] != '']
-            self.updateModelsNames = [s[0] for s in self.trainableModels if s[3] == True if s[4] != '']
+            self.updateModels = [s for s in self.trainableModels if s[3] if s[4] != '']
+            self.updateModelsNames = [s[0] for s in self.trainableModels if s[3] if s[4] != '']
 
-            self.noModels = [s for s in self.trainableModels if s[3] == True if s[4] == '']
-            self.noModelsNames = [s[0] for s in self.trainableModels if s[3] == True if s[4] == '']
+            self.noModels = [s for s in self.trainableModels if s[3] if s[4] == '']
+            self.noModelsNames = [s[0] for s in self.trainableModels if s[3] if s[4] == '']
 
-            self.uptodateModels = [s for s in self.trainableModels if s[3] == False]
-            self.uptodateModelsNames = [s[0] for s in self.trainableModels if s[3] == False] 
+            self.uptodateModels = [s for s in self.trainableModels if not s[3]]
+            self.uptodateModelsNames = [s[0] for s in self.trainableModels if not s[3]]
             
             reply.addVocab(yarp.Vocab_encode("many"))
             reply.addString(str(len(self.uptodateModels)) + " Models up-to-date " + str(self.uptodateModelsNames))
@@ -316,8 +398,8 @@ class SamSupervisorModule(yarp.RFModule):
 
     def respond(self, command, reply):
 
-        helpMessage = ["Commands are: ", "\tcheck_all", "\tcheck modelName", "\tclose modelName", \
-                       "\tdelete modelName", "\thelp", "\tload modelName",  "\toptimise modelName", "\tquit", \
+        helpMessage = ["Commands are: ", "\tcheck_all", "\tcheck modelName", "\tclose modelName",
+                       "\tdelete modelName", "\thelp", "\tload modelName",  "\toptimise modelName", "\tquit",
                        "\ttrain modelName", "\tlist_callSigns"]
         b = yarp.Bottle()
         self.checkAvailabilities(b)
@@ -326,9 +408,9 @@ class SamSupervisorModule(yarp.RFModule):
         if command.get(0).asString() == "check_all":
             self.checkAvailabilities(reply)
         elif command.get(0).asString() == "check":
-            self.checkModel(reply,command)
+            self.checkModel(reply, command)
         elif command.get(0).asString() == "close":
-            self.closeModel(reply,command)
+            self.closeModel(reply, command, True)
         elif command.get(0).asString() == "delete":
             self.deleteModel(reply, command)
         elif command.get(0).asString() == "help":
@@ -347,9 +429,9 @@ class SamSupervisorModule(yarp.RFModule):
         elif command.get(0).asString() == "list_callSigns":
             reply.addVocab(yarp.Vocab_encode("many"))
             for e in self.rpcConnections:
-                repStr = e[0] + " Model: \t"
+                repStr = str(e[0]) + " Model: \t"
                 for f in e[3]:
-                    repStr += f + "\t"
+                    repStr += str(f) + "\t"
                 reply.addString(repStr)
 
         elif any(command.get(0).asString() in e[3] for e in self.rpcConnections):
@@ -370,7 +452,7 @@ class SamSupervisorModule(yarp.RFModule):
             for e in self.rpcConnections:
                 repStr = "\t" + e[0] + " Model: \t"
                 for f in e[3]:
-                    repStr += f + "\t"
+                    repStr += str(f) + "\t"
                 reply.addString(repStr)
         return True
 
@@ -387,7 +469,7 @@ class SamSupervisorModule(yarp.RFModule):
     def interruptModule(self):
         return True
 
-    def closeModel(self, reply, command):
+    def closeModel(self, reply, command, external=False):
 
         if command.size() != 2:
             reply.addString("Model name required. e.g. close Actions")
@@ -403,6 +485,9 @@ class SamSupervisorModule(yarp.RFModule):
             if self.verbose:
                 print command.get(1).asString()
             if alreadyOpen:
+                if external:
+                    if command.get(1).asString() in self.modelConnections.keys():
+                        self.modelConnections[command.get(1).asString()] = dict()
                 self.rpcConnections[conn][1].write(yarp.Bottle('EXIT'), self.inputBottle)
                 self.rpcConnections[conn][1].interrupt()
                 time.sleep(1)
@@ -426,7 +511,7 @@ class SamSupervisorModule(yarp.RFModule):
         elif command.get(1).asString() in self.noModelsNames:
             reply.addString("Cannot load model. Model training available but not yet trained.")
         elif command.get(1).asString() in self.uptodateModelsNames+self.updateModelsNames:
-            ret = parser.read(join(self.dataPath,command.get(1).asString(),"config.ini"))
+            ret = parser.read(join(self.dataPath, command.get(1).asString(), "config.ini"))
             if len(ret) > 0:
                 # OLD
                 # if(parser.has_option('model_options', 'interaction')):
@@ -434,17 +519,18 @@ class SamSupervisorModule(yarp.RFModule):
                 # NEW
                 if parser.has_option('model_options', 'driver') and parser.has_option('model_options', 'modelNameBase'):
                     interactionFunction = parser.get('model_options', 'driver').split(',')
-                    modelNameBase = parser.get('model_options', 'modelNameBase')
+                    # modelNameBase = parser.get('model_options', 'modelNameBase')
                     
                     interactionFunction = [s for s in interactionFunction for g in self.functionsList if s == g]
                     if len(interactionFunction) != 0:
                         j = [s for s in self.trainableModels if s[0] == command.get(1).asString()][0]
 
-                        interfacePortName = self.interactionParser.get(j[0],'rpcBase') + ':o'
-                        callSignList = self.interactionParser.get(j[0],'callSign').replace(' ', '').split(',')
+                        interfacePortName = self.interactionParser.get(j[0], 'rpcBase') + ':o'
+                        callSignList = self.interactionParser.get(j[0], 'callSign').replace(' ', '').split(',')
                         
                         # check if the model is already loaded
                         alreadyOpen = False
+                        correctOperation = False
                         conn = -1
                         for k in range(len(self.rpcConnections)):
                             if self.rpcConnections[k][0] == j[0]:
@@ -456,7 +542,11 @@ class SamSupervisorModule(yarp.RFModule):
                             if self.verbose:
                                 print "Model already open"
                             # check it is functioning correctly
-                            correctOperation = True if self.rpcConnections[conn][1].getOutputCount() > 0 else False
+                            correctOp_check1,  correctOp_check2 = self.checkOperation(self.rpcConnections[conn])
+                            correctOperation = correctOp_check1 and correctOp_check2
+                            if not correctOp_check2 and correctOp_check1:
+                                alreadyOpen = False
+
                             if self.verbose:
                                 print "correct operation = ", correctOperation
                                 print 
@@ -538,6 +628,30 @@ class SamSupervisorModule(yarp.RFModule):
                                 self.closeModel(rep, cmd)
                             else:
                                 # then execute an interaction model check to verify correct startup
+                                print 'pinging portNames to', self.rpcConnections[-1][0]
+                                rep = yarp.Bottle()
+                                cmd = yarp.Bottle()
+                                cmd.addString("portNames")
+                                self.rpcConnections[-1][1].write(cmd, rep)
+                                print 'ping received', rep.toString()
+
+                                if self.rpcConnections[-1][0] not in self.modelConnections.keys():
+                                    self.modelConnections[self.rpcConnections[-1][0]] = dict()
+                                if rep.size() > 1 and rep.get(0).asString() == 'ack':
+                                    for p in range(rep.size()):
+                                        if rep.get(p).asString() != 'ack':
+                                            if rep.get(p).asString() not in self.modelConnections[self.rpcConnections[-1][0]].keys():
+                                                self.modelConnections[self.rpcConnections[-1][0]][rep.get(p).asString()] = []
+                                                print 'Monitoring', rep.get(p).asString()
+                                            else:
+                                                # reinstate previously present connections
+                                                for op in self.modelConnections[self.rpcConnections[-1][0]][rep.get(p).asString()]:
+                                                    if op[1] == 'in':
+                                                        print 'Connect', op[0], 'to', rep.get(p).asString()
+                                                        yarp.Network.connect(op[0], rep.get(p).asString())
+                                                    else:
+                                                        print 'Connect', rep.get(p).asString(), 'to', op[0]
+                                                        yarp.Network.connect(rep.get(p).asString(), op[0])
                                 reply.addString(str(interactionFunction[0]) + " model loaded at " +
                                                 interfacePortName + " with call signs " + str(callSignList))
                     else:
@@ -553,24 +667,24 @@ class SamSupervisorModule(yarp.RFModule):
 
     def checkModel(self, reply, command):
         reply.clear()
-        #update to show which models are loaded or not and which are currently training
+        # update to show which models are loaded or not and which are currently training
         repStr = ''
-        if(command.size() != 2):
+        if command.size() != 2:
             repStr += "Model name required. e.g. check Actions"
-        elif(command.get(1).asString() in self.trainingListHandles):
+        elif command.get(1).asString() in self.trainingListHandles:
             repStr += command.get(1).asString()+" in training"
-        elif(command.get(1).asString() in self.uptodateModelsNames):
+        elif command.get(1).asString() in self.uptodateModelsNames:
             repStr += command.get(1).asString()+" is up-to-date"
-        elif(command.get(1).asString() in self.updateModelsNames):
+        elif command.get(1).asString() in self.updateModelsNames:
             repStr += command.get(1).asString()+" requires update"
-        elif(command.get(1).asString() in self.noModelsNames):
+        elif command.get(1).asString() in self.noModelsNames:
             repStr += command.get(1).asString()+" has no model"
         else:
             repStr += command.get(1).asString()+" model not present"
 
-        if(any(e[0] == command.get(1).asString() for e in self.rpcConnections)):
+        if any(e[0] == command.get(1).asString() for e in self.rpcConnections):
             repStr += " and is loaded"
-        elif(command.get(1).asString() in self.uptodateModelsNames + self.updateModelsNames):
+        elif command.get(1).asString() in self.uptodateModelsNames + self.updateModelsNames:
             repStr += " and is not loaded"
         reply.addString(repStr)
         return True
@@ -578,16 +692,17 @@ class SamSupervisorModule(yarp.RFModule):
     def train(self, reply, command):
         reply.clear()
         
-        if(command.size() != 2):
+        if command.size() != 2:
             reply.addString("Model name required. e.g. train Actions")
-        elif(str(command.get(1).asString()) in self.uptodateModelsNames):
+        elif str(command.get(1).asString()) in self.uptodateModelsNames:
             reply.addString(command.get(1).asString() + " is already up to date.")
-        elif(str(command.get(1).asString()) in self.trainingListHandles):
+        elif str(command.get(1).asString()) in self.trainingListHandles:
             reply.addString(command.get(1).asString() + " is already being trained.")
-        elif(command.get(1).asString() in self.updateModelsNames or command.get(1).asString() in self.noModelsNames):
+        elif command.get(1).asString() in self.updateModelsNames or command.get(1).asString() in self.noModelsNames:
             reply.addString("Training " + command.get(1).asString() + " model ...")
             modelToTrain = [s for s in self.updateModels + self.noModels if s[0] == command.get(1).asString()][0]
-            if(self.verbose): print modelToTrain
+            if self.verbose:
+                print modelToTrain
             self.train_model(modelToTrain)
         else:
             reply.addString(command.get(1).asString() + " model not available to train")
@@ -597,16 +712,18 @@ class SamSupervisorModule(yarp.RFModule):
     def optimise(self, reply, command):
         reply.clear()
         
-        if(command.size() != 2):
+        if command.size() != 2:
             reply.addString("Model name required. e.g. optimise Actions")
-        elif(str(command.get(1).asString()) in self.trainingListHandles):
+        elif str(command.get(1).asString()) in self.trainingListHandles:
             reply.addString(command.get(1).asString() + " is already being trained.")
-        elif(command.get(1).asString() in self.noModelsNames):
+        elif command.get(1).asString() in self.noModelsNames:
             reply.addString("Train " + command.get(1).asString() + " model before optimising")
-        elif(command.get(1).asString() in self.updateModelsNames or command.get(1).asString() in self.uptodateModelsNames):
+        elif command.get(1).asString() in self.updateModelsNames or \
+                command.get(1).asString() in self.uptodateModelsNames:
             reply.addString("Optimising " + command.get(1).asString() + " model ...")
             modelToTrain = [s for s in self.updateModels + self.uptodateModels if s[0] == command.get(1).asString()][0]
-            if(self.verbose): print modelToTrain
+            if self.verbose:
+                print modelToTrain
             self.optimise_model(modelToTrain)
         else:
             reply.addString(command.get(1).asString() + " model not available to optimise")
@@ -618,19 +735,22 @@ class SamSupervisorModule(yarp.RFModule):
 
         alreadyOpen = False
         for k in self.rpcConnections:
-            if(k[0] == command.get(1).asString()):
+            if k[0] == command.get(1).asString():
                 alreadyOpen = True
         
-        if(command.size() != 2):
+        if command.size() != 2:
             reply.addString("Model name required. e.g. delete Actions")
-        elif(command.get(1).asString() in self.trainingListHandles):
+        elif command.get(1).asString() in self.trainingListHandles:
             reply.addString("Cannot delete model. Model in training")
-        elif(alreadyOpen):
+        elif alreadyOpen:
             reply.addString("Cannot delete model. Model currently loaded")
-        elif(command.get(1).asString() in self.updateModelsNames or command.get(1).asString() in self.uptodateModelsNames):
+        elif command.get(1).asString() in self.updateModelsNames or \
+                command.get(1).asString() in self.uptodateModelsNames:
+
             reply.addString(str(command.get(1).asString()) + " model deleted.")
-            modelToDelete = [s for s in self.updateModels + self.uptodateModels if s[0] == command.get(1).asString()][0][4]
-            if('L' in  modelToDelete.split('__')[-1]):
+            modelToDelete = [s for s in self.updateModels + self.uptodateModels
+                             if s[0] == command.get(1).asString()][0][4]
+            if 'L' in modelToDelete.split('__')[-1]:
                 modelToDelete = '__'.join(modelToDelete.split('__')[:-1])
             print modelToDelete
             filesToDelete = glob.glob(join(self.modelPath, modelToDelete + '*'))
@@ -645,55 +765,58 @@ class SamSupervisorModule(yarp.RFModule):
         return True
 
     def train_model(self, mod):
-        if(self.verbose):
+        if self.verbose:
             print "Training Models:"
             print
 
-        #OLD
-        #n = mod[1] + '.py'
-        #trainPath = join(self.trainingFunctionsPath, n) 
-        #NEW
+        # OLD
+        # n = mod[1] + '.py'
+        # trainPath = join(self.trainingFunctionsPath, n)
+        # NEW
         trainPath = 'trainSAMModel.py'
 
-        if(self.verbose):
+        if self.verbose:
             print 'Training ' + mod[0] + ' ...'
             print 'Opening ' + trainPath
             print
         dPath = join(self.dataPath, mod[0])
-        if(mod[4] != ''):
+        if mod[4] != '':
             mPath = join(self.modelPath, mod[4]) + '.pickle'
         else:
             mPath = join(self.modelPath, mod[4])
 
-        if(self.verbose): print mPath
+        if self.verbose:
+            print mPath
 
         # #open separate ipython for training
         # #this will allow separate training across different computers in future
-        #OLD
+        # OLD
         # if(mod[0] in self.updateModelsNames):
         #      args = ' '.join([dPath, mPath, mod[1], 'update'])
         # else:
         #      args = ' '.join([dPath, mPath, mod[1], 'new'])
-        #NEW
-        if(mod[0] in self.updateModelsNames):
-           args = ' '.join([dPath, mPath, mod[1], 'update', mod[0]])
+        # NEW
+        if mod[0] in self.updateModelsNames:
+            args = ' '.join([dPath, mPath, mod[1], 'update', mod[0]])
         else:
-           args = ' '.join([dPath, mPath, mod[1], 'new', mod[0]])
-		
-        if(self.verbose): print 'args: ', args
+            args = ' '.join([dPath, mPath, mod[1], 'new', mod[0]])
 
-        #OLD
-        #cmd = 'ipython ' + trainPath + ' -- ' + args
-        #NEW
+        if self.verbose:
+            print 'args: ', args
+
+        # OLD
+        # cmd = 'ipython ' + trainPath + ' -- ' + args
+        # NEW
         cmd = trainPath + ' -- ' + args
-        if(self.persistence):
+        if self.persistence:
             command = "bash -c \"" + cmd + "; exec bash\""
         else:
             command = "bash -c \"" + cmd + "\""
         
-        if(self.verbose): print 'cmd: ', cmd
+        if self.verbose:
+            print 'cmd: ', cmd
 
-        if(self.windowed):
+        if self.windowed:
             c = subprocess.Popen([self.terminal, '-e', command], shell=False)
         else:
             c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
@@ -703,7 +826,7 @@ class SamSupervisorModule(yarp.RFModule):
         return True
 
     def optimise_model(self, mod):
-        if(self.verbose):
+        if self.verbose:
             print "Training Models:"
             print
 
@@ -713,33 +836,36 @@ class SamSupervisorModule(yarp.RFModule):
         # NEW
         trainPath = 'trainSAMModel.py'
 
-        if(self.verbose):
+        if self.verbose:
             print 'Optimising ' + mod[0] + ' ...'
             print
         dPath = join(self.dataPath, mod[0])
-        if(mod[4] != ''):
+        if mod[4] != '':
             mPath = join(self.modelPath, mod[4]) + '.pickle'
         else:
             mPath = join(self.modelPath, mod[4])
 
-        if(self.verbose): print mPath
+        if self.verbose:
+            print mPath
 
         # #open separate ipython for training
         # #this will allow separate training across different computers in future
-        #OLD
-        #args = ' '.join([dPath, mPath, mod[1], 'new', 'False', 'False', 'True'])
-        #NEW
+        # OLD
+        # args = ' '.join([dPath, mPath, mod[1], 'new', 'False', 'False', 'True'])
+        # NEW
         args = ' '.join([dPath, mPath, mod[1], 'new', mod[0], 'False', 'False', 'True'])
         
-        if(self.verbose): print 'args: ', args
+        if self.verbose:
+            print 'args: ', args
 
         cmd = 'samOptimiser.py ' + trainPath + ' ' + args
-        if(self.persistence):
+        if self.persistence:
             command = "bash -c \"" + cmd + "; exec bash\""
         else:
             command = "bash -c \"" + cmd + "\""
         
-        if(self.verbose): print 'cmd: ', cmd
+        if self.verbose:
+            print 'cmd: ', cmd
 
         c = subprocess.Popen([self.terminal, '-e', command], shell=False)
         self.trainingListHandles[mod[0]] = c
@@ -771,6 +897,74 @@ class SamSupervisorModule(yarp.RFModule):
         for i in readyList:
             del self.trainingListHandles[i]
 
+        for j in range(len(self.rpcConnections)):
+            correctOp_check1, correctOp_check2 = self.checkOperation(self.rpcConnections[j])
+            correctOperation = correctOp_check1 and correctOp_check2
+            if not correctOperation:
+                self.connectionCheckCount = 0
+                if self.rpcConnections[j][0] not in self.nonResponsiveDict.keys():
+                    self.nonResponsiveDict[self.rpcConnections[j][0]] = 1
+                else:
+                    self.nonResponsiveDict[self.rpcConnections[j][0]] += 1
+                print self.rpcConnections[j][0], 'not responding'
+                if self.nonResponsiveDict[self.rpcConnections[j][0]] > self.nonResponsiveThreshold:
+                    print 'Restarting ', self.rpcConnections[j][0], 'model'
+                    if not correctOp_check1:
+                        rep = yarp.Bottle()
+                        cmd = yarp.Bottle()
+                        cmd.addString("load")
+                        cmd.addString(self.rpcConnections[j][0])
+                        self.loadModel(rep, cmd)
+                    else:
+                        rep = yarp.Bottle()
+                        cmd = yarp.Bottle()
+                        cmd.addString("close")
+                        cmd.addString(self.rpcConnections[j][0])
+                        self.closeModel(rep, cmd)
+            else:
+                self.nonResponsiveDict[self.rpcConnections[j][0]] = 0
+                self.connectionCheckCount += 1
+                if self.connectionCheckCount == 10:
+                    if self.rpcConnections[j][0] in self.modelConnections.keys():
+                        for k in self.modelConnections[self.rpcConnections[j][0]].keys():
+                            print 'ping', k
+                            proc = subprocess.Popen(['yarp', 'ping', k], stdout=subprocess.PIPE)
+                            output = proc.stdout.read()
+                            proc.wait()
+                            del proc
+
+                            conStrings = output.split('\n')[1:]
+                            connList = []
+                            for g in conStrings:
+                                if 'output conn' in g:
+                                    dirConnect = 'out'
+                                elif 'input conn' in g:
+                                    dirConnect = 'in'
+                                else:
+                                    dirConnect = None
+
+                                if 'from' in g and dirConnect is not None:
+                                    parts = g.split(' ')
+                                    if dirConnect == 'out':
+                                        connList.append([parts[8], dirConnect])
+                                    elif dirConnect == 'in' and '<ping>' not in g:
+                                        connList.append([parts[6], dirConnect])
+
+                            self.modelConnections[self.rpcConnections[j][0]][k] = connList
+                        print self.modelConnections
+                        print
+                    self.connectionCheckCount = 0
+
+    def checkOperation(self, j):
+        correctOp_check1 = True if j[1].getOutputCount() > 0 else False
+        rep = yarp.Bottle()
+        cmd = yarp.Bottle()
+        cmd.addString("heartbeat")
+        j[1].write(cmd, rep)
+        correctOp_check2 = True if rep.get(0).asString() == 'ack' else False
+        correctOperation = correctOp_check1 and correctOp_check2
+        return correctOp_check1, correctOp_check2
+
     def updateModule(self):
         if self.iter == 10:
             self.onlineModelCheck()
@@ -783,11 +977,11 @@ if __name__ == '__main__':
 
     plt.ion()
     yarp.Network.init() 
-    mod = SamSupervisorModule()
-    rf = yarp.ResourceFinder()
-    rf.setVerbose(True)
-    rf.setDefaultContext("samSupervisor")
-    rf.setDefaultConfigFile("default.ini")
-    rf.configure(sys.argv)
+    samMod = SamSupervisorModule()
+    yrf = yarp.ResourceFinder()
+    yrf.setVerbose(True)
+    yrf.setDefaultContext("samSupervisor")
+    yrf.setDefaultConfigFile("default.ini")
+    yrf.configure(sys.argv)
 
-    mod.runModule(rf)
+    samMod.runModule(yrf)

@@ -12,10 +12,16 @@
 import numpy as np
 from ConfigParser import SafeConfigParser
 import pickle
+import matplotlib.mlab as mlab
+import matplotlib.pyplot as plt
 from SAM.SAM_Core import samOptimiser
 from os import listdir
 from os.path import join, isdir
 import threading
+import os
+import subprocess
+import time
+import ipyparallel as ipp
 
 
 def initialiseModels(argv, update, initMode='training'):
@@ -73,7 +79,7 @@ def initialiseModels(argv, update, initMode='training'):
     defaultParamsList = ['experiment_number', 'model_type', 'model_num_inducing',
                          'model_num_iterations', 'model_init_iterations', 'verbose',
                          'Quser', 'kernelString', 'ratioData', 'update_mode', 'model_mode',
-                         'temporalModelWindowSize']
+                         'temporalModelWindowSize', 'optimiseRecall']
 
     mySAMpy.experiment_number = None
     mySAMpy.model_type = None
@@ -127,6 +133,12 @@ def initialiseModels(argv, update, initMode='training'):
             else:
                 default = True
                 mySAMpy.verbose = False
+
+            if parser.has_option(trainName, 'optimiseRecall'):
+                mySAMpy.optimiseRecall = parser.get(trainName, 'optimiseRecall') == 'True'
+            else:
+                default = True
+                mySAMpy.optimiseRecall = True
 
             if parser.has_option(trainName, 'model_mode'):
                 mySAMpy.model_mode = parser.get(trainName, 'model_mode')
@@ -193,13 +205,35 @@ def initialiseModels(argv, update, initMode='training'):
             mySAMpy.model_init_iterations = modelPickle['model_init_iterations']
             mySAMpy.verbose = modelPickle['verbose']
             mySAMpy.Quser = modelPickle['Quser']
+            mySAMpy.optimiseRecall = modelPickle['optimiseRecall']
             mySAMpy.kernelString = modelPickle['kernelString']
+
+            # try loading classification parameters for multiple model implementation
             try:
                 mySAMpy.listOfModels = modelPickle['listOfModels']
                 mySAMpy.classifiers = modelPickle['classifiers']
                 mySAMpy.classif_thresh = modelPickle['classif_thresh']
+                mulClassLoadFail = False
+                print 'Successfully loaded multiple model classifiers'
             except:
+                mulClassLoadFail = True
+                print 'Failed to load multiple model classifiers'
                 pass
+
+            # try loading classification parameters for single model implementation
+            try:
+                mySAMpy.varianceDirection = modelPickle['varianceDirection']
+                mySAMpy.varianceThreshold = modelPickle['varianceThreshold']
+                mySAMpy.bestDistanceIDX = modelPickle['bestDistanceIDX']
+                print 'Successfully loaded single model classifiers'
+                singClassLoadFail = False
+            except:
+                singClassLoadFail = True
+                print 'Failed to load single model classifiers'
+                pass
+
+            if mulClassLoadFail and singClassLoadFail:
+                raise ValueError('Failed to load model classifiers')
 
         except IOError:
             print 'IO Exception reading ', found
@@ -253,6 +287,7 @@ def initialiseModels(argv, update, initMode='training'):
 
     for k in range(len(mm[0].participantList)):
         if mm[0].participantList[k] == 'all':
+            normaliseData = True
             minData = len(mm[k].L)
             mm[0].fname = fnameProto
             mm[0].model_type = mySAMpy.model_type
@@ -272,7 +307,9 @@ def initialiseModels(argv, update, initMode='training'):
                 mm[0].listOfModels.append(mm[k].fname)
                 mm[k].model_type = 'bgplvm'
                 Ntr = int(mySAMpy.ratioData * minData / 100)
+                normaliseData = True
             else:
+                normaliseData = False
                 mm[0].listOfModels = []
                 mm[0].fname = fnameProto
                 mm[0].SAMObject.kernelString = ''
@@ -281,15 +318,18 @@ def initialiseModels(argv, update, initMode='training'):
             mm[k].modelLabel = mm[0].participantList[k]
 
         if mm[0].model_mode != 'temporal':
+
             [Yall, Lall, YtestAll, LtestAll] = mm[k].prepareData(mm[k].model_type, Ntr,
-                                                                 randSeed=mm[0].experiment_number)
+                                                                 randSeed=mm[0].experiment_number,
+                                                                 normalise=normaliseData)
             mm[k].Yall = Yall
             mm[k].Lall = Lall
             mm[k].YtestAll = YtestAll
             mm[k].LtestAll = LtestAll
         elif mm[0].model_mode == 'temporal':
             [Xall, Yall, Lall, XtestAll, YtestAll, LtestAll] = mm[k].prepareData(mm[k].model_type, Ntr,
-                                                                                 randSeed=mm[0].experiment_number)
+                                                                                 randSeed=mm[0].experiment_number,
+                                                                                 normalise=normaliseData)
             mm[k].Xall = Xall
             mm[k].Yall = Yall
             mm[k].Lall = Lall
@@ -333,6 +373,17 @@ def initialiseModels(argv, update, initMode='training'):
     return mm
 
 
+def varianceClass(varianceDirection, x, thresh):
+    if varianceDirection == ['greater', 'smaller']:
+        return thresh[0] < x < thresh[1]
+    elif varianceDirection == ['smaller', 'greater']:
+        return thresh[0] > x > thresh[1]
+    elif varianceDirection == ['greater']:
+        return x > thresh
+    elif varianceDirection == ['smaller']:
+        return x < thresh
+
+
 class TimeoutError(Exception):
     pass
 
@@ -366,6 +417,114 @@ class timeout(object):
                 return it.result
             raise TimeoutError('execution expired')
         return wrapped_f
+
+
+def plotKnownAndUnknown(varDict, colour, axlist, width=[0.2, 0.2], factor=[(0, 0.6), (0.4, 1)], plotRange=False):
+    count = 0
+    for k, j in enumerate(varDict.keys()):
+        if len(varDict[j]) > 0 and 'Results' not in j:
+            [mlist, vlist, rlist] = meanVar_varianceDistribution(varDict[j])
+            axlist = plotGaussFromList(mlist, vlist, rlist, colour[count], j, width[count], factor[count], axlist, plotRange)
+            count += 1
+
+    return axlist
+
+
+# This function provides a measure for the separability of two univariate gaussians
+# Main purpose to get a distance that is used to optimise for separability
+# between known and unknown classes
+# TODO extend method to multivariate gaussians
+def bhattacharyya_distance(mu1, mu2, var1, var2):
+    t1 = float(var1/var2) + float(var2/var1) + 2
+    t2 = np.log(0.25*t1)
+    t3 = float(mu1-mu2)*float(mu1-mu2)
+    t4 = t3/float(var1+var2)
+    return 0.25*t2 + 0.25*t4
+
+
+def plotGaussFromList(mlist, vlist, rlist, colour, label, width, factor, axlist, plotRange=False):
+    numPlots = len(mlist)
+
+    if len(axlist) == 0:
+        # f, axlist = plt.subplots(1, numPlots, figsize=(24.0, 15.0))
+        f, axlist = plt.subplots(1, numPlots, figsize=(12.0, 7.5))
+        for k, j in enumerate(axlist):
+            if k < numPlots - 2:
+                j.set_title('D ' + str(k), fontsize=20)
+            elif k == numPlots - 2:
+                j.set_title('Sum', fontsize=20)
+            elif k > numPlots - 2:
+                j.set_title('Mean', fontsize=20)
+            j.set_xticks([])
+            j.set_yticks([])
+
+    for j in range(numPlots):
+        sigma = np.sqrt(vlist[j])
+        rangeData = rlist[j][1] - rlist[j][0]
+        x = np.linspace(rlist[j][0] - (rangeData / 2), rlist[j][1] + (rangeData / 2), 100)
+        y = mlab.normpdf(x, mlist[j], sigma)
+        axlist[j].plot(x, y, colour, label=label)
+        if plotRange:
+            axlist[j].plot([rlist[j][1], rlist[j][1]], [max(y)*factor[0], max(y)*factor[1]], '--'+colour, linewidth=width)
+            axlist[j].plot([rlist[j][0], rlist[j][0]], [max(y)*factor[0], max(y)*factor[1]], '--'+colour, linewidth=width)
+
+    return axlist
+
+
+def solve_intersections(m1, m2, std1, std2):
+    a = 1/(2*std1**2) - 1/(2*std2**2)
+    b = m2/(std2**2) - m1/(std1**2)
+    c = m1**2 / (2*std1**2) - m2**2 / (2*std2**2) - np.log(std2/std1)
+    return np.roots([a, b, c])
+
+
+def meanVar_varianceDistribution(dataList):
+    mlist = []
+    vlist = []
+    rlist = []
+
+    dataArray = np.asarray(dataList)
+    if len(dataArray.shape) == 1:
+        dataArray = dataArray[:, None]
+
+    numPlots = dataArray.shape[1]
+
+    for j in range(numPlots + 2):
+        if j < numPlots:
+            h = dataArray[:, j]
+        elif j == numPlots:
+            h = np.sum(dataArray, 1)
+        elif j == numPlots + 1:
+            h = np.mean(dataArray, 1)
+
+        mean = np.mean(h)
+        variance = np.var(h)
+        rlist.append((min(h), max(h)))
+        mlist.append(mean)
+        vlist.append(variance)
+
+    return mlist, vlist, rlist
+
+
+def bhattacharyya_dict(m, v):
+    knownLabel = None
+    unknownLabel = None
+    dists = []
+
+    for j in m.keys():
+        if 'known' == j.lower().split(' ')[1]:
+            knownLabel = j
+        elif 'unknown' in j.lower().split(' ')[1]:
+            unknownLabel = j
+
+    if unknownLabel is not None and knownLabel is not None:
+        numDists = len(m[knownLabel])
+        for j in range(numDists):
+            dists.append(
+                bhattacharyya_distance(m[knownLabel][j], m[unknownLabel][j], v[knownLabel][j], v[unknownLabel][j]))
+        return dists
+    else:
+        return None
 
 
 def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False, noY=False):
@@ -592,7 +751,7 @@ class SURFProcessor:
 
     def make_SURF_BoW_test(self,Ytest):
         # SURF for test data
-        assert(self._is_trained, "First you have to do a train BoW.")
+        assert self._is_trained, "First you have to do a train BoW."
         descriptors, desclabels = self._find_surf(Ytest)
         c_testPredict = self.c_trainFit.predict(descriptors)
         Ztest = self._make_BoW(Ytest.shape[0], c_testPredict, desclabels, self.n_clusters)
@@ -602,3 +761,89 @@ class SURFProcessor:
             Ztest = Ztest
 
         return Ztest.copy()
+
+
+def RepresentsInt(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
+class ipyClusterManager:
+    def __init__(self, nodesDict, controllerIP, devnull, totalControl=True):
+        self.expectedProcessors = 0
+        self.actualProcessors = 0
+        self.totalControl = totalControl
+        self.controllerProc = []
+        self.nodesDict = nodesDict
+        self.controllerIP = controllerIP
+        self.devnull = devnull
+
+    def startCluster(self):
+        try:
+            self.controllerProc.append(
+                subprocess.Popen(["ipcontroller", '--ip=' + self.controllerIP], stdout=self.devnull))
+            for j in self.nodesDict.keys():
+                if j != 'localhost':
+                    cmd = 'scp ~/.ipython/profile_default/security/ipcontroller-engine.json ' + j + ':./'
+                    os.system(cmd)
+
+            for j in self.nodesDict.keys():
+                print j
+                if j != 'localhost':
+                    if self.totalControl:
+                        cmd = ['ssh', j, 'ipengine', '--file=~/ipcontroller-engine.json', '&']
+                    else:
+                        cmd = 'ssh ' + j + ' ipengine --file=~/ipcontroller-engine.json &'
+                else:
+                    if self.totalControl:
+                        cmd = ['ipengine', '&']
+                    else:
+                        cmd = 'ipengine &'
+
+                for n in range(self.nodesDict[j]):
+                    self.expectedProcessors += 1
+                    print '\t' + ' '.join(cmd)
+                    if self.totalControl:
+                        self.controllerProc.append(subprocess.Popen(cmd, stdout=self.devnull))
+                    else:
+                        os.system(cmd)
+                    time.sleep(2)
+
+            print 'Waiting for engines to start'
+            time.sleep(max(self.expectedProcessors, 10))
+            success = True
+            try:
+                c = ipp.Client()
+                self.actualProcessors = len(c._engines)
+                c.close()
+                del c
+                print 'Controller started correctly'
+            except:
+                success = False
+                self.terminateProcesses()
+                print 'Controller failure'
+
+            if self.actualProcessors == 0:
+                success = False
+                print 'Complete engine failure'
+            else:
+                print 'Engines started correctly'
+        except:
+            success = False
+            self.terminateProcesses()
+            print 'Failed to initialise controller'
+
+        return success
+
+    def terminateProcesses(self):
+        for j in self.controllerProc:
+            try:
+                j.kill()
+                j.wait()
+            except:
+                pass
+            time.sleep(0.2)
+        self.actualProcessors = 0

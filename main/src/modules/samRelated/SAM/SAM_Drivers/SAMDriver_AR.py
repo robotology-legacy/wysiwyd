@@ -631,13 +631,13 @@ class SAMDriver_AR(SAMDriver):
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
         yTrainingData = SAMTesting.formatDataFunc(Yall)
-        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose)
+        [self.segTrainConf, self.segTrainPerc, _] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose, 'Training')
 
         yTrainingData = SAMTesting.formatDataFunc(YtestAll)
-        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose)
+        [self.segTestConf, self.segTestPerc, _] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose, 'Testing')
 
         # self.sequenceConfig()
-        # [self.seqConf, self.seqPerc] = self.testSequence(testModel)
+        # [self.seqConf, self.seqPerc, _] = self.testSequence(testModel)
 
         return self.segTestConf
 

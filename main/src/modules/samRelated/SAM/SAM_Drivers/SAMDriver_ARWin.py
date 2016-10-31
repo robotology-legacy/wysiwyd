@@ -37,6 +37,7 @@ class SAMDriver_ARWin(SAMDriver):
 
         if parser.has_option(trainName, 'includeParts'):
             self.paramsDict['includeParts'] = parser.get(trainName, 'includeParts').split(',')
+            self.paramsDict['includeParts'] = [j for j in self.paramsDict['includeParts'] if j != '']
         else:
             self.paramsDict['includeParts'] = ['object']
 
@@ -298,9 +299,10 @@ class SAMDriver_ARWin(SAMDriver):
                     combinedObjs = dataVecAll[j, idxBase:idxBase + itemsPerJoint]
                 else:
                     combinedObjs = np.vstack([combinedObjs, dataVecAll[j, idxBase:idxBase + itemsPerJoint]])
+            print combinedObjs.shape
 
         print dataVecAll.shape
-        print combinedObjs.shape
+
 
         print
         # it is now time to combine hands if multiple exist
@@ -366,6 +368,7 @@ class SAMDriver_ARWin(SAMDriver):
             data2ShortLabels.append('_'.join(j.split('_')[:2]))
 
         self.data2Labels = copy.deepcopy(data2ShortLabels)
+        
         # remove labels which will not be trained
         listToDelete = []
         for n in reversed(range(len(data2Labels))):
@@ -386,6 +389,9 @@ class SAMDriver_ARWin(SAMDriver):
         # now that all joints are in the form of a window, time to create
         # all possible vectors to classify
         self.listOfVectorsToClassify = []
+        self.allDataDict = dict()
+        self.allDataDict['Y'] = self.dataVec
+        self.allDataDict['L'] = self.data2Labels
 
         for j in self.featureSequence:
             if j == 'object':
@@ -416,13 +422,13 @@ class SAMDriver_ARWin(SAMDriver):
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
         yTrainingData = SAMTesting.formatDataFunc(Yall)
-        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose)
+        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose, 'Training')
 
         yTrainingData = SAMTesting.formatDataFunc(YtestAll)
-        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose)
+        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose, 'Testing')
 
         yTrainingData = SAMTesting.formatDataFunc(self.dataVec)
-        [self.seqTestConf, self.seqTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, self.data2Labels, verbose)
+        [self.seqTestConf, self.seqTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, self.data2Labels, verbose, 'All')
 
         return self.seqTestConf
         # return numpy.ones([3, 3])
@@ -460,7 +466,7 @@ class SAMDriver_ARWin(SAMDriver):
 
         return [t, goAhead]
 
-    def processLiveData(self, dataList, thisModel):
+    def processLiveData(self, dataList, thisModel, verbose=False):
         # dataList is list of yarp bottles
         mode = 'live'
         sentence = []
@@ -515,19 +521,22 @@ class SAMDriver_ARWin(SAMDriver):
                     for k in j:
                         v.append(data[k])
                     vec = np.hstack(v)
-                    [label, val] = SAMTesting.testSegment(thisModel, vec, True, visualiseInfo=None)
+                    [label, val] = SAMTesting.testSegment(thisModel, vec, verbose, visualiseInfo=None,
+                                                          optimise=thisModel[0].optimiseRecall)
                     classification = label.split('_')[0]
                     if classification == 'unknown':
-                        sentence.append("You did an " + label + " action")
+                        sentence.append("You did an " + label + " action with " + str(j))
                     else:
-                        sentence.append("You did a " + label)  # + " the " + j[0])
+                        sentence.append("You did a " + label + " with " + str(j))  # + " the " + j[0])
 
                     # if len(j) > 1:
                     #     sentence[-1] += " with your " + j[1].replace('hand', '') + ' hand'
-                    print sentence[-1]
-                    print '------------------------------------------------------'
+
                     if classification == 'unknown':
                         sentence.pop(-1)
+                    else:
+                        print sentence[-1]
+                    print '------------------------------------------------------'
 
                 if len(sentence) > 1:
                     return str(sentence)
@@ -535,6 +544,6 @@ class SAMDriver_ARWin(SAMDriver):
                     return 'None'
             else:
                 print 'Some incorrect messages received'
-                return None
+                return 'None'
         else:
             return None

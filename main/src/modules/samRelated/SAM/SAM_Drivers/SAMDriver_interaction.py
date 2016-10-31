@@ -181,115 +181,7 @@ class SAMDriver_interaction(SAMDriver):
         self.L = img_label_data
         return self.Y.shape[1]
 
-    # """"""""""""""""
-    # Method to process some important features from the face data required
-    # for the classification model such as mean and variance.
-    # Inputs:
-    #    - model: type of model used for the SAM object
-    #    - Ntr: Number of training samples
-    #    - pose_selection: participants pose used for training of the SAM object
-    #
-    # Outputs: None
-    # """"""""""""""""
-    # def prepareData(self, model='mrd', Ntr=50, randSeed=0):
-    #     # ""--- Now Y has 4 dimensions:
-    #     # 1. Pixels
-    #     # 2. Images
-    #     # 3. Person
-    #     # 4. Movement (Static. up/down. left / right)
-    #     #
-    #     # We can prepare the face data using different scenarios about what to be perceived.
-    #     # In each scenario, a different LFM is used. We have:
-    #     # - gp scenario, where we regress from images to labels (inputs are images, outputs are labels)
-    #     # - bgplvm scenario, where we are only perceiving images as outputs (no inputs, no labels)
-    #     # - mrd scenario, where we have no inputs, but images and labels form two different views of the output space.
-    #     #
-    #     # The store module of the LFM automatically sees the structure of the assumed perceived data and
-    #     # decides on the LFM backbone to be used.
-    #     #
-    #     # ! Important: The global variable Y is changed in this section. From the multi-dim. matrix of all
-    #     # modalities, it turns into the training matrix of image data and then again it turns into the
-    #     # dictionary used for the LFM.
-    #     # ---"""
-    #
-    #     # Take all poses if pose selection ==-1
-    #     if self.paramsDict['pose_selection'] == -1:
-    #         ttt = numpy.transpose(self.Y, (0, 1, 3, 2))
-    #         ttt = ttt.reshape((ttt.shape[0], ttt.shape[1] * ttt.shape[2], ttt.shape[3]))
-    #     else:
-    #         ttt = self.Y[:, :, :, self.paramsDict['pose_selection']]
-    #     ttt = numpy.transpose(ttt, (0, 2, 1))
-    #     self.Y = ttt.reshape(ttt.shape[0], ttt.shape[2] * ttt.shape[1])
-    #     self.Y = self.Y.T
-    #     # N=self.Y.shape[0]
-    #
-    #     if self.paramsDict['pose_selection'] == -1:
-    #         ttt = numpy.transpose(self.L, (0, 1, 3, 2))
-    #         ttt = ttt.reshape((ttt.shape[0], ttt.shape[1] * ttt.shape[2], ttt.shape[3]))
-    #     else:
-    #         ttt = self.L[:, :, :, self.paramsDict['pose_selection']]
-    #     ttt = numpy.transpose(ttt, (0, 2, 1))
-    #     self.L = ttt.reshape(ttt.shape[0], ttt.shape[2] * ttt.shape[1])
-    #     self.L = self.L.T
-    #     self.L = self.L[:, :1]
-    #
-    #     ret = SAMDriver.prepareData(self, model, Ntr, randSeed=randSeed)
-    #     return ret
-
-    # """"""""""""""""
-    # Method to read images from the iCub eyes used for the face recognition task
-    # Inputs: None
-    # Outputs:
-    #    - imageFlatten_testing: image from iCub eyes in row format for testing by the SAM model
-    # """"""""""""""""
-    # def readImageFromCamera(self):
-    #     while (not (yarp.Network.isConnected(self.inputImagePort, "/sam/face/imageData:i"))):
-    #         time.sleep(0.5);
-    #         print "Waiting for connection with imageDataInputPort..."
-    #         pass
-    #     numIters = 0
-    #     flagImageReceived = False
-    #     while (True):
-    #         try:
-    #             numIters = numIters + 1
-    #             self.newImage = self.imageDataInputPort.read(False)
-    #         except KeyboardInterrupt:
-    #             print 'Interrupted'
-    #             try:
-    #                 sys.exit(0)
-    #             except SystemExit:
-    #                 os._exit(0)
-    #
-    #         if not (self.newImage == None):
-    #             flagImageReceived = True
-    #             self.yarpImage.copy(self.newImage)
-    #
-    #             imageArrayOld = cv2.resize(self.imageArray, (self.paramsDict['imgHNew'], self.paramsDict['imgWNew']))
-    #             imageArrayGray = cv2.cvtColor(imageArrayOld, cv2.COLOR_BGR2GRAY)
-    #
-    #             plt.figure(10)
-    #             plt.title('Image received')
-    #             plt.imshow(imageArrayGray, cmap=plt.cm.Greys_r)
-    #             plt.show()
-    #             plt.waitforbuttonpress(0.1)
-    #
-    #             imageFlatten_testing = imageArrayGray.flatten()
-    #             imageFlatten_testing = imageFlatten_testing - self.Ymean
-    #             imageFlatten_testing = imageFlatten_testing / self.Ystd  #
-    #
-    #             imageFlatten_testing = imageFlatten_testing[:, None].T
-    #
-    #             break
-    #
-    #         if (numIters > 50):
-    #             flagImageReceived = False
-    #             break
-    #     if (flagImageReceived):
-    #         self.imageFlatten_testing = imageFlatten_testing
-    #
-    #     return flagImageReceived
-
-    def processLiveData(self, dataList, thisModel):
+    def processLiveData(self, dataList, thisModel, verbose):
 
         print 'process live data'
         print len(dataList)
@@ -318,7 +210,7 @@ class SAMDriver_interaction(SAMDriver):
                 instance = imageArrayGray.flatten()[None, :]
                 print instance.shape
                 print "Collected face: " + str(i)
-                [labels[i], likelihoods[i]] = SAMTesting.testSegment(thisModel, instance, True, None)
+                [labels[i], likelihoods[i]] = SAMTesting.testSegment(thisModel, instance, verbose, None)
 
             return SAMTesting.combineClassifications(thisModel, labels, likelihoods)
         else:
