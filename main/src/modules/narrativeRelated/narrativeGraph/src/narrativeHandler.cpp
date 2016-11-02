@@ -214,19 +214,20 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
+    bool initialise = false;
+    if (initialise){
+        cout << "linking scenarios 2 2" << endl;
+        linkMeaningScenario(2, 1);
+        cout << "linking scenarios 3 3" << endl;
+        linkMeaningScenario(3, 2);
+        cout << "linking scenarios 4 4" << endl;
+        linkMeaningScenario(4, 3);
+        cout << "linking scenarios 5 5" << endl;
+        linkMeaningScenario(5, 4);
+        cout << endl << endl;
 
-    cout << "linking scenarios 2 2" << endl;
-    linkMeaningScenario(2, 1);
-    cout << "linking scenarios 3 3" << endl;
-    linkMeaningScenario(3, 2);
-    cout << "linking scenarios 4 4" << endl;
-    linkMeaningScenario(4, 3);
-    cout << "linking scenarios 5 5" << endl;
-    linkMeaningScenario(5, 4);
-    cout << endl << endl;
-
-    questionHRI_DFW();
-
+        questionHRI_DFW();
+    }
 
     /*
         ofstream IGARFfile;
