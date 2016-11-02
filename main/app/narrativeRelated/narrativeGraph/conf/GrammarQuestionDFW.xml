@@ -18,7 +18,11 @@
   </RULE>
 
 
-  <RULE  NAME="What_happen_DFW_simple"  TOPLEVEL="ACTIVE"  EXPORT="1">
+  <RULE  NAME="Else"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>What else</P>    
+  </RULE>
+  
+    <RULE  NAME="What_happen_DFW_simple"  TOPLEVEL="ACTIVE"  EXPORT="1">
     <P>What happen</P>
     <RULEREF NAME="dfw_simple"/>
   </RULE>
