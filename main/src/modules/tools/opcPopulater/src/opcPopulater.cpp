@@ -1266,7 +1266,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
 bool opcPopulater::populateScenario1()
 {
 
-    string sAgent = "Sam";
+    string sAgent = "Allan";
     string sObject = "croco";
     string sObjError = "mouse";
 
@@ -1542,7 +1542,7 @@ bool opcPopulater::populateScenario1()
 bool opcPopulater::populateScenario2(){
     string sLarry = "Larry";
     string sRobert = "Robert";
-    string sObject = "croco";
+    string sObject = "mug";
     string sBox = "box";
     string sObjError = "mouse";
 
@@ -1761,7 +1761,7 @@ bool opcPopulater::populateScenario2(){
 bool opcPopulater::populateScenario3(){
 
     string sAgent = "Sam";
-    string sObject = "croco";
+    string sObject = "rabbit";
     string sBox = "box";
     string sObjError = "mouse";
 
@@ -1953,7 +1953,7 @@ bool opcPopulater::populateScenario3(){
 */
 bool opcPopulater::populateScenario4(){
 
-    string sObject = "croco";
+    string sObject = "bottle";
 
     Time::delay(4.);
 
@@ -2053,8 +2053,8 @@ bool opcPopulater::populateScenario4(){
 */
 bool opcPopulater::populateScenario5(){
 
-    string sAgent = "Sam";
-    string sObject = "croco";
+    string sAgent = "Mary";
+    string sObject = "brain";
 
     Time::delay(4.);
     // first the ObjStory is close to larry (from left to right)
@@ -2275,9 +2275,9 @@ bool opcPopulater::populateScenario5(){
 * 2 agents + iCub + box + 2 steps
 */
 bool opcPopulater::populateScenario6(){
-    string sLarry = "Larry";
-    string sRobert = "Robert";
-    string sObject = "croco";
+    string sLarry = "Jonny";
+    string sRobert = "Carol";
+    string sObject = "ball";
     string sBox = "box";
     string sObjError = "mouse";
 

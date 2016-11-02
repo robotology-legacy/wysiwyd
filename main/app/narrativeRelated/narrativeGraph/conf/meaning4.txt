@@ -1,63 +1,63 @@
-#   At the beginning, box cover croco and iCub want croco
-#   iCub take the croco
+#   At the beginning, box cover rabbit and iCub want rabbit
+#   iCub take the rabbit
 #   But it failed.
 #   iCub said to Sam: Can you remove the box please?
 #   Sam remove the box
-#   And now, iCub want croco
-#   iCub take the croco
-#   And now, iCub have croco
-#   In the end, iCub have croco
+#   And now, iCub want rabbit
+#   iCub take the rabbit
+#   And now, iCub have rabbit
+#   In the end, iCub have rabbit
 
 # FIRST
-first, want iCub croco, P1 P2 A2 O2
-first, cover box croco, P1 P2 A2 O2
+first, want iCub rabbit, P1 P2 A2 O2
+first, cover box rabbit, P1 P2 A2 O2
 
 # SO
-so, take iCub croco, P1 P2 A2 O2
+so, take iCub rabbit, P1 P2 A2 O2
 so, say iCub Can_you_remove_the_box_please? Sam, P1 P2 A2 O2 R2
 so, remove Sam box, P1 P2 A2 O2
-so, take iCub croco, P1 P2 A2 O2
-so, have iCub croco, P1 P2 A2 O2
+so, take iCub rabbit, P1 P2 A2 O2
+so, have iCub rabbit, P1 P2 A2 O2
 
 # THEN
-then, take iCub croco, P1 P2 A2 O2
+then, take iCub rabbit, P1 P2 A2 O2
 then, say iCub Can_you_remove_the_box_please? Sam, P1 P2 A2 O2 R2
 then, remove Sam box, P1 P2 A2 O2
-then, take iCub croco, P1 P2 A2 O2
-then, have iCub croco, P1 P2 A2 O2
+then, take iCub rabbit, P1 P2 A2 O2
+then, have iCub rabbit, P1 P2 A2 O2
 
 # AND
-and, want iCub croco, cover box croco, P1 P2 A2 O2 P3 A3 O3
+and, want iCub rabbit, cover box rabbit, P1 P2 A2 O2 P3 A3 O3
 and, say iCub Can_you_remove_the_box_please? Sam, remove Sam box, P1 P2 A2 O2 R2 P3 A3 O3
-and, take iCub croco, have iCub croco, P1 P2 A2 O2 P3 A3 O3
+and, take iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 
 # BEFORE
-#before, take iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
-before, take iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
-before, have iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
-before, have iCub croco, take iCub croco, P1 P2 A2 O2 P3 A3 O3
-before, remove Sam box, want iCub croco, P1 P2 A2 O2 P3 A3 O3
-before, remove Sam box, say iCub Can_you_remove_the_box_please? croco, P1 P2 A2 O2 P3 A3 O3 R3
+#before, take iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+before, take iCub rabbit, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+before, have iCub rabbit, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+before, have iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+before, remove Sam box, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+before, remove Sam box, say iCub Can_you_remove_the_box_please? rabbit, P1 P2 A2 O2 P3 A3 O3 R3
 
 # AFTER
-#after, take iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
-after, want iCub croco, take iCub croco, P1 P2 A2 O2 P3 A3 O3
-#after, remove Sam box, take iCub croco, P1 P2 A2 O2 P3 A3 O3
-after, remove Sam box, have iCub croco, P1 P2 A2 O2 P3 A3 O3
-after, take iCub croco, have iCub croco, P1 P2 A2 O2 P3 A3 O3
-after, want iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
-after, say iCub Can_you_remove_the_box_please? croco, remove Sam box, P1 P2 A2 O2 R2 P3 A3 O3
+#after, take iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+after, want iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+#after, remove Sam box, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+after, remove Sam box, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+after, take iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+after, want iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+after, say iCub Can_you_remove_the_box_please? rabbit, remove Sam box, P1 P2 A2 O2 R2 P3 A3 O3
 
 # BUT
-but, want iCub croco, cover box croco, P1 P2 A2 O2 P3 A3 O3
-but, take iCub croco, cover box croco, P1 P2 A2 O2 P3 A3 O3
-but, take iCub croco, fail iCub take, P1 P2 A2 O2 P3 A3 O3
+but, want iCub rabbit, cover box rabbit, P1 P2 A2 O2 P3 A3 O3
+but, take iCub rabbit, cover box rabbit, P1 P2 A2 O2 P3 A3 O3
+but, take iCub rabbit, fail iCub take, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
-#because, take iCub croco, remove Sam box, P1 P2 A2 O2 P3 A3 O3
-because,  take iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
-because,  have iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
-because,  have iCub croco, take iCub croco, P1 P2 A2 O2 P3 A3 O3
+#because, take iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+because,  take iCub rabbit, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+because,  have iCub rabbit, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+because,  have iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 
 #FINALLY
-finally, have iCub croco, P1 P2 A2 O2
+finally, have iCub rabbit, P1 P2 A2 O2
