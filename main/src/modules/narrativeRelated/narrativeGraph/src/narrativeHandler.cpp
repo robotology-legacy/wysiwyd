@@ -56,6 +56,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     instanceStart = rf.check("instanceStart", Value(0)).asInt();
     instanceStop = rf.check("instanceStop", Value(100000)).asInt();
     storyToNarrate = rf.check("storyToNarrate", Value(1770)).asInt();
+    scenarioToRecall = rf.check("scenarioToRecall", Value(5)).asInt();
     nBackSize = rf.check("nBackSize", Value(200)).asInt();
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
@@ -214,16 +215,17 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    bool initialise = false;
-    if (initialise){
+    if (rf.find("initialize").asInt() == 1){
         cout << "linking scenarios 2 2" << endl;
-        linkMeaningScenario(2, 1);
+        linkMeaningScenario(2, 0);
         cout << "linking scenarios 3 3" << endl;
-        linkMeaningScenario(3, 2);
+        linkMeaningScenario(3, 1);
         cout << "linking scenarios 4 4" << endl;
-        linkMeaningScenario(4, 3);
+        linkMeaningScenario(4, 2);
         cout << "linking scenarios 5 5" << endl;
-        linkMeaningScenario(5, 4);
+        linkMeaningScenario(5, 3);
+        cout << "linking scenarios 6 6" << endl;
+        linkMeaningScenario(6, 4);
         cout << endl << endl;
 
         questionHRI_DFW();
@@ -2489,7 +2491,7 @@ discourseform::meaningSentence narrativeHandler::sentenceToEvent(string level1){
             cout << endl;
         }
         else{
-            for (int iWords = 0; iWords < meaningPAOR.size(); iWords++){
+            for (unsigned int iWords = 0; iWords < meaningPAOR.size(); iWords++){
                 int iNumberProposition = atoi(&(meaningPAOR[iWords].at(1)));
 
                 // if new proposition

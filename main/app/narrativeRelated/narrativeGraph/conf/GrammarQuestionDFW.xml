@@ -76,11 +76,15 @@
 
   <RULE NAME="agent" DYNAMIC="TRUE">
     <L>
-      <P>iCub</P>
       <P>you</P>
       <P>Sam</P>
+      <P>John</P>
+      <P>iCub</P>
       <P>Larry</P>
+      <P>Mary</P>
       <P>Robert</P>
+      <P>Allan</P>
+      <P>Carol</P>
     </L>
   </RULE>
 
@@ -111,6 +115,10 @@
       <P>toy</P>
       <P>mousse</P>
       <P>box</P>
+      <P>mug</P>
+      <P>brain</P>
+      <P>rabbit</P>
+      <P>ball</P>
     </L>
   </RULE>
 
@@ -123,6 +131,9 @@
       <P>different</P>
       <P>John</P>
       <P>iCub</P>
+      <P>Larry</P>
+      <P>Mary</P>
+      <P>Robert</P>
     </L>
   </RULE>
 

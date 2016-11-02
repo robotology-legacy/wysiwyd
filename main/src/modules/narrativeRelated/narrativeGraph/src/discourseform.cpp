@@ -99,8 +99,8 @@ string meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
                 cout << endl;
             }
             else{
-                for (int iWords = 0; iWords < meaningPAOR.size(); iWords++){
-                    int iNumberProposition = atoi(&(meaningPAOR[iWords].at(1)));
+                for (unsigned int iWords = 0; iWords < meaningPAOR.size(); iWords++){
+                    unsigned int iNumberProposition = atoi(&(meaningPAOR[iWords].at(1)));
 
                     // if new proposition
                     if (currentSentence.vSentence.size() < iNumberProposition){

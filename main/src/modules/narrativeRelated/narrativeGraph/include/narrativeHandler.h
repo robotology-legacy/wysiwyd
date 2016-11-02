@@ -51,6 +51,7 @@ private:
     unsigned int  instanceStart; // min range of the research of story
     unsigned int  instanceStop;  // max range of the research of story
     int            storyToNarrate; // first instance of the story to narrate
+    int            scenarioToRecall;
 
     bool researchWindows;   // if the research of sotry is by window (min*max) or by n-back
     int nBackSize;              // number of nBack instance to look at

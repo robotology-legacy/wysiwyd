@@ -122,14 +122,15 @@ Bottle narrativeHandler::questionHRI_DFW(){
                     }
                     else{
                         //case sentence simple with DFW:
+                        vResponses.clear();
                         if (bSemantic.get(0).asString() == "What_happen_DFW_simple"){
-                            bReturn = what_DFW_Simple(bSemantic);
+                            bReturn = what_DFW_Simple(bSemantic, scenarioToRecall);
                         }
                         else if (bSemantic.get(0).asString() == "What_happen_DFW_double"){
-                            bReturn = what_DFW_Double(bSemantic);
+                            bReturn = what_DFW_Double(bSemantic, scenarioToRecall);
                         }
                         else if (bSemantic.get(0).asString() == "Why"){
-                            bReturn = whyPAOR(bSemantic);
+                            bReturn = whyPAOR(bSemantic, scenarioToRecall);
                         }
                         // Pick random answer according to probability        
                         for (int ii = 0; ii < bReturn.size(); ii++){

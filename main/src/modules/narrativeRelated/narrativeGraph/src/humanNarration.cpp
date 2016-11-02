@@ -979,9 +979,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     // creatino of the MD from the discourse
     string sReturn = MD.meaningToDiscourseForm(listAutoMeaning[iMeaning]);
 
-    int indice = 0;
     // check for each proposition, if it can be asociated to a event of the Scenario
-
     int count = 0;
 
     if (display){
@@ -1036,7 +1034,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             level2++){  // for each preposition of the sentence
             if (true){
                 cout << " [ ";
-                for (int iWord = 0; iWord < level2->vOCW.size(); iWord++){
+                for (unsigned int iWord = 0; iWord < level2->vOCW.size(); iWord++){
 
                     cout << level2->vOCW[iWord] << " ";
                 }
@@ -1075,11 +1073,12 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                 bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
 
                 if (bAllAction){     // if found;
-                    for (int kk = 0; kk < vkTmp.size(); kk++)
+                    for (unsigned int kk = 0; kk < vkTmp.size(); kk++)
                     {
                         sKeyMean kTmp = vkTmp[kk];
                         if (display) cout << "\t result find: " << (kTmp.toString());
-                        int iIg, iL;
+                        int iIg = -1,
+                                iL = -1;
                         if (kTmp.iIGARF != -1){
                             //currentIGARF = sm.vIGARF[kTmp.iIGARF];
                             iIg = sm.vIGARF[kTmp.iIGARF].iAction;
@@ -1164,10 +1163,10 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                 else{
                     if (display) cout << "filling double vector ... " << doubleBefore.size() << "*" << doubleAfter.size() << " ";
                     int doku = 0;
-                    for (int iFirst = 0; iFirst < doubleBefore.size(); iFirst++){
+                    for (unsigned int iFirst = 0; iFirst < doubleBefore.size(); iFirst++){
                         pair<EVT_IGARF, EVT_IGARF>  kTmpDouble;
                         kTmpDouble.first = doubleBefore[iFirst];
-                        for (int iSecond = 0; iSecond < doubleAfter.size(); iSecond++){
+                        for (unsigned int iSecond = 0; iSecond < doubleAfter.size(); iSecond++){
                             kTmpDouble.second = doubleAfter[iSecond];
                             currentDFW->vDoubleIGARF.push_back(kTmpDouble);
                             doku++;
@@ -1250,7 +1249,7 @@ void narrativeHandler::NaiveToPAOR(){
     }
 
 
-    for (int ii = 0; ii < vFound.size(); ii++){
+    for (unsigned int ii = 0; ii < vFound.size(); ii++){
         cout << "scenario " << ii + 1 << " found: " << vFound[ii] << " meaning" << endl;
     }
 }
