@@ -22,6 +22,11 @@
     <P>What else</P>    
   </RULE>
   
+  
+  <RULE  NAME="When"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>Do you remember when</P>    
+  </RULE>
+  
     <RULE  NAME="What_happen_DFW_simple"  TOPLEVEL="ACTIVE"  EXPORT="1">
     <P>What happen</P>
     <RULEREF NAME="dfw_simple"/>
@@ -57,6 +62,47 @@
   </RULE>
 
 
+ <RULE  NAME="PAORsimple"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <RULEREF NAME="dfw_simple"/>
+    <RULEREF NAME="agent"/>
+    <RULEREF NAME="predicate"/>
+    <O>
+      <RULEREF NAME="CCW"/>
+      <RULEREF NAME="object"/>
+      <O>
+        <RULEREF NAME="CCW"/>
+        <RULEREF NAME="recipient"/>
+      </O>
+    </O>
+  </RULE>
+  
+   <RULE  NAME="PAORdouble"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <RULEREF NAME="agent"/>
+    <RULEREF NAME="predicate"/>
+    <O>
+      <RULEREF NAME="CCW"/>
+      <RULEREF NAME="object"/>
+      <O>
+        <RULEREF NAME="CCW"/>
+        <RULEREF NAME="recipient"/>
+      </O>
+    </O>
+    <RULEREF NAME="dfw_double"/>
+    <RULEREF NAME="agent"/>
+    <RULEREF NAME="predicate"/>
+    <O>
+      <RULEREF NAME="CCW"/>
+      <RULEREF NAME="object"/>
+      <O>
+        <RULEREF NAME="CCW"/>
+        <RULEREF NAME="recipient"/>
+      </O>
+    </O>
+  </RULE>
+
+
+  
+
   <RULE NAME="dfw_simple" DYNAMIC="TRUE">
     <L>
       <P>first</P>
@@ -74,7 +120,7 @@
   </RULE>
 
 
-  <RULE NAME="agent" DYNAMIC="TRUE">
+ <RULE NAME="agent" DYNAMIC="TRUE">
     <L>
       <P>you</P>
       <P>Sam</P>
@@ -113,7 +159,7 @@
       <P>croco</P>
       <P>it</P>
       <P>toy</P>
-      <P>mousse</P>
+      <P>mouse</P>
       <P>box</P>
       <P>mug</P>
       <P>brain</P>

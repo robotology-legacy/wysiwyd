@@ -95,8 +95,10 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
     };
 
     // LOAD SCENARIO
-    int iScenario = bInput.get(1).asInt() - 1;
+    int iScenario = bInput.get(1).asInt();
     loadSM(iScenario);
+
+    cout << "SCENARIO LOADED: " << iScenario << endl;
     // SCENARIO LOADED
 
     // IF HASN'T PAOR:

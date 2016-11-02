@@ -29,6 +29,7 @@ using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 using namespace std;
 using namespace discourseform;
+using namespace storygraph;
 
 /*
 * Simple speech confirmation: yes is: "yes" "ok"
@@ -69,6 +70,8 @@ Bottle narrativeHandler::questionHRI_DFW(){
     vector < pair < string, double > > vResponses;
 
     bool keepInteracting = true;
+    bool remember = false; // if asking to recall a situation
+
     while (keepInteracting){
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
             bAnswer, //response from speech recog without transfer information, including raw sentence
@@ -77,8 +80,8 @@ Bottle narrativeHandler::questionHRI_DFW(){
         bool getAnswer = false;
 
         while (!getAnswer){
+            cout << "Remember: " << remember << " | scenario: " << scenarioToRecall << endl;
             bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, false);
-
             if (bRecognized.get(0).asInt() == 0)
             {
                 yError() << " error in narrativeHandler::questionHRI_DFW | Error in speechRecog";
@@ -112,6 +115,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         cout << "Okay, bye !" << endl;
                     }
                     else if (bSemantic.get(0).asString() == "Else"){
+                        remember = false;
                         string picked = pickResponse(vResponses);
                         if (picked == "none"){
                             iCub->say("Nothing else, sorry.");
@@ -120,7 +124,17 @@ Bottle narrativeHandler::questionHRI_DFW(){
                             iCub->say(picked);
                         }
                     }
+                    else if (remember == true){
+                        doYouRemember(sSentence);
+                        remember = false;
+
+                    }
+                    else if (bSemantic.get(0).asString() == "When"){
+                        cout << "Setting remember true !" << endl;
+                        remember = true;
+                    }
                     else{
+                        remember = false;
                         //case sentence simple with DFW:
                         vResponses.clear();
                         if (bSemantic.get(0).asString() == "What_happen_DFW_simple"){
@@ -165,7 +179,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
 */
 Bottle narrativeHandler::what_DFW_Simple(Bottle bInput, int iScenario){
     Bottle bReturn;
-    cout << " what_DFW_Simple launched: " << bInput.toString() << endl;
+    cout << " what_DFW_Simple launched: " << bInput.toString() << ", scenario: " << iScenario << endl;
 
     // check input Bottle:
     if (bInput.size() != 2){
@@ -207,7 +221,7 @@ Bottle narrativeHandler::what_DFW_Simple(Bottle bInput, int iScenario){
 */
 Bottle narrativeHandler::what_DFW_Double(Bottle bInput, int iScenario){
     Bottle bReturn;
-    cout << " what_DFW_Double launched: " << bInput.toString() << endl;
+    cout << " what_DFW_Double launched: " << bInput.toString() << ", scenario: " << iScenario << endl;
 
     // check input Bottle:
     if (bInput.size() != 2){
@@ -272,7 +286,7 @@ Bottle narrativeHandler::what_DFW_Double(Bottle bInput, int iScenario){
 */
 Bottle narrativeHandler::whyPAOR(Bottle bInput, int iScenario){
     Bottle bReturn;
-    cout << " whyPAOR launched: " << bInput.toString() << endl;
+    cout << " whyPAOR launched: " << bInput.toString() << ", scenario: " << iScenario << endl;
 
     // check input Bottle:
     if (bInput.size() != 2){
@@ -355,7 +369,7 @@ string narrativeHandler::pickResponse(vector < pair < string, double > > &vRespo
     bool found = false;
     int toRemove = 0;
     for (auto pa : vResponses){
-        bool threshold = (p -= pa.second) < 0;        
+        bool threshold = (p -= pa.second) < 0;
         if (!found) {
             toRemove++;
         }
@@ -373,3 +387,185 @@ string narrativeHandler::pickResponse(vector < pair < string, double > > &vRespo
 
     return sReturn;
 }
+
+
+bool narrativeHandler::doYouRemember(string sInput){
+
+    cout << "in DO YOU REMEMBER: sInput is: " << sInput << endl;
+    bool display = true;
+    vector<string>  vsMeaning;
+    string meaning = iCub->getLRH()->SentenceToMeaning(sInput);
+
+    vsMeaning.push_back(meaning);
+    meaningDiscourse MD;
+    // creation of the MD from the discourse
+    string sReturn = MD.meaningToDiscourseForm(vsMeaning);
+
+    int bestScore = -1;
+    int iToReturn = -1;
+
+    // FOR EACH SM:
+
+    for (unsigned int iSM = 0; iSM < listStories.size(); iSM++){
+        ofstream IGARFfile;
+        IGARFfile.open(sIGARFfile);
+        sm.ABMtoSM(listStories[iSM], IGARFfile);
+
+        int iCurrentScore = 0;
+
+        //search the events;
+
+        for (vector<meaningSentence>::iterator level1 = MD.meanings.vDiscourse.begin();
+            level1 != MD.meanings.vDiscourse.end();
+            level1++
+            )
+        { // for each sentence of the discourse
+            DFW *currentDFW;
+            bool isMultiple = false; // if a sentence is multiple (with a DFW)
+            int iPreposition = 0;   // get the order of the preposition in the sentence
+            int iNbPreposition = level1->vSentence.size();  // nb of preposition in the sentence
+            bool isDFW = level1->vSentence[0].vOCW.size() == 1;
+            vector<EVT_IGARF> singleIGARF;
+            vector<EVT_IGARF>  doubleBefore;
+            vector<EVT_IGARF>  doubleAfter;
+
+            bool bAllAction = true;  //depend of the score of findBest
+
+            if (display) cout << "---------------------------------------------------------------------\n" << "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
+
+
+            for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
+                level2 != level1->vSentence.end();
+                level2++){  // for each preposition of the sentence
+                if (true){
+                    cout << " [ ";
+                    for (unsigned int iWord = 0; iWord < level2->vOCW.size(); iWord++){
+
+                        cout << level2->vOCW[iWord] << " ";
+                    }
+                    cout << "]  ";
+                }
+
+                int iScore = 0;
+                if (isDFW && iPreposition == 0){ // only one OCW: DFW
+                    //cout << "\t\t\t sentence has a DFW." << endl;
+                    string nameDFW = level2->vOCW[0];
+                    isMultiple = true;
+                    bool found = false;
+                    for (vector<DFW>::iterator itDFW = vDFW.begin(); itDFW != vDFW.end(); itDFW++){
+                        if (!found && itDFW->sName == nameDFW){
+                            found = true;
+                            currentDFW = &(*itDFW);
+                            if (display) cout << " found existing DFW: " << currentDFW->sName << endl;
+                        }
+                    }
+                    if (!found) {
+                        if (display) cout << " DFW not found: " << currentDFW->sName << endl;
+                        return false;
+                    }
+                }
+                else{
+                    vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
+                    iCurrentScore += iScore;
+                    if (vkTmp.size() == 0){
+                        yWarning() << " in narrativeGraph::humanNarration.cpp::linkMeaningScenario:: findBest : no target found.";
+                        yWarning() << level1->getSentence();
+                    }
+
+                    bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
+
+                    if (bAllAction){     // if found;
+                        for (unsigned int kk = 0; kk < vkTmp.size(); kk++)
+                        {
+                            sKeyMean kTmp = vkTmp[kk];
+                            if (display) cout << "\t result find: " << (kTmp.toString());
+                            int iIg = -1,
+                                iL = -1;
+                            if (kTmp.iIGARF != -1){
+                                //currentIGARF = sm.vIGARF[kTmp.iIGARF];
+                                iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                                iL = sm.vIGARF[kTmp.iIGARF].iLevel;
+
+                                if (display){
+
+                                    //vIGARF.at(j).vGoal.at(k)
+                                    if (kTmp.cPart == 'A'){
+                                        cout << "\t  " << iIg << " - " << iL
+                                            << " [" << sm.vActionEvts[iIg].agent
+                                            << "-" << sm.vActionEvts[iIg].predicate
+                                            << "-" << sm.vActionEvts[iIg].object
+                                            << "-" << sm.vActionEvts[iIg].recipient << "]" << endl;
+                                    }
+                                    else if (kTmp.cPart == 'G'){
+                                        cout << "\t  " << iIg << " - " << iL
+                                            << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
+                                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].verb
+                                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
+                                    }
+                                    else if (kTmp.cPart == 'I'){
+                                        cout << "\t  " << iIg << " - " << iL
+                                            << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
+                                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].verb
+                                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
+                                    }
+                                    else if (kTmp.cPart == 'F'){
+                                        cout << "\t  " << iIg << " - " << iL
+                                            << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
+                                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].verb
+                                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
+                                    }
+                                    else if (kTmp.cPart == 'R'){
+                                        cout << "\t  " << iIg << " - " << iL
+                                            << " [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].agent
+                                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].predicate
+                                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].object
+                                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].recipient << "]" << endl;
+                                    }
+                                }
+                            }
+
+                            // double dI = iIg / (sm.vChronoIgarf.size() *1.0);
+                            storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
+                            sm.checkEVTIGARF(evtKM);
+
+                            //cout << "KM is: " << evtKM.toString() << endl;
+
+                            if (iNbPreposition > 2){
+                                if (iPreposition < 2){
+                                    doubleBefore.push_back(evtKM);
+                                }
+                                else{
+                                    doubleAfter.push_back(evtKM);
+                                }
+                            }
+                            else{
+                                singleIGARF.push_back(evtKM);
+                            }
+
+                        }
+                    }
+                }
+                //else {
+                //    cout << "Action not recognized" << endl;
+                //}
+
+                iPreposition++;
+            }  // end preposition
+        }
+
+        if (iCurrentScore >= bestScore){
+            bestScore = iCurrentScore;
+            iToReturn = iSM;
+        }
+
+
+    }
+
+
+    cout << "To return: " << iToReturn << endl;
+
+    scenarioToRecall = iToReturn;
+    return true;
+}
+
+

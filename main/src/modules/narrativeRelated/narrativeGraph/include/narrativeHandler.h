@@ -159,6 +159,7 @@ private:
     yarp::os::Bottle what_DFW_Simple(yarp::os::Bottle bInput, int iScenario = 5);
     yarp::os::Bottle what_DFW_Double(yarp::os::Bottle bInput, int iScenario = 5);
     yarp::os::Bottle whyPAOR(yarp::os::Bottle bInput, int iScenario = 5);
+    bool doYouRemember(std::string sInput);
     std::string pickResponse(std::vector < std::pair < std::string, double > > &vResponses);
 
 

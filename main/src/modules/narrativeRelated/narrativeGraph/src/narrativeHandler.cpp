@@ -228,7 +228,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         linkMeaningScenario(6, 4);
         cout << endl << endl;
 
-        questionHRI_DFW();
+        //questionHRI_DFW();
     }
 
     /*
@@ -283,6 +283,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " exportDFW\n" +
         " useDFW\n" +
         " HRI\n" +
+        " remember\n" +
         " ABMtoSM + storyNumber = last\n"
         " linkNarrationScenario + iNarration + iScenario\n" +
         " linkMeaningScenario + iNarration + iScenario\n" +
@@ -460,6 +461,11 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "HRI") {
         yInfo(" launching HRI");
         reply = questionHRI_DFW();
+    }
+    else if (command.get(0).asString() == "remember") {
+        yInfo(" remembering");
+        doYouRemember(command.get(1).toString());
+        reply.addInt(scenarioToRecall);
     }
     else if (command.get(0).asString() == "ABMtoSM") {
         yInfo(" create the situation model from ABM");
