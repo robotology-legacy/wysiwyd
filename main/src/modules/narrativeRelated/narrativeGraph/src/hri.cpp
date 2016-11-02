@@ -125,7 +125,12 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         }
                     }
                     else if (remember == true){
-                        doYouRemember(sSentence);
+                        if (doYouRemember(sSentence)){
+                            iCub->say("Yes, of course I remember !");
+                        }
+                        else{
+                            iCub->say("Hum, no, it doesn't ring me a bell.");
+                        }
                         remember = false;
 
                     }
@@ -561,11 +566,15 @@ bool narrativeHandler::doYouRemember(string sInput){
 
     }
 
+    if (bestScore > 0){
+        cout << "To return: " << iToReturn << endl;
 
-    cout << "To return: " << iToReturn << endl;
-
-    scenarioToRecall = iToReturn;
-    return true;
+        scenarioToRecall = iToReturn;
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 
