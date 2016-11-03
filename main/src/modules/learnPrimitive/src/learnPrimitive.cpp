@@ -176,8 +176,11 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         reply = actionCommand(sActionName, sActionArg);
     }
     else if (command.get(0).asString() == "proto"){
-        reply = protoDataToR(15366, 15370);
-        reply = protoDataToR(15379, 15384);
+        reply = protoDataToR(18287, 18292);
+        reply = protoDataToR(18295, 18300);
+        reply = protoDataToR(18308, 18313);
+        reply = protoDataToR(18322, 18327);
+        reply = protoDataToR(18337, 18342);
         reply = rAnalysis();
         emptyRData();
         //reply = extractProtoProprio(15366, "left_arm", 15367, "fold", "thumb");
@@ -225,6 +228,14 @@ yarp::os::Bottle learnPrimitive::extractProtoSemantic(int babbling_begin, int ba
 
 yarp::os::Bottle learnPrimitive::extractAllProtoProprio(int babbling_begin, Bottle bProtoWords, string babbling_arm){
 
+
+    //the bodypart name is known and always the same
+    ostringstream osRequest;
+    osRequest.str("");
+    osRequest << "SELECT argument from contentarg WHERE instance = " << babbling_begin << " and role = 'joint'";
+    Bottle bBodypart = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+    string sJoint = bBodypart.get(0).asList()->get(0).toString().c_str() ;
+
     Bottle bBabblingProprio;
     for (int i = 0; i < bProtoWords.size(); i++){
         Bottle bProtoProprio;
@@ -239,11 +250,10 @@ yarp::os::Bottle learnPrimitive::extractAllProtoProprio(int babbling_begin, Bott
             previousProtoInstance = atoi(bProtoWords.get(i-1).asList()->get(0).toString().c_str());
         }
         string currentProtoName   = bProtoWords.get(i).asList()->get(1).asString();
-        string currentProtoFinger = bProtoWords.get(i).asList()->get(2).asString();
 
-        yDebug() << "==> proto instance = " << currentProtoInstance << ", proto name = " << currentProtoName << " and proto finger = " << currentProtoFinger ;
+        yDebug() << "==> proto instance = " << currentProtoInstance << ", proto name = " << currentProtoName << " and proto finger = " << sJoint ;
         // --------------------------------(15366, 15367, "fold", "thumb")
-        bProtoProprio = extractSingleProtoProprio(previousProtoInstance, currentProtoInstance, babbling_arm, currentProtoName, currentProtoFinger);
+        bProtoProprio = extractSingleProtoProprio(previousProtoInstance, currentProtoInstance, babbling_arm, currentProtoName, sJoint, babbling_begin);
 
         bBabblingProprio.addList() = bProtoProprio ;
     }
@@ -251,11 +261,15 @@ yarp::os::Bottle learnPrimitive::extractAllProtoProprio(int babbling_begin, Bott
     return bBabblingProprio;
 }
 
-yarp::os::Bottle learnPrimitive::extractSingleProtoProprio(int previousProtoInstance, int currentProtoInstance, string babbling_part, string proto_name, string proto_finger){
+yarp::os::Bottle learnPrimitive::extractSingleProtoProprio(int previousProtoInstance, int currentProtoInstance, string babbling_part, string proto_name, string proto_finger, int babbling_begin){
+
+
+    int joint = atoi(proto_finger.c_str());
 
     ostringstream osRequest;
     Bottle bResult;
 
+    /***************************************** Extract time border *****************************************/
     osRequest.str("");
     osRequest << "SELECT main.time from main WHERE instance = " << previousProtoInstance;
     Bottle b_time_begin = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
@@ -264,26 +278,55 @@ yarp::os::Bottle learnPrimitive::extractSingleProtoProprio(int previousProtoInst
     osRequest << "SELECT main.time from main WHERE instance = " << currentProtoInstance;
     Bottle b_time_end = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
+    /***************************************** Extract frame border *****************************************/
+    //there is a small bug when the ms is almost 0 and some frame_number "jumped". Use the time to extract the frame rather
+    osRequest.str("");
+    osRequest << "SELECT min(frame_number) FROM proprioceptivedata " ;
+    osRequest <<  "where instance = " << babbling_begin << " AND time > CAST('" << b_time_begin.get(0).toString() << "' AS TIMESTAMP) and label_port = '/icub/" << babbling_part << "/state:o' and subtype = '" << joint << "'"  ;
+    Bottle b_frame_begin = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+    string s_frame_begin = b_frame_begin.get(0).toString();
+    s_frame_begin.erase(remove(s_frame_begin.begin(), s_frame_begin.end(), '"'), s_frame_begin.end()); //has to remove the double quote that are part of the string
+
+    osRequest.str("");
+    osRequest << "SELECT min(frame_number) FROM proprioceptivedata " ;
+    osRequest <<  "where instance = " << babbling_begin << " AND time > CAST('" << b_time_end.get(0).toString() << "' AS TIMESTAMP) and label_port = '/icub/" << babbling_part << "/state:o' and subtype = '" << joint << "'"  ;
+    Bottle b_frame_end = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+    string s_frame_end = b_frame_end.get(0).toString();
+    s_frame_end.erase(remove(s_frame_end.begin(), s_frame_end.end(), '"'), s_frame_end.end()); //has to remove the double quote that are part of the string
+    //int i_frame_end = atoi (s_frame_begin.c_str());
+
+
+    /***************************************** Extract adverb *****************************************/
+    osRequest.str("");
+    osRequest << "SELECT word FROM sentencedata WHERE instance = " << currentProtoInstance << " AND role = 'adverb_speed'";
+    Bottle currentAdverbSpeed = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+
+    osRequest.str("");
+    osRequest << "SELECT word FROM sentencedata WHERE instance = " << currentProtoInstance << " AND role = 'adverb_angle'";
+    Bottle currentAdverbAngle= iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+
     //********************* extract the joint number =========================================================> possibly spy on several?
     //iCub->opc->checkout();
     //should check at some point that the bodypart is there and loaded no?
     //Bodypart* bp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(proto_finger));
     //int joint = bp->m_joint_number ;
 
-    int joint = 9;
-
-    yDebug() << "time begin = " << b_time_begin.toString() << " and time_end = " << b_time_end.toString();
+    yDebug() << "INT!! " << atoi(s_frame_begin.c_str()) << " and " <<  atoi(s_frame_end.c_str());
     yDebug() << "proto_instance = " << currentProtoInstance << " and proto_name = " << proto_name << " and proto finger = " << proto_finger << "and " << babbling_part;
 
     //*********************************************************************************** protect if bodypart not found
 
+    //Using time to extract the protoaction
     osRequest.str("");
-    osRequest << "SELECT " << currentProtoInstance << " AS proto_instance, '" << proto_name <<"' AS proto_name, '" << proto_finger << "' AS proto_finger, proprioceptivedata.* " <<
+    osRequest << "SELECT " << currentProtoInstance << " AS proto_instance, '" << proto_name <<"' AS proto_name, '" << proto_finger << "' AS proto_finger, '" << currentAdverbSpeed.get(0).toString() << "' AS adverbSpeed, '" <<  currentAdverbAngle.get(0).toString() << "' AS adverbAngle, proprioceptivedata.* " <<
                  "FROM   proprioceptivedata " <<
-                 "WHERE proprioceptivedata.time > CAST('" << b_time_begin.toString() << "' AS TIMESTAMP) AND proprioceptivedata.time <  CAST('" << b_time_end.toString() << "' AS TIMESTAMP)" <<
+                 "WHERE instance = " << babbling_begin << " AND proprioceptivedata.frame_number >= " << s_frame_begin << " AND proprioceptivedata.frame_number <  " << s_frame_end <<
                  "      AND subtype = '"<< joint << "' AND label_port = '/icub/" << babbling_part << "/state:o' " <<
                  "ORDER BY (frame_number);";
+    yDebug() << osRequest.str().c_str() ;
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+
+    //Using frame_number to extract the protoaction
 
     //yDebug() << "extractProtoAction:\n" << bResult.toString();
 
@@ -317,6 +360,7 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
 
     yDebug() << "============================================== BEFORE THE LOOP ======================================" ;
     yDebug() << "We have " << bBabblingProprio.size() << " different protoactions!" ;
+    //yDebug() << "bBabblingProprio = " << bBabblingProprio.toString();
     for(int i = 0; i < bBabblingProprio.size(); i++){
 
         yDebug() << "-> current proto have " << bBabblingProprio.get(i).asList()->size() << " lines!" ;
@@ -325,16 +369,18 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
             Bottle* currentLine = bBabblingProprio.get(i).asList()->get(j).asList();
             //yDebug() << currentLine->toString();
 
-            // proto_instance | proto_name | proto_finger | babbling_instance | time | port | joint_nb | value | frame
-            //       0              1              2               3              4      5       6          7      8
+            // proto_instance | proto_name | proto_finger | adverb_speed | adverb_angle | babbling_instance | time | port | joint_nb | value | frame
+            //       0              1              2               3              4               5             6      7      8          9       10
 
             v_instanceProto.push_back(atoi(currentLine->get(0).toString().c_str()));
             v_protoName.push_back(currentLine->get(1).toString().c_str());
             v_protoFinger.push_back(currentLine->get(2).toString().c_str());
-            v_instanceBabbling.push_back(atoi(currentLine->get(3).toString().c_str()));
-            v_joint.push_back(atoi(currentLine->get(6).toString().c_str()));
-            v_value.push_back(atof(currentLine->get(7).toString().c_str()));
-            v_frame_number.push_back(atoi(currentLine->get(8).toString().c_str()));
+            v_adverbSpeed.push_back(currentLine->get(3).toString().c_str());
+            v_adverbAngle.push_back(currentLine->get(4).toString().c_str());
+            v_instanceBabbling.push_back(atoi(currentLine->get(5).toString().c_str()));
+            v_joint.push_back(atoi(currentLine->get(8).toString().c_str()));
+            v_value.push_back(atof(currentLine->get(9).toString().c_str()));
+            v_frame_number.push_back(atoi(currentLine->get(10).toString().c_str()));
         }
     }
 
@@ -351,6 +397,8 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
     R["instanceProto"] = v_instanceProto;
     R["protoName"] = v_protoName;
     R["protoFinger"] = v_protoFinger;
+    R["adverbSpeed"] = v_adverbSpeed;
+    R["adverbAngle"] = v_adverbAngle;
     R["instanceBabbling"] = v_instanceBabbling;
     R["joint"] = v_joint;
     R["value"] = v_value;
@@ -363,56 +411,94 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
         yDebug() << "============================================== R Session ======================================" ;
 
         std::string cmd =
-            "myData <- data.frame(instanceProto, protoName, protoFinger, instanceBabbling, joint, value, frame_number); "
-            "print(is.data.frame(myData)); "
-            "print(head(myData)); "
-            "cat('number of lines : ', nrow(myData))";
+            "babblingData <- data.frame(instanceProto, protoName, protoFinger, adverbSpeed, adverbAngle, instanceBabbling, joint, value, frame_number); "
+            "print(is.data.frame(babblingData)); "
+            "print(head(babblingData)); "
+            "cat('number of lines : ', nrow(babblingData))";
         R.parseEval(cmd);
 
-        //3.2 Remove the first "flat" part: floating windows of 5? (i +/-2) and 'begin' when diff > threshold ~ 0.2. Assume that data are stored by ascending instance number
+        cmd = "write.table(babblingData, file = '/home/maxime/CloudStation/R/fold-unfold/RInside/babblingData.txt', sep=';', quote=F, row.names=F)";
+        R.parseEval(cmd);
+
+        //3.1 Remove the first "flat" part: floating windows of 5? (i +/-2) and 'begin' when diff > threshold ~ 0.2.
         // install.packages("zoo") for that!
         R["winSize"] = 5;
         R["winStep"] = 2;
+        R["threshold.flat"] = 0.2;
         cmd =
             "library(zoo);"
-            "sliding <- rollapply(myData$value, width = winSize, by = winStep, FUN = mean, align = 'left');"
-            "cutFrom <- 1;"
-            "for(i in 1:(length(sliding)-1)){"
-            "    if( abs(sliding[i] - sliding[i+1]) > 0.4){"
-            "        cat('i = ', i, '\n');"
-            "        cutFrom <- i;"
-            "        break;"
-            "    }"
-            "};"
-            "cat('cutFrom: ', cutFrom, '\n');"
-            "cutFrom <- cutFrom * winStep;"
-            "cat('finalCutFrom: ', cutFrom, '\n');";
-
+            "list.proto <- levels(as.factor(babblingData$instanceProto));"
+                //prepare the dataframe to know where to cut (flat part at the beginning and end of each protoaction)
+            "df.toCut <- data.frame(instance=character(0), cutFrom=numeric(0), cutTo=numeric(0))";
         R.parseEval(cmd);
 
-        //3.3 extract the frameNumber to use for subset (depending on spying port, portnumber might not corresponding to line number)
+        //3.2 Go through the protoaction data, one by one to. Use sliding windowd to detect flat part at the beginning and end et check where to cut using frame_number
         cmd =
-            "frame2cut <- myData$frame_number[cutFrom];"
-            "cat('frame below which to cut: ', frame2cut, '\n')";
+            "for(indexProto in 1:(length(list.proto)-1)){\n"
+                "\tcurrentSubset <- subset(babblingData, babblingData$instanceProto == list.proto[indexProto]);\n"
+
+                    //creating the sliding window
+                "sliding <- rollapply(currentSubset$value, width = winSize, by = winStep, FUN = mean, align = 'left');\n"
+
+                    //cut flat beginning
+                "cutBelow <- 1;\n"
+                "cat(cutBelow);\n"
+                "for(i in 1:(length(sliding)-1)){\n"
+                    "\tif(abs(sliding[i] - sliding[i+1]) > threshold.flat){\n"
+                        "\t\tcutBelow <- i;\n"
+                        "\t\tbreak;\n"
+                    "\t}\n"
+                "}\n"
+
+                    //cut flat end
+                "sliding.rev <- rev(sliding);\n"
+                "cutAbove <- 1;\n"
+                "for(i in 1:(length(sliding.rev)-1)){\n"
+                    "if( abs(sliding.rev[i] - sliding.rev[i+1]) > threshold.flat){\n"
+                        "cutAbove <- i;\n"
+                        "break;\n"
+                    "}\n"
+                "}\n"
+
+                "cat('*************** Instance ', as.numeric(list.proto[indexProto]), '***************\n');\n"
+                "cutBelow <- cutBelow * winStep;\n"
+                "cutAbove <- cutAbove * winStep;\n"
+                "cat('cutBelow: ', cutBelow, '\n');\n"
+                "cat('CutAbove: ', cutAbove, '\n');\n"
+                "cat('Instance ', as.numeric(list.proto[indexProto]), ' as to be cut below frame ', currentSubset$frame_number[cutBelow], 'because of a flat value of ', currentSubset$value[cutBelow], '\n');\n"
+                "df.toCut <- rbind(df.toCut, c(as.numeric(list.proto[indexProto]), currentSubset$frame_number[1], currentSubset$frame_number[cutBelow]));\n"
+                "cat('Instance ', as.numeric(list.proto[indexProto]), ' as to be cut above frame ', currentSubset$frame_number[nrow(currentSubset)-cutAbove], 'because of a flat value of ', currentSubset$value[nrow(currentSubset)-cutAbove], '\n');\n"
+                "df.toCut <- rbind(df.toCut, c(as.numeric(list.proto[indexProto]), currentSubset$frame_number[nrow(currentSubset)-cutAbove], currentSubset$frame_number[nrow(currentSubset)]));\n"
+                "cat('************************************************\n\n');\n"
+            "}" ;
         R.parseEval(cmd);
 
-        //3.4 do the subset
+        //have to rename the column anyway
         cmd =
-            "myCleanedData <- subset(myData, (myData$frame_number > frame2cut));"
-            "cat('myCleanedData has now ', nrow(myCleanedData), ' lines\n');"
-            "print(head(myCleanedData));";
+                "colnames(df.toCut) <- c('instanceProto', 'cutFrom', 'cutTo');\n"
+                "head(df.toCut)\n";
         R.parseEval(cmd);
 
-        //look at what we cut -------------> just to check, to be removed <---------------------------------------------
+
+        //3.3 Remove the flat part from the protoaction data frame using the cuting data frame
         cmd =
-            "dataToRemove <- subset(myData, (myData$frame_number < frame2cut));"
-            "cat('dataToRemove has ', nrow(dataToRemove), ' lines\n');";
-            //"print(dataToRemove[c('instanceProto', 'value','frame_number')])";
+                "cleanedBabblingData <- babblingData;\n"
+                "cat('babblingData has ', nrow(babblingData), ' rows before cutting\n');\n"
+                "linesCut <- 0;\n"
+                "for(i in 1:nrow(df.toCut)){\n"
+                    "\trowBefore <- nrow(cleanedBabblingData);\n"
+                        //keep if the instance is not the currently checked one or if it is but the frame_number are outside of the window to cut (i.e. < cutFrom or > cutTo)
+                    "\tcleanedBabblingData <- subset(cleanedBabblingData, cleanedBabblingData$instanceProto != df.toCut$instanceProto[i] | (cleanedBabblingData$instanceProto == df.toCut$instanceProto[i] & ((cleanedBabblingData$frame_number > df.toCut$cutTo[i]) | (cleanedBabblingData$frame_number < df.toCut$cutFrom[i]))));\n"
+                    "\trowAfter <- nrow(cleanedBabblingData);\n"
+                    "\tlinesCut <- linesCut + (rowBefore-rowAfter);\n"
+                "}\n"
+                "cat('lines cut: ', linesCut, '\n');\n"
+                "cat('cleanedBabblingData has now ', nrow(cleanedBabblingData), ' rows\n')\n";
         R.parseEval(cmd);
 
         //3.4 print to check
         cmd =
-            "print(head(myCleanedData[c('instanceProto', 'value','frame_number')]))";
+            "print(head(cleanedBabblingData[c('instanceProto', 'value','frame_number')]))";
         R.parseEval(cmd);
 
         /******************************************** /!\ value transformed in percentage TODO: Use a pre-defined dictionary for all joints or ini file /!\ ********************************************/
@@ -424,30 +510,30 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
             max_angle = 250.0;
         }
 
-        cmd = "myCleanedData$value <- (myCleanedData$value*100.0)/" + to_string(max_angle);
+        cmd = "cleanedBabblingData$value <- (cleanedBabblingData$value*100.0)/" + to_string(max_angle);
         R.parseEval(cmd);
 
         cmd =
-            "print(head(myCleanedData[c('instanceProto', 'value','frame_number')]))";
+            "print(head(cleanedBabblingData[c('instanceProto', 'value','frame_number')]))";
         R.parseEval(cmd);
 
         /****************** write data frame into a file for R debugging ******************/
         cmd =
-            "write.table(myCleanedData, file = '/home/maxime/CloudStation/R/fold-unfold/RInside/babblingData.txt', quote=F, row.names=F)";
+            "write.table(cleanedBabblingData, file = '/home/maxime/CloudStation/R/fold-unfold/RInside/cleanedBabblingData.txt', quote=F, row.names=F)";
         R.parseEval(cmd);
 
 
         //check that 15381 is not taken because of wrong recog
         //cmd =
         //    "cat('============> Check the 15381 is NOT present as it is some noice/false recog \n');"
-        //    "mySubset <- subset(myCleanedData, myCleanedData$instanceProto == 15382);"
+        //    "mySubset <- subset(cleanedBabblingData, cleanedBabblingData$instanceProto == 15382);"
         //    "cat('We have mySubset with ', nrow(mySubset), 'lines\n');"
         //    "print(head(mySubset[c('instanceProto', 'value','frame_number')]));";
         //R.parseEval(cmd);
 
         cmd = "library(ggplot2);"
-              "for(babbling in as.numeric(levels(as.factor(myCleanedData$instanceBabbling)))){"
-              "     df.current.babbling <- subset(myCleanedData, myCleanedData$instanceBabbling == babbling);"
+              "for(babbling in as.numeric(levels(as.factor(cleanedBabblingData$instanceBabbling)))){"
+              "     df.current.babbling <- subset(cleanedBabblingData, cleanedBabblingData$instanceBabbling == babbling);"
               "     x11();"
 
               "     myQplot <- qplot(df.current.babbling$frame_number, df.current.babbling$value, col=as.factor(df.current.babbling$instanceProto), pch = df.current.babbling$protoName);"
@@ -465,13 +551,13 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
 
         /************************************************ commands.R in cloudstation ************************************************/
 
-        cmd =   "df.babbling <- myCleanedData;print(head(df.babbling));"
+        cmd =   "df.babbling <- cleanedBabblingData;print(head(df.babbling));"
                 "par_nrow <- 3;"        //number of row in X11() plot 1st lm proto
                 "par_ncol <- 2;"        //number of col in X11() plot 1st lm proto
                 "R2.threshold <- 0.75;" //[0:1] R2 threshold to get rid of non linear proto
 
                 "proto_number <- 0;x11();par(mfrow=c(par_nrow,par_ncol));"
-                "df.proto <- data.frame(instance=character(), proto=character(), bodypart=character(), adverb=character(), angle.rel=numeric(0), angle.abs=numeric(0), speed=numeric(0), R2=numeric(0), stringsAsFactors=FALSE);";
+                "df.proto <- data.frame(instance=character(), proto=character(), bodypart=character(), adverbSpeed=character(), adverbAngle=character(), angle.rel=numeric(0), angle.abs=numeric(0), speed=numeric(0), R2=numeric(0), stringsAsFactors=FALSE);";
         R.parseEval(cmd);
 
         cmd=    "for(current_proto in as.numeric(levels(as.factor(df.babbling$instanceProto)))){"
@@ -499,12 +585,16 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
 
                 "    proto.name <- as.character(current_proto);"
 
-                "    df.proto[nrow(df.proto)+1,] <- c(as.character(proto.name), as.character(df.babbling.proto$protoName[1]), as.character(df.babbling.proto$protoFinger[1]), 'none', format(lm.proto$fitted.value[nrow(df.babbling.proto)]-lm.proto$coefficients[1], digit=4), format(lm.proto$fitted.value[nrow(df.babbling.proto)], digit=4), format(lm.proto$coefficient[2], digit=4), format(r2, digit = 2));"
+                "    df.proto[nrow(df.proto)+1,] <- c(as.character(proto.name), as.character(df.babbling.proto$protoName[1]), as.character(df.babbling.proto$protoFinger[1]), as.character(df.babbling.proto$adverbSpeed[1]), as.character(df.babbling.proto$adverbAngle[1]), format(lm.proto$fitted.value[nrow(df.babbling.proto)]-lm.proto$coefficients[1], digit=4), format(lm.proto$fitted.value[nrow(df.babbling.proto)], digit=4), format(lm.proto$coefficient[2], digit=4), format(r2, digit = 2));"
                 "};"
 
                 "print(df.proto);";
+         R.parseEval(cmd);
 
-        R.parseEval(cmd);
+         /****************** write df.proto into a file for R debugging ******************/
+         cmd =
+             "write.table(df.proto, file = '/home/maxime/CloudStation/R/fold-unfold/RInside/protoLmData.txt', sep=';', quote=F, row.names=F)";
+         R.parseEval(cmd);
 
 
     } catch(std::exception& ex) {
