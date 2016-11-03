@@ -354,6 +354,8 @@ Bottle narrativeHandler::whyPAOR(Bottle bInput, int iScenario){
 string narrativeHandler::pickResponse(vector < pair < string, double > > &vResponses){
     string sReturn = "none";
 
+    //removeDoubleMeaning(vResponses);
+
     if (vResponses.size() == 0){
         return sReturn;
     }
@@ -424,7 +426,17 @@ bool narrativeHandler::doYouRemember(string sInput){
             level1 != MD.meanings.vDiscourse.end();
             level1++
             )
-        { // for each sentence of the discourse
+        {
+
+            for (auto &prep : level1->vSentence){
+                for (unsigned int ii = 0 ; ii < prep.vOCW.size() ; ii++){
+                    cout << prep.vRole[ii] <<"   " << prep.vOCW[ii] <<endl;
+                    if (prep.vOCW[ii] == "you"){
+                        prep.vOCW[ii] = "iCub";
+                    }
+                }
+            }
+            // for each sentence of the discourse
             DFW *currentDFW;
             bool isMultiple = false; // if a sentence is multiple (with a DFW)
             int iPreposition = 0;   // get the order of the preposition in the sentence

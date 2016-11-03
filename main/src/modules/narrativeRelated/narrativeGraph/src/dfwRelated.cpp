@@ -73,6 +73,16 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
     if (bInput.size() > 3){
         string tmpPAOR = bInput.get(3).asString();
         meaning = sentenceToEvent(tmpPAOR);
+        cout << "Meaning before: " << meaning.getSentence() << endl;
+        for (auto &prep : meaning.vSentence){
+            for (unsigned int ii = 0 ; ii < prep.vOCW.size() ; ii++){
+                cout << prep.vRole[ii] <<"   " << prep.vOCW[ii] <<endl;
+                if (prep.vOCW[ii] == "you"){
+                    prep.vOCW[ii] = "iCub";
+                }
+            }
+        }
+        cout << "Meaning after: " << meaning.getSentence() << endl;
     }
     hasPAOR = meaning.vSentence.size() != 0;
     // PAOR CHECKED
@@ -182,7 +192,16 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         // REMOVE DOUBLES
         removeDoubleMeaning(vMeaningScore);
 
-        for (auto toSend : vMeaningScore){
+        for (auto &toSend : vMeaningScore){
+            for (auto &prep : toSend.first.vSentence){
+                for (unsigned int ii = 0 ; ii < prep.vOCW.size() ; ii++){
+                    cout << prep.vRole[ii] <<"   " << prep.vOCW[ii] <<endl;
+                    if (prep.vOCW[ii] == "iCub"){
+                        prep.vOCW[ii] = "I";
+                    }
+                }
+            }
+
             string preparedMeaning = prepareMeaningForLRH(sdfw, toSend.first);
 
             if (preparedMeaning != "none")
@@ -309,7 +328,31 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         // REMOVE DOUBLES
         removeDoubleMeaning(vMeaningScore);
 
-        for (auto toSend : vMeaningScore){
+        for (auto &toSend : vMeaningScore){
+            for (auto &prep : toSend.first.vSentence){
+                for (unsigned int ii = 0 ; ii < prep.vOCW.size() ; ii++){
+                    cout << prep.vRole[ii] <<"   " << prep.vOCW[ii] <<endl;
+                    if (prep.vOCW[ii] == "iCub" && prep.vRole[ii][0] == 'R'){
+                        prep.vOCW[ii] = "me";
+                    }
+                    if (prep.vOCW[ii] == "iCub" && prep.vRole[ii][0] == 'A'){
+                        prep.vOCW[ii] = "I";
+                    }
+                }
+            }
+
+            for (auto &prep : meaning.vSentence){
+                for (unsigned int ii = 0 ; ii < prep.vOCW.size() ; ii++){
+                    cout << prep.vRole[ii] <<"   " << prep.vOCW[ii] <<endl;
+                    if (prep.vOCW[ii] == "iCub" && prep.vRole[ii][0] == 'R'){
+                        prep.vOCW[ii] = "me";
+                    }
+                    if (prep.vOCW[ii] == "iCub" && prep.vRole[ii][0] == 'A'){
+                        prep.vOCW[ii] = "I";
+                    }
+                }
+            }
+
             string preparedMeaning;
             if (isFirst){
                 preparedMeaning = prepareMeaningForLRH(sdfw, meaning, toSend.first, !isFirst);
