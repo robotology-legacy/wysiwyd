@@ -984,9 +984,9 @@ void OPCClient::update(Entity *e)
 
     //Fill the datastructure with the bottle content
     Bottle props = *reply.get(1).asList();
-//    yDebug() << "OPCClient props:" << props.toString();
     if(!e->fromBottle(props)) {
-        yError("Error updating entity fromBottle!");
+        yError() << "Error updating entity " << e->name() << "fromBottle! Type: " << e->entity_type();
+        yDebug() << "OPCClient props:" << props.toString();
     }
 //    yDebug() << "OPCClient fromBottle success";
 
