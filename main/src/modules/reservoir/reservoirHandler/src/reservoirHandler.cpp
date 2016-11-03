@@ -15,18 +15,14 @@
  * Public License for more details
 */
 
-#include <reservoirHandler.h>
+#include "reservoirHandler.h"
 #include "wrdac/subsystems/subSystem_ARE.h"
 
-reservoirHandler::reservoirHandler(ResourceFinder &rf)
-{
-    iCurrentInstance = -1;
-}
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::sig;
+using namespace wysiwyd::wrdac;
 
-reservoirHandler::~reservoirHandler()
-{
-    close();
-}
 
 /*
  * Configure method. Receive a previously initialized
@@ -37,6 +33,7 @@ reservoirHandler::~reservoirHandler()
 
 bool reservoirHandler::configure(ResourceFinder &rf) {
 
+	iCurrentInstance = -1;
     bool    bEveryThingisGood = true;
     bool    bOptionnalModule  = true;
     moduleName            = rf.check("name",

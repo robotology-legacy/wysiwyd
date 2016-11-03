@@ -5,7 +5,7 @@
 add_subdirectory(bodyReservoir)
 add_subdirectory(lrh)
 
-#if(WYSIWYD_USE_Boost)
-#    add_subdirectory(reservoirHandler)
-#endif()
+if(WYSIWYD_USE_Boost)
+    add_subdirectory(reservoirHandler)
+endif()
 #add_subdirectory(languageActionAnalysis)
