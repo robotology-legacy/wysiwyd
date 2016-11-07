@@ -20,17 +20,14 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     bool SM = 1;
     bool BM = 1;
 
-    if (useABM)
+    //Create an iCub Client and check that all dependencies are here before starting
+    bool isRFVerbose = false;
+    iCub = new ICubClient(moduleName, "planner", "client.ini", isRFVerbose);
+    iCub->opc->isVerbose = false;
+    while (!iCub->connect())
     {
-        //Create an iCub Client and check that all dependencies are here before starting
-        bool isRFVerbose = false;
-        iCub = new ICubClient(moduleName, "planner", "client.ini", isRFVerbose);
-        iCub->opc->isVerbose = false;
-        while (!iCub->connect())
-        {
-           yInfo() << " iCubClient : Some dependencies are not running...";
-           Time::delay(1.0);
-        }
+       yInfo() << " iCubClient : Some dependencies are not running...";
+       Time::delay(1.0);
     }
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
@@ -354,11 +351,13 @@ bool Planner::updateModule() {
                                 yDebug() << "not";
                                 indiv = !rep.get(1).asBool();
                                 negate = true;
+                                yDebug() << "checking if not " << auxMsg.toString();
                             }
                             else
                             {
                                 indiv = rep.get(1).asBool();
                                 negate = false;
+                                yDebug() << "checking if " << auxMsg.toString();
                             }
                             yDebug() << "indiv from rep is " << indiv;
                             yDebug() << "state before && is " << state;
@@ -386,6 +385,7 @@ bool Planner::updateModule() {
                     {
                         yInfo() << "the action has no preconditions.";
                         lArgument.push_back(std::pair<std::string, std::string>("none", "predicate"));
+                        auxMsg.clear();
                     }
 
                     if (useABM)
@@ -655,9 +655,9 @@ bool Planner::updateModule() {
                 }
 
                 if (attemptCnt > 2)
-                {
-                    yInfo() << "reached threshold for action attempts.";
-                    iCub->say("I have tried too many times and failed to do " + action_list[0] + ". Do it yourself or help me.");
+                {                    
+                    iCub->say("I have tried too many times and failed. Do it yourself or help me.");
+                    yDebug() << "iCub has said that attemptCnt reached.";
 
                     // remove action and/or plan? Temporarily keep trying
                     attemptCnt = 0;

@@ -43,9 +43,9 @@ public:
     ResourceFinder& rf;
 
     bool trigger(Bottle args=Bottle()) {
-        yDebug() << "Behavior::trigger starts"; 
+        yDebug() << behaviorName << "::trigger starts"; 
         if (mut->tryLock()) {
-            yDebug() << "Behavior::trigger mutex closed"; 
+            yDebug() << behaviorName << "::trigger mutex closed"; 
             yarp::os::Bottle & msg = behavior_start_stop_port.prepare();
             msg.clear();
             msg.addString("start");
@@ -58,9 +58,10 @@ public:
             msg.addString("stop");
             behavior_start_stop_port.write();
             mut->unlock();
+            yDebug() << behaviorName << "::trigger mutex open"; 
             return true;
         }
-        yDebug() << "Behavior::trigger ends";
+        yDebug() << behaviorName << "::trigger ends";
         return false;
     }
 
