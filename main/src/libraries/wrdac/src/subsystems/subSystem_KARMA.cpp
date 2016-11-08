@@ -374,7 +374,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     // Calculate the pushing distance (radius) for push with Karma
     Vector object = objCenter;
     Bottle opt = options;
-    double zOffset = 0.05;
+    double zOffset = 0.1;
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
     double radius = fabs(object[0] - targetPosXFront);
     yInfo ("objectX = %f",object[0]);
