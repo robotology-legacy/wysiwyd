@@ -1526,7 +1526,7 @@ bool reservoirHandler::grammarNodeInteraction()
             std::list<int>::iterator it;
             int cpt=0;
 
-            int tab[lposElements.size()];
+            vector<int> tab(lposElements.size(), 0);
             for(it=lposElements.begin(); it!=lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
@@ -1548,8 +1548,8 @@ bool reservoirHandler::grammarNodeInteraction()
             cout << "nb elements " << nb << endl;
             std::list<int>::iterator it;
             int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
@@ -1578,8 +1578,8 @@ bool reservoirHandler::grammarNodeInteraction()
             cout << "nb elements " << nb << endl;
             std::list<int>::iterator it;
             int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
@@ -1631,8 +1631,8 @@ bool reservoirHandler::grammarNodeInteraction()
             std::list<int>::iterator it;
             int cpt=0;
 
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
@@ -1653,8 +1653,8 @@ bool reservoirHandler::grammarNodeInteraction()
             cout << "nb elements " << nb;
             std::list<int>::iterator it;
             int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
@@ -1685,8 +1685,8 @@ bool reservoirHandler::grammarNodeInteraction()
             cout << "nb elements " << nb;
             std::list<int>::iterator it;
             int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            vector<int> tab(lposElements.size(), 0);
+            for (it = lposElements.begin(); it != lposElements.end(); ++it)
             {
                 tab[cpt]=*it;
                 cpt++;
