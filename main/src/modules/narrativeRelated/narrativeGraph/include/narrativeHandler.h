@@ -122,6 +122,7 @@ private:
     discourseform::meaningSentence sentenceToEvent(std::string level1); ///< transform a meaning from lrh to an properly formatted event
     discourseform::meaningSentence evtToMeaning(std::string sIGARF, int iIGARF);
     void removeDoubleMeaning(std::vector<std::pair <discourseform::meaningSentence, double> > &vMeaningScore);
+    void removeDoubleMeaning(std::vector<std::pair <std::string, double> > &vMeaningScore);
 
     ///< DFW related
     void analyseDFW();      ///< run a set of analysis on the DFW

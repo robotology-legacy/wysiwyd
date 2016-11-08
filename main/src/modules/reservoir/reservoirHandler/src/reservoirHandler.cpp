@@ -165,7 +165,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     else
         cout << endl << endl << "----------------------------------------------" << endl << endl << "reservoirHandler ready !" << endl << endl;
 
-    populateOPC();
+    //populateOPC();
     nodeType();
     //testARE();
     return false;
@@ -832,9 +832,9 @@ bool reservoirHandler::nodeTestAP()
 
 
 
-        iCub->say("I have understood ");
+        iCub->say("I have understood ", false);
         sentence += bAnswer.get(0).asString() + " ";
-        iCub->say(bAnswer.get(0).asString());
+        iCub->say(bAnswer.get(0).toString());
         iCub->say("Is it ok ?");
         cout << "iCub says : 'Is it ok ? ... 'No or Yes" << endl;
         return nodeTestAP();
@@ -855,14 +855,14 @@ bool reservoirHandler::nodeTestAP()
             callReservoir(fileAP);
             cout << fileAPoutputM << endl;
             string result = openResult(fileAPoutputM.c_str());
-            iCub->say(result);
+            iCub->say(result, false);
 
             int id = result.find(",");
             int idf = result.size()-id;
 
             fileVectorAP.open(fvector.c_str(), ios::out | ios::trunc);
 
-            iCub->say("I will do the actions");
+            iCub->say("I will do the actions", false);
 
 
             // CREATE VECTOR FILE
@@ -898,7 +898,7 @@ bool reservoirHandler::nodeTestAP()
             fileVectorAP.close();
 
             //
-            iCub->say("Do you have any questions");
+            iCub->say("Do you have any questions", false);
             return nodeYesNoInteraction();
         }
 
@@ -1321,7 +1321,7 @@ bool reservoirHandler::AREactions(vector<string> seq)
     }
     else
     {
-        iCub->say(sObject + " is not present");
+        iCub->say(sObject + " is not present", false);
         cout << sObject << " is not present ! " << endl;
         success = false;
     }
@@ -1443,9 +1443,9 @@ bool reservoirHandler::mainNodeInteraction()
         iquestion = languageNodeInteraction();
     }
     else{
-        iCub->say("I have no more information");
+        iCub->say("I have no more information", false);
         fileVectorAPRead.close();
-        iCub->say("Tell me an other sentence");
+        iCub->say("Tell me an other sentence", false);
         return nodeTestAP();
     }
     return 0;
@@ -1479,7 +1479,7 @@ bool reservoirHandler::grammarNodeInteraction()
             cout << "nb elements " << nb << endl;
             sobject=sresult;
             sanswer = "The " + sobject + " " + sverb;
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
 
@@ -1496,7 +1496,7 @@ bool reservoirHandler::grammarNodeInteraction()
                 cout << "sobject : " << slocation << endl;
             }
             sanswer = "The " + sobject + " " + sverb + " to the " + slocation;
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
     }
@@ -1516,7 +1516,7 @@ bool reservoirHandler::grammarNodeInteraction()
         if (nb == 0){            //  "object"
             cout << "nb elements " << nb  << endl;
             sobject=sforce;
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
 
@@ -1540,7 +1540,7 @@ bool reservoirHandler::grammarNodeInteraction()
             cout << "sobject : " << sobject << endl;
             cout << "tab : " << tab[0] << endl;
             sanswer = sagent1 + " " + sverb + "ed the " + sobject;
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
         else if(nb == 2)   //  "Ag1,object,location"
@@ -1570,7 +1570,7 @@ bool reservoirHandler::grammarNodeInteraction()
             }
             else
                 sanswer = sagent1 + " " + sverb + "ed the " + sobject + " " + slocation;
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
         else if(nb == 3)   //  "Ag1,object,location,adverb"
@@ -1600,7 +1600,7 @@ bool reservoirHandler::grammarNodeInteraction()
 
             sanswer = sagent1 + " " + sverb + "ed the " + sobject + " to the " + slocation + " " + sadverb;
 
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
 
@@ -1622,7 +1622,7 @@ bool reservoirHandler::grammarNodeInteraction()
             cout << "nb elements " << nb << endl;
             string object=sforce;
             sanswer = "The " + sobject + " has been " + sverb;
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
         }
 
         else if(nb == 1)   //  "Ag2,object"
@@ -1645,7 +1645,7 @@ bool reservoirHandler::grammarNodeInteraction()
             cout << "tab : " << tab[0] << " " << tab[1] << endl;
 
             sanswer = "The " + sobject + " has been " + sverb + " by me";
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
         else if(nb == 2)   //  "Ag2,object,location"
@@ -1677,7 +1677,7 @@ bool reservoirHandler::grammarNodeInteraction()
                 sanswer = "The " + sobject + " has been " + sverb + "ed by me";
 
             cout << "sanswer : " << endl;
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
         else if(nb == 3)   //  "Ag2,object,location,adverb"
@@ -1707,7 +1707,7 @@ bool reservoirHandler::grammarNodeInteraction()
             sanswer = "The " + sobject + " has been " + sverb + "ed by me to the " + slocation + " " + sadverb;
 
             cout << "sanswer : " << endl;
-            iCub->say(sanswer);
+            iCub->say(sanswer, false);
             cout << sanswer << endl;
         }
     }
@@ -1920,7 +1920,7 @@ bool reservoirHandler::languageNodeInteractionSD()
             cout << bAnswer.get(1).asList()->get(1).asString();
             cout << "I am here in negative way" << endl;
             sobjectFocusChanged="";
-            iCub->say("Do you want me to focus the description about object or location ?");
+            iCub->say("Do you want me to focus the description about object or location ?", false);
             return nodeModality();
         }
     }
@@ -1962,17 +1962,17 @@ bool reservoirHandler::spatialRelation()
 
     if (PresentObjects.size() < 2 && PresentObjects.size() > 3)
     {
-        iCub->say("Dude, I was expecting 2 or 3 objects... Start again !");
+        iCub->say("Dude, I was expecting 2 or 3 objects... Start again !", false);
         return nodeTestSD();
     }
 
     //get the focus object
-    string sObjectFocus = "circle";
-    //double maxSalience = 0.0;
-    //string sObjectFocus = "none";
+    //string sObjectFocus = "circle";
+    double maxSalience = 0.0;
+    string sObjectFocus = "none";
     if (sobjectFocusChanged.empty())
     {
-        double maxSalience = 0.4;
+        //double maxSalience = 0.4;
         for (std::vector<RTObject>::iterator itRTO = PresentRtoBefore.begin() ; itRTO != PresentRtoBefore.end() ; itRTO++)
         {
             if (itRTO->m_saliency > maxSalience)
@@ -1984,12 +1984,12 @@ bool reservoirHandler::spatialRelation()
 
         if (maxSalience == 0.)
         {
-            iCub->say("I think I didn't get your focus object");
+            iCub->say("I think I didn't get your focus object", false);
             return nodeTestSD();
         }
 
         string sSentence = "Ok, so you decided to focus on " + sObjectFocus;
-        iCub->say(sSentence);
+        iCub->say(sSentence, false);
     }
     else{
         sObjectFocus = sobjectFocusChanged;
@@ -2035,7 +2035,7 @@ bool reservoirHandler::spatialRelation()
             }
         }
 
-        iCub->say("Thinking of the situation");
+        iCub->say("Thinking of the situation", false);
         double deltaX1 ; // difference btw focus and relative1
         double deltaX2 ; // difference btw focus and relative2
 
@@ -2077,7 +2077,7 @@ bool reservoirHandler::spatialRelation()
         sConstrualLocation = str;
     }
 
-    iCub->say(result);
+    iCub->say(result, false);
     cout << "iCub says : 'I have understood  '" << result << endl ;
 
     return launchSpatialRelation();

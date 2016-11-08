@@ -50,14 +50,14 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
     cout << "Z_ag " << Z_ag << endl;
     cout << "noise " << noise << endl;
 
-    move=false;
+    move = false;
     spd1.push_back(0.);
     spd1.push_back(0.);
     spd1.push_back(0.);
     spd2.push_back(0.);
     spd2.push_back(0.);
     spd2.push_back(0.);
-    iter=0;
+    iter = 0;
 
     iCub->lookStop();
     iCub->home();
@@ -160,12 +160,12 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " populating with scenario: " << scenarioNB;
         switch (scenarioNB)
         {
-            case 1: populateScenario1() ? reply.addString("populating scenario 1 done !") : reply.addString("populating scenario failed !"); break;
-            case 2: populateScenario2() ? reply.addString("populating scenario 2 done !") : reply.addString("populating scenario failed !"); break;
-            case 3: populateScenario3() ? reply.addString("populating scenario 3 done !") : reply.addString("populating scenario failed !"); break;
-            case 4: populateScenario4() ? reply.addString("populating scenario 4 done !") : reply.addString("populating scenario failed !"); break;
-            case 5: populateScenario5() ? reply.addString("populating scenario 5 done !") : reply.addString("populating scenario failed !"); break;
-            case 6: populateScenario6() ? reply.addString("populating scenario 6 done !") : reply.addString("populating scenario failed !"); break;
+        case 1: populateScenario1() ? reply.addString("populating scenario 1 done !") : reply.addString("populating scenario failed !"); break;
+        case 2: populateScenario2() ? reply.addString("populating scenario 2 done !") : reply.addString("populating scenario failed !"); break;
+        case 3: populateScenario3() ? reply.addString("populating scenario 3 done !") : reply.addString("populating scenario failed !"); break;
+        case 4: populateScenario4() ? reply.addString("populating scenario 4 done !") : reply.addString("populating scenario failed !"); break;
+        case 5: populateScenario5() ? reply.addString("populating scenario 5 done !") : reply.addString("populating scenario failed !"); break;
+        case 6: populateScenario6() ? reply.addString("populating scenario 6 done !") : reply.addString("populating scenario failed !"); break;
         }
     }
     else {
@@ -180,7 +180,7 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool opcPopulater::updateModule() {
     //Just for testing: 
-    if (move==true)
+    if (move == true)
     {
         //double speed = 1./10.;
         iCub->opc->checkout();
@@ -188,29 +188,29 @@ bool opcPopulater::updateModule() {
         Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("moving_1");
         Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("moving_2");
 
-        if (iter % 30==0)
+        if (iter % 30 == 0)
         {
-            spd1[0]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd1[1]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd1[2]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd2[0]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd2[1]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd2[2]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            double av1 = sqrt(pow(spd1[0],2)+pow(spd1[1],2)+pow(spd1[2],2));
-            double av2 = sqrt(pow(spd2[0],2)+pow(spd2[1],2)+pow(spd2[2],2));
-            spd1[0]/=av1;
-            spd1[1]/=av1;
-            spd1[2]/=av1;
-            spd2[0]/=av2;
-            spd2[1]/=av2;
-            spd2[2]/=av2;
+            spd1[0] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd1[1] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd1[2] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd2[0] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd2[1] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd2[2] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            double av1 = sqrt(pow(spd1[0], 2) + pow(spd1[1], 2) + pow(spd1[2], 2));
+            double av2 = sqrt(pow(spd2[0], 2) + pow(spd2[1], 2) + pow(spd2[2], 2));
+            spd1[0] /= av1;
+            spd1[1] /= av1;
+            spd1[2] /= av1;
+            spd2[0] /= av2;
+            spd2[1] /= av2;
+            spd2[2] /= av2;
         }
-       /* obj1->m_ego_position[0] = min(max(obj1->m_ego_position[0]+spd1[0]*period*speed,-0.2),-0.5);
-        obj1->m_ego_position[1] = min(max(obj1->m_ego_position[1]+spd1[1]*period*speed,0.0),0.5);
-        obj1->m_ego_position[2] = min(max(obj1->m_ego_position[2]+spd1[2]*period*speed,0.0),0.5);
-        obj2->m_ego_position[0] = min(max(obj2->m_ego_position[0]+spd2[0]*period*speed,-0.2),-0.5);
-        obj2->m_ego_position[1] = min(max(obj2->m_ego_position[1]+spd2[1]*period*speed,0.0),0.5);
-        obj2->m_ego_position[2] = min(max(obj2->m_ego_position[2]+spd2[2]*period*speed,0.0),0.5);*/
+        /* obj1->m_ego_position[0] = min(max(obj1->m_ego_position[0]+spd1[0]*period*speed,-0.2),-0.5);
+         obj1->m_ego_position[1] = min(max(obj1->m_ego_position[1]+spd1[1]*period*speed,0.0),0.5);
+         obj1->m_ego_position[2] = min(max(obj1->m_ego_position[2]+spd1[2]*period*speed,0.0),0.5);
+         obj2->m_ego_position[0] = min(max(obj2->m_ego_position[0]+spd2[0]*period*speed,-0.2),-0.5);
+         obj2->m_ego_position[1] = min(max(obj2->m_ego_position[1]+spd2[1]*period*speed,0.0),0.5);
+         obj2->m_ego_position[2] = min(max(obj2->m_ego_position[2]+spd2[2]*period*speed,0.0),0.5);*/
         obj1->m_ego_position[0] = -0.18;
         obj1->m_ego_position[1] = 0.10;
         obj1->m_ego_position[2] = 0.1;
@@ -261,7 +261,7 @@ bool opcPopulater::populateEntityRandom(Bottle bInput){
         obj->m_color[1] = Random::uniform(0, 80);
         obj->m_color[2] = Random::uniform(180, 250);
         obj->m_value = 1.5;
-        yDebug()<<"value: "<<obj->m_value;
+        yDebug() << "value: " << obj->m_value;
         iCub->opc->commit(obj);
 
         obj = NULL;
@@ -415,8 +415,9 @@ bool opcPopulater::setValueEntity(Bottle bInput){
         Object* temp = dynamic_cast<Object*>(e);
         temp->m_value = targetValue;
         iCub->opc->commit();
-    }else{
-        yWarning()<<"Trying to change value of the non-object entity: "<<sName<<". Please check!";
+    }
+    else{
+        yWarning() << "Trying to change value of the non-object entity: " << sName << ". Please check!";
     }
     return true;
 }
@@ -1347,7 +1348,7 @@ bool opcPopulater::populateScenario1()
     yInfo() << " start recording in ABM";
 
 
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     Time::delay(1.0);
     yInfo() << " start grasping";
     bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
@@ -1450,17 +1451,17 @@ bool opcPopulater::populateScenario1()
     lArgument.push_back(pair<string, string>("iCub", "speaker"));
     lArgument.push_back(pair<string, string>("none", "subject"));
     lArgument.push_back(pair<string, string>(sAgent, "addressee"));
-    iCub->getARE()->look( Interlocutor->m_ego_position, bOption, sAgent);
-    iCub->say("Can you give me the " + sObject + " please",false);
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
+    iCub->say("Can you give me the " + sObject + " please", false);
     Time::delay(1.0);
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     iCub->getABMClient()->sendActivity("action",
         "sentence",
         "recog",
         lArgument,
         true);
 
-    iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
     iCub->say(sentence);
 
     Time::delay(dDelay*Random::uniform());
@@ -1483,7 +1484,7 @@ bool opcPopulater::populateScenario1()
     Time::delay(2 + 4 * Random::uniform());
 
     Mouse->m_ego_position[0] = -0.20 - 0.1 * Random::uniform();
-    Mouse->m_ego_position[1] = - 0.25 + 0.1 * Random::uniform();
+    Mouse->m_ego_position[1] = -0.25 + 0.1 * Random::uniform();
     iCub->opc->commit(Mouse);
 
     iCub->opc->removeRelation(InterlocutorHasMouse);
@@ -1500,13 +1501,13 @@ bool opcPopulater::populateScenario1()
     // Realisation of the iCub
 
     Time::delay(2.);
-    iCub->getARE()->look( Mouse->m_ego_position, bOption, sObjError);
+    iCub->getARE()->look(Mouse->m_ego_position, bOption, sObjError);
     iCub->say("This is not the " + sObject, false);
     finished = iCub->getARE()->point(Mouse->m_ego_position, bOption, sObjError);
-    iCub->getARE()->look( Interlocutor->m_ego_position, bOption, sAgent);
-    iCub->say("Can you give me the " + sObject + " please",false);
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
+    iCub->say("Can you give me the " + sObject + " please", false);
     Time::delay(1.0);
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
 
 
     Time::delay(dDelay*Random::uniform());
@@ -1543,8 +1544,8 @@ bool opcPopulater::populateScenario1()
         "action",
         lArgument,
         false);
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
-    iCub->say("Yes, this is the "+sObject);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    iCub->say("Yes, this is the " + sObject);
     finished = iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
 
@@ -1556,8 +1557,8 @@ bool opcPopulater::populateScenario1()
 *  2 Agents + iCub + 1 step
 */
 bool opcPopulater::populateScenario2(){
-    string sLarry = "Larry";
-    string sRobert = "Robert";
+    string sLarry = "Peter";
+    string sRobert = "Anne-Laure";
     string sObject = "mug";
     string sBox = "box";
 
@@ -1582,8 +1583,8 @@ bool opcPopulater::populateScenario2(){
 
 
     double XInterlocutor = -1.5,
-        YInterlocutor = 0.5,
-        ZInterlocutor = 0.6,
+        YInterlocutor = 0.4,
+        ZInterlocutor = 0.05,
         distanceNat_Gir = 0.2;
 
     //int iRepetition = 5;
@@ -1652,8 +1653,8 @@ bool opcPopulater::populateScenario2(){
 
     yInfo() << " start recording in ABM";
 
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
-    Time::delay(1.0);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(1.5);
 
     yInfo() << " start grasping";
     bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
@@ -1682,6 +1683,7 @@ bool opcPopulater::populateScenario2(){
         true);
 
     iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
+    Time::delay(1.);
     iCub->say(sentence);
 
     lArgument.clear();
@@ -1699,7 +1701,9 @@ bool opcPopulater::populateScenario2(){
         "recog",
         lArgument,
         true);
-
+    iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
+    Time::delay(1.);
+    iCub->say(sentence);
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" Interlocutor gives the ObjError");
@@ -1715,20 +1719,25 @@ bool opcPopulater::populateScenario2(){
         "action",
         lArgument,
         true);
-
+    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
     yInfo() << " in delay of action";
-    Time::delay(2 + 4 * Random::uniform());
+
+    Time::delay(2.5);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(2.5);
+
+
 
     Box->m_ego_position[1] += 0.75;
     iCub->opc->commit(Box);
 
     iCub->opc->removeRelation(BoxCoverCroco);
     iCub->opc->addRelation(LarryHaveCroco);
-    iCub->getARE()->look(Box->m_ego_position, bOption, sBox);
 
     Time::delay(1);
     iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
-    Time::delay(1);
+    Time::delay(2.5);
+
 
     iCub->getABMClient()->sendActivity("action",
         "remove",
@@ -1752,16 +1761,19 @@ bool opcPopulater::populateScenario2(){
         lArgument,
         true);
 
-    yInfo() << " in delay of action";
-    Time::delay(2 + 4 * Random::uniform());
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(2.5);
 
-    Croco->m_ego_position[0] = -0.15 - 0.1 * Random::uniform();
-    Croco->m_ego_position[1] = 0.15 - 0.3 * Random::uniform();
+    Croco->m_ego_position[0] = -0.35;
+    Croco->m_ego_position[1] = 0.1;
+    Croco->m_ego_position[2] = 0.;
     iCub->opc->commit(Croco);
 
+    yInfo("Commit done");
     iCub->opc->removeRelation(LarryHaveCroco);
     iCub->opc->addRelation(iCubHasCroco);
     iCub->opc->removeRelation(iCubWantsCroco);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
 
     Time::delay(3);
 
@@ -1772,10 +1784,12 @@ bool opcPopulater::populateScenario2(){
         false);
 
     // Realisation of the iCub
-    iCub->say("Yes, this is the "+ sObject), false;
+    iCub->say("Yes, this is the " + sObject), false;
     iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
     Time::delay(2.);
+
+
 
     return true;
 }
@@ -1874,7 +1888,7 @@ bool opcPopulater::populateScenario3(){
 
     yInfo() << " start recording in ABM";
 
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     Time::delay(1.0);
 
     yInfo() << " start grasping";
@@ -1888,7 +1902,7 @@ bool opcPopulater::populateScenario3(){
 
     list<pair<string, string> > lArgument;
     string sentence;
-    iCub->getARE()->look(Interlocutor->m_ego_position,bOption,sAgent);
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
     sentence = "Can you remove the box please?";
     iCub->say(sentence);
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
@@ -2042,7 +2056,7 @@ bool opcPopulater::populateScenario4(){
 
     yInfo() << " start recording in ABM";
 
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     Time::delay(1.0);
 
     yInfo() << " start grasping";
@@ -2109,7 +2123,7 @@ bool opcPopulater::populateScenario5(){
 
     double XInterlocutor = -1.5,
         YInterlocutor = 0,
-        ZInterlocutor = 0.6,
+        ZInterlocutor = 0.05,
         distanceNat_Gir = 0.2;
 
     //int iRepetition = 5;
@@ -2154,11 +2168,11 @@ bool opcPopulater::populateScenario5(){
 
     yInfo() << " start recording in ABM";
 
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     Time::delay(1.0);
 
     yInfo() << " start grasping";
-    bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption , sObject);
+    bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -2288,8 +2302,8 @@ bool opcPopulater::populateScenario5(){
     Time::delay(2 + 2 * Random::uniform());
     yInfo() << "before commit";
 
-    Croco->m_ego_position[0] = -0.30 ;
-    Croco->m_ego_position[1] = 0.1 ;
+    Croco->m_ego_position[0] = -0.30;
+    Croco->m_ego_position[1] = 0.1;
     iCub->opc->commit(Croco);
     yInfo() << "after commit";
 
@@ -2312,7 +2326,7 @@ bool opcPopulater::populateScenario5(){
     // Realisation of the iCub
 
 
-    iCub->say("Yes, this is the "+ sObject, false);
+    iCub->say("Yes, this is the " + sObject, false);
     iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
 
@@ -2421,7 +2435,7 @@ bool opcPopulater::populateScenario6(){
 
 
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
-    iCub->getARE()->look( Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     Time::delay(1.0);
 
     yInfo() << " start grasping";
@@ -2436,7 +2450,7 @@ bool opcPopulater::populateScenario6(){
     list<pair<string, string> > lArgument;
     iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
     string sentence;
-    sentence = "Can you remove the box please "+ sRobert + " ?";
+    sentence = "Can you remove the box please " + sRobert + " ?";
     iCub->say(sentence);
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
     lArgument.push_back(pair<string, string>("remove", "predicate"));
@@ -2634,7 +2648,7 @@ bool opcPopulater::populateScenario6(){
     // Realisation of the iCub
 
 
-    iCub->say("Yes, this is the "+ sObject, false);
+    iCub->say("Yes, this is the " + sObject, false);
     iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
     Time::delay(2.);

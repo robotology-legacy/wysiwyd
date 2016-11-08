@@ -165,7 +165,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         }
 
                         string picked = pickResponse(vResponses);
-                        iCub->say(picked);
+                        iCub->say(picked, false);
                     }
                 }
             }
@@ -354,7 +354,10 @@ Bottle narrativeHandler::whyPAOR(Bottle bInput, int iScenario){
 string narrativeHandler::pickResponse(vector < pair < string, double > > &vResponses){
     string sReturn = "none";
 
-    //removeDoubleMeaning(vResponses);
+
+    cout << "Before removing: " << vResponses.size() << endl;
+    removeDoubleMeaning(vResponses);
+    cout << "After removing: " << vResponses.size() << endl;
 
     if (vResponses.size() == 0){
         return sReturn;

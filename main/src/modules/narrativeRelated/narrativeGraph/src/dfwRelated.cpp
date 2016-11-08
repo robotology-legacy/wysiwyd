@@ -465,11 +465,26 @@ bool checkMeaningSort(pair <meaningSentence, double> M1, pair <meaningSentence, 
     return (M1.first.getSentence() < M2.first.getSentence());
 }
 
+bool checkMeaningString(pair < string, double >  M1, pair <string, double> M2){
+    return (M1.first == M2.first);
+}
+
+bool checkMeaningSortString(pair <string, double> M1, pair <string, double> M2){
+    return (M1.first < M2.first);
+}
+
 void narrativeHandler::removeDoubleMeaning(vector<pair <meaningSentence, double> > &vec){
 
     // check for each meaning if already present and remove them.
     sort(vec.begin(), vec.end(), checkMeaningSort);
     vec.erase(unique(vec.begin(), vec.end(), checkMeaning), vec.end());
+}
+
+void narrativeHandler::removeDoubleMeaning(vector < pair < string, double > > &vec){
+
+    // check for each meaning if already present and remove them.
+    sort(vec.begin(), vec.end(), checkMeaningSortString);
+    vec.erase(unique(vec.begin(), vec.end(), checkMeaningString), vec.end());
 }
 
 
