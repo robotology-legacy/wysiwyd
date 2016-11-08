@@ -51,7 +51,7 @@ Bottle proactiveTagging::describeBabbling(string sJointName, int joint) {
     //9 11 13 15
     bSingleJoint.addInt(joint);
     bSingleJoint.addString("left");
-    bSingleJoint.addDouble(18.0);//duration
+    //bSingleJoint.addDouble(18.0);//duration
 
     portNoWaitToBodySchema.prepare() = bSingleJoint ;
     portNoWaitToBodySchema.writeStrict() ;

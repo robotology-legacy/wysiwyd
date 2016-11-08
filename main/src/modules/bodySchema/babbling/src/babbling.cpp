@@ -440,6 +440,9 @@ bool Babbling::doBabbling()
 
 yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
 {
+
+    yInfo() << "AMP " << amp<< "FREQ " << freq ;
+
     for (unsigned int l=0; l<command.size(); l++)
         command[l]=0;
 
@@ -467,11 +470,15 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
                 cerr << "Error receiving encoders";
                 command[j_idx] = 0;
             } else {
-                command[j_idx] = 10 * (ref_command[j_idx] - encodersUsed[j_idx]);
+                yDebug() << "command before correction = " << ref_command[j_idx];
+                yDebug() << "current encodres : " << encodersUsed[j_idx] ;
+                command[j_idx] = amp*sin(freq*t * 2 * M_PI);//1 * (ref_command[j_idx] - encodersUsed[j_idx]);
+                yDebug() << "command after correction = " << command[j_idx];
                 if(command[j_idx] > 50)
                     command[j_idx] = 50;
                 if(command[j_idx] < -50)
                     command[j_idx] = -50;
+                yDebug() << "command after saturation = " << command[j_idx];
             }
         }
         else
@@ -783,7 +790,7 @@ bool Babbling::doBabblingKinStruct()
     reply.clear();
 
 
-    cout << "AMP " << amp<< "FREQ " << freq <<endl;
+    yInfo() << "AMP " << amp<< "FREQ " << freq ;
 
     double startTime = yarp::os::Time::now();
     while (Time::now() < startTime + train_duration){
@@ -1347,6 +1354,16 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
         bSubSubArgument4.addString("joint");
         bSubArgument.addList() = bSubSubArgument4;
     }
+    Bottle bSubSubArgument5;
+    bSubSubArgument5.addString(to_string(freq));
+    bSubSubArgument5.addString("freq");
+    Bottle bSubSubArgument6;
+    bSubSubArgument6.addString(to_string(amp));
+    bSubSubArgument6.addString("amp");
+    Bottle bSubSubArgument7;
+    bSubSubArgument7.addString(to_string(train_duration));
+    bSubSubArgument7.addString("train_duration");
+
     Bottle bBegin;
     bBegin.addString("begin");
     bBegin.addInt(begin);
@@ -1355,6 +1372,10 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     bSubArgument.addList() = bSubSubArgument;
     bSubArgument.addList() = bSubSubArgument2;
     bSubArgument.addList() = bSubSubArgument3;
+    //4 optional is already done if needed
+    bSubArgument.addList() = bSubSubArgument5;
+    bSubArgument.addList() = bSubSubArgument6;
+    bSubArgument.addList() = bSubSubArgument7;
 
     bABM.addList() = bSubArgument;
     bABM.addList() = bBegin;
