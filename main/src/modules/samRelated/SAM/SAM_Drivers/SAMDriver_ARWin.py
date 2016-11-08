@@ -28,7 +28,15 @@ class SAMDriver_ARWin(SAMDriver):
         self.numJoints = 9
         self.dataLogList = []
         self.labelsLogList = []
-
+        self.itemsPerJoint = None
+        self.featureSequence = None
+        self.handsCombined = None
+        self.data2Labels = None
+        self.dataVec = None
+        self.allDataDict = None
+        self.listOfVectorsToClassify = None
+        self.seqTestConf = None
+        self.seqTestPerc = None
         self.additionalParametersList = ['listOfVectorsToClassify', 'handsCombined', 'featureSequence', 'itemsPerJoint',
                                          'segTrainConf', 'segTrainPerc', 'segTestConf', 'segTestPerc', 'seqTestConf',
                                          'seqTestPerc']
@@ -50,17 +58,67 @@ class SAMDriver_ARWin(SAMDriver):
         if parser.has_option(trainName, 'windowSize'):
             self.paramsDict['windowSize'] = int(parser.get(trainName, 'windowSize'))
         else:
-            self.paramsDict['windowSize'] = 3
+            self.paramsDict['windowSize'] = 5
+
+        if parser.has_option(trainName, 'windowOffset'):
+            self.paramsDict['windowOffset'] = int(parser.get(trainName, 'windowOffset'))
+        else:
+            self.paramsDict['windowOffset'] = 2
+
+        if parser.has_option(trainName, 'moveThresh'):
+            self.paramsDict['moveThresh'] = float(parser.get(trainName, 'moveThresh'))
+        else:
+            self.paramsDict['moveThresh'] = 0.01
+
+        if parser.has_option(trainName, 'binWidth'):
+            self.paramsDict['binWidth'] = float(parser.get(trainName, 'binWidth'))
+        else:
+            self.paramsDict['binWidth'] = 0.001
+
+        if parser.has_option(trainName, 'method'):
+            self.paramsDict['method'] = parser.get(trainName, 'method')
+        else:
+            self.paramsDict['method'] = 'sumProb'
 
         if parser.has_option(trainName, 'combineHands'):
             self.paramsDict['combineHands'] = parser.get(trainName, 'combineHands') == 'True'
         else:
             self.paramsDict['combineHands'] = False
 
+        if parser.has_option(trainName, 'thresholdMovement'):
+            self.paramsDict['thresholdMovement'] = parser.get(trainName, 'thresholdMovement') == 'True'
+        else:
+            self.paramsDict['thresholdMovement'] = False
+
+        if parser.has_option(trainName, 'sepRL'):
+            self.paramsDict['sepRL'] = parser.get(trainName, 'sepRL') == 'True'
+        else:
+            self.paramsDict['sepRL'] = False
+
+        if parser.has_option(trainName, 'filterData'):
+            self.paramsDict['filterData'] = parser.get(trainName, 'filterData') == 'True'
+        else:
+            self.paramsDict['filterData'] = False
+
+        if parser.has_option(trainName, 'filterWindow'):
+            self.paramsDict['filterWindow'] = int(parser.get(trainName, 'filterWindow'))
+        else:
+            self.paramsDict['filterWindow'] = 5
+
+        if parser.has_option(trainName, 'components'):
+            self.paramsDict['components'] = parser.get(trainName, 'components').split(',')
+        else:
+            self.paramsDict['components'] = ['pos']
+
         if parser.has_option(trainName, 'reduce'):
             self.paramsDict['reduce'] = parser.get(trainName, 'reduce') == 'True'
         else:
             self.paramsDict['reduce'] = False
+
+        if parser.has_option(trainName, 'flip'):
+            self.paramsDict['flip'] = parser.get(trainName, 'flip') == 'True'
+        else:
+            self.paramsDict['flip'] = False
 
         if parser.has_option(trainName, 'normaliseWindow'):
             self.paramsDict['normaliseWindow'] = parser.get(trainName, 'normaliseWindow') == 'True'
@@ -113,7 +171,7 @@ class SAMDriver_ARWin(SAMDriver):
             labelFile.close()
 
             if lenLabelFile != lenDataFile:
-                print str(dataLogList[k]) + ' will not be used because its lenght differs from ' + str(labelsLogList[k])
+                print str(dataLogList[k]) + ' will not be used because its length differs from ' + str(labelsLogList[k])
             else:
                 dataFile = open(join(root_data_dir, dataLogList[k]), 'r')
                 labelFile = open(join(root_data_dir, labelsLogList[k]), 'r')
@@ -160,7 +218,7 @@ class SAMDriver_ARWin(SAMDriver):
                             else:
                                 data[t[a]][k] = arr
                         else:
-                            data[t[a]] = [None] * (numFiles + 1)
+                            data[t[a]] = [None] * numFiles
                             data[t[a]][k] = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
                             objectsList.append(t[a])
 
@@ -202,24 +260,78 @@ class SAMDriver_ARWin(SAMDriver):
         print labelNumsList[0].shape
         print data['head'][0].shape
 
+        if self.paramsDict['filterData'] or 'vel' in self.paramsDict['components'] or \
+           'acc' in self.paramsDict['components']:
+            print 'Filtering data with hamming window of size', self.paramsDict['filterWindow']
+            for j in data.keys():
+                for k in range(len(data[j])):
+                    t1 = utils.smooth1D(data[j][k][:, 0], self.paramsDict['filterWindow'])
+                    t2 = utils.smooth1D(data[j][k][:, 1], self.paramsDict['filterWindow'])
+                    t3 = utils.smooth1D(data[j][k][:, 2], self.paramsDict['filterWindow'])
+                    data[j][k] = np.hstack([t1[:, None], t2[:, None], t3[:, None]])
+
         # convert data and number labels into windows.
         # data is still in the form of a dictionary with the joints/objects as keys of the dict
         # Text labels contained in labels
         print
+
         data2NumLabels = None
         data2 = dict()
+        printExplanation = True
         for num, key in enumerate(data):
             data2[key] = None
             for j in range(len(dataLogList)):
                 xx, yy = utils.transformTimeSeriesToSeq(data[key][j], self.paramsDict['windowSize'],
+                                                        self.paramsDict['windowOffset'],
                                                         self.paramsDict['normaliseWindow'], self.paramsDict['reduce'])
-                uu, tmp = utils.transformTimeSeriesToSeq(labelNumsList[j], self.paramsDict['windowSize'], False, False)
+                uu, tmp = utils.transformTimeSeriesToSeq(labelNumsList[j], self.paramsDict['windowSize'],
+                                                         self.paramsDict['windowOffset'], False, False)
+
+                if self.paramsDict['thresholdMovement'] or 'vel' in self.paramsDict['components'] or 'acc' in \
+                        self.paramsDict['components']:
+                    winSize = xx.shape[1] / 3
+                    g = xx.size / winSize
+                    xxshape1 = xx.shape[0]
+                    xxshape2 = xx.shape[1]
+
+                    flatxx = xx.flatten()
+                    f = flatxx.reshape([g, winSize])
+                    xx = f.reshape([xxshape1, xxshape2])
+
+                    if self.paramsDict['thresholdMovement']:
+                        if printExplanation:
+                            print 'thresholding movement <', self.paramsDict['moveThresh']
+                        ranges = np.ptp(f, axis=1)
+                        a = ranges < self.paramsDict['moveThresh']
+                        b = ranges > -self.paramsDict['moveThresh']
+                        res = list(np.where(np.logical_and(a, b))[0])
+                        if self.paramsDict['normaliseWindow']:
+                            f[res] = 0
+                        else:
+                            for ll in res:
+                                f[ll] = f[ll][0]
+
+                    if 'vel' in self.paramsDict['components']:
+                        if printExplanation:
+                            print 'Adding velocity to the feature vector'
+                        xxvel = np.diff(f)
+                        xxvel = xxvel.reshape([xxshape1, xxshape2 - 3])
+                        xx = np.hstack([xx, xxvel])
+
+                    if 'acc' in self.paramsDict['components']:
+                        if printExplanation:
+                            print 'Adding acceleration to the feature vector'
+                        xxacc = np.diff(f, n=2)
+                        xxacc = xxacc.reshape([xxshape1, xxshape2 - 6])
+                        xx = np.hstack([xx, xxacc])
+
                 if j == 0:
                     data2[key] = xx
                     data2NumLabels = uu
                 else:
                     data2[key] = np.vstack([data2[key], xx])
                     data2NumLabels = np.vstack([data2NumLabels, uu])
+                printExplanation = False
 
         print data2['head'].shape
         print data2NumLabels.shape
@@ -240,7 +352,7 @@ class SAMDriver_ARWin(SAMDriver):
                 # which are currently dependant on windowSize
                 data2Labels.append('transition')
 
-        labels = labels + ['transition']
+        # labels = labels + ['transition']
         print len(data2Labels)
 
         print
@@ -303,7 +415,6 @@ class SAMDriver_ARWin(SAMDriver):
 
         print dataVecAll.shape
 
-
         print
         # it is now time to combine hands if multiple exist
         combinedHands = None
@@ -365,10 +476,38 @@ class SAMDriver_ARWin(SAMDriver):
 
         data2ShortLabels = []
         for j in data2Labels:
-            data2ShortLabels.append('_'.join(j.split('_')[:2]))
+            splitLabel = j.split('_')
+            slabel = ('_'.join(splitLabel[:2]))
+
+            if splitLabel[0] == 'push' or splitLabel[0] == 'pull':
+                if splitLabel[-1] == 'no':
+                    add = splitLabel[-2]
+                else:
+                    add = splitLabel[-1]
+
+                if add == 'left' and self.paramsDict['flip']:
+                    if splitLabel[0] == 'push':
+                        splitLabel[0] = 'pull'
+                    else:
+                        splitLabel[0] = 'push'
+                    slabel = ('_'.join(splitLabel[:2]))
+
+                if self.paramsDict['sepRL']:
+                    slabel += '_' + add
+
+            data2ShortLabels.append(slabel)
 
         self.data2Labels = copy.deepcopy(data2ShortLabels)
-        
+
+        if self.paramsDict['sepRL']:
+            if 'pull_object' in self.paramsDict['actionsAllowedList']:
+                self.paramsDict['actionsAllowedList'].index('pull_object') == 'pull_object_right'
+                self.paramsDict['actionsAllowedList'].append('pull_object_left')
+
+            if 'push_object' in self.paramsDict['actionsAllowedList']:
+                self.paramsDict['actionsAllowedList'].index('push_object') == 'push_object_right'
+                self.paramsDict['actionsAllowedList'].append('push_object_left')
+
         # remove labels which will not be trained
         listToDelete = []
         for n in reversed(range(len(data2Labels))):
@@ -376,9 +515,11 @@ class SAMDriver_ARWin(SAMDriver):
                             'no' in data2Labels[n]:
                 listToDelete.append(n)
 
-        for j in listToDelete:
-            dataVecReq = np.delete(dataVecReq, j, 0)
-            data2ShortLabels.pop(j)
+        dataVecReq = np.delete(dataVecReq, listToDelete, axis=0)
+        npdata2ShortLabels = np.asarray(data2ShortLabels)
+        npdata2ShortLabels = np.delete(npdata2ShortLabels, listToDelete, axis=0)
+        # find left hand push and pull and label as pull and push respectively
+        data2ShortLabels = np.ndarray.tolist(npdata2ShortLabels)
 
         self.Y = dataVecReq
         self.L = data2ShortLabels
@@ -422,13 +563,16 @@ class SAMDriver_ARWin(SAMDriver):
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
         yTrainingData = SAMTesting.formatDataFunc(Yall)
-        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose, 'Training')
+        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData,
+                                                                         Lall, verbose, 'Training')
 
         yTrainingData = SAMTesting.formatDataFunc(YtestAll)
-        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose, 'Testing')
+        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData,
+                                                                       LtestAll, verbose, 'Testing')
 
         yTrainingData = SAMTesting.formatDataFunc(self.dataVec)
-        [self.seqTestConf, self.seqTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, self.data2Labels, verbose, 'All')
+        [self.seqTestConf, self.seqTestPerc] = SAMTesting.testSegments(testModel, yTrainingData,
+                                                                       self.data2Labels, verbose, 'All')
 
         return self.seqTestConf
         # return numpy.ones([3, 3])
@@ -510,11 +654,54 @@ class SAMDriver_ARWin(SAMDriver):
                             data[t[a]] = np.vstack(
                                 [data[t[a]], np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])])
 
+                if self.paramsDict['filterData'] or 'vel' in self.paramsDict['components'] or \
+                                'acc' in self.paramsDict['components']:
+                    for j in data.keys():
+                        for k in range(len(data[j])):
+                            t1 = utils.smooth1D(data[j][k][:, 0], self.paramsDict['filterWindow'])
+                            t2 = utils.smooth1D(data[j][k][:, 1], self.paramsDict['filterWindow'])
+                            t3 = utils.smooth1D(data[j][k][:, 2], self.paramsDict['filterWindow'])
+                            data[j][k] = np.hstack([t1[:, None], t2[:, None], t3[:, None]])
+
                 # convert arrays in dict data into windows
                 for j in data:
-                    data[j], yy = utils.transformTimeSeriesToSeq(data[j], self.paramsDict['windowSize'],
-                                                                 self.paramsDict['normaliseWindow'],
-                                                                 self.paramsDict['reduce'], True)
+                    xx, yy = utils.transformTimeSeriesToSeq(data[j], self.paramsDict['windowSize'],
+                                                            self.paramsDict['normaliseWindow'],
+                                                            self.paramsDict['reduce'], True)
+
+                    if self.paramsDict['thresholdMovement'] or 'vel' in self.paramsDict['components'] or 'acc' in \
+                            self.paramsDict['components']:
+                        winSize = xx.shape[1] / 3
+                        g = xx.size / winSize
+                        xxshape1 = xx.shape[0]
+                        xxshape2 = xx.shape[1]
+
+                        flatxx = xx.flatten()
+                        f = flatxx.reshape([g, winSize])
+                        xx = f.reshape([xxshape1, xxshape2])
+
+                        if self.paramsDict['thresholdMovement']:
+                            ranges = np.ptp(f, axis=1)
+                            a = ranges < self.paramsDict['moveThresh']
+                            b = ranges > -self.paramsDict['moveThresh']
+                            res = list(np.where(np.logical_and(a, b))[0])
+                            if self.paramsDict['normaliseWindow']:
+                                f[res] = 0
+                            else:
+                                for ll in res:
+                                    f[ll] = f[ll][0]
+
+                        if 'vel' in self.paramsDict['components']:
+                            xxvel = np.diff(f)
+                            xxvel = xxvel.reshape([xxshape1, xxshape2 - 3])
+                            xx = np.hstack([xx, xxvel])
+
+                        if 'acc' in self.paramsDict['components']:
+                            xxacc = np.diff(f, n=2)
+                            xxacc = xxacc.reshape([xxshape1, xxshape2 - 6])
+                            xx = np.hstack([xx, xxacc])
+
+                    data[j] = xx
 
                 for j in self.listOfVectorsToClassify:
                     v = []
@@ -524,6 +711,13 @@ class SAMDriver_ARWin(SAMDriver):
                     [label, val] = SAMTesting.testSegment(thisModel, vec, verbose, visualiseInfo=None,
                                                           optimise=thisModel[0].optimiseRecall)
                     classification = label.split('_')[0]
+
+                    if self.paramsDict['flip'] and 'handLeft' in j:
+                        if label == 'push':
+                            label = 'pull'
+                        elif label == 'pull':
+                            label = 'push'
+
                     if classification == 'unknown':
                         sentence.append("You did an " + label + " action with " + str(j))
                     else:

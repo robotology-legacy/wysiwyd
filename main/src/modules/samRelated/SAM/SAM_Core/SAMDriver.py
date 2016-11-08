@@ -67,6 +67,8 @@ class SAMDriver:
         self.fname = None
         self.optimiseRecall = True
         self.modelLoaded = False
+        self.parallelOperation = False
+        self.calibrated = False
 
         self.Yall = None
         self.Lall = None

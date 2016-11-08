@@ -135,10 +135,20 @@ def initialiseModels(argv, update, initMode='training'):
                 mySAMpy.verbose = False
 
             if parser.has_option(trainName, 'optimiseRecall'):
-                mySAMpy.optimiseRecall = parser.get(trainName, 'optimiseRecall') == 'True'
+                mySAMpy.optimiseRecall = int(parser.get(trainName, 'optimiseRecall'))
             else:
                 default = True
-                mySAMpy.optimiseRecall = True
+                mySAMpy.optimiseRecall = 200
+
+            if parser.has_option(trainName, 'useMaxDistance'):
+                mySAMpy.useMaxDistance = parser.get(trainName, 'useMaxDistance') == 'True'
+            else:
+                mySAMpy.useMaxDistance = False
+
+            if parser.has_option(trainName, 'calibrateUnknown'):
+                mySAMpy.calibrateUnknown = parser.get(trainName, 'calibrateUnknown') == 'True'
+            else:
+                mySAMpy.calibrateUnknown = False
 
             if parser.has_option(trainName, 'model_mode'):
                 mySAMpy.model_mode = parser.get(trainName, 'model_mode')
@@ -478,6 +488,15 @@ def solve_intersections(m1, m2, std1, std2):
     return np.roots([a, b, c])
 
 
+def PfromHist(sample, hist, binWidth):
+    idx = np.asarray(sample)//binWidth
+    idx = idx.astype(np.int)
+    pList = []
+    for j in range(len(idx)):
+        pList.append(hist[j][idx[j]])
+    return pList
+
+
 def meanVar_varianceDistribution(dataList):
     mlist = []
     vlist = []
@@ -489,13 +508,13 @@ def meanVar_varianceDistribution(dataList):
 
     numPlots = dataArray.shape[1]
 
-    for j in range(numPlots + 2):
-        if j < numPlots:
-            h = dataArray[:, j]
-        elif j == numPlots:
-            h = np.sum(dataArray, 1)
-        elif j == numPlots + 1:
-            h = np.mean(dataArray, 1)
+    for j in range(numPlots):
+        # if j < numPlots:
+        h = dataArray[:, j]
+        # elif j == numPlots:
+        #     h = np.sum(dataArray, 1)
+        # elif j == numPlots + 1:
+        #     h = np.mean(dataArray, 1)
 
         mean = np.mean(h)
         variance = np.var(h)
@@ -527,13 +546,61 @@ def bhattacharyya_dict(m, v):
         return None
 
 
-def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False, noY=False):
+def smooth1D(x, window_len=11, window='hanning'):
+    """smooth the data using a window with requested size.
+
+    This method is based on the convolution of a scaled window with the signal.
+    The signal is prepared by introducing reflected copies of the signal
+    (with the window size) in both ends so that transient parts are minimized
+    in the beginning and end part of the output signal.
+
+    input:
+        x: the input signal
+        window_len: the dimension of the smoothing window; should be an odd integer
+        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
+            flat window will produce a moving average smoothing.
+
+    output:
+        the smoothed signal
+
+    NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
+    """
+
+    if x.ndim != 1:
+        raise ValueError("smooth only accepts 1 dimension arrays.")
+
+    if x.size < window_len:
+        raise ValueError("Input vector needs to be bigger than window size.")
+
+    if window_len < 3:
+        return x
+
+    if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+
+    s = np.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
+    # print(len(s))
+    if window == 'flat':  # moving average
+        w = np.ones(window_len, 'd')
+    else:
+        w = eval('np.'+window+'(window_len)')
+
+    y = np.convolve(w/w.sum(), s, mode='valid')
+    off = 0
+    if window_len % 2 > 0:
+        off = 1
+
+    return y[(window_len/2-1):-((window_len/2)+off)]
+
+
+def transformTimeSeriesToSeq(Y, timeWindow, offset=1, normalised=False, reduced=False, noY=False, doOffset=False):
     # TODO add parameter for number of points to skip between sampled windows
     Ntr, D = Y.shape
     if noY:
-        blocksNumber = Ntr - timeWindow + 1
+        blocksNumber = (Ntr - timeWindow + 1) // offset
     else:
-        blocksNumber = Ntr - timeWindow
+        blocksNumber = (Ntr - timeWindow) // offset
+
     if normalised and reduced:
         X = np.zeros((blocksNumber, (timeWindow - 1) * D))
     else:
@@ -545,7 +612,8 @@ def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False, noY
         Ynew = None
 
     for i in range(blocksNumber):
-        tmp = Y[i:i + timeWindow, :].T
+        base = i * offset
+        tmp = Y[base:base + timeWindow, :].T
 
         if normalised:
             tmp = np.subtract(tmp, tmp[:, 0][:, None])
@@ -554,8 +622,7 @@ def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False, noY
         X[i, :] = tmp.flatten().T
 
         if not noY:
-            Ynew[i, :] = Y[i + timeWindow, :]
-
+            Ynew[i, :] = Y[base + timeWindow, :]
     return X, Ynew
 
 

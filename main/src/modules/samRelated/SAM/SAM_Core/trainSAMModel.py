@@ -26,8 +26,10 @@ modelPath = sys.argv[2]
 driverName = sys.argv[3]
 
 mm = initialiseModels(sys.argv[1:4], sys.argv[4])
+# mm[0].SAMObject.visualise()
 
-SAMTesting.calibrateModelRecall(mm)
+if mm[0].calibrateUnknown or len(mm) > 1:
+    SAMTesting.calibrateModelRecall(mm)
 
 overallPerformance = 100000
 if mm[0].model_mode != 'temporal':
@@ -77,9 +79,13 @@ for k in range(numParts):
                 mm[0].paramsDict['Y'] = mm[k].Y['Y'].shape
 
             if mm[0].varianceThreshold is not None:
-                mm[0].paramsDict['bestDistanceIDX'] = mm[0].bestDistanceIDX
-                mm[0].paramsDict['varianceThreshold'] = mm[0].varianceThreshold
-                mm[0].paramsDict['varianceDirection'] = mm[0].varianceDirection
+                if mm[0].useMaxDistance:
+                    mm[0].paramsDict['useMaxDistance'] = mm[0].useMaxDistance
+                    mm[0].paramsDict['bestDistanceIDX'] = mm[0].bestDistanceIDX
+                    mm[0].paramsDict['varianceThreshold'] = mm[0].varianceThreshold
+                    mm[0].paramsDict['varianceDirection'] = mm[0].varianceDirection
+                else:
+                    mm[0].paramsDict['useMaxDistance'] = mm[0].useMaxDistance
 
     elif numParts > 1:
         # fname = mm[0].listOfModels[k-1]

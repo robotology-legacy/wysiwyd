@@ -268,7 +268,7 @@ class LFM(object):
         elif self.type == 'mrd':
             return self.model.bgplvms[0].Y[locations, :].values
 
-    def pattern_completion(self, test_data, view=0, verbose=False, visualiseInfo=None, optimise=True):
+    def pattern_completion(self, test_data, view=0, verbose=False, visualiseInfo=None, optimise=100):
         """
         In the case of supervised learning, pattern completion means that we 
         give new inputs and infer their corresponding outputs. In the case of
@@ -282,14 +282,14 @@ class LFM(object):
             # pred_mean = tmp.mean
             # pred_variance = tmp.variance #np.zeros(pred_mean.shape)
             tmp = self.model.infer_newX(test_data, optimize=False)[1]
-            if optimise:
-                tmp.optimize(max_iters=2000, messages=verbose)
+            if optimise != 0:
+                tmp.optimize(max_iters=optimise, messages=verbose)
             pred_mean = tmp.X.mean
             pred_variance = tmp.X.variance
         elif self.type == 'mrd':
             tmp = self.model.bgplvms[view].infer_newX(test_data, optimize=False)[1]
-            if optimise:
-                tmp.optimize(max_iters=2000, messages=verbose)
+            if optimise != 0:
+                tmp.optimize(max_iters=optimise, messages=verbose)
             pred_mean = tmp.X.mean
             pred_variance = tmp.X.variance
         elif self.type == 'gp':
@@ -346,7 +346,7 @@ class LFM(object):
             pred_mean, pred_variance = self.model.predict(X)
         return pred_mean, pred_variance
 
-    def familiarity(self, Ytest, ytrmean=None, ytrstd=None, optimise=True):
+    def familiarity(self, Ytest, ytrmean=None, ytrstd=None, optimise=100):
         assert(self.type == 'bgplvm')
 
         N = Ytest.shape[0]

@@ -60,6 +60,7 @@ class modelOptClass(object):
             self.currIterSettings = None
             self.acquisitionFunction = None
             self.trainProcess = None
+            self.resultsList = []
             self.currFiles = None
             self.configured = self.configOptimisation()
             print self.configured[1]
@@ -76,8 +77,8 @@ class modelOptClass(object):
             found = self.parser.read(self.dataDir + "/config.ini")
             if found:
                 # open and check if Optimisation section is present in config.ini
-                if (self.parser.has_section('Optimisation') == True and self.parser.has_section(
-                        self.baseName) == True):
+                if (self.parser.has_section('Optimisation') and self.parser.has_section(
+                        self.baseName)):
                     # create backup of current self.driverName section
                     self.sectionBackup = dict(self.parser.items(self.baseName))
 
@@ -117,6 +118,7 @@ class modelOptClass(object):
                         self.acquisitionFunction = 'MPI'
                         self.domain = []  # list of dictionaries
                         # armedBanditsMode = True
+                        self.numPossibilities = 1
                         for i, v in self.sectionOpt.iteritems():
                             if i == 'acquisitionFunction':
                                 # possible acquisition functions
@@ -133,6 +135,7 @@ class modelOptClass(object):
                                     lims = sects[1].split(',')
                                     arr = np.arange(int(lims[0]), int(lims[2]), int(lims[1]))
                                     arr = np.hstack((arr, int(lims[2])))
+                                    self.numPossibilities *= len(arr)
                                     tempDict['name'] = i
                                     tempDict['type'] = 'discrete'
                                     tempDict['domain'] = arr
@@ -142,6 +145,7 @@ class modelOptClass(object):
                                     lims = sects[1].split(',')
                                     arr = np.arange(float(lims[0]), float(lims[2]), float(lims[1]))
                                     arr = np.hstack((arr, float(lims[2])))
+                                    self.numPossibilities *= len(arr)
                                     tempDict['name'] = i
                                     tempDict['type'] = 'discrete'
                                     tempDict['domain'] = arr
@@ -160,6 +164,7 @@ class modelOptClass(object):
                                     tempDict['type'] = 'discrete'
                                     tempDict['domain'] = np.array((0, 1))
                                     tempDict['description'] = sects[0]
+                                    self.numPossibilities *= 2
                                     self.domain.append(tempDict)
                                 elif sects[0] == 'combination':
                                     splitList = sects[1].split(',')
@@ -168,6 +173,7 @@ class modelOptClass(object):
                                         tempDict['name'] = b
                                         tempDict['type'] = 'discrete'
                                         tempDict['domain'] = np.array((0, 1))
+                                        self.numPossibilities *= 2
                                         tempDict['description'] = sects[0]
                                         tempDict['groupName'] = i
                                         self.domain.append(tempDict)
@@ -180,6 +186,7 @@ class modelOptClass(object):
                                     tempDict['description'] = sects[0]
                                     tempDict['groupName'] = i
                                     tempDict['values'] = splitList
+                                    self.numPossibilities *= len(splitList)
                                     self.domain.append(tempDict)
                             else:
                                 print 'ignoring ', i
@@ -204,7 +211,7 @@ class modelOptClass(object):
 
     def f(self, x):
         self.numEvals += 1
-        print 'Trial ', self.numEvals
+        print 'Trial ', self.numEvals, 'out of', self.numPossibilities, 'possibilities'
         for j in range(len(x[0])):
             print self.domain[j]['name'], ' : ', x[0][j]
         print
@@ -265,12 +272,14 @@ class modelOptClass(object):
 
         ret = None
         cnt = 0
+        totalTime = 0
         while ret is None:
             ret = self.trainProcess.poll()
             time.sleep(5)
             cnt += 1
             if cnt > 5:
-                print 'Training ...'
+                totalTime += 1
+                print 'Training ...', totalTime * 0.5, 'minutes elapsed'
                 cnt = 0
 
         currError = 0
@@ -284,9 +293,9 @@ class modelOptClass(object):
                 if '.pickle' in j and '__L' not in j:
                     modelPickle = pickle.load(open(j, 'rb'))
                     testConf = modelPickle['overallPerformance']
+                    print 'Confusion Matrix: ', testConf
                     np.fill_diagonal(testConf, 0)
                     currError += np.sum(testConf)
-                    print 'Confusion Matrix: ', testConf
                     print
                     print 'Current cumulative error: ', currError
                     if currError < self.bestError:
@@ -304,6 +313,7 @@ class modelOptClass(object):
         print 'Best Error so far : ', self.bestError
         print
         print '-----------------------------------------------------'
+        self.resultsList.append([x, currError])
         return currError
 
     def copyModel(self, newName, direction):
@@ -359,6 +369,7 @@ def main():
         e = sys.argv[5]
         f = sys.argv[6]
         per = sys.argv[7] == 'True'
+        # per = True
         wind = sys.argv[8] == 'True'
         verb = sys.argv[9] == 'True'
 
@@ -369,11 +380,25 @@ def main():
                                                          initial_design_numdata=2,  # number data initial design
                                                          acquisition_type=optModel.acquisitionFunction)
             max_iter = 200
+            # pickle myBopt to save its initialisation
+            # logFilename = os.path.join(b, 'optimiserLog')
+            # output = open(logFilename, 'wb')
+            # pickle.dump({'optModel', optModel}, output)
+            # output.close()
 
+            # try:
             myBopt.run_optimization(max_iter)
-            optModel.parser.write(open(optModel.dataDir + "/config.ini", 'wb'))
-            optModel.copyModel('best', 'reverse')
             return 0
+            # except:
+            #     # pickle results list together with optimiser
+            #     d = pickle.load(open(logFilename, 'r'))
+            #     d['resultList'] = myBopt.resultsList
+            #     output = open(logFilename, 'wb')
+            #     pickle.dump(d, output)
+            #     output.close()
+            #     optModel.parser.write(open(optModel.dataDir + "/config.ini", 'wb'))
+            #     optModel.copyModel('best', 'reverse')
+            #     return -1
         else:
             return -1
     else:
