@@ -142,7 +142,7 @@ namespace storygraph {
         std::string getSentenceEvt(int i); ///< Produces a naïve sentence from the i-th event
         std::string getSentenceRel(int i); ///< Produces a naïve sentence from the i-th relations
         std::string dispRelations(const std::vector < int >& rels); ///< Displays all relations in a [Subject Verb Object] format
-        void showIGARF(int i, std::ofstream &IGARFfile, int level = 0); ///< Displays a tree view of the i-th IGARF
+        void showIGARF(int i, std::ofstream &IGARFfile, int level = 0, bool display = false); ///< Displays a tree view of the i-th IGARF
         /**< @param level Used to set the margin recursively. You don't need to use it. **/
 
 

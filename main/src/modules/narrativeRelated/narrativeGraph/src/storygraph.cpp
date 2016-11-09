@@ -84,7 +84,7 @@ void line(int level) {
     cout.fill(prevC);
 }
 
-void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level) {
+void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level, bool display) {
     vChronoIgarf.push_back(i);
     if (i < 0 || i >= (int)vIGARF.size())
         return;
@@ -93,72 +93,72 @@ void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level) {
     vIGARF.at(i).iLevel = level;
     margin(level);
     marginInFile(level, IGARFfile);
-    cout << "[" << i << "] " << endl;
+    if (display) cout << "[" << i << "] " << endl;
     IGARFfile << endl;
-    line(level);
-    margin(level);
+    if (display) line(level);
+    if (display) margin(level);
     marginInFile(level, IGARFfile);
-    cout << "+-INIT: " << dispRelations(evt.vInitState) << endl;
+    if (display) cout << "+-INIT: " << dispRelations(evt.vInitState) << endl;
     IGARFfile << "INIT " << dispRelations(evt.vInitState) << endl;
     vChronoEvent.push_back(pair<int, string>(i, "I"));
-    margin(level);
+    if (display) margin(level);
     marginInFile(level, IGARFfile);
-    cout << "+-GOAL: " << dispRelations(evt.vGoal) << endl;
+    if (display) cout << "+-GOAL: " << dispRelations(evt.vGoal) << endl;
     IGARFfile << "GOAL " << dispRelations(evt.vGoal) << endl;
     vChronoEvent.push_back(pair<int, string>(i, "G"));
-    margin(level);
+    if (display) margin(level);
     marginInFile(level, IGARFfile);
-    cout << "+-ACTION: ";
+    if (display) cout << "+-ACTION: ";
     IGARFfile << "ACTION ";
     vChronoEvent.push_back(pair<int, string>(i, "A"));
     if (evt.tAction == ACTION_EVT) {
-        cout << "[" << evt.iAction << "] " << getSentenceEvt(evt.iAction) << endl;
+        if (display) cout << "[" << evt.iAction << "] " << getSentenceEvt(evt.iAction) << endl;
         IGARFfile << getSentenceEvt(evt.iAction) << endl;
     }
     else if (evt.tAction == IGARF_EVT) {
-        cout << "[" << evt.iAction << "]" << endl;
+        if (display) cout << "[" << evt.iAction << "]" << endl;
         IGARFfile << endl;
         showIGARF(evt.iAction, IGARFfile, level + 1);
     }
     else
-        cout << endl;
-    margin(level);
+        if (display) cout << endl;
+    if (display) margin(level);
     marginInFile(level, IGARFfile);
-    cout << "+-RESULT: ";
+    if (display) cout << "+-RESULT: ";
     IGARFfile << "RESULT ";
     vChronoEvent.push_back(pair<int, string>(i, "R"));
     if (evt.tResult == ACTION_EVT) {
-        cout << "[" << evt.iResult << "] " << getSentenceEvt(evt.iResult) << endl;
+        if (display) cout << "[" << evt.iResult << "] " << getSentenceEvt(evt.iResult) << endl;
         IGARFfile << getSentenceEvt(evt.iResult) << endl;
     }
     else if (evt.tResult == IGARF_EVT) {
-        cout << "[" << evt.iResult << "]" << endl;
+        if (display) cout << "[" << evt.iResult << "]" << endl;
         IGARFfile << endl;
         showIGARF(evt.iResult, IGARFfile, level + 1);
     }
     else{
-        cout << endl;
+        if (display) cout << endl;
         IGARFfile << endl;
     }
-    margin(level);
+    if (display) margin(level);
     marginInFile(level, IGARFfile);
-    cout << "+-FINAL: " << dispRelations(evt.vFinalState) << endl;
+    if (display) cout << "+-FINAL: " << dispRelations(evt.vFinalState) << endl;
     IGARFfile << "FINAL " << dispRelations(evt.vFinalState) << endl;
     vChronoEvent.push_back(pair<int, string>(i, "F"));
-    margin(level);
+    if (display) margin(level);
     marginInFile(level, IGARFfile);
-    cout << "+-NEXT: ";
+    if (display) cout << "+-NEXT: ";
     IGARFfile << "NEXT ";
     if (evt.iNext != -1) {
-        cout << "[" << evt.iNext << "]" << endl;
+        if (display) cout << "[" << evt.iNext << "]" << endl;
         IGARFfile << endl;
-        line(level);
+        if (display) line(level);
         showIGARF(evt.iNext, IGARFfile, level);
     }
     else {
-        cout << endl;
+        if (display) cout << endl;
         IGARFfile << endl;
-        line(level);
+        if (display) line(level);
     }
 }
 
