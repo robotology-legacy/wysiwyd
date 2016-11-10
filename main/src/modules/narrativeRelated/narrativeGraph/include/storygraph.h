@@ -30,6 +30,8 @@ namespace storygraph {
         UNDEF, ACTION_EVT, IGARF_EVT
     };
 
+
+
     /// Describes an IGARF Event
     struct sIGARF {
         std::vector < int > vInitState; ///< The instance numbers of the relations describing the Initial State

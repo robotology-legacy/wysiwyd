@@ -454,10 +454,10 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         exportDFW();
         reply.addString("export sucessful");
     }
-    else if (command.get(0).asString() == "useDFW") {
-        yInfo(" using a Discourse Function Words");
-        reply = useDFW(command);
-    }
+    //else if (command.get(0).asString() == "useDFW") {
+    //    yInfo(" using a Discourse Function Words");
+    //    reply = useDFW(command);
+    //}
     else if (command.get(0).asString() == "HRI") {
         yInfo(" launching HRI");
         reply = questionHRI_DFW();

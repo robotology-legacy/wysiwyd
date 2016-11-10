@@ -121,15 +121,15 @@ private:
     void sentenceToTrain(std::string s, yarp::os::Bottle& reply);
     discourseform::meaningSentence sentenceToEvent(std::string level1); ///< transform a meaning from lrh to an properly formatted event
     discourseform::meaningSentence evtToMeaning(std::string sIGARF, int iIGARF);
-    void removeDoubleMeaning(std::vector<std::tuple <discourseform::meaningSentence, double, std::string> > &vMeaningScore);
-    void removeDoubleMeaning(std::vector<std::tuple <std::string, double, std::string> > &vMeaningScore);
+    void removeDoubleMeaning(std::vector<std::tuple <discourseform::meaningSentence, double, discourseform::PAOR > > &vMeaningScore);
+    void removeDoubleMeaning(std::vector<discourseform::hriResponse > &vMeaningScore);
 
     ///< DFW related
     void analyseDFW();      ///< run a set of analysis on the DFW
     void exportDFW();       ///< export data of the DFW in a file csv
     std::vector <storygraph::DFW> vDFW;
     void displayDFW();
-    yarp::os::Bottle useDFW(yarp::os::Bottle bInput); ///< Create a sentence using the specified DFW
+    std::vector < discourseform::hriResponse > useDFW(yarp::os::Bottle bInput); ///< Create a sentence using the specified DFW
     storygraph::DFW foundDFW(std::string sdfw);
     std::string prepareMeaningForLRH(std::string dfw, discourseform::meaningSentence M1);
     std::string prepareMeaningForLRH(std::string dfw, discourseform::meaningSentence M1, discourseform::meaningSentence M2, bool DFWAB);
@@ -157,13 +157,13 @@ private:
     bool narrate(int iIns);
 
     yarp::os::Bottle questionHRI_DFW();
-    yarp::os::Bottle what_DFW_Simple(yarp::os::Bottle bInput, int iScenario = 5);
-    yarp::os::Bottle what_DFW_Double(yarp::os::Bottle bInput, std::string &sPAOR, int iScenario = 5);
-    yarp::os::Bottle whyPAOR(yarp::os::Bottle bInput, std::string &sPAOR, int iScenario = 5);
+    std::vector < discourseform::hriResponse > what_DFW_Simple(yarp::os::Bottle bInput, int iScenario = 5);
+    std::vector < discourseform::hriResponse > what_DFW_Double(yarp::os::Bottle bInput, discourseform::PAOR  &sPAOR, int iScenario = 5);
+    std::vector < discourseform::hriResponse > whyPAOR(yarp::os::Bottle bInput, discourseform::PAOR  &sPAOR, int iScenario = 5);
     bool doYouRemember(std::string sInput);
-    bool createNarration(std::vector< std::tuple <yarp::os::Bottle, std::string > > vQuestion, int iScenario);
+    bool createNarration(std::vector< std::tuple <yarp::os::Bottle, discourseform::PAOR > > vQuestion, int iScenario, std::vector < discourseform::hriResponse > vResponses);
     
-    std::string pickResponse(std::vector < std::tuple < std::string, double, std::string > > &vResponses, std::vector<std::string >   &vSaid);
+    std::string pickResponse(std::vector < discourseform::hriResponse > &vResponses, std::vector<discourseform::PAOR>   &vSaid);
 
 
     std::string lowerKey(std::string input);

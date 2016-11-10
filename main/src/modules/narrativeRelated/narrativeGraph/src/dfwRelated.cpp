@@ -26,6 +26,7 @@ using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 using namespace std;
 using namespace discourseform;
+using namespace storygraph;
 
 
 
@@ -37,18 +38,18 @@ using namespace discourseform;
 * 3: PAOR = NULL
 * 4: first or second element of double dfw (0/1) default = first
 */
-Bottle narrativeHandler::useDFW(Bottle bInput){
+vector < hriResponse > narrativeHandler::useDFW(Bottle bInput){
 
     cout << "useDFW launched: " << bInput.toString() << endl;
+    vector < hriResponse > vResponses;
 
     Bottle bRet;
     bRet.addVocab(Vocab::encode("many"));
 
 
     if (bInput.size() < 3){
-        yWarning("in narrativeGraph::useDFW wrong size of input (min 2)");
-        bRet.addString("in narrativeGraph::useDFW wrong size of input (min 2)");
-        return bRet;
+        yWarning("in narrativeGraph::useDFW wrong size of input (min 2)");        
+        return vResponses;
     }
 
     bool hasPAOR = false;   ///< check if dfw will have to be double
@@ -62,8 +63,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
 
     if (dfw.sName == "none"){
         yWarning() << " in narrativeGraph::usedDFW dfw not found: " << sdfw;
-        bRet.addString(" in narrativeGraph::usedDFW dfw not found: " + sdfw + ")");
-        return bRet;
+        return vResponses;
     }
     // DFW CHECKED
 
@@ -118,8 +118,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         // DOES THIS DFW CAN BE USE WITH ONE SENTENCE ONLY:
         if (dfw.vSingleIGARF.size() == 0){
             yWarning("DFW about 2 preposition. At least one needed.");
-            bRet.addString("DFW about 2 preposition. At least one needed.");
-            return bRet;
+            return vResponses;
         }
 
         // get a score for each sentence: esperance of IGARF * esperence of the time in HISTO
@@ -164,7 +163,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         ostringstream os;
 
         vector<pair <int, string> > AddedEvt;
-        vector<tuple <meaningSentence, double, string> > vMeaningScore; // vector of the meaning of event with their scores and position in the IGARF or the response
+        vector<tuple <meaningSentence, double, PAOR> > vMeaningScore; // vector of the meaning of event with their scores and position in the IGARF or the response
         for (auto posibilities : vpScore){
             // I can talk of this element
             if (posibilities.second > 0.5 * best){
@@ -183,7 +182,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
                 if (toAdd){
                     //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
                     meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
-                    vMeaningScore.push_back(tuple <meaningSentence, double, string>(meaning, posibilities.second, meaning.getSentence()));
+                    vMeaningScore.push_back(tuple <meaningSentence, double, PAOR>(meaning, posibilities.second, meaning.toPAOR()));
                     AddedEvt.push_back(currentPair);
                 }
             }
@@ -193,33 +192,41 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         removeDoubleMeaning(vMeaningScore);
 
         for (auto &toSend : vMeaningScore){
-            for (auto &prep : get<0>(toSend).vSentence){
-                for (unsigned int ii = 0 ; ii < prep.vOCW.size() ; ii++){
-                    cout << prep.vRole[ii] <<"   " << prep.vOCW[ii] <<endl;
-                    if (prep.vOCW[ii] == "iCub"){
-                        prep.vOCW[ii] = "I";
-                    }
-                }
-            }
+
 
             meaningSentence meaningTemp;
             // if several relation at same evt
-            for (auto prop : get<0>(toSend).vSentence)
+            for (auto &prop : get<0>(toSend).vSentence)
             {
+
+                hriResponse CurrentResponse;
+                // set the score
+                CurrentResponse.score = get<1>(toSend);
                 meaningTemp.vSentence.clear();
+
+                // set the PAOR:
+                CurrentResponse.paor = prop.toPAOR();
+
+
+                // set for better HRI
+                for (unsigned int ii = 0; ii < prop.vOCW.size(); ii++){
+                    if (prop.vOCW[ii] == "iCub" && prop.vRole[ii][0] == 'R'){
+                        prop.vOCW[ii] = "me";
+                    }
+                    if (prop.vOCW[ii] == "iCub" && prop.vRole[ii][0] == 'A'){
+                        prop.vOCW[ii] = "I";
+                    }
+                }
                 meaningTemp.vSentence.push_back(prop);
+
 
                 string preparedMeaning = prepareMeaningForLRH(sdfw, meaningTemp);
 
                 if (preparedMeaning != "none")
                 {
-                    cout << preparedMeaning << " : " << get<1>(toSend) << endl;
-                    Bottle bTemp;
-                    bTemp.addString(iCub->getLRH()->meaningToSentence(preparedMeaning, true));
-                    bTemp.addDouble(get<1>(toSend));
-                    bTemp.addString(meaningTemp.getSentence());
-                    cout << bTemp.toString() << endl;
-                    bRet.addList() = bTemp;
+                    CurrentResponse.sentence = (iCub->getLRH()->meaningToSentence(preparedMeaning, true));
+                    cout << "Adding: " << CurrentResponse.toString() << endl;
+                    vResponses.push_back(CurrentResponse);
                 }
             }
         }
@@ -238,14 +245,13 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         // IF NO EVENT:
         if (vKM.size() == 0){
             yWarning(" in narrativeGraph::useDFW::hasPAOR - cannot recognize event");
-            bRet.addString("none - cannot recognize event");
-            return bRet;
+            return vResponses;
         }
 
         // DOES THIS DFW CAN BE USE WITH ONE SENTENCE ONLY:
         if (dfw.vDoubleIGARF.size() == 0){
-            bRet.addString("DFW about 1 preposition only. 2 given.");
-            return bRet;
+            yWarning("DFW about 1 preposition only. 2 given.");
+            return vResponses;
         }
 
         vector<pair<int, double>> vpScore; // vector with each event and associated score
@@ -312,7 +318,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         ostringstream os;
 
         vector<pair <int, string> > AddedEvt;
-        vector<tuple <meaningSentence, double, string> > vMeaningScore; // vector of the meaning of event with their scores
+        vector<tuple <meaningSentence, double, PAOR> > vMeaningScore; // vector of the meaning of event with their scores
         for (auto posibilities : vpScore){
             // I can talk of this element
             if (posibilities.second > 0.5 * best){
@@ -331,7 +337,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
                 if (toAdd){
                     //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
                     meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
-                    vMeaningScore.push_back(tuple <meaningSentence, double, string>(meaning, posibilities.second, meaning.getSentence()));
+                    vMeaningScore.push_back(tuple <meaningSentence, double, PAOR>(meaning, posibilities.second, meaning.toPAOR()));
                     AddedEvt.push_back(currentPair);
                 }
             }
@@ -341,38 +347,40 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
         removeDoubleMeaning(vMeaningScore);
 
         for (auto &toSend : vMeaningScore){
-            for (auto &prep : get<0>(toSend).vSentence){
-                for (unsigned int ii = 0 ; ii < prep.vOCW.size() ; ii++){
-                    cout << prep.vRole[ii] <<"   " << prep.vOCW[ii] <<endl;
-                    if (prep.vOCW[ii] == "iCub" && prep.vRole[ii][0] == 'R'){
-                        prep.vOCW[ii] = "me";
-                    }
-                    if (prep.vOCW[ii] == "iCub" && prep.vRole[ii][0] == 'A'){
-                        prep.vOCW[ii] = "I";
-                    }
-                }
-            }
-
-            for (auto &prep : meaning.vSentence){
-                for (unsigned int ii = 0 ; ii < prep.vOCW.size() ; ii++){
-                    cout << prep.vRole[ii] <<"   " << prep.vOCW[ii] <<endl;
-                    if (prep.vOCW[ii] == "iCub" && prep.vRole[ii][0] == 'R'){
-                        prep.vOCW[ii] = "me";
-                    }
-                    if (prep.vOCW[ii] == "iCub" && prep.vRole[ii][0] == 'A'){
-                        prep.vOCW[ii] = "I";
-                    }
-                }
-            }
-
-
+            
             meaningSentence meaningTemp;
             // if several relation at same evt
-            for (auto prop : get<0>(toSend).vSentence)
+            for (auto &prop : get<0>(toSend).vSentence)
             {
                 string preparedMeaning;
 
+                hriResponse CurrentResponse;
+                CurrentResponse.score = get<1>(toSend);
+
                 meaningTemp.vSentence.clear();
+
+                // set the PAOR:
+                CurrentResponse.paor = prop.toPAOR();
+
+                // set for better HRI
+                for (unsigned int ii = 0; ii < prop.vOCW.size(); ii++){
+                    if (prop.vOCW[ii] == "iCub" && prop.vRole[ii][0] == 'R'){
+                        prop.vOCW[ii] = "me";
+                    }
+                    if (prop.vOCW[ii] == "iCub" && prop.vRole[ii][0] == 'A'){
+                        prop.vOCW[ii] = "I";
+                    }
+                }
+
+                for (unsigned int ii = 0; ii < prop.vOCW.size(); ii++){
+                    if (prop.vOCW[ii] == "iCub" && prop.vRole[ii][0] == 'R'){
+                        prop.vOCW[ii] = "me";
+                    }
+                    if (prop.vOCW[ii] == "iCub" && prop.vRole[ii][0] == 'A'){
+                        prop.vOCW[ii] = "I";
+                    }
+                }
+
                 meaningTemp.vSentence.push_back(prop);
 
                 if (isFirst){
@@ -383,14 +391,10 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
                 }
 
                 if (preparedMeaning != "none")
-                {
-                    cout << preparedMeaning << " : " << get<1>(toSend) << endl;
-                    Bottle bTemp;
-                    bTemp.addString(iCub->getLRH()->meaningToSentence(preparedMeaning, true));
-                    bTemp.addDouble(get<1>(toSend));
-                    bTemp.addString(meaningTemp.getSentence());
-                    cout << bTemp.toString() << endl;
-                    bRet.addList() = bTemp;
+                {                    
+                    CurrentResponse.sentence = (iCub->getLRH()->meaningToSentence(preparedMeaning, true));
+                    cout << "Adding: " << CurrentResponse.toString() << endl;
+                    vResponses.push_back(CurrentResponse);
                 }
             }            
         }
@@ -398,7 +402,7 @@ Bottle narrativeHandler::useDFW(Bottle bInput){
 
 
 
-    return bRet;
+    return vResponses;
 }
 
 
@@ -480,34 +484,31 @@ storygraph::DFW narrativeHandler::foundDFW(string sdfw){
 }
 
 
-bool checkMeaning(tuple <meaningSentence, double, string> M1, tuple <meaningSentence, double, string> M2){
+bool checkMeaning(tuple <meaningSentence, double, PAOR> M1, tuple <meaningSentence, double, PAOR> M2){
     return (get<0>(M1).getSentence() == get<0>(M2).getSentence());
 }
 
-bool checkMeaningSort(tuple <meaningSentence, double, string> M1, tuple <meaningSentence, double, string > M2){
+bool checkMeaningSort(tuple <meaningSentence, double, PAOR> M1, tuple <meaningSentence, double, PAOR > M2){
     return (get<0>(M1).getSentence() < get<0>(M2).getSentence());
 }
 
-bool checkMeaningString(tuple < string, double, string >  M1, tuple < string, double, string > M2){
-    return (get<0>(M1) == get<0>(M2));
+
+bool checkMeaningSortString(hriResponse M1, hriResponse M2){
+    return (M1.sentence < M2.sentence);
 }
 
-bool checkMeaningSortString(tuple < string, double, string > M1, tuple < string, double, string > M2){
-    return (get<0>(M1) < get<0>(M2));
-}
-
-void narrativeHandler::removeDoubleMeaning(vector<tuple <meaningSentence, double, string> > &vec){
+void narrativeHandler::removeDoubleMeaning(vector<tuple <meaningSentence, double, PAOR> > &vec){
 
     // check for each meaning if already present and remove them.
     sort(vec.begin(), vec.end(), checkMeaningSort);
     vec.erase(unique(vec.begin(), vec.end(), checkMeaning), vec.end());
 }
 
-void narrativeHandler::removeDoubleMeaning(vector < tuple < string, double, string > > &vec){
+void narrativeHandler::removeDoubleMeaning(vector < hriResponse > &vec){
 
     // check for each meaning if already present and remove them.
     sort(vec.begin(), vec.end(), checkMeaningSortString);
-    vec.erase(unique(vec.begin(), vec.end(), checkMeaningString), vec.end());
+    vec.erase(unique(vec.begin(), vec.end()), vec.end());
 }
 
 
