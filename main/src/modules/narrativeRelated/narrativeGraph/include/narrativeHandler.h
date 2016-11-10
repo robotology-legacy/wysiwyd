@@ -133,7 +133,7 @@ private:
     void exportDFW();       ///< export data of the DFW in a file csv
     std::vector <storygraph::DFW> vDFW;
     void displayDFW();
-    std::vector < discourseform::hriResponse > useDFW(int iScenario, std::string sdfw, storygraph::PAOR paor, bool first = true); ///< Create a sentence using the specified DFW
+    std::vector < discourseform::hriResponse > useDFW(int iScenario, std::string sdfw, storygraph::PAOR &paor, bool first = true); ///< Create a sentence using the specified DFW
     storygraph::DFW foundDFW(std::string sdfw);
     std::string prepareMeaningForLRH(std::string dfw, storygraph::PAOR M1);
     std::string prepareMeaningForLRH(std::string dfw, storygraph::PAOR M1, storygraph::PAOR M2, bool DFWAB);
@@ -165,8 +165,8 @@ private:
     std::vector < discourseform::hriResponse > what_DFW_Double(yarp::os::Bottle bInput, storygraph::PAOR  &sPAOR, int iScenario = 5);
     std::vector < discourseform::hriResponse > whyPAOR(yarp::os::Bottle bInput, storygraph::PAOR  &sPAOR, int iScenario = 5);
     bool doYouRemember(std::string sInput);
-    bool createNarration(std::vector< std::tuple <yarp::os::Bottle, storygraph::PAOR > > vQuestion, int iScenario, std::vector < discourseform::hriResponse > vResponses);
-
+    bool createNarration(std::vector< std::tuple <yarp::os::Bottle, storygraph::PAOR > > vQuestion, int iScenario, std::vector < storygraph::PAOR > vResponses);
+    
     std::string pickResponse(std::vector < discourseform::hriResponse > &vResponses, std::vector<storygraph::PAOR>   &vSaid);
 
 

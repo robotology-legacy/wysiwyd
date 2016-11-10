@@ -146,7 +146,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         if (doYouRemember(sSentence)){
                             iCub->say("Yes, of course I remember !");
 
-                            createNarration(vQuestions, scenarioToRecall, vResponses);
+                            createNarration(vQuestions, scenarioToRecall, vSaid);
                             vResponses.clear();
                         }
                         else{
@@ -256,6 +256,7 @@ vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sP
         return vResponses;
     }
 
+    // if inpout sPAOR is empty: get from the bottle:
     cout << "bWords: " << bWords.toString() << endl;
 
     string agent = bWords.find("agent").toString();
@@ -284,10 +285,13 @@ vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sP
         << " - " << recipient
         << "." << endl;
 
-    sPAOR.P = predicate;
-    sPAOR.A = agent;
-    sPAOR.O = object;
-    sPAOR.R = recipient;
+    if (sPAOR.nbElm() == 0){
+
+        sPAOR.P = predicate;
+        sPAOR.A = agent;
+        sPAOR.O = object;
+        sPAOR.R = recipient;
+    }
 
 
     cout << "extracted DFW from recog: " << sdfw << endl;
@@ -348,11 +352,13 @@ vector < hriResponse > narrativeHandler::whyPAOR(Bottle bInput, PAOR &sPAOR, int
         << " - " << recipient
         << "." << endl;
 
-    sPAOR.P = predicate;
-    sPAOR.A = agent;
-    sPAOR.O = object;
-    sPAOR.R = recipient;
+    if (sPAOR.nbElm() == 0){
 
+        sPAOR.P = predicate;
+        sPAOR.A = agent;
+        sPAOR.O = object;
+        sPAOR.R = recipient;
+    }
     vResponses = useDFW(iScenario, sdfw, sPAOR, true);
 
     cout << "returning: " << endl << vResponses.size() << endl;
@@ -442,6 +448,10 @@ bool narrativeHandler::doYouRemember(string sInput){
                 cout << prep.toString() << endl;
                 if (prep.A == "you"){
                     prep.A = "iCub";
+
+                }
+                if (prep.R == "you"){
+                    prep.R = "iCub";
 
                 }
             }
@@ -595,25 +605,25 @@ bool narrativeHandler::doYouRemember(string sInput){
 
 
 
-bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions, int iScenario, vector < hriResponse > vResponses){
+bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions, int iScenario, vector < PAOR > vResponsesSaid){
     bool canUsePreviousResponses = true;
-    if (vQuestions.size() != vResponses.size()){
+    if (vQuestions.size() != vResponsesSaid.size()){
         canUsePreviousResponses = false;
         yWarning("in narrativeGraph::hri.cpp narrativeHandler::crerateNarration - vQuestions.size != vResponses.size");
     }
 
     int doku = 0;
+    vector<PAOR> vSaid;
 
     for (auto question : vQuestions){
 
         Bottle quest = get<0>(question);
         vector<int> vRelatedPAOR;
-        vector<PAOR> vSaid;
         PAOR sTmp;
         vector < hriResponse > vInternalResponses;
 
         if (quest.get(0).asString() == "Else"){
-            string picked = pickResponse(vResponses, vSaid);
+            string picked = pickResponse(vInternalResponses, vSaid);
             if (picked == "none"){
                 iCub->say("Nothing else, sorry.");
             }
@@ -632,17 +642,24 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
                 */
                 if (doku > 0){
                     // if current question is about previous answer
-
+                    if (get<1>(question) == vResponsesSaid[doku - 1]){
+                        // adapt question from previous responses.
+                        vInternalResponses = what_DFW_Double(quest, vSaid[doku - 1], scenarioToRecall);
+                    }
                 }
-
-                vInternalResponses = what_DFW_Double(quest, sTmp, scenarioToRecall);
             }
             else if (quest.get(0).asString() == "Why" && canUsePreviousResponses){
                 /*
                 * TODO: UPDATE !! to adapt to the good scenario
                 */
 
-                vInternalResponses = whyPAOR(quest, sTmp, scenarioToRecall);
+                if (doku > 0){
+                    // if current question is about previous answer
+                    if (get<1>(question) == vResponsesSaid[doku - 1]){
+                        // adapt question from previous responses.
+                        vInternalResponses = whyPAOR(quest, vSaid[doku - 1], scenarioToRecall);
+                    }
+                }
             }
 
             string picked = pickResponse(vInternalResponses, vSaid);

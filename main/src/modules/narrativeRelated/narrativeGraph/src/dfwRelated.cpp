@@ -38,7 +38,7 @@ using namespace storygraph;
 * 3: PAOR = NULL
 * 4: first or second element of double dfw (0/1) default = first
 */
-vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR paor, bool isFirst){
+vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR& paor, bool isFirst){
 
     cout << "useDFW launched: " << iScenario << " " << sdfw << " " << paor.toString() << " " << isFirst << endl;
     vector < hriResponse > vResponses;
@@ -47,6 +47,9 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
     bool hasPAOR = paor.P != "";   ///< check if dfw will have to be double
     if (paor.A == "you"){
         paor.A = "iCub";
+    }
+    if (paor.R == "you"){
+        paor.R = "iCub";
     }
 
     // CHECK DFW
@@ -289,10 +292,10 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
                         toAdd = false;
                     }
                 }
+                meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
 
-                if (toAdd){
+                if (toAdd && meaning.vSentence.size() != 0){
                     //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
-                    meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
                     vMeaningScore.push_back(tuple <meaningSentence, double, PAOR>(meaning, posibilities.second, meaning.vSentence[0]));
                     AddedEvt.push_back(currentPair);
                 }
