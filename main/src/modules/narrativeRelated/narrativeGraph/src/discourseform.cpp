@@ -104,14 +104,24 @@ string meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
 
                     // if new proposition
                     if (currentSentence.vSentence.size() < iNumberProposition){
-                        meaningProposition tmp;
+                        storygraph::PAOR paor;
 
-                        currentSentence.vSentence.push_back(tmp);
+                        currentSentence.vSentence.push_back(paor);
                     }
 
                     // add the OCW and PAOR
-                    currentSentence.vSentence[iNumberProposition - 1].vOCW.push_back(meaningWords[iWords]);
-                    currentSentence.vSentence[iNumberProposition - 1].vRole.push_back(&meaningPAOR[iWords].at(0));
+                    if (meaningPAOR[iWords].at(0) == 'P'){
+                        currentSentence.vSentence[iNumberProposition - 1].P = meaningWords[iWords];
+                    }
+                    if (meaningPAOR[iWords].at(0) == 'A'){
+                        currentSentence.vSentence[iNumberProposition - 1].A = meaningWords[iWords];
+                    }
+                    if (meaningPAOR[iWords].at(0) == 'O'){
+                        currentSentence.vSentence[iNumberProposition - 1].O = meaningWords[iWords];
+                    }
+                    if (meaningPAOR[iWords].at(0) == 'R'){
+                        currentSentence.vSentence[iNumberProposition - 1].R = meaningWords[iWords];
+                    }
                 }
 
                 if (currentSentence.vSentence.size() != 0){
@@ -139,7 +149,7 @@ void meaningDiscourse::print(){
         level1++
         )
     {
-        for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
+        for (vector<storygraph::PAOR>::iterator level2 = level1->vSentence.begin();
             level2 != level1->vSentence.end();
             level2++){
 
@@ -147,12 +157,7 @@ void meaningDiscourse::print(){
                 cout << "\t ----" << endl;
             }
             // proposition level:
-            cout << "\t";
-            for (vector<string>::iterator OCW = level2->vOCW.begin();
-                OCW != level2->vOCW.end();
-                OCW++){
-                cout << *OCW << "\t";
-            }
+                cout << level2->toString() << "\t";
             //            cout << " \t IGARF linked: " << level2->kmLinkEvt[0].toString() <<endl;
 
             cout << endl << "\t ----" << endl;

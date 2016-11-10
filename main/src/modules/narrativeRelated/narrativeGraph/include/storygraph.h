@@ -28,9 +28,7 @@ namespace storygraph {
     /// An enum to distinguish type of event for Action or Result in the IGARF
     enum evtType {
         UNDEF, ACTION_EVT, IGARF_EVT
-    };
-
-
+    };   
 
     /// Describes an IGARF Event
     struct sIGARF {
@@ -176,6 +174,7 @@ namespace storygraph {
         /// (Predicate is more important thant Recipient) or binary (threshold of acceptance)
         int proximityScoreRelation(int i, const std::vector <std::string>& ocw); ///< @see proximityScoreAction
         std::vector<sKeyMean> findBest(const std::vector <std::string>& ocw, int& iScore); ///< Find the sActionEvt or sRelation that share the most vocabulary
+        std::vector<sKeyMean> findBest(const PAOR& paor, int& iScore); ///< Find the sActionEvt or sRelation that share the most vocabulary
         ///< @return Returns a sKeyMean to the best event or relation or a (-1 'A' -1) sKeyMean if none has been found
         std::string SMtoTrain(std::string sentence);
         // -- LRHtoSM and LRHtoBlankSM

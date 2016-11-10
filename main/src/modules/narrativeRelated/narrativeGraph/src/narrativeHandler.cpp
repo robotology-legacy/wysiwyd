@@ -2502,16 +2502,26 @@ discourseform::meaningSentence narrativeHandler::sentenceToEvent(string level1){
 
                 // if new proposition
                 if (currentSentence.vSentence.size() < iNumberProposition){
-                    discourseform::meaningProposition tmp;
+                    storygraph::PAOR paor;
 
-                    currentSentence.vSentence.push_back(tmp);
+                    currentSentence.vSentence.push_back(paor);
                 }
 
                 if (iNumberProposition > 0){
 
-                    // add the OCW and PAOR
-                    currentSentence.vSentence[iNumberProposition - 1].vOCW.push_back(meaningWords[iWords]);
-                    currentSentence.vSentence[iNumberProposition - 1].vRole.push_back(&meaningPAOR[iWords].at(0));
+                    if (meaningPAOR[iWords].at(0) == 'P'){
+                        currentSentence.vSentence[iNumberProposition - 1].P = meaningWords[iWords];
+                    }
+                    if (meaningPAOR[iWords].at(0) == 'A'){
+                        currentSentence.vSentence[iNumberProposition - 1].A = meaningWords[iWords];
+                    }
+                    if (meaningPAOR[iWords].at(0) == 'O'){
+                        currentSentence.vSentence[iNumberProposition - 1].O = meaningWords[iWords];
+                    }
+                    if (meaningPAOR[iWords].at(0) == 'R'){
+                        currentSentence.vSentence[iNumberProposition - 1].R = meaningWords[iWords];
+                    }
+
                 }
             }
         }

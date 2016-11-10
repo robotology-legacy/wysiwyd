@@ -1019,7 +1019,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         bool isMultiple = false; // if a sentence is multiple (with a DFW)
         int iPreposition = 0;   // get the order of the preposition in the sentence
         int iNbPreposition = level1->vSentence.size();  // nb of preposition in the sentence
-        bool isDFW = level1->vSentence[0].vOCW.size() == 1;
+        bool isDFW = level1->vSentence[0].A == "";
         vector<EVT_IGARF> singleIGARF;
         vector<EVT_IGARF>  doubleBefore;
         vector<EVT_IGARF>  doubleAfter;
@@ -1029,22 +1029,17 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         if (display) cout << "---------------------------------------------------------------------\n" << "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
 
 
-        for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
+        for (vector<PAOR>::iterator level2 = level1->vSentence.begin();
             level2 != level1->vSentence.end();
             level2++){  // for each preposition of the sentence
             if (true){
-                cout << " [ ";
-                for (unsigned int iWord = 0; iWord < level2->vOCW.size(); iWord++){
-
-                    cout << level2->vOCW[iWord] << " ";
-                }
-                cout << "]  ";
+                cout << " [ "<<level2->toString()  << "]  ";
             }
 
             int iScore = 0;
             if (isDFW && iPreposition == 0){ // only one OCW: DFW
                 //cout << "\t\t\t sentence has a DFW." << endl;
-                string nameDFW = level2->vOCW[0];
+                string nameDFW = level2->P;
                 isMultiple = true;
                 bool found = false;
                 for (vector<DFW>::iterator itDFW = vDFW.begin(); itDFW != vDFW.end(); itDFW++){
@@ -1062,7 +1057,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                 }
             }
             else{
-                vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
+                vector<sKeyMean> vkTmp = sm.findBest(*level2, iScore);
 
                 if (vkTmp.size() == 0){
                     iLost++;
@@ -1263,23 +1258,22 @@ meaningSentence narrativeHandler::evtToMeaning(string sIGARF, int iIGARF){
     ostringstream os;
     if (sIGARF == "I"){
         for (auto init : sm.vIGARF[iIGARF].vInitState){
-            meaningProposition MP;
+            PAOR paor;
 
             if (sm.vRelations[init].verb != ""){
-                MP.vOCW.push_back(sm.vRelations[init].verb);
-                MP.vRole.push_back("P");
+                paor.P = (sm.vRelations[init].verb);
+                
             }
 
             if (sm.vRelations[init].subject != ""){
-                MP.vOCW.push_back(sm.vRelations[init].subject);
-                MP.vRole.push_back("A");
+                paor.A = (sm.vRelations[init].subject);                
             }
 
             if (sm.vRelations[init].object != ""){
-                MP.vOCW.push_back(sm.vRelations[init].object);
-                MP.vRole.push_back("O");
+                paor.O = (sm.vRelations[init].object);
+                
             }
-            meaning.vSentence.push_back(MP);
+            meaning.vSentence.push_back(paor);
 
             os << sm.vRelations[init].subject
                 << " " << sm.vRelations[init].verb
@@ -1292,23 +1286,20 @@ meaningSentence narrativeHandler::evtToMeaning(string sIGARF, int iIGARF){
     // FINAL
     if (sIGARF == "F"){
         for (auto i : sm.vIGARF[iIGARF].vFinalState){
-            meaningProposition MP;
+            PAOR paor;
 
             if (sm.vRelations[i].verb != ""){
-                MP.vOCW.push_back(sm.vRelations[i].verb);
-                MP.vRole.push_back("P");
+                paor.P = (sm.vRelations[i].verb);
             }
 
             if (sm.vRelations[i].subject != ""){
-                MP.vOCW.push_back(sm.vRelations[i].subject);
-                MP.vRole.push_back("A");
+                paor.A = (sm.vRelations[i].subject);
             }
 
             if (sm.vRelations[i].object != ""){
-                MP.vOCW.push_back(sm.vRelations[i].object);
-                MP.vRole.push_back("O");
+                paor.O = (sm.vRelations[i].object);
             }
-                        meaning.vSentence.push_back(MP);
+            meaning.vSentence.push_back(paor);
 
             os << sm.vRelations[i].subject
                 << " " << sm.vRelations[i].verb
@@ -1320,23 +1311,20 @@ meaningSentence narrativeHandler::evtToMeaning(string sIGARF, int iIGARF){
     // GOAL
     if (sIGARF == "G"){
         for (auto i : sm.vIGARF[iIGARF].vGoal){
-            meaningProposition MP;
+            PAOR paor;
 
             if (sm.vRelations[i].verb != ""){
-                MP.vOCW.push_back(sm.vRelations[i].verb);
-                MP.vRole.push_back("P");
+                paor.P = (sm.vRelations[i].verb);
             }
 
             if (sm.vRelations[i].subject != ""){
-                MP.vOCW.push_back(sm.vRelations[i].subject);
-                MP.vRole.push_back("A");
+                paor.A = (sm.vRelations[i].subject);
             }
 
             if (sm.vRelations[i].object != ""){
-                MP.vOCW.push_back(sm.vRelations[i].object);
-                MP.vRole.push_back("O");
+                paor.O = (sm.vRelations[i].object);
             }
-            meaning.vSentence.push_back(MP);
+            meaning.vSentence.push_back(paor);
 
             os << sm.vRelations[i].subject
                 << " " << sm.vRelations[i].verb
@@ -1348,28 +1336,24 @@ meaningSentence narrativeHandler::evtToMeaning(string sIGARF, int iIGARF){
 
     // ACTION
     if (sIGARF == "A" && sm.vIGARF[iIGARF].iAction >= 0){
-        meaningProposition MP;
+        PAOR paor;
         if (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate != ""){
-            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate);
-            MP.vRole.push_back("P");
+            paor.P = (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate);
         }
 
         if (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent != ""){
-            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent);
-            MP.vRole.push_back("A");
+            paor.A = (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent);
         }
 
         if (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object != ""){
-            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object);
-            MP.vRole.push_back("O");
+            paor.O = (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].object);
         }
 
         if (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient != ""){
-            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient);
-            MP.vRole.push_back("R");
+            paor.R = (sm.vActionEvts[sm.vIGARF[iIGARF].iAction].recipient);
         }
 
-        meaning.vSentence.push_back(MP);
+        meaning.vSentence.push_back(paor);
 
         os << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].agent
             << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iAction].predicate
@@ -1379,28 +1363,24 @@ meaningSentence narrativeHandler::evtToMeaning(string sIGARF, int iIGARF){
 
     // RESULT
     if (sIGARF == "R" && sm.vIGARF[iIGARF].iResult >= 0){
-        meaningProposition MP;
+        PAOR paor;
         if (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate != ""){
-            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate);
-            MP.vRole.push_back("P");
+            paor.P = (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate);
         }
 
         if (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent != ""){
-            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent);
-            MP.vRole.push_back("A");
+            paor.A = (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent);
         }
 
         if (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object != ""){
-            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object);
-            MP.vRole.push_back("O");
+            paor.O = (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].object);
         }
 
         if (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient != ""){
-            MP.vOCW.push_back(sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient);
-            MP.vRole.push_back("R");
+            paor.R = (sm.vActionEvts[sm.vIGARF[iIGARF].iResult].recipient);
         }
 
-        meaning.vSentence.push_back(MP);
+        meaning.vSentence.push_back(paor);
 
         os << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].agent
             << " " << sm.vActionEvts[sm.vIGARF[iIGARF].iResult].predicate

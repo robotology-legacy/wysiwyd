@@ -816,6 +816,29 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     return score;// (score == 11) ? 1 : 0; // See proximityScoreAction(..)
 }
 
+
+
+vector<sKeyMean> SituationModel::findBest(const storygraph::PAOR& paor, int &iScore) {
+
+    vector<string> vtmp;
+    if (paor.P != "" && paor.P != " "){
+        vtmp.push_back(paor.P);
+    }
+    if (paor.A != "" && paor.A != " "){
+        vtmp.push_back(paor.A);
+    }
+    if (paor.O != "" && paor.O != " "){
+        vtmp.push_back(paor.O);
+    }
+    if (paor.R != "" && paor.R != " "){
+        vtmp.push_back(paor.R);
+    }
+
+    return findBest(vtmp, iScore);
+}
+
+
+
 vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore) {
     int score_max = 0;
     vector<sKeyMean>  vkmBest;

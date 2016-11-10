@@ -19,6 +19,9 @@
 #ifndef _NARRATIVEHANDLER_H_
 #define _NARRATIVEHANDLER_H_
 
+#include <iostream>
+#include <fstream>
+#include <discourseform.h>
 #include <storygraph.h>
 
 class narrativeHandler : public yarp::os::RFModule {
@@ -114,6 +117,7 @@ private:
     std::string sNarrativeFileName;
     std::string sSVGFolderName;
     std::string sSVGFileName;
+    std::string sIGARFfile; // name of the file locally
 
     // Meanings
     void addLink(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
@@ -121,7 +125,7 @@ private:
     void sentenceToTrain(std::string s, yarp::os::Bottle& reply);
     discourseform::meaningSentence sentenceToEvent(std::string level1); ///< transform a meaning from lrh to an properly formatted event
     discourseform::meaningSentence evtToMeaning(std::string sIGARF, int iIGARF);
-    void removeDoubleMeaning(std::vector<std::tuple <discourseform::meaningSentence, double, discourseform::PAOR > > &vMeaningScore);
+    void removeDoubleMeaning(std::vector<std::tuple <discourseform::meaningSentence, double, storygraph::PAOR > > &vMeaningScore);
     void removeDoubleMeaning(std::vector<discourseform::hriResponse > &vMeaningScore);
 
     ///< DFW related
@@ -129,10 +133,10 @@ private:
     void exportDFW();       ///< export data of the DFW in a file csv
     std::vector <storygraph::DFW> vDFW;
     void displayDFW();
-    std::vector < discourseform::hriResponse > useDFW(yarp::os::Bottle bInput); ///< Create a sentence using the specified DFW
+    std::vector < discourseform::hriResponse > useDFW(int iScenario, std::string sdfw, storygraph::PAOR paor, bool first = true); ///< Create a sentence using the specified DFW
     storygraph::DFW foundDFW(std::string sdfw);
-    std::string prepareMeaningForLRH(std::string dfw, discourseform::meaningSentence M1);
-    std::string prepareMeaningForLRH(std::string dfw, discourseform::meaningSentence M1, discourseform::meaningSentence M2, bool DFWAB);
+    std::string prepareMeaningForLRH(std::string dfw, storygraph::PAOR M1);
+    std::string prepareMeaningForLRH(std::string dfw, storygraph::PAOR M1, storygraph::PAOR M2, bool DFWAB);
 
 
 
@@ -158,12 +162,12 @@ private:
 
     yarp::os::Bottle questionHRI_DFW();
     std::vector < discourseform::hriResponse > what_DFW_Simple(yarp::os::Bottle bInput, int iScenario = 5);
-    std::vector < discourseform::hriResponse > what_DFW_Double(yarp::os::Bottle bInput, discourseform::PAOR  &sPAOR, int iScenario = 5);
-    std::vector < discourseform::hriResponse > whyPAOR(yarp::os::Bottle bInput, discourseform::PAOR  &sPAOR, int iScenario = 5);
+    std::vector < discourseform::hriResponse > what_DFW_Double(yarp::os::Bottle bInput, storygraph::PAOR  &sPAOR, int iScenario = 5);
+    std::vector < discourseform::hriResponse > whyPAOR(yarp::os::Bottle bInput, storygraph::PAOR  &sPAOR, int iScenario = 5);
     bool doYouRemember(std::string sInput);
-    bool createNarration(std::vector< std::tuple <yarp::os::Bottle, discourseform::PAOR > > vQuestion, int iScenario, std::vector < discourseform::hriResponse > vResponses);
-    
-    std::string pickResponse(std::vector < discourseform::hriResponse > &vResponses, std::vector<discourseform::PAOR>   &vSaid);
+    bool createNarration(std::vector< std::tuple <yarp::os::Bottle, storygraph::PAOR > > vQuestion, int iScenario, std::vector < discourseform::hriResponse > vResponses);
+
+    std::string pickResponse(std::vector < discourseform::hriResponse > &vResponses, std::vector<storygraph::PAOR>   &vSaid);
 
 
     std::string lowerKey(std::string input);

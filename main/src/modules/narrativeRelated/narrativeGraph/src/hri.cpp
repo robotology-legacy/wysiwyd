@@ -226,13 +226,8 @@ vector < hriResponse > narrativeHandler::what_DFW_Simple(Bottle bInput, int iSce
     string sdfw = bDFW.get(1).toString();
 
     cout << "extracted DFW from recog: " << sdfw << endl;
-    Bottle bInternal;
-    bInternal.addString("useDFW");
-    bInternal.addInt(iScenario);
-    bInternal.addString(sdfw);
-    bInternal.addInt(1);
-
-    vResponses = useDFW(bInternal);
+    PAOR paor = PAOR();
+    vResponses = useDFW(iScenario, sdfw, paor, true);
 
     cout << "returning: " << endl << vResponses.size() << endl;
 
@@ -291,17 +286,12 @@ vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sP
 
     sPAOR.P = predicate;
     sPAOR.A = agent;
-    sPAOR.O=object;
-    sPAOR.R=recipient;
+    sPAOR.O = object;
+    sPAOR.R = recipient;
 
-    Bottle bInternal;
-    bInternal.addString("useDFW");
-    bInternal.addInt(iScenario);
-    bInternal.addString(sdfw);
-    bInternal.addString(meaning);
-    bInternal.addInt(0);
 
-    vResponses = useDFW(bInternal);
+    cout << "extracted DFW from recog: " << sdfw << endl;
+    vResponses = useDFW(iScenario, sdfw, sPAOR, false);
 
     cout << "returning: " << endl << vResponses.size() << endl;
 
@@ -363,14 +353,7 @@ vector < hriResponse > narrativeHandler::whyPAOR(Bottle bInput, PAOR &sPAOR, int
     sPAOR.O = object;
     sPAOR.R = recipient;
 
-    Bottle bInternal;
-    bInternal.addString("useDFW");
-    bInternal.addInt(iScenario);
-    bInternal.addString(sdfw);
-    bInternal.addString(meaning);
-    bInternal.addInt(1);
-
-    vResponses = useDFW(bInternal);
+    vResponses = useDFW(iScenario, sdfw, sPAOR, true);
 
     cout << "returning: " << endl << vResponses.size() << endl;
     return vResponses;
@@ -456,11 +439,10 @@ bool narrativeHandler::doYouRemember(string sInput){
         {
 
             for (auto &prep : level1->vSentence){
-                for (unsigned int ii = 0; ii < prep.vOCW.size(); ii++){
-                    cout << prep.vRole[ii] << "   " << prep.vOCW[ii] << endl;
-                    if (prep.vOCW[ii] == "you"){
-                        prep.vOCW[ii] = "iCub";
-                    }
+                cout << prep.toString() << endl;
+                if (prep.A == "you"){
+                    prep.A = "iCub";
+
                 }
             }
             // for each sentence of the discourse
@@ -468,7 +450,7 @@ bool narrativeHandler::doYouRemember(string sInput){
             bool isMultiple = false; // if a sentence is multiple (with a DFW)
             int iPreposition = 0;   // get the order of the preposition in the sentence
             int iNbPreposition = level1->vSentence.size();  // nb of preposition in the sentence
-            bool isDFW = level1->vSentence[0].vOCW.size() == 1;
+            bool isDFW = level1->vSentence[0].A == "";
             vector<EVT_IGARF> singleIGARF;
             vector<EVT_IGARF>  doubleBefore;
             vector<EVT_IGARF>  doubleAfter;
@@ -478,22 +460,17 @@ bool narrativeHandler::doYouRemember(string sInput){
             if (display) cout << "---------------------------------------------------------------------\n" << "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
 
 
-            for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
+            for (vector<PAOR>::iterator level2 = level1->vSentence.begin();
                 level2 != level1->vSentence.end();
                 level2++){  // for each preposition of the sentence
                 if (true){
-                    cout << " [ ";
-                    for (unsigned int iWord = 0; iWord < level2->vOCW.size(); iWord++){
-
-                        cout << level2->vOCW[iWord] << " ";
-                    }
-                    cout << "]  ";
+                    cout << " [ " << level2->toString() << "]  ";
                 }
 
                 int iScore = 0;
                 if (isDFW && iPreposition == 0){ // only one OCW: DFW
                     //cout << "\t\t\t sentence has a DFW." << endl;
-                    string nameDFW = level2->vOCW[0];
+                    string nameDFW = level2->P;
                     isMultiple = true;
                     bool found = false;
                     for (vector<DFW>::iterator itDFW = vDFW.begin(); itDFW != vDFW.end(); itDFW++){
@@ -509,7 +486,7 @@ bool narrativeHandler::doYouRemember(string sInput){
                     }
                 }
                 else{
-                    vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
+                    vector<sKeyMean> vkTmp = sm.findBest(*level2, iScore);
                     iCurrentScore += iScore;
                     if (vkTmp.size() == 0){
                         yWarning() << " in narrativeGraph::humanNarration.cpp::linkMeaningScenario:: findBest : no target found.";
@@ -655,7 +632,7 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
                 */
                 if (doku > 0){
                     // if current question is about previous answer
-                    
+
                 }
 
                 vInternalResponses = what_DFW_Double(quest, sTmp, scenarioToRecall);

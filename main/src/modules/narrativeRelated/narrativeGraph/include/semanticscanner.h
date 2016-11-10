@@ -24,7 +24,41 @@
 std::vector<std::string> split(const std::string &s, char delim);
 
 namespace storygraph {
+    struct PAOR{
+        std::string P;
+        std::string A;
+        std::string O;
+        std::string R;
 
+        int nbElm(){
+            int ii = 0;
+            if (P != " " && P != "") ii++;
+            if (A != " " && A != "") ii++;
+            if (O != " " && O != "") ii++;
+            if (R != " " && R != "") ii++;
+            return ii;
+        }
+
+        bool operator==(const PAOR& P2){
+            return (P == P2.P && A == P2.A && O == P2.O && R == P2.R);
+        }
+
+        PAOR(){
+            P = "";
+            A = "";
+            O = "";
+            R = "";
+        }
+        PAOR(std::string p, std::string a, std::string o = "", std::string r = ""){
+            P = p;
+            A = a;
+            O = o;
+            R = r;
+        }
+        std::string toString(){
+            return (P + " " + A + " " + O + " " + R + " ");
+        }
+    };
     /// \struct sActionEvt
     /// \brief Describes one atomic event with PAOR elements
     struct sActionEvt {
