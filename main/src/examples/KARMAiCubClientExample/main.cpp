@@ -84,17 +84,17 @@ int main()
     Time::delay(4.0);
 
     iCub.home();    // Home by using ARE
-    x[0] = -0.2;
-    x[1] = 0.2;
+    x[0] = -0.25;
+    x[1] = 0.1;
     cout<<"try to pushFront with KARMA ..."<<endl;
     ok = iCub.pushKarmaFront(x,-0.4);
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
 
     iCub.home();    // Home by using ARE
-    x[0] = -0.4;
-    x[1] =  0.3;
-    x[2] = -0.1;
+    x[0] = -0.45;
+    x[1] =  0.1;
+    x[2] = -0.05;
     cout<<"try to pull with KARMA...";
     ok = iCub.drawKarma(x,0,0,0.2);
     cout<<(ok?"success":"failed")<<endl;
