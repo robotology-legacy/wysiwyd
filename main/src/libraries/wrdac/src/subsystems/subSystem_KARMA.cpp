@@ -200,7 +200,7 @@ yarp::sig::Vector wysiwyd::wrdac::SubSystem_KARMA::applySafetyMargins(const yarp
 
 bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
 {
-    Vector xd(3,0.0), xdL(3,0.0), xdR(3,0.0), odL(3,0.0), odR(3,0.0);
+    Vector xd(3,0.0), xdL(3,0.0), xdR(3,0.0), odL(4,0.0), odR(4,0.0);
     double travelTime = 2.0;
 
     int contextL, contextR;
@@ -217,15 +217,11 @@ bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
     iCartCtrlL->tweakSet(options);
     iCartCtrlR->tweakSet(options);
 
-    iCartCtrlL->getPose(xd,odL);
-    iCartCtrlR->getPose(xd,odR);
-    xdL[0] = 0.0;
-    xdL[1] = -0.3;
-    xdL[2] = 0.5;
-
-    xdR[0] = 0.0;
-    xdR[1] = 0.3;
-    xdR[2] = 0.5;
+    double zPrepare = 0.2;
+    iCartCtrlL->getPose(xdL,odL);
+    iCartCtrlR->getPose(xdR,odR);
+    xdL[2] += zPrepare;
+    xdR[2] += zPrepare;
 
     iCartCtrlR->goToPose(xdR,odR,1.0);
     iCartCtrlL->goToPose(xdL,odL,1.0);
@@ -410,7 +406,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
                                            const double theta, const double radius,
                                            const yarp::os::Bottle &options, const std::string &sName)
 {
-    prepare();
+    prepare(); // Keep it till new karmaWYSIWYD replace karma
 
     if (ABMconnected)
     {
@@ -466,7 +462,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
 
 bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter, const double theta, const double radius, const double dist, const yarp::os::Bottle &options, const std::string &sName)
 {
-    prepare();
+    prepare(); // Keep it till new karmaWYSIWYD replace karma
 
     if (ABMconnected)
     {
