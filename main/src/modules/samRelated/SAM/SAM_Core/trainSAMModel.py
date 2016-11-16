@@ -66,10 +66,10 @@ for k in range(numParts):
         mm[0].paramsDict['listOfModels'] = mm[0].listOfModels
         mm[0].paramsDict['avgClassTime'] = mm[0].avgClassTime
         mm[0].paramsDict['optimiseRecall'] = mm[0].optimiseRecall
-        if numParts > 1:
-            mm[0].paramsDict['classifiers'] = mm[0].classifiers
-            mm[0].paramsDict['classif_thresh'] = mm[0].classif_thresh
-        else:
+        mm[0].paramsDict['classificationDict'] = mm[0].classificationDict
+        mm[0].paramsDict['calibrateUnknown'] = mm[0].calibrateUnknown
+        mm[0].paramsDict['calibrated'] = mm[0].calibrated
+        if numParts == 1:
             if mm[0].X is None:
                 mm[0].paramsDict['X'] = mm[0].X
             else:
@@ -78,14 +78,7 @@ for k in range(numParts):
             if mm[0].model_mode != 'temporal':
                 mm[0].paramsDict['Y'] = mm[k].Y['Y'].shape
 
-            if mm[0].varianceThreshold is not None:
-                if mm[0].useMaxDistance:
-                    mm[0].paramsDict['useMaxDistance'] = mm[0].useMaxDistance
-                    mm[0].paramsDict['bestDistanceIDX'] = mm[0].bestDistanceIDX
-                    mm[0].paramsDict['varianceThreshold'] = mm[0].varianceThreshold
-                    mm[0].paramsDict['varianceDirection'] = mm[0].varianceDirection
-                else:
-                    mm[0].paramsDict['useMaxDistance'] = mm[0].useMaxDistance
+            mm[0].paramsDict['useMaxDistance'] = mm[0].useMaxDistance
 
     elif numParts > 1:
         # fname = mm[0].listOfModels[k-1]

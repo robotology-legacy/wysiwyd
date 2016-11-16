@@ -232,7 +232,7 @@ class interactionSAMModel(yarp.RFModule):
             if self.verboseSetting:
                 print '-------------------------------------'
             if self.collectionMethod == 'buffered':
-                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, self.verboseSetting)
+                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
                 if thisClass is None:
                     reply.addString('None')
                 else:
@@ -251,7 +251,7 @@ class interactionSAMModel(yarp.RFModule):
                 for j in range(self.bufferSize):
                     self.dataList.append(self.readFrame())
                 # thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
-                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, self.verboseSetting)
+                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
                 if thisClass is None:
                     reply.addString('None')
                 else:
@@ -351,8 +351,8 @@ class interactionSAMModel(yarp.RFModule):
         elif self.inputType == 'bottle':
             frame = yarp.Bottle()
 
-        frame = self.portsList[self.labelPort].read(True)
-
+        frameRead = self.portsList[self.labelPort].read(True)
+        frame.fromString(frameRead.toString())
         return frame
 
     def collectData(self):
@@ -373,14 +373,15 @@ class interactionSAMModel(yarp.RFModule):
             # read frame of data
             frame = self.readFrame()
             # append frame to dataList
+
             self.dataList.append(frame)
             # process list of frames for a classification
-            thisClass = self.mm[0].processLiveData(self.dataList, self.mm, self.verboseSetting)
+            thisClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
             # if proper classification
 
             if thisClass is not None:
                 # empty dataList
-                self.dataList = []
+                self.dataList = dataList
                 if thisClass != 'None':
                     # add classification to classificationList to be retrieved during respond method
                     print 'classList len:', len(self.classificationList)

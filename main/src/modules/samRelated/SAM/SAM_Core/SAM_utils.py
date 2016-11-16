@@ -79,7 +79,8 @@ def initialiseModels(argv, update, initMode='training'):
     defaultParamsList = ['experiment_number', 'model_type', 'model_num_inducing',
                          'model_num_iterations', 'model_init_iterations', 'verbose',
                          'Quser', 'kernelString', 'ratioData', 'update_mode', 'model_mode',
-                         'temporalModelWindowSize', 'optimiseRecall']
+                         'temporalModelWindowSize', 'optimiseRecall', 'classificationDict',
+                         'useMaxDistance', 'calibrateUnknown']
 
     mySAMpy.experiment_number = None
     mySAMpy.model_type = None
@@ -217,33 +218,41 @@ def initialiseModels(argv, update, initMode='training'):
             mySAMpy.Quser = modelPickle['Quser']
             mySAMpy.optimiseRecall = modelPickle['optimiseRecall']
             mySAMpy.kernelString = modelPickle['kernelString']
+            mySAMpy.calibrated = modelPickle['calibrated']
 
             # try loading classification parameters for multiple model implementation
             try:
-                mySAMpy.listOfModels = modelPickle['listOfModels']
-                mySAMpy.classifiers = modelPickle['classifiers']
-                mySAMpy.classif_thresh = modelPickle['classif_thresh']
-                mulClassLoadFail = False
-                print 'Successfully loaded multiple model classifiers'
+                mySAMpy.useMaxDistance = modelPickle['useMaxDistance']
             except:
-                mulClassLoadFail = True
-                print 'Failed to load multiple model classifiers'
-                pass
+                print 'Failed to load useMaxDistace. Possible reasons: Not saved or multiple model implementation'
+            mySAMpy.classificationDict = modelPickle['classificationDict']
+            mySAMpy.calibrateUnknown = modelPickle['calibrateUnknown']
 
-            # try loading classification parameters for single model implementation
-            try:
-                mySAMpy.varianceDirection = modelPickle['varianceDirection']
-                mySAMpy.varianceThreshold = modelPickle['varianceThreshold']
-                mySAMpy.bestDistanceIDX = modelPickle['bestDistanceIDX']
-                print 'Successfully loaded single model classifiers'
-                singClassLoadFail = False
-            except:
-                singClassLoadFail = True
-                print 'Failed to load single model classifiers'
-                pass
+            # try:
+            #     mySAMpy.listOfModels = modelPickle['listOfModels']
+            #     mySAMpy.classifiers = modelPickle['classifiers']
+            #     mySAMpy.classif_thresh = modelPickle['classif_thresh']
+            #     mulClassLoadFail = False
+            #     print 'Successfully loaded multiple model classifiers'
+            # except:
+            #     mulClassLoadFail = True
+            #     print 'Failed to load multiple model classifiers'
+            #     pass
+            #
+            # # try loading classification parameters for single model implementation
+            # try:
+            #     mySAMpy.varianceDirection = modelPickle['varianceDirection']
+            #     mySAMpy.varianceThreshold = modelPickle['varianceThreshold']
+            #     mySAMpy.bestDistanceIDX = modelPickle['bestDistanceIDX']
+            #     print 'Successfully loaded single model classifiers'
+            #     singClassLoadFail = False
+            # except:
+            #     singClassLoadFail = True
+            #     print 'Failed to load single model classifiers'
+            #     pass
 
-            if mulClassLoadFail and singClassLoadFail:
-                raise ValueError('Failed to load model classifiers')
+            # if mulClassLoadFail and singClassLoadFail:
+            #     raise ValueError('Failed to load model classifiers')
 
         except IOError:
             print 'IO Exception reading ', found
@@ -856,6 +865,7 @@ class ipyClusterManager:
                 if j != 'localhost':
                     cmd = 'scp ~/.ipython/profile_default/security/ipcontroller-engine.json ' + j + ':./'
                     os.system(cmd)
+                    time.sleep(5)
 
             for j in self.nodesDict.keys():
                 print j

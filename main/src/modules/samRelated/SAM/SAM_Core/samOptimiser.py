@@ -388,6 +388,8 @@ def main():
 
             # try:
             myBopt.run_optimization(max_iter)
+            optModel.parser.write(open(optModel.dataDir + "/config.ini", 'wb'))
+            optModel.copyModel('best', 'reverse')
             return 0
             # except:
             #     # pickle results list together with optimiser

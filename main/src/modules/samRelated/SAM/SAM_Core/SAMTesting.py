@@ -236,6 +236,7 @@ def calibrateMultipleModelRecall(thisModel):
 
     thisModel[0].classifiers = classifiers
     thisModel[0].classif_thresh = classif_thresh
+    thisModel[0].calibrated = True
 
 
 def formatDataFunc(Ydata):
@@ -469,6 +470,8 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
     else:
         Lsample = Lnum
 
+    if numItems < 1500:
+        serialMode = True
     c = None
     print 'serialMode', serialMode
     if not serialMode and thisModel[0].parallelOperation:

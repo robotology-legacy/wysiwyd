@@ -69,6 +69,8 @@ class SAMDriver:
         self.modelLoaded = False
         self.parallelOperation = False
         self.calibrated = False
+        self.rawTextData = None
+        self.rawData = None
 
         self.Yall = None
         self.Lall = None
