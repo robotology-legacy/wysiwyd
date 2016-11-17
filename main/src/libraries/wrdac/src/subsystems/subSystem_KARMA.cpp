@@ -198,49 +198,6 @@ yarp::sig::Vector wysiwyd::wrdac::SubSystem_KARMA::applySafetyMargins(const yarp
     return out;
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
-{
-    Vector xd(3,0.0), xdL(3,0.0), xdR(3,0.0), odL(4,0.0), odR(4,0.0);
-    double travelTime = 2.0;
-
-    int contextL, contextR;
-    iCartCtrlL->storeContext(&contextL);
-    iCartCtrlR->storeContext(&contextR);
-
-    iCartCtrlL->setTrajTime(travelTime);
-    iCartCtrlR->setTrajTime(travelTime);
-
-    Bottle options;
-    Bottle &straightOpt=options.addList();
-    straightOpt.addString("straightness");
-    straightOpt.addDouble(10.0);
-    iCartCtrlL->tweakSet(options);
-    iCartCtrlR->tweakSet(options);
-
-    double zPrepare = 0.2;
-    iCartCtrlL->getPose(xdL,odL);
-    iCartCtrlR->getPose(xdR,odR);
-    xdL[2] += zPrepare;
-    xdR[2] += zPrepare;
-
-    iCartCtrlR->goToPose(xdR,odR,1.0);
-    iCartCtrlL->goToPose(xdL,odL,1.0);
-
-    iCartCtrlL->waitMotionDone(0.1,4.0);
-    iCartCtrlR->waitMotionDone(0.1,4.0);
-
-    iCartCtrlL->stopControl();
-    iCartCtrlR->stopControl();
-
-    iCartCtrlL->restoreContext(contextL);
-    iCartCtrlL->deleteContext(contextL);
-
-    iCartCtrlR->restoreContext(contextR);
-    iCartCtrlR->deleteContext(contextR);
-
-    return true;
-}
-
 bool wysiwyd::wrdac::SubSystem_KARMA::returnArmSafely(std::string armType)
 {
     Vector xL(3,0.0), xR(3,0.0), xdL(3,0.0), xdR(3,0.0), odL(3,0.0), odR(3,0.0);
@@ -406,8 +363,6 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
                                            const double theta, const double radius,
                                            const yarp::os::Bottle &options, const std::string &sName)
 {
-    prepare(); // Keep it till new karmaWYSIWYD replace karma
-
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -462,8 +417,6 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
 
 bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter, const double theta, const double radius, const double dist, const yarp::os::Bottle &options, const std::string &sName)
 {
-    prepare(); // Keep it till new karmaWYSIWYD replace karma
-
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
