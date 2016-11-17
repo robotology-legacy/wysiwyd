@@ -28,7 +28,15 @@ class SAMDriver_ARWin(SAMDriver):
         self.numJoints = 9
         self.dataLogList = []
         self.labelsLogList = []
-
+        self.itemsPerJoint = None
+        self.featureSequence = None
+        self.handsCombined = None
+        self.data2Labels = None
+        self.dataVec = None
+        self.allDataDict = None
+        self.listOfVectorsToClassify = None
+        self.seqTestConf = None
+        self.seqTestPerc = None
         self.additionalParametersList = ['listOfVectorsToClassify', 'handsCombined', 'featureSequence', 'itemsPerJoint',
                                          'segTrainConf', 'segTrainPerc', 'segTestConf', 'segTestPerc', 'seqTestConf',
                                          'seqTestPerc']
@@ -37,6 +45,7 @@ class SAMDriver_ARWin(SAMDriver):
 
         if parser.has_option(trainName, 'includeParts'):
             self.paramsDict['includeParts'] = parser.get(trainName, 'includeParts').split(',')
+            self.paramsDict['includeParts'] = [j for j in self.paramsDict['includeParts'] if j != '']
         else:
             self.paramsDict['includeParts'] = ['object']
 
@@ -49,17 +58,67 @@ class SAMDriver_ARWin(SAMDriver):
         if parser.has_option(trainName, 'windowSize'):
             self.paramsDict['windowSize'] = int(parser.get(trainName, 'windowSize'))
         else:
-            self.paramsDict['windowSize'] = 3
+            self.paramsDict['windowSize'] = 5
+
+        if parser.has_option(trainName, 'windowOffset'):
+            self.paramsDict['windowOffset'] = int(parser.get(trainName, 'windowOffset'))
+        else:
+            self.paramsDict['windowOffset'] = 2
+
+        if parser.has_option(trainName, 'moveThresh'):
+            self.paramsDict['moveThresh'] = float(parser.get(trainName, 'moveThresh'))
+        else:
+            self.paramsDict['moveThresh'] = 0.01
+
+        if parser.has_option(trainName, 'binWidth'):
+            self.paramsDict['binWidth'] = float(parser.get(trainName, 'binWidth'))
+        else:
+            self.paramsDict['binWidth'] = 0.001
+
+        if parser.has_option(trainName, 'method'):
+            self.paramsDict['method'] = parser.get(trainName, 'method')
+        else:
+            self.paramsDict['method'] = 'sumProb'
 
         if parser.has_option(trainName, 'combineHands'):
             self.paramsDict['combineHands'] = parser.get(trainName, 'combineHands') == 'True'
         else:
             self.paramsDict['combineHands'] = False
 
+        if parser.has_option(trainName, 'thresholdMovement'):
+            self.paramsDict['thresholdMovement'] = parser.get(trainName, 'thresholdMovement') == 'True'
+        else:
+            self.paramsDict['thresholdMovement'] = False
+
+        if parser.has_option(trainName, 'sepRL'):
+            self.paramsDict['sepRL'] = parser.get(trainName, 'sepRL') == 'True'
+        else:
+            self.paramsDict['sepRL'] = False
+
+        if parser.has_option(trainName, 'filterData'):
+            self.paramsDict['filterData'] = parser.get(trainName, 'filterData') == 'True'
+        else:
+            self.paramsDict['filterData'] = False
+
+        if parser.has_option(trainName, 'filterWindow'):
+            self.paramsDict['filterWindow'] = int(parser.get(trainName, 'filterWindow'))
+        else:
+            self.paramsDict['filterWindow'] = 5
+
+        if parser.has_option(trainName, 'components'):
+            self.paramsDict['components'] = parser.get(trainName, 'components').split(',')
+        else:
+            self.paramsDict['components'] = ['pos']
+
         if parser.has_option(trainName, 'reduce'):
             self.paramsDict['reduce'] = parser.get(trainName, 'reduce') == 'True'
         else:
             self.paramsDict['reduce'] = False
+
+        if parser.has_option(trainName, 'flip'):
+            self.paramsDict['flip'] = parser.get(trainName, 'flip') == 'True'
+        else:
+            self.paramsDict['flip'] = False
 
         if parser.has_option(trainName, 'normaliseWindow'):
             self.paramsDict['normaliseWindow'] = parser.get(trainName, 'normaliseWindow') == 'True'
@@ -75,21 +134,33 @@ class SAMDriver_ARWin(SAMDriver):
             except:
                 pass
 
-    def readData(self, root_data_dir, participant_index, *args, **kw):
+    def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
+
+        yTrainingData = SAMTesting.formatDataFunc(Yall)
+        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData,
+                                                                         Lall, verbose, 'Training')
+
+        yTrainingData = SAMTesting.formatDataFunc(YtestAll)
+        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData,
+                                                                       LtestAll, verbose, 'Testing')
+
+        yTrainingData = SAMTesting.formatDataFunc(self.dataVec)
+        [self.seqTestConf, self.seqTestPerc] = SAMTesting.testSegments(testModel, yTrainingData,
+                                                                       self.data2Labels, verbose, 'All')
+
+        return self.seqTestConf
+
+    def diskDataToLiveData(self, root_data_dir):
         onlyfiles = [f for f in listdir(root_data_dir) if isfile(join(root_data_dir, f))]
         dataLogList = [f for f in onlyfiles if 'data' in f]
         dataLogList.sort()
         labelsLogList = [f for f in onlyfiles if 'label' in f]
         labelsLogList.sort()
-
-        data = dict()
-        firstPass = True
-        jointsList = []
-        objectsList = []
-        labelsList = []
-        numFiles = len(dataLogList)
+        rawLabelList = []
+        rawDataList = []
 
         print 'loading data from files'
+        self.rawTextData = []
         for k in range(len(dataLogList)):
             print 'data file: ' + str(join(root_data_dir, dataLogList[k]))
             print 'model file: ' + str(join(root_data_dir, labelsLogList[k]))
@@ -112,117 +183,189 @@ class SAMDriver_ARWin(SAMDriver):
             labelFile.close()
 
             if lenLabelFile != lenDataFile:
-                print str(dataLogList[k]) + ' will not be used because its lenght differs from ' + str(labelsLogList[k])
+                print str(dataLogList[k]) + ' will not be used because its length differs from ' + str(labelsLogList[k])
             else:
                 dataFile = open(join(root_data_dir, dataLogList[k]), 'r')
                 labelFile = open(join(root_data_dir, labelsLogList[k]), 'r')
-                labelsList.append([])
+                windows = lenDataFile // self.paramsDict['windowSize']
 
-                for curr in range(lenDataFile):
+                for curr in range(windows*self.paramsDict['windowSize']):
                     line = dataFile.readline()
                     labelLine = labelFile.readline()
+                    self.rawTextData.append(line)
+                    # check data line
+                    t, goAhead = self.messageChecker(line, 'testing')
 
-                    t = line.replace('(', '').replace(')', '').split(' ')
-                    del t[0:4]
-
+                    # check label line
                     v = labelLine.split(' ')[2].replace('\n', '').replace('(', '').replace(')', '')
                     if v == '':
                         v = 'unknown'
-                    labelsList[k].append(v)
 
-                    # parse skeleton data which has 9 sections by (x,y,z)
-                    for i in range(self.numJoints):
-                        a = i * 4
-                        if t[a] == 'shoulderCenter':
-                            t[a] = 'chest'
+                    if goAhead:
+                        rawDataList.append(t)
+                        rawLabelList.append(v)
+                    else:
+                        print 'error'
 
-                        if firstPass:
-                            data[t[a]] = [None] * numFiles
-                            data[t[a]][k] = (np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])]))
-                            jointsList.append(t[a])
-                        else:
-                            arr = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
-                            if data[t[a]][k] is not None:
-                                data[t[a]][k] = np.vstack((data[t[a]][k], arr))
-                            else:
-                                data[t[a]][k] = arr
-
-                    currIdx = (self.numJoints * 4 - 1)
-                    numObjs = (len(t) - currIdx) / 5
-
-                    for i in range(numObjs):
-                        a = currIdx + 1 + (i * 5)
-                        if t[a] in data:
-                            arr = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
-                            if data[t[a]][k] is not None:
-                                data[t[a]][k] = np.vstack((data[t[a]][k], arr))
-                            else:
-                                data[t[a]][k] = arr
-                        else:
-                            data[t[a]] = [None] * (numFiles + 1)
-                            data[t[a]][k] = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
-                            objectsList.append(t[a])
-
-                    firstPass = False
                 dataFile.close()
                 labelFile.close()
 
-        if self.verbose:
-            print 'data has length = ' + str(len(data)) + ' joints'
-            strl = 'each joint has ' + str(len(data['head'])) + ' arrays of shape: \n'
+        return rawDataList, rawLabelList
 
-            for i in data['head']:
-                strl += '\t\t' + str(i.shape) + '\n'
-            print strl
+    def convertToDict(self, rawData, mode, verbose):
+        data = dict()
+        firstPass = True
+        jointsList = []
+        objectsList = []
 
-            strl = 'labelsList has length = ' + str(len(labelsList)) + ' with sizes: \n'
-            for i in labelsList:
-                strl += '\t\t' + str(len(i)) + '\n'
-            print strl
+        # print '*******************'
+        # for j in self.paramsDict:
+        #     print j, self.paramsDict[j]
+        # print '*******************'
 
-        setList = []
-        for x in labelsList:
-            setList.append(list(set(x)))
-        flattenedList = [val for sublist in setList for val in sublist]
-        labels = list(set(flattenedList))
-        labels.sort()
+        for t in rawData:
+            # parse skeleton data which has 9 sections by (x,y,z)
+            for i in range(self.numJoints):
+                a = i * 4
+                # if t[a] == 'shoulderCenter':
+                #     t[a] = 'chest'
 
-        print
-        # convert text labels into numbers while keeping data from different log files separated
-        labelNumsList = []
-        for j in range(len(dataLogList)):
-            labelNumsList.append(None)
-            for n, k in enumerate(labelsList[j]):
-                res = [m for m, l in enumerate(labels) if l == k]
-                if n == 0:
-                    labelNumsList[j] = np.array(res)
+                if firstPass:
+                    data[t[a]] = [None]
+                    data[t[a]] = (np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])]))
+                    jointsList.append(t[a])
                 else:
-                    labelNumsList[j] = np.vstack([labelNumsList[j], res])
-        print labelNumsList[0].shape
-        print data['head'][0].shape
+                    arr = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
+                    if data[t[a]] is not None:
+                        data[t[a]] = np.vstack((data[t[a]], arr))
+                    else:
+                        data[t[a]] = arr
 
+            currIdx = (self.numJoints * 4 - 1)
+            numObjs = (len(t) - currIdx) / 5
+
+            for i in range(numObjs):
+                a = currIdx + 1 + (i * 5)
+                if t[a] in data:
+                    arr = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
+                    if data[t[a]] is not None:
+                        data[t[a]] = np.vstack((data[t[a]], arr))
+                    else:
+                        data[t[a]] = arr
+                else:
+                    data[t[a]] = [None]
+                    data[t[a]] = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
+                    objectsList.append(t[a])
+
+            firstPass = False
+        if verbose:
+            print 'data has length = ' + str(len(data)) + ' joints'
+            print 'each joint has an array of shape ' + str(data['head'].shape)
+
+        if self.paramsDict['filterData'] or 'vel' in self.paramsDict['components'] or \
+                                            'acc' in self.paramsDict['components']:
+            if verbose:
+                print 'Filtering data with hamming window of size', self.paramsDict['filterWindow']
+            for j in data.keys():
+                t1 = utils.smooth1D(data[j][:, 0], self.paramsDict['filterWindow'])
+                t2 = utils.smooth1D(data[j][:, 1], self.paramsDict['filterWindow'])
+                t3 = utils.smooth1D(data[j][:, 2], self.paramsDict['filterWindow'])
+                data[j] = np.hstack([t1[:, None], t2[:, None], t3[:, None]])
+
+        if verbose:
+            print 'data has length = ' + str(len(data)) + ' joints'
+            print 'each joint has an array of shape ' + str(data['head'].shape)
         # convert data and number labels into windows.
         # data is still in the form of a dictionary with the joints/objects as keys of the dict
         # Text labels contained in labels
-        print
-        data2NumLabels = None
+        if verbose:
+            print
+        noY = mode != 'testing'
+        if mode == 'testing':
+            offset = self.paramsDict['windowOffset']
+        else:
+            offset = 1
+
         data2 = dict()
+        printExplanation = True
         for num, key in enumerate(data):
             data2[key] = None
-            for j in range(len(dataLogList)):
-                xx, yy = utils.transformTimeSeriesToSeq(data[key][j], self.paramsDict['windowSize'],
-                                                        self.paramsDict['normaliseWindow'], self.paramsDict['reduce'])
-                uu, tmp = utils.transformTimeSeriesToSeq(labelNumsList[j], self.paramsDict['windowSize'], False, False)
-                if j == 0:
-                    data2[key] = xx
-                    data2NumLabels = uu
-                else:
-                    data2[key] = np.vstack([data2[key], xx])
-                    data2NumLabels = np.vstack([data2NumLabels, uu])
+            xx, yy = utils.transformTimeSeriesToSeq(data[key], timeWindow=self.paramsDict['windowSize'],
+                                                    offset=offset,
+                                                    normalised=self.paramsDict['normaliseWindow'],
+                                                    reduced=self.paramsDict['reduce'], noY=noY)
 
-        print data2['head'].shape
-        print data2NumLabels.shape
+            if self.paramsDict['thresholdMovement'] or 'vel' in self.paramsDict['components'] or 'acc' in \
+                    self.paramsDict['components']:
+                winSize = xx.shape[1] / 3
+                g = xx.size / winSize
+                xxshape1 = xx.shape[0]
+                xxshape2 = xx.shape[1]
+
+                flatxx = xx.flatten()
+                f = flatxx.reshape([g, winSize])
+                xx = f.reshape([xxshape1, xxshape2])
+
+                if self.paramsDict['thresholdMovement']:
+                    if printExplanation and verbose:
+                        print 'thresholding movement <', self.paramsDict['moveThresh']
+                    ranges = np.ptp(f, axis=1)
+                    a = ranges < self.paramsDict['moveThresh']
+                    b = ranges > -self.paramsDict['moveThresh']
+                    res = list(np.where(np.logical_and(a, b))[0])
+                    if self.paramsDict['normaliseWindow']:
+                        f[res] = 0
+                    else:
+                        for ll in res:
+                            f[ll] = f[ll][0]
+
+                if 'vel' in self.paramsDict['components']:
+                    if printExplanation and verbose:
+                        print 'Adding velocity to the feature vector'
+                    xxvel = np.diff(f)
+                    xxvel = xxvel.reshape([xxshape1, xxshape2 - 3])
+                    xx = np.hstack([xx, xxvel])
+
+                if 'acc' in self.paramsDict['components']:
+                    if printExplanation and verbose:
+                        print 'Adding acceleration to the feature vector'
+                    xxacc = np.diff(f, n=2)
+                    xxacc = xxacc.reshape([xxshape1, xxshape2 - 6])
+                    xx = np.hstack([xx, xxacc])
+
+            data2[key] = xx
+            printExplanation = False
+
+        if verbose:
+            print 'data has length = ' + str(len(data2)) + ' joints'
+            print 'each joint has an array of shape ' + str(data2['head'].shape)
+
+        return data2, jointsList, objectsList
+
+    def readData(self, root_data_dir, participant_index, *args, **kw):
+        self.rawData, labelsList = self.diskDataToLiveData(root_data_dir)
+        data2, jointsList, objectsList = self.convertToDict(self.rawData, 'testing', verbose=self.verbose)
+
+        # extract a set of labels
+        labels = list(set(labelsList))
+        labels.sort()
+
         print
+        # convert text labels into numbers 
+        labelNumsList = None
+        for n, k in enumerate(labelsList):
+            res = [m for m, l in enumerate(labels) if l == k]
+            if n == 0:
+                labelNumsList = np.array(res)
+            else:
+                labelNumsList = np.vstack([labelNumsList, res])
+        print 'shape of number labels:', labelNumsList.shape
+
+        uu, tmp = utils.transformTimeSeriesToSeq(labelNumsList, self.paramsDict['windowSize'],
+                                                 self.paramsDict['windowOffset'], False, False)
+        data2NumLabels = uu
+        print 'windowed number labels shape:', data2NumLabels.shape
+
         # now that labels are in windowed form it is time to
         # assign them a text label again that describes them
         # the rule here is if the window appertains to the same label,
@@ -239,8 +382,7 @@ class SAMDriver_ARWin(SAMDriver):
                 # which are currently dependant on windowSize
                 data2Labels.append('transition')
 
-        labels = labels + ['transition']
-        print len(data2Labels)
+        print 'windowed data labels compressed:', len(data2Labels)
 
         print
         # create list of specific joints to be used
@@ -283,12 +425,14 @@ class SAMDriver_ARWin(SAMDriver):
         print
 
         # it is now time to combine objects if multiple exist
+        # 
         self.featureSequence = ['object']
         print
         combinedObjs = None
         if combineObjects:
+            print 'Combining Objects'
             for j in range(len(data2Labels)):
-                # print data2Labels[j]
+                #         print data2Labels[j]
                 if len(data2Labels[j].split('_')) > 2:
                     idxBase = objectDict[data2Labels[j].split('_')[2]] * itemsPerJoint
                 else:
@@ -298,14 +442,15 @@ class SAMDriver_ARWin(SAMDriver):
                     combinedObjs = dataVecAll[j, idxBase:idxBase + itemsPerJoint]
                 else:
                     combinedObjs = np.vstack([combinedObjs, dataVecAll[j, idxBase:idxBase + itemsPerJoint]])
+            print combinedObjs.shape
 
         print dataVecAll.shape
-        print combinedObjs.shape
 
         print
         # it is now time to combine hands if multiple exist
         combinedHands = None
         if combineHands and self.paramsDict['combineHands']:
+            print 'Combining hands'
             self.handsCombined = True
             self.featureSequence.append('hand')
             for j in range(len(data2Labels)):
@@ -363,9 +508,38 @@ class SAMDriver_ARWin(SAMDriver):
 
         data2ShortLabels = []
         for j in data2Labels:
-            data2ShortLabels.append('_'.join(j.split('_')[:2]))
+            splitLabel = j.split('_')
+            slabel = ('_'.join(splitLabel[:2]))
+
+            if splitLabel[0] == 'push' or splitLabel[0] == 'pull':
+                if splitLabel[-1] == 'no':
+                    add = splitLabel[-2]
+                else:
+                    add = splitLabel[-1]
+
+                if add == 'left' and self.paramsDict['flip']:
+                    if splitLabel[0] == 'push':
+                        splitLabel[0] = 'pull'
+                    else:
+                        splitLabel[0] = 'push'
+                    slabel = ('_'.join(splitLabel[:2]))
+
+                if self.paramsDict['sepRL']:
+                    slabel += '_' + add
+
+            data2ShortLabels.append(slabel)
 
         self.data2Labels = copy.deepcopy(data2ShortLabels)
+
+        if self.paramsDict['sepRL']:
+            if 'pull_object' in self.paramsDict['actionsAllowedList']:
+                self.paramsDict['actionsAllowedList'].index('pull_object') == 'pull_object_right'
+                self.paramsDict['actionsAllowedList'].append('pull_object_left')
+
+            if 'push_object' in self.paramsDict['actionsAllowedList']:
+                self.paramsDict['actionsAllowedList'].index('push_object') == 'push_object_right'
+                self.paramsDict['actionsAllowedList'].append('push_object_left')
+
         # remove labels which will not be trained
         listToDelete = []
         for n in reversed(range(len(data2Labels))):
@@ -373,9 +547,11 @@ class SAMDriver_ARWin(SAMDriver):
                             'no' in data2Labels[n]:
                 listToDelete.append(n)
 
-        for j in listToDelete:
-            dataVecReq = np.delete(dataVecReq, j, 0)
-            data2ShortLabels.pop(j)
+        dataVecReq = np.delete(dataVecReq, listToDelete, axis=0)
+        npdata2ShortLabels = np.asarray(data2ShortLabels)
+        npdata2ShortLabels = np.delete(npdata2ShortLabels, listToDelete, axis=0)
+        # find left hand push and pull and label as pull and push respectively
+        data2ShortLabels = np.ndarray.tolist(npdata2ShortLabels)
 
         self.Y = dataVecReq
         self.L = data2ShortLabels
@@ -385,55 +561,48 @@ class SAMDriver_ARWin(SAMDriver):
 
         # now that all joints are in the form of a window, time to create
         # all possible vectors to classify
-        self.listOfVectorsToClassify = []
 
-        for j in self.featureSequence:
+        self.allDataDict = dict()
+        self.allDataDict['Y'] = self.dataVec
+        self.allDataDict['L'] = self.data2Labels
+
+        listOfVectorsToClassify = self.listOfClassificationVectors(self.featureSequence, objectsList)
+        for j in listOfVectorsToClassify:
+            print j
+
+    def listOfClassificationVectors(self, featureSequence, objectsList):
+        listOfVectorsToClassify = []
+        for j in featureSequence:
             if j == 'object':
                 for k in objectsList:
                     if k != 'partner':
-                        self.listOfVectorsToClassify.append([k])
+                        listOfVectorsToClassify.append([k])
 
             elif 'hand' in j:
                 if self.handsCombined:
-                    a = copy.deepcopy(self.listOfVectorsToClassify)
-                    b = copy.deepcopy(self.listOfVectorsToClassify)
-                    for l, m in enumerate(self.listOfVectorsToClassify):
+                    a = copy.deepcopy(listOfVectorsToClassify)
+                    b = copy.deepcopy(listOfVectorsToClassify)
+                    for l, m in enumerate(listOfVectorsToClassify):
                         a[l].append('handLeft')
                         b[l].append('handRight')
-                        self.listOfVectorsToClassify = a + b
+                        listOfVectorsToClassify = a + b
 
                 else:
-                    for l, m in enumerate(self.listOfVectorsToClassify):
-                        self.listOfVectorsToClassify[l].append(j)
+                    for l, m in enumerate(listOfVectorsToClassify):
+                        listOfVectorsToClassify[l].append(j)
 
             else:
-                for l, m in enumerate(self.listOfVectorsToClassify):
-                    self.listOfVectorsToClassify[l].append(j)
+                for l, m in enumerate(listOfVectorsToClassify):
+                    listOfVectorsToClassify[l].append(j)
 
-        for j in self.listOfVectorsToClassify:
-            print j
-
-    def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
-
-        yTrainingData = SAMTesting.formatDataFunc(Yall)
-        [self.segTrainConf, self.segTrainPerc] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose)
-
-        yTrainingData = SAMTesting.formatDataFunc(YtestAll)
-        [self.segTestConf, self.segTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose)
-
-        yTrainingData = SAMTesting.formatDataFunc(self.dataVec)
-        [self.seqTestConf, self.seqTestPerc] = SAMTesting.testSegments(testModel, yTrainingData, self.data2Labels, verbose)
-
-        return self.seqTestConf
-        # return numpy.ones([3, 3])
+        return listOfVectorsToClassify
 
     def messageChecker(self, dataMessage, mode):
-
         goAhead = True
         if mode == 'testing':
-            t = dataMessage.replace('(', '').replace(')', '').split(' ')[4:]
+            t = dataMessage.replace('(', '').replace(')', '').split(' ')[4:-1]
         elif mode == 'live':
-            t = dataMessage.replace('(', '').replace(')', '').split(' ')[2:]
+            t = dataMessage.replace('(', '').replace(')', '').split(' ')[2:-1]
         else:
             print 'Non-existing mode. Choose either live or read'
             t = []
@@ -460,81 +629,65 @@ class SAMDriver_ARWin(SAMDriver):
 
         return [t, goAhead]
 
-    def processLiveData(self, dataList, thisModel):
+    def processLiveData(self, dataList, thisModel, verbose=False, returnUnknown=False, printClass=True):
         # dataList is list of yarp bottles
         mode = 'live'
         sentence = []
+        classifs = []
+        vecList = []
 
         if len(dataList) == self.paramsDict['windowSize']:
             dataStrings = []
-            for j in dataList:
-                [t, goAhead] = self.messageChecker(j.toString(), mode)
+            for j in range(len(dataList)):
+                [t, goAhead] = self.messageChecker(dataList[j].toString(), mode)
                 if goAhead:
                     dataStrings.append(t)
 
-            data = dict()
-            print 'going ahead'
-            if len(dataStrings) >= self.paramsDict['windowSize']:
-                jointsList = []
-                objectsList = []
-                # extract data parts
-                for t in dataStrings:
-                    for i in range(self.numJoints):
-                        a = i * 4
-                        if t[a] == 'shoulderCenter':
-                            t[a] = 'chest'
+            if len(dataStrings) == self.paramsDict['windowSize']:
+                data, jointsList, objectsList = self.convertToDict(dataStrings, mode=mode, verbose=False)
+                listOfVectorsToClassify = self.listOfClassificationVectors(self.featureSequence, objectsList)
 
-                        if t[a] not in jointsList:
-                            jointsList.append(t[a])
-                            data[t[a]] = (np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])]))
-                        else:
-                            data[t[a]] = np.vstack(
-                                [data[t[a]], np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])])
-
-                    currIdx = (self.numJoints * 4 - 1)
-                    numObjs = (len(t) - currIdx) / 5
-
-                    for i in range(numObjs):
-                        a = currIdx + 1 + (i * 5)
-
-                        if t[a] not in objectsList:
-                            objectsList.append(t[a])
-                            data[t[a]] = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
-                        else:
-                            data[t[a]] = np.vstack(
-                                [data[t[a]], np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])])
-
-                # convert arrays in dict data into windows
-                for j in data:
-                    data[j], yy = utils.transformTimeSeriesToSeq(data[j], self.paramsDict['windowSize'],
-                                                                 self.paramsDict['normaliseWindow'],
-                                                                 self.paramsDict['reduce'], True)
-
-                for j in self.listOfVectorsToClassify:
+                for j in listOfVectorsToClassify:
                     v = []
                     for k in j:
                         v.append(data[k])
                     vec = np.hstack(v)
-                    [label, val] = SAMTesting.testSegment(thisModel, vec, True, visualiseInfo=None)
+                    vecList.append(vec)
+                    [label, val] = SAMTesting.testSegment(thisModel, vec, verbose, visualiseInfo=None,
+                                                          optimise=thisModel[0].optimiseRecall)
                     classification = label.split('_')[0]
+                    classifs.append(classification)
+                    if self.paramsDict['flip'] and 'handLeft' in j:
+                        if label == 'push':
+                            label = 'pull'
+                        elif label == 'pull':
+                            label = 'push'
+
                     if classification == 'unknown':
-                        sentence.append("You did an " + label + " action")
+                        sentence.append("You did an " + label + " action with " + str(j))
                     else:
-                        sentence.append("You did a " + label)  # + " the " + j[0])
+                        sentence.append("You did a " + label + " with " + str(j))  # + " the " + j[0])
 
                     # if len(j) > 1:
                     #     sentence[-1] += " with your " + j[1].replace('hand', '') + ' hand'
-                    print sentence[-1]
-                    print '------------------------------------------------------'
-                    if classification == 'unknown':
+
+                    if classification == 'unknown' and not returnUnknown:
                         sentence.pop(-1)
+                    elif printClass:
+                        print sentence[-1]
+                    if printClass:
+                        print '------------------------------------------------------'
+
+                del dataList[:self.paramsDict['windowOffset']]
 
                 if len(sentence) > 1:
-                    return str(sentence)
+                    # return [str(sentence), data, classifs, vecList]
+                    return str(sentence), dataList
                 else:
-                    return 'None'
+                    # return ['None', data, classifs, vecList]
+                    return 'None', dataList
             else:
                 print 'Some incorrect messages received'
-                return None
+                return 'None', None
         else:
-            return None
+            return None, None

@@ -26,10 +26,12 @@ modelPath = sys.argv[2]
 driverName = sys.argv[3]
 
 mm = initialiseModels(sys.argv[1:4], sys.argv[4])
+# mm[0].SAMObject.visualise()
 
-if len(mm) > 1:
-    SAMTesting.calibrateMultipleModelRecall(mm)
+if mm[0].calibrateUnknown or len(mm) > 1:
+    SAMTesting.calibrateModelRecall(mm)
 
+overallPerformance = 100000
 if mm[0].model_mode != 'temporal':
     overallPerformance = mm[0].testPerformance(mm, mm[0].Yall, mm[0].Lall, mm[0].YtestAll, mm[0].LtestAll, True)
 elif mm[0].model_mode == 'temporal':
@@ -62,10 +64,12 @@ for k in range(numParts):
 
     if k == 0:
         mm[0].paramsDict['listOfModels'] = mm[0].listOfModels
-        if numParts > 1:
-            mm[0].paramsDict['classifiers'] = mm[0].classifiers
-            mm[0].paramsDict['classif_thresh'] = mm[0].classif_thresh
-        else:
+        mm[0].paramsDict['avgClassTime'] = mm[0].avgClassTime
+        mm[0].paramsDict['optimiseRecall'] = mm[0].optimiseRecall
+        mm[0].paramsDict['classificationDict'] = mm[0].classificationDict
+        mm[0].paramsDict['calibrateUnknown'] = mm[0].calibrateUnknown
+        mm[0].paramsDict['calibrated'] = mm[0].calibrated
+        if numParts == 1:
             if mm[0].X is None:
                 mm[0].paramsDict['X'] = mm[0].X
             else:
@@ -73,6 +77,8 @@ for k in range(numParts):
 
             if mm[0].model_mode != 'temporal':
                 mm[0].paramsDict['Y'] = mm[k].Y['Y'].shape
+
+            mm[0].paramsDict['useMaxDistance'] = mm[0].useMaxDistance
 
     elif numParts > 1:
         # fname = mm[0].listOfModels[k-1]

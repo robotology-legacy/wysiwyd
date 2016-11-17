@@ -52,6 +52,9 @@ class interactionSAMModel(yarp.RFModule):
         self.dataList = []
         self.classificationList = []
         self.closeFlag = False
+        self.instancePortName = ''
+        self.labelPortName = ''
+        self.verboseSetting = False
 
     def configure(self, rf):
 
@@ -132,8 +135,10 @@ class interactionSAMModel(yarp.RFModule):
                     # 2 an output data line which is used when a generated instance is required
                     if parts[0][-1] == 'i':
                         self.labelPort = j
+                        self.labelPortName = parts[0]
                     elif parts[0][-1] == 'o':
                         self.instancePort = j
+                        self.instancePortName = parts[0]
 
             if self.svPort is None or self.labelPort is None or self.instancePort is None:
                 print 'Config file properties incorrect. Should look like this:'
@@ -178,8 +183,10 @@ class interactionSAMModel(yarp.RFModule):
         b = yarp.Bottle()
         reply.clear()
         action = command.get(0).asString()
-        print(action + ' received')
-        print 'responding to ' + action + ' request'
+        if action != 'heartbeat':
+            print(action + ' received')
+            print 'responding to ' + action + ' request'
+
         if action == "reload":
             # send a message to the interaction model to check version of currently loaded model
             # and compare it with that stored on disk. If model on disk is more recent reload model
@@ -191,6 +198,18 @@ class interactionSAMModel(yarp.RFModule):
                 reply.addString('ack')
             except:
                 reply.addString('nack')
+        # -------------------------------------------------
+        elif action == "heartbeat":
+            reply.addString('ack')
+        # -------------------------------------------------
+        elif action == "toggleVerbose":
+            self.verboseSetting = not self.verboseSetting
+            reply.addString('ack')
+        # -------------------------------------------------
+        elif action == "portNames":
+            reply.addString('ack')
+            reply.addString(self.labelPortName)
+            reply.addString(self.instancePortName)
         # -------------------------------------------------
         elif action == "EXIT":
             reply.addString('ack')
@@ -210,9 +229,10 @@ class interactionSAMModel(yarp.RFModule):
 
     def classifyInstance(self, reply):
         if self.portsList[self.labelPort].getInputCount() > 0:
-            print '-------------------------------------'
+            if self.verboseSetting:
+                print '-------------------------------------'
             if self.collectionMethod == 'buffered':
-                thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
+                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
                 if thisClass is None:
                     reply.addString('None')
                 else:
@@ -231,7 +251,7 @@ class interactionSAMModel(yarp.RFModule):
                 for j in range(self.bufferSize):
                     self.dataList.append(self.readFrame())
                 # thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
-                thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
+                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
                 if thisClass is None:
                     reply.addString('None')
                 else:
@@ -331,8 +351,8 @@ class interactionSAMModel(yarp.RFModule):
         elif self.inputType == 'bottle':
             frame = yarp.Bottle()
 
-        frame = self.portsList[self.labelPort].read(True)
-
+        frameRead = self.portsList[self.labelPort].read(True)
+        frame.fromString(frameRead.toString())
         return frame
 
     def collectData(self):
@@ -353,14 +373,15 @@ class interactionSAMModel(yarp.RFModule):
             # read frame of data
             frame = self.readFrame()
             # append frame to dataList
+
             self.dataList.append(frame)
             # process list of frames for a classification
-            thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
+            thisClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
             # if proper classification
 
             if thisClass is not None:
                 # empty dataList
-                self.dataList = []
+                self.dataList = dataList
                 if thisClass != 'None':
                     # add classification to classificationList to be retrieved during respond method
                     print 'classList len:', len(self.classificationList)
