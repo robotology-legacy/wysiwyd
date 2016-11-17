@@ -81,8 +81,6 @@ namespace wysiwyd {
             void appendDouble(yarp::os::Bottle& b, const double &v);
 
             /********************************************************************************/
-            bool prepare();
-
             bool returnArmSafely(std::string armType);
 
             void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
