@@ -5,6 +5,9 @@ email:   d.camilleri@sheffield.ac.uk
 
 A Synthetic Autobiographical Memory for the iCub robot. This module contains the core, which implements the high-level functionality, and the drivers which act as middleware between the perceptual system and the core.
 
+Pre-trained Action Recognition model and data can be found at the following link:
+https://drive.google.com/open?id=0B6fkkRLTYjNLbjFFSEZtUmtHNk0
+
 ##Features
 
 samSupervisor at this point can manage multiple models with great flexibility in training and interacting with models. 
