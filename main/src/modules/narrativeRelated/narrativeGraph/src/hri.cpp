@@ -86,8 +86,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
     while (keepInteracting){
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
             bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic, // semantic information of the content of the recognition
-            bSendReasoning; // send the information of recall to the abmReasoning
+            bSemantic; // semantic information of the content of the recognition
         bool getAnswer = false;
 
         while (!getAnswer){
@@ -144,7 +143,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                     }
                     else if (remember == true){
                         if (doYouRemember(sSentence)){
-                            iCub->say("Yes, of course I remember !");
+                            iCub->say("Yes, of course I remember !", false);
 
                             createNarration(vQuestions, scenarioToRecall, vSaid);
                             vResponses.clear();
@@ -175,7 +174,6 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         //case sentence simple with DFW:
                         vResponses.clear();
 
-                        vector<int>  vRelatedPAOR;
                         PAOR sPAOR;
                         if (bSemantic.get(0).asString() == "What_happen_DFW_simple"){
                             vResponses = what_DFW_Simple(bSemantic, scenarioToRecall);
@@ -186,11 +184,11 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         else if (bSemantic.get(0).asString() == "Why"){
                             vResponses = whyPAOR(bSemantic, sPAOR, scenarioToRecall);
                         }
-
                         vQuestions.push_back(tuple<Bottle, PAOR>(bSemantic, sPAOR));
 
                         string picked = pickResponse(vResponses, vSaid);
                         iCub->say(picked, false);
+                        cout << "---- next question ----" << endl;
                     }
                 }
             }
@@ -242,7 +240,8 @@ vector < hriResponse > narrativeHandler::what_DFW_Simple(Bottle bInput, int iSce
 */
 vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sPAOR, int iScenario){
     vector < hriResponse > vResponses;
-    cout << " what_DFW_Double launched: " << bInput.toString() << ", scenario: " << iScenario << endl;
+    cout << " what_DFW_Double launched: " << bInput.toString() << ", scenario: " << iScenario << ", PAOR: " << sPAOR.toString() << endl;
+
 
     // check input Bottle:
     if (bInput.size() != 2){
@@ -264,17 +263,6 @@ vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sP
     string object = bWords.find("object").toString();
     string recipient = bWords.find("recipient").toString();
 
-    string meaning;
-    ostringstream os;
-    os << predicate << " " << agent << " " << object << " " << recipient << ", P1 A1 ";
-    if (object != "") {
-        os << "O1 ";
-    }
-    if (recipient != "") {
-        os << "R1 ";
-    }
-
-    meaning = os.str();
 
     string sdfw = bWords.find("dfw_double").toString();
 
@@ -295,9 +283,8 @@ vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sP
 
 
     cout << "extracted DFW from recog: " << sdfw << endl;
-    vResponses = useDFW(iScenario, sdfw, sPAOR, false);
-
-    cout << "returning: " << endl << vResponses.size() << endl;
+    vResponses = useDFW(iScenario, sdfw, sPAOR, true);
+    cout << "returning: " << vResponses.size() << endl;
 
     return vResponses;
 }
@@ -310,7 +297,7 @@ vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sP
 */
 vector < hriResponse > narrativeHandler::whyPAOR(Bottle bInput, PAOR &sPAOR, int iScenario){
     vector < hriResponse > vResponses;
-    cout << " whyPAOR launched: " << bInput.toString() << ", scenario: " << iScenario << endl;
+    cout << " whyPAOR launched: " << bInput.toString() << ", scenario: " << iScenario << ", PAOR: " << sPAOR.toString() << endl;
 
     // check input Bottle:
     if (bInput.size() != 2){
@@ -331,18 +318,6 @@ vector < hriResponse > narrativeHandler::whyPAOR(Bottle bInput, PAOR &sPAOR, int
     string object = bWords.find("object").toString();
     string recipient = bWords.find("recipient").toString();
 
-    string meaning;
-    ostringstream os;
-    os << predicate << " " << agent << " " << object << " " << recipient << ", P1 A1 ";
-    if (object != "") {
-        os << "O1 ";
-    }
-    if (recipient != "") {
-        os << "R1 ";
-    }
-
-    meaning = os.str();
-
     string sdfw = "because";
 
     cout << "extracted OCW from recog: " << sdfw
@@ -359,7 +334,7 @@ vector < hriResponse > narrativeHandler::whyPAOR(Bottle bInput, PAOR &sPAOR, int
         sPAOR.O = object;
         sPAOR.R = recipient;
     }
-    vResponses = useDFW(iScenario, sdfw, sPAOR, true);
+    vResponses = useDFW(iScenario, sdfw, sPAOR, false);
 
     cout << "returning: " << endl << vResponses.size() << endl;
     return vResponses;
@@ -370,9 +345,7 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
     string sReturn = "none";
 
 
-    cout << "Before removing: " << vResponses.size() << endl;
     removeDoubleMeaning(vResponses);
-    cout << "After removing: " << vResponses.size() << endl;
 
     if (vResponses.size() == 0){
         return sReturn;
@@ -415,7 +388,7 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
 bool narrativeHandler::doYouRemember(string sInput){
 
     cout << "in DO YOU REMEMBER: sInput is: " << sInput << endl;
-    bool display = true;
+    bool display = false;
     vector<string>  vsMeaning;
     string meaning = iCub->getLRH()->SentenceToMeaning(sInput);
 
@@ -457,7 +430,6 @@ bool narrativeHandler::doYouRemember(string sInput){
             }
             // for each sentence of the discourse
             DFW *currentDFW;
-            bool isMultiple = false; // if a sentence is multiple (with a DFW)
             int iPreposition = 0;   // get the order of the preposition in the sentence
             int iNbPreposition = level1->vSentence.size();  // nb of preposition in the sentence
             bool isDFW = level1->vSentence[0].A == "";
@@ -481,7 +453,6 @@ bool narrativeHandler::doYouRemember(string sInput){
                 if (isDFW && iPreposition == 0){ // only one OCW: DFW
                     //cout << "\t\t\t sentence has a DFW." << endl;
                     string nameDFW = level2->P;
-                    isMultiple = true;
                     bool found = false;
                     for (vector<DFW>::iterator itDFW = vDFW.begin(); itDFW != vDFW.end(); itDFW++){
                         if (!found && itDFW->sName == nameDFW){
@@ -606,59 +577,71 @@ bool narrativeHandler::doYouRemember(string sInput){
 
 
 bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions, int iScenario, vector < PAOR > vResponsesSaid){
-    bool canUsePreviousResponses = true;
-    if (vQuestions.size() != vResponsesSaid.size()){
-        canUsePreviousResponses = false;
+
+    yInfo("Starting to create narration.");
+    bool canUsePreviousResponses = vQuestions.size() == vResponsesSaid.size();
+    if (!canUsePreviousResponses){
         yWarning("in narrativeGraph::hri.cpp narrativeHandler::crerateNarration - vQuestions.size != vResponses.size");
+    }
+    else {
+        yInfo("in narrativeGraph::hri.cpp canUsePreviousResponses");
     }
 
     int doku = 0;
     vector<PAOR> vSaid;
+    vector < hriResponse > vInternalResponses;
 
     for (auto question : vQuestions){
 
         Bottle quest = get<0>(question);
-        vector<int> vRelatedPAOR;
-        PAOR sTmp;
-        vector < hriResponse > vInternalResponses;
-
+        cout << "Current question: " << quest.get(0).asString() << ", PAOR: " << get<1>(question).toString() << ",  Response: "<< vResponsesSaid[doku].toString() << endl;
         if (quest.get(0).asString() == "Else"){
+            Time::delay(1.0);
             string picked = pickResponse(vInternalResponses, vSaid);
             if (picked == "none"){
                 iCub->say("Nothing else, sorry.");
             }
             else{
-                string sPAOR = "";
                 iCub->say(picked);
             }
         }
         else {
             if (quest.get(0).asString() == "What_happen_DFW_simple"){
+                cout << "in is using simple" << endl;
                 vInternalResponses = what_DFW_Simple(quest, scenarioToRecall);
             }
             else if (quest.get(0).asString() == "What_happen_DFW_double" && canUsePreviousResponses){
-                /*
-                * TODO: UPDATE !! to adapt to the good scenario
-                */
+                cout << "in is using double" << endl;
                 if (doku > 0){
                     // if current question is about previous answer
                     if (get<1>(question) == vResponsesSaid[doku - 1]){
                         // adapt question from previous responses.
                         vInternalResponses = what_DFW_Double(quest, vSaid[doku - 1], scenarioToRecall);
                     }
+                    else{
+                        cout << (get<1>(question)).toString() << " - " << vResponsesSaid[doku-1].toString() << endl;
+                        yWarning("Question is not previous response");
+                    }
+                }
+                else{
+                    yWarning("cannot use double as first question");
                 }
             }
             else if (quest.get(0).asString() == "Why" && canUsePreviousResponses){
-                /*
-                * TODO: UPDATE !! to adapt to the good scenario
-                */
-
+                cout << "in is using why" << endl;
                 if (doku > 0){
                     // if current question is about previous answer
                     if (get<1>(question) == vResponsesSaid[doku - 1]){
                         // adapt question from previous responses.
                         vInternalResponses = whyPAOR(quest, vSaid[doku - 1], scenarioToRecall);
                     }
+                    else{
+                        cout << (get<1>(question)).toString() << " - " << vResponsesSaid[doku-1].toString() << endl;
+                        yWarning("Question is not previous response");
+                    }
+                }
+                else{
+                    yWarning("cannot use double as first question");
                 }
             }
 

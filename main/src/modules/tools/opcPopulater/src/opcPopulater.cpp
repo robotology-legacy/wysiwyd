@@ -1558,7 +1558,7 @@ bool opcPopulater::populateScenario1()
 */
 bool opcPopulater::populateScenario2(){
     string sLarry = "Peter";
-    string sRobert = "Anne-Laure";
+    string sRobert = "Carol";
     string sObject = "mug";
     string sBox = "box";
 

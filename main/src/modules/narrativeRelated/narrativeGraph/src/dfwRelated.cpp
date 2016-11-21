@@ -126,8 +126,6 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
         }
 
         // find bests elements with score dScore
-        ostringstream os;
-
         vector<pair <int, string> > AddedEvt;
         vector<tuple <meaningSentence, double, PAOR> > vMeaningScore; // vector of the meaning of event with their scores and position in the IGARF or the response
         for (auto posibilities : vpScore){
@@ -144,10 +142,9 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
                         toAdd = false;
                     }
                 }
-
-                if (toAdd){
+                meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
+                if (toAdd && meaning.vSentence.size() != 0){
                     //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
-                    meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
                     vMeaningScore.push_back(tuple <meaningSentence, double, PAOR>(meaning, posibilities.second, meaning.vSentence[0]));
                     AddedEvt.push_back(currentPair);
                 }
@@ -164,28 +161,21 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
             {
 
                 hriResponse CurrentResponse;
-                // set the score
-                CurrentResponse.score = get<1>(toSend);
+                //set quadratic score
+                CurrentResponse.score = get<1>(toSend)*get<1>(toSend);
 
                 // set the PAOR:
                 CurrentResponse.paor = prop;
-
-                // set for better HRI
-                if (prop.R == "iCub"){
-                    prop.R = "me";
-                }
-                if (prop.A == "iCub"){
-                    prop.A = "I";
-                }
-
 
                 string preparedMeaning = prepareMeaningForLRH(sdfw, prop);
 
                 if (preparedMeaning != "none" && prop.P != "home")
                 {
+                    if (!(sdfw == "finally" && prop.P == "want")){
                     CurrentResponse.sentence = (iCub->getLRH()->meaningToSentence(preparedMeaning, true));
-                    cout << "Adding: " << CurrentResponse.toString() << endl;
+                    cout << "Adding: " << CurrentResponse.toString() <<  " - " << preparedMeaning << endl;
                     vResponses.push_back(CurrentResponse);
+                    }
                 }
             }
         }
@@ -239,10 +229,10 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
 
                     // if the PAOR given is the first of the two elements
                     if (isFirst){
-                        dScore = dfw.corIGARF[dict.find(ss.str())->second][dict.find(evt.second)->second];
+                        dScore = dfw.corIGARF[dict.find(evt.second)->second][dict.find(ss.str())->second];
                     }
                     else{
-                        dScore = dfw.corIGARF[dict.find(evt.second)->second][dict.find(ss.str())->second];
+                        dScore = dfw.corIGARF[dict.find(ss.str())->second][dict.find(evt.second)->second];
                     }
 
                     // get timing between events:
@@ -274,7 +264,6 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
             }
         }
 
-        ostringstream os;
 
         vector<pair <int, string> > AddedEvt;
         vector<tuple <meaningSentence, double, PAOR> > vMeaningScore; // vector of the meaning of event with their scores
@@ -296,8 +285,9 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
 
                 if (toAdd && meaning.vSentence.size() != 0){
                     //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
-                    vMeaningScore.push_back(tuple <meaningSentence, double, PAOR>(meaning, posibilities.second, meaning.vSentence[0]));
-                    AddedEvt.push_back(currentPair);
+                        vMeaningScore.push_back(tuple <meaningSentence, double, PAOR>(meaning, posibilities.second, meaning.vSentence[0]));
+                        AddedEvt.push_back(currentPair);
+
                 }
             }
         }
@@ -313,31 +303,24 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
                 string preparedMeaning;
 
                 hriResponse CurrentResponse;
-                CurrentResponse.score = get<1>(toSend);
+                //set quadratic score
+                CurrentResponse.score = get<1>(toSend)*get<1>(toSend);
 
 
                 // set the PAOR:
                 CurrentResponse.paor = prop;
 
-                // set for better HRI
-                if (prop.R == "iCub"){
-                    prop.R = "me";
-                }
-                if (prop.A == "iCub"){
-                    prop.A = "I";
-                }
-
                 if (isFirst){
-                    preparedMeaning = prepareMeaningForLRH(sdfw, paor, prop, !isFirst);
+                    preparedMeaning = prepareMeaningForLRH(sdfw, paor, prop, isFirst);
                 }
                 else{
-                    preparedMeaning = prepareMeaningForLRH(sdfw, prop, paor, !isFirst);
+                    preparedMeaning = prepareMeaningForLRH(sdfw, prop, paor, isFirst);
                 }
 
                 if (preparedMeaning != "none" && prop.P != "home")
                 {
                     CurrentResponse.sentence = (iCub->getLRH()->meaningToSentence(preparedMeaning, true));
-                    cout << "Adding: " << CurrentResponse.toString() << endl;
+                    cout << "Adding: " << CurrentResponse.toString() << " - " << preparedMeaning << endl;
                     vResponses.push_back(CurrentResponse);
                 }
             }
@@ -353,7 +336,7 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
 
 
 void narrativeHandler::exportDFW(){
-    string dfw_file_path = "C:/Users/rclab/data.csv";
+    string dfw_file_path = "/home/icub/Documents/data.csv";
     ofstream file(dfw_file_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
     file << "name\tsimple\tdouble\tfrom\tto\trange1\trange2\n";
 
@@ -461,7 +444,24 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
     ostringstream osFocus,
         osOCW;
 
-    // if order is: M1 DFW M2
+
+    // FOR BETTER HRI
+    if (M1.R == "iCub"){
+        M1.R = "me";
+    }
+    if (M1.A == "iCub"){
+        M1.A = "I";
+    }
+
+    if (M2.R == "iCub"){
+        M2.R = "me";
+    }
+    if (M2.A == "iCub"){
+        M2.A = "I";
+    }
+
+
+    // if order is: M2 DFW M1
     if (!DFWAB){
         if (M1.toString() == M2.toString()){
             yWarning(" in narrativeHandler::prepareMeaningForLRH meanings identical");
@@ -474,38 +474,18 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
 
         // First bracket
         // ONLY THE DFW
-        for (int ii = 0; ii < M1.nbElm(); ii++){
+        for (int ii = 0; ii < M2.nbElm(); ii++){
             osFocus << "_-";
         }
         osFocus << "P";
         // blanck evt for sentence 2
-        for (int ii = 0; ii < M2.nbElm(); ii++){
-            osFocus << "-_";
-        }
-        osFocus << "][";
-
-        // Second bracket for DFW
-        // add the role of the first sentence with order: A P O R
-        osFocus << "A-P-";
-        // IF OBJECT EXIST
-        if (M1.O != ""){
-            osFocus << "O-";
-        }
-        //if recipient exist
-        if (M1.R != ""){
-            osFocus << "R-";
-        }
-        // add the effect of DFW
-        osFocus << "_";
-
-        // blanck evt for sentence 2
-        for (int ii = 0; ii < M2.nbElm(); ii++){
-            osFocus << "-_";
-        }
-        osFocus << "][";
-
-        // Third bracket
         for (int ii = 0; ii < M1.nbElm(); ii++){
+            osFocus << "-_";
+        }
+        osFocus << "][";
+
+        // Second bracket for M1
+        for (int ii = 0; ii < M2.nbElm(); ii++){
             osFocus << "_-";
         }
         // add the effect of DFW
@@ -513,18 +493,38 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
 
         // blanck evt for sentence 2
         osFocus << "-A-P";
-        if (M2.O != ""){
+        if (M1.O != ""){
             osFocus << "-O";
         }
         //if recipient exist
-        if (M2.R != ""){
+        if (M1.R != ""){
             osFocus << "-R";
+        }
+        osFocus << "][";
+
+        // Third bracket M2
+        // add the role of the first sentence with order: A P O R
+        osFocus << "A-P-";
+        // IF OBJECT EXIST
+        if (M2.O != ""){
+            osFocus << "O-";
+        }
+        //if recipient exist
+        if (M2.R != ""){
+            osFocus << "R-";
+        }
+        // add the effect of DFW
+        osFocus << "_";
+
+        // blanck evt for M1
+        for (int ii = 0; ii < M1.nbElm(); ii++){
+            osFocus << "-_";
         }
         osFocus << "]<o>";
 
         sReturn = osOCW.str() + osFocus.str();
     }
-    // if order is DFW M2 M1
+    // if order is DFW M1 M2
     else {
 
         if (M1.toString() == M2.toString()){
@@ -533,7 +533,7 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
         }
 
         // ADD OCW SENTENCE 1 & 2
-        osOCW << dfw << ", " << M1.toString() << " , " << M2.toString() << " <o>[";
+        osOCW << dfw << ", " << M1.toString() << " , " << M2.toString() << " <o>[P";
 
         // First bracket
         // ONLY THE DFW
@@ -546,13 +546,8 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
         }
 
 
-        // SECOND BRACKET IS M1 THIRD ELEMENT OF SENTENCE
+        // SECOND BRACKET IS M1 SECOND ELEMENT OF SENTENCE
         osFocus << "][_";
-        // blanck evt for sentence 2
-        for (int ii = 0; ii < M2.nbElm(); ii++){
-            osFocus << "-_";
-        }
-        // add the role of the first sentence with order: A P O R
         osFocus << "-A-P";
         // IF OBJECT EXIST
         if (M1.O != ""){
@@ -562,9 +557,18 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
         if (M1.R != ""){
             osFocus << "-R";
         }
-
+        // blanck evt for sentence 2
+        for (int ii = 0; ii < M2.nbElm(); ii++){
+            osFocus << "-_";
+        }
         osFocus << "][_";
-        // THIRD BRACKET IS M2 SECOND ELEMENT
+
+
+        // blanck evt for sentence 2
+        for (int ii = 0; ii < M1.nbElm(); ii++){
+            osFocus << "-_";
+        }
+        // add the role of the first sentence with order: A P O R
         osFocus << "-A-P";
         // IF OBJECT EXIST
         if (M2.O != ""){
@@ -574,11 +578,8 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
         if (M2.R != ""){
             osFocus << "-R";
         }
-        // blanck evt for sentence 2
-        for (int ii = 0; ii < M1.nbElm(); ii++){
-            osFocus << "-_";
-        }
         osFocus << "]<o>";
+
 
         sReturn = osOCW.str() + osFocus.str();
     }
@@ -592,6 +593,15 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1){
     string sReturn;
     ostringstream osFocus,
         osOCW;
+
+    // FOR BETTER HRI
+    if (M1.R == "iCub"){
+        M1.R = "me";
+    }
+    if (M1.A == "iCub"){
+        M1.A = "I";
+    }
+
 
     if (M1.toString() == ""){
         yWarning("in narrativeHandler::prepareMeaningForLRH  meaning is empty.");

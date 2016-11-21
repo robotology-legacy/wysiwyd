@@ -62,20 +62,24 @@ bool LRH::configure(ResourceFinder &rf) {
     string sName = getName();
     handlerPortName = "/" + sName + "/rpc";
     PortToSam.open("/" + getName() + "/toSam");
+    cout << "1" << endl;
 
     if (!handlerPort.open(handlerPortName.c_str())) {
         cout << getName() << ": Unable to open port " << handlerPortName << endl;
         bEveryThingisGood = false;
     }
+    cout << "2" << endl;
 
     attach(handlerPort);                  // attach to port
 
     //------------------------//
     //      iCub Client
     //------------------------//
+    cout << "3" << endl;
 
     // string ttsSystem = SUBSYSTEM_SPEECH;
     iCub = new ICubClient(moduleName.c_str(), "lrh", "client.ini", true);
+    cout << "4" << endl;
 
 
     char rep = 'n';
@@ -87,12 +91,15 @@ bool LRH::configure(ResourceFinder &rf) {
     }
     cout << "Connections done" << endl;
 
+    yInfo("training system.");
+    yInfo(train());
+
+
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
     // Start train mode of the reservoirs
 
-    train();
     return bEveryThingisGood;
 }
 
