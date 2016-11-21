@@ -372,7 +372,7 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
             toRemove++;
         }
         if (threshold && !found){
-            sReturn = pa.sentence;
+            sReturn = iCub->getLRH()->meaningToSentence(pa.sentence);
             vSaid.push_back(pa.paor);
             cout << "\t\tpicked is: " << sReturn << " found: " << found << " p: " << p << endl;
             found = true;

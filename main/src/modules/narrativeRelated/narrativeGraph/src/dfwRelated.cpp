@@ -172,7 +172,7 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
                 if (preparedMeaning != "none" && prop.P != "home")
                 {
                     if (!(sdfw == "finally" && prop.P == "want")){
-                    CurrentResponse.sentence = (iCub->getLRH()->meaningToSentence(preparedMeaning, true));
+                    CurrentResponse.sentence = (preparedMeaning);
                     cout << "Adding: " << CurrentResponse.toString() <<  " - " << preparedMeaning << endl;
                     vResponses.push_back(CurrentResponse);
                     }
@@ -204,9 +204,11 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
         }
 
         vector<pair<int, double>> vpScore; // vector with each event and associated score
-
+        vector<tuple <meaningSentence, double, PAOR> > vMeaningScore;
         int range = 0;
         double best = 0;
+
+        vector<PAOR> addResp;
 
         for (auto km : vKM){
             range = 0;
@@ -254,81 +256,81 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
                         }
                     }
 
-                    //cout << ", dScore: " << dScore << endl;
-                    if (dScore > best){
-                        best = dScore;
-                    }
+
                     vpScore.push_back(pair<int, double>(range, dScore));
+                    meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
+
+                    if (meaning.vSentence.size() != 0){
+                        //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
+                        vMeaningScore.push_back(tuple <meaningSentence, double, PAOR>(meaning, dScore, meaning.vSentence[0]));
+                        for (auto &prop : meaning.vSentence){
+                            string preparedMeaning;
+
+                            hriResponse CurrentResponse;
+                            //set quadratic score
+                            CurrentResponse.score = dScore*dScore;
+
+                            // set the PAOR:
+                            CurrentResponse.paor = prop;
+
+                            if (isFirst){
+                                preparedMeaning = prepareMeaningForLRH(sdfw, paor, prop, isFirst);
+                            }
+                            else{
+                                preparedMeaning = prepareMeaningForLRH(sdfw, prop, paor, isFirst);
+                            }
+
+                            if (preparedMeaning != "none" && prop.P != "home")
+                            {
+                                bool bFound = false;
+                                for (auto resp : addResp){
+                                    if (resp == CurrentResponse.paor){
+                                        bFound = true;
+                                    }
+                                }
+                                if (!bFound){
+                                    addResp.push_back(CurrentResponse.paor);
+                                    CurrentResponse.sentence = (preparedMeaning);
+                                    vResponses.push_back(CurrentResponse);
+                                    cout << "Adding: " << CurrentResponse.toString() << " - " << preparedMeaning << endl;
+                                    //cout << ", dScore: " << dScore << endl;
+                                    if (CurrentResponse.score > best){
+                                        best = CurrentResponse.score;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
                 }
                 range++;
             }
         }
 
 
-        vector<pair <int, string> > AddedEvt;
-        vector<tuple <meaningSentence, double, PAOR> > vMeaningScore; // vector of the meaning of event with their scores
-        for (auto posibilities : vpScore){
-            // I can talk of this element
-            if (posibilities.second > 0.5 * best){
-
-                int iIGARF = sm.vChronoEvent[posibilities.first].first;
-                string sIGARF = sm.vChronoEvent[posibilities.first].second;
-
-                pair<int, string> currentPair(iIGARF, sIGARF);
-                bool toAdd = true;
-                for (auto passed : AddedEvt){
-                    if (currentPair == passed){
-                        toAdd = false;
-                    }
-                }
-                meaningSentence meaning = evtToMeaning(sIGARF, iIGARF);
-
-                if (toAdd && meaning.vSentence.size() != 0){
-                    //cout << "I should talk about evt: " << iIGARF << " " << sIGARF << endl;
-                        vMeaningScore.push_back(tuple <meaningSentence, double, PAOR>(meaning, posibilities.second, meaning.vSentence[0]));
-                        AddedEvt.push_back(currentPair);
-
-                }
-            }
-        }
-
         // REMOVE DOUBLES
-        removeDoubleMeaning(vMeaningScore);
+        removeDoubleMeaning(vResponses);
 
-        for (auto &toSend : vMeaningScore){
+        // keep only 0.5 * best score;
 
-            // if several relation at same evt
-            for (auto &prop : get<0>(toSend).vSentence)
-            {
-                string preparedMeaning;
-
-                hriResponse CurrentResponse;
-                //set quadratic score
-                CurrentResponse.score = get<1>(toSend)*get<1>(toSend);
-
-
-                // set the PAOR:
-                CurrentResponse.paor = prop;
-
-                if (isFirst){
-                    preparedMeaning = prepareMeaningForLRH(sdfw, paor, prop, isFirst);
-                }
-                else{
-                    preparedMeaning = prepareMeaningForLRH(sdfw, prop, paor, isFirst);
-                }
-
-                if (preparedMeaning != "none" && prop.P != "home")
-                {
-                    CurrentResponse.sentence = (iCub->getLRH()->meaningToSentence(preparedMeaning, true));
-                    cout << "Adding: " << CurrentResponse.toString() << " - " << preparedMeaning << endl;
-                    vResponses.push_back(CurrentResponse);
-                }
+        vector < hriResponse > vTemp;
+        for (auto resp : vResponses){
+            if (resp.score > 0.25 * best){
+                vTemp.push_back(resp);
             }
         }
+
+        vResponses = vTemp;
+
     }
 
 
+    cout << "dfwRelated::useDFW return size: " << vResponses.size() << endl;
 
+    for (auto resp : vResponses){
+        cout << "\t" << resp.toString() << endl;
+    }
     return vResponses;
 }
 

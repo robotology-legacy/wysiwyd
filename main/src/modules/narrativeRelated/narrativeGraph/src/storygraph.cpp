@@ -1049,8 +1049,6 @@ void SituationModel::removeDoubleEvt(vector<sKeyMean> &vkmBest){
             vkmBest.erase(vkmBest.begin() + er);
         }
     }
-
-
 }
 
 
