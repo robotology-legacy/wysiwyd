@@ -34,7 +34,7 @@ int main()
     Network yarp;
     if (!yarp.checkNetwork())
     {
-        yDebug()<<"[KARMAiCubClientExample] YARP network seems unavailable!";
+        yError()<<"[KARMAiCubClientExample] YARP network seems unavailable!";
         return -1;
     }
 
@@ -44,7 +44,7 @@ int main()
     // we need connect to KARMA also
     if (!iCub.connectSubSystems())
     {
-        yDebug()<<"[KARMAiCubClientExample] KARMA seems unavailabe!";
+        yError()<<"[KARMAiCubClientExample] KARMA seems unavailabe!";
         return -1;
     }
 
