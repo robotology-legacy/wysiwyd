@@ -40,7 +40,7 @@ using namespace storygraph;
 */
 vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR& paor, bool isFirst){
 
-    cout << "useDFW launched: " << iScenario << " " << sdfw << " " << paor.toString() << " " << isFirst << endl;
+    yInfo() << "useDFW launched: " << iScenario << " " << sdfw << " " << paor.toString() << " " << isFirst;
     vector < hriResponse > vResponses;
 
     // check if PAOR
@@ -74,7 +74,7 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
     // LOAD SCENARIO
     loadSM(iScenario);
 
-    cout << "SCENARIO LOADED: " << iScenario << endl;
+    yInfo() << "SCENARIO LOADED: " << iScenario;
     // SCENARIO LOADED
 
     // IF HASN'T PAOR:
@@ -326,10 +326,10 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
     }
 
 
-    cout << "dfwRelated::useDFW return size: " << vResponses.size() << endl;
+    yInfo() << "dfwRelated::useDFW return size: " << vResponses.size();
 
     for (auto resp : vResponses){
-        cout << "\t" << resp.toString() << endl;
+        yInfo() << "\t" << resp.toString();
     }
     return vResponses;
 }

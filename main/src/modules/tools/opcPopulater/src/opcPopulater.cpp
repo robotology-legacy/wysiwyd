@@ -2021,7 +2021,6 @@ bool opcPopulater::populateScenario4(){
 
     double XInterlocutor = -1.5,
         YInterlocutor = 0,
-        ZInterlocutor = 0.6,
         distanceNat_Gir = 0.2;
 
     //int iRepetition = 5;

@@ -116,7 +116,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                 yInfo("stop called");
             }
             else{
-                cout << "confirmation: " << sSentence << endl;
+                yInfo() << " confirmation: " << sSentence;
                 getAnswer = speechConfirmation();
                 if (getAnswer){
                     ///<
@@ -166,7 +166,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         }
                     }
                     else if (bSemantic.get(0).asString() == "When"){
-                        cout << "Setting remember true !" << endl;
+                        yInfo() << "Setting remember true !";
                         remember = true;
                     }
                     else{
@@ -188,11 +188,11 @@ Bottle narrativeHandler::questionHRI_DFW(){
 
                         string picked = pickResponse(vResponses, vSaid);
                         iCub->say(picked, false);
-                        cout << "---- next question ----" << endl;
+                        yInfo() << "---- next question ----";
                     }
                 }
             }
-            cout << "keepInteracting: " << keepInteracting << endl;
+            yInfo() << "keepInteracting: " << keepInteracting;
         }
     }
 
@@ -205,7 +205,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
 * ie: (What_happen_DFW_simple(dfw_simple then))
 */
 vector < hriResponse > narrativeHandler::what_DFW_Simple(Bottle bInput, int iScenario){
-    cout << " what_DFW_Simple launched: " << bInput.toString() << ", scenario: " << iScenario << endl;
+    yInfo() << " what_DFW_Simple launched: " << bInput.toString() << ", scenario: " << iScenario;
     vector < hriResponse > vResponses;
 
     // check input Bottle:
@@ -240,7 +240,7 @@ vector < hriResponse > narrativeHandler::what_DFW_Simple(Bottle bInput, int iSce
 */
 vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sPAOR, int iScenario){
     vector < hriResponse > vResponses;
-    cout << " what_DFW_Double launched: " << bInput.toString() << ", scenario: " << iScenario << ", PAOR: " << sPAOR.toString() << endl;
+    yInfo() << " what_DFW_Double launched: " << bInput.toString() << ", scenario: " << iScenario << ", PAOR: " << sPAOR.toString();
 
 
     // check input Bottle:
@@ -297,7 +297,7 @@ vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sP
 */
 vector < hriResponse > narrativeHandler::whyPAOR(Bottle bInput, PAOR &sPAOR, int iScenario){
     vector < hriResponse > vResponses;
-    cout << " whyPAOR launched: " << bInput.toString() << ", scenario: " << iScenario << ", PAOR: " << sPAOR.toString() << endl;
+    yInfo() << " whyPAOR launched: " << bInput.toString() << ", scenario: " << iScenario << ", PAOR: " << sPAOR.toString();
 
     // check input Bottle:
     if (bInput.size() != 2){
@@ -351,12 +351,12 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
         return sReturn;
     }
 
-    cout << "Starting picking response from " << vResponses.size() << " elements" << endl;
+    yInfo() << "Starting picking response from " << vResponses.size() << " elements";
 
     double sumProb = 0.;
-    cout << "Choice btw: " << endl;
+    yInfo() << "Choice btw: ";
     for (auto pa : vResponses){
-        cout << pa.toString() << endl;
+        yInfo() << pa.toString();
         sumProb += pa.score;
     }
 
@@ -374,7 +374,7 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
         if (threshold && !found){
             sReturn = iCub->getLRH()->meaningToSentence(pa.sentence);
             vSaid.push_back(pa.paor);
-            cout << "\t\tpicked is: " << sReturn << " found: " << found << " p: " << p << endl;
+            yInfo() << "\t\tpicked is: " << sReturn << " found: " << found << " p: " << p;
             found = true;
         }
     }
@@ -387,7 +387,7 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
 
 bool narrativeHandler::doYouRemember(string sInput){
 
-    cout << "in DO YOU REMEMBER: sInput is: " << sInput << endl;
+    yInfo() << "in DO YOU REMEMBER: sInput is: " << sInput;
     bool display = false;
     vector<string>  vsMeaning;
     string meaning = iCub->getLRH()->SentenceToMeaning(sInput);
@@ -564,7 +564,7 @@ bool narrativeHandler::doYouRemember(string sInput){
     }
 
     if (bestScore > 0){
-        cout << "To return: " << iToReturn << endl;
+        yInfo() << "To return: " << iToReturn;
 
         scenarioToRecall = iToReturn;
         return true;
@@ -594,7 +594,7 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
     for (auto question : vQuestions){
 
         Bottle quest = get<0>(question);
-        cout << "Current question: " << quest.get(0).asString() << ", PAOR: " << get<1>(question).toString() << ",  Response: " << vResponsesSaid[doku].toString() << endl;
+        yInfo() << "Current question: " << quest.get(0).asString() << ", PAOR: " << get<1>(question).toString() << ",  Response: " << vResponsesSaid[doku].toString();
         if (quest.get(0).asString() == "Else"){
             Time::delay(1.0);
             string picked = pickResponse(vInternalResponses, vSaid);
