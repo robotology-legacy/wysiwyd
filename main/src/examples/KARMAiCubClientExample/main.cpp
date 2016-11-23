@@ -34,7 +34,7 @@ int main()
     Network yarp;
     if (!yarp.checkNetwork())
     {
-        cout<<"YARP network seems unavailable!"<<endl;
+        yDebug()<<"[KARMAiCubClientExample] YARP network seems unavailable!";
         return -1;
     }
 
@@ -44,7 +44,7 @@ int main()
     // we need connect to KARMA also
     if (!iCub.connectSubSystems())
     {
-        cout<<"KARMA seems unavailabe!"<<endl;
+        yDebug()<<"[KARMAiCubClientExample] KARMA seems unavailabe!";
         return -1;
     }
 
@@ -66,41 +66,41 @@ int main()
 
     iCub.home();    // Home by using ARE
     x[1] =x[1] - 0.1;
-    cout<<"try to push with KARMA...";
+    yInfo()<<"[KARMAiCubClientExample] try to push with KARMA...";
     bool ok = iCub.pushKarma(x,180,0.2);
-    cout<<(ok?"success":"failed")<<endl;
+    yInfo()<<(ok?"success":"failed");
     Time::delay(4.0);
 
     iCub.home();    // Home by using ARE
-    cout<<"try to pushLeft with KARMA by right hand..."<<endl;
+    yInfo()<<"[KARMAiCubClientExample] try to pushLeft with KARMA by right hand...";
     ok = iCub.pushKarmaLeft(x,-.2,"right");
-    cout<<(ok?"success":"failed")<<endl;
+    yInfo()<<(ok?"success":"failed");
     Time::delay(4.0);
 
     iCub.home();    // Home by using ARE
-    cout<<"try to pushRight with KARMA by unknown hand..."<<endl;
+    yInfo()<<"[KARMAiCubClientExample] try to pushRight with KARMA by unknown hand...";
     ok = iCub.pushKarmaRight(x,.2);
-    cout<<(ok?"success":"failed")<<endl;
+    yInfo()<<(ok?"success":"failed");
     Time::delay(4.0);
 
     iCub.home();    // Home by using ARE
     x[0] = -0.25;
     x[1] = 0.1;
-    cout<<"try to pushFront with KARMA ..."<<endl;
+    yInfo()<<"[KARMAiCubClientExample] try to pushFront with KARMA ...";
     ok = iCub.pushKarmaFront(x,-0.4);
-    cout<<(ok?"success":"failed")<<endl;
+    yInfo()<<(ok?"success":"failed");
     Time::delay(4.0);
 
     iCub.home();    // Home by using ARE
     x[0] = -0.45;
     x[1] =  0.1;
     x[2] = -0.05;
-    cout<<"try to pull with KARMA...";
+    yInfo()<<"[KARMAiCubClientExample] try to pull with KARMA...";
     ok = iCub.drawKarma(x,0,0,0.2);
-    cout<<(ok?"success":"failed")<<endl;
+    yInfo()<<(ok?"success":"failed");
     Time::delay(4.0);
 
-    cout<<"shutting down ... "<<endl;
+    yInfo()<<"[KARMAiCubClientExample] shutting down ... ";
     iCub.close();
     return 0;
 }
