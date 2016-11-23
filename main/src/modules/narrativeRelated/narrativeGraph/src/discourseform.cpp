@@ -157,7 +157,7 @@ void meaningDiscourse::print(){
                 cout << "\t ----" << endl;
             }
             // proposition level:
-                cout << level2->toString() << "\t";
+            cout << level2->toString() << "\t";
             //            cout << " \t IGARF linked: " << level2->kmLinkEvt[0].toString() <<endl;
 
             cout << endl << "\t ----" << endl;

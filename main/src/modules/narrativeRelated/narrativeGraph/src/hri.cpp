@@ -594,7 +594,7 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
     for (auto question : vQuestions){
 
         Bottle quest = get<0>(question);
-        cout << "Current question: " << quest.get(0).asString() << ", PAOR: " << get<1>(question).toString() << ",  Response: "<< vResponsesSaid[doku].toString() << endl;
+        cout << "Current question: " << quest.get(0).asString() << ", PAOR: " << get<1>(question).toString() << ",  Response: " << vResponsesSaid[doku].toString() << endl;
         if (quest.get(0).asString() == "Else"){
             Time::delay(1.0);
             string picked = pickResponse(vInternalResponses, vSaid);
@@ -619,7 +619,7 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
                         vInternalResponses = what_DFW_Double(quest, vSaid[doku - 1], scenarioToRecall);
                     }
                     else{
-                        cout << (get<1>(question)).toString() << " - " << vResponsesSaid[doku-1].toString() << endl;
+                        cout << (get<1>(question)).toString() << " - " << vResponsesSaid[doku - 1].toString() << endl;
                         yWarning("Question is not previous response");
                     }
                 }
@@ -636,7 +636,7 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
                         vInternalResponses = whyPAOR(quest, vSaid[doku - 1], scenarioToRecall);
                     }
                     else{
-                        cout << (get<1>(question)).toString() << " - " << vResponsesSaid[doku-1].toString() << endl;
+                        cout << (get<1>(question)).toString() << " - " << vResponsesSaid[doku - 1].toString() << endl;
                         yWarning("Question is not previous response");
                     }
                 }

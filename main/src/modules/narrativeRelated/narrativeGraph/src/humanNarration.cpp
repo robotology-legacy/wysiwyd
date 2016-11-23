@@ -1033,7 +1033,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             level2 != level1->vSentence.end();
             level2++){  // for each preposition of the sentence
             if (true){
-                cout << " [ "<<level2->toString()  << "]  ";
+                cout << " [ " << level2->toString() << "]  ";
             }
 
             int iScore = 0;
@@ -1073,7 +1073,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                         sKeyMean kTmp = vkTmp[kk];
                         if (display) cout << "\t result find: " << (kTmp.toString());
                         int iIg = -1,
-                                iL = -1;
+                            iL = -1;
                         if (kTmp.iIGARF != -1){
                             //currentIGARF = sm.vIGARF[kTmp.iIGARF];
                             iIg = sm.vIGARF[kTmp.iIGARF].iAction;
@@ -1262,16 +1262,16 @@ meaningSentence narrativeHandler::evtToMeaning(string sIGARF, int iIGARF){
 
             if (sm.vRelations[init].verb != ""){
                 paor.P = (sm.vRelations[init].verb);
-                
+
             }
 
             if (sm.vRelations[init].subject != ""){
-                paor.A = (sm.vRelations[init].subject);                
+                paor.A = (sm.vRelations[init].subject);
             }
 
             if (sm.vRelations[init].object != ""){
                 paor.O = (sm.vRelations[init].object);
-                
+
             }
             meaning.vSentence.push_back(paor);
 

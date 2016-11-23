@@ -172,9 +172,9 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
                 if (preparedMeaning != "none" && prop.P != "home")
                 {
                     if (!(sdfw == "finally" && prop.P == "want")){
-                    CurrentResponse.sentence = (preparedMeaning);
-                    cout << "Adding: " << CurrentResponse.toString() <<  " - " << preparedMeaning << endl;
-                    vResponses.push_back(CurrentResponse);
+                        CurrentResponse.sentence = (preparedMeaning);
+                        cout << "Adding: " << CurrentResponse.toString() << " - " << preparedMeaning << endl;
+                        vResponses.push_back(CurrentResponse);
                     }
                 }
             }

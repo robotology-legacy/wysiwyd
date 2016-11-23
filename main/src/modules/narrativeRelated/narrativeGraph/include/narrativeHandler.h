@@ -166,7 +166,7 @@ private:
     std::vector < discourseform::hriResponse > whyPAOR(yarp::os::Bottle bInput, storygraph::PAOR  &sPAOR, int iScenario = 5);
     bool doYouRemember(std::string sInput);
     bool createNarration(std::vector< std::tuple <yarp::os::Bottle, storygraph::PAOR > > vQuestion, int iScenario, std::vector < storygraph::PAOR > vResponses);
-    
+
     std::string pickResponse(std::vector < discourseform::hriResponse > &vResponses, std::vector<storygraph::PAOR>   &vSaid);
 
 

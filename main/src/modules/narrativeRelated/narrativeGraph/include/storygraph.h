@@ -28,7 +28,7 @@ namespace storygraph {
     /// An enum to distinguish type of event for Action or Result in the IGARF
     enum evtType {
         UNDEF, ACTION_EVT, IGARF_EVT
-    };   
+    };
 
     /// Describes an IGARF Event
     struct sIGARF {

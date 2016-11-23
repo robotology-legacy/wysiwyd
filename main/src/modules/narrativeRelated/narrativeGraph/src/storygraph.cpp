@@ -566,8 +566,8 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
                 // if a final staéte should be set as goal, change have by "want"
                 for (auto fin : vIGARF.at(i).vFinalState){
                     sRelation newR = vRelations[fin];
-                    if (vRelations[fin].verb == "have"){                        
-                        newR.verb = "want";                        
+                    if (vRelations[fin].verb == "have"){
+                        newR.verb = "want";
                     }
                     int kk = findRelation(newR, true);
                     vIGARF.at(i).vGoal.push_back(kk);

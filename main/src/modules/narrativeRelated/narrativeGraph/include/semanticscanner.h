@@ -140,13 +140,13 @@ namespace storygraph {
         void setContext(sActionEvt context); ///< Set the context of this Meaning
         // Sentence -> Meaning + PAOR
         std::set < std::string > ocwSet(); ///< Removes all ccw of the sentence, creating the vector vOCW
-                                           ///< Returns the ocw in a set to search best event in the Situation Model. DFW are removed.
+        ///< Returns the ocw in a set to search best event in the Situation Model. DFW are removed.
         void extractFocus(const sActionEvt &a); ///< Adds a meaning line, replace ocw of action by '_' in vOCW
         void extractOthers(); ///< Adds lines for the other ocw (dfw are added in the first line)
         // sActionEvent -> Meaning + PAOR
         void addDFW(std::string word);
         void addEvent(sActionEvt a);
-        void evtToMeaning(std::string lang="en"); ///< Complete each meaningLine with naïve focus (according to the lang).
+        void evtToMeaning(std::string lang = "en"); ///< Complete each meaningLine with naïve focus (according to the lang).
         //
         std::string getMeaning(int minFocus = 8); ///< Returns the whole train line: "meaning1, meaning2, ... <o> focus1, focus2, ... <o>; sentence"
     };

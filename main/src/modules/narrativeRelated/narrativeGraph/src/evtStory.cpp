@@ -11,7 +11,7 @@ string evtStory::toString(){
     ostringstream os;
     os << "*************************************" << endl;
     os << "\tinstance:      " << instance << endl;
-    os << "\tbegin:         " << begin<< endl;
+    os << "\tbegin:         " << begin << endl;
     os << "\tactivityName:  " << activity_name << endl;
     os << "\tactivity_type: " << activity_type << endl;
     os << "\tpredicate:     " << predicate << endl;
