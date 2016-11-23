@@ -65,9 +65,10 @@ before, give Larry brain iCub, take iCub brain, P1 P2 A2 O2 R2 P3 A3 O3
 before, remove Mary box, take iCub brain, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
-because, give Mary iCub brain, say iCub Give_me_the_brain_please Mary, P1 P2 A2 O2 R2 P3 A3 O3 R3
-because, have iCub brain, want iCub brain, P1 P2 A2 O2 P3 A3 O3
-because, have iCub brain, give Mary brain iCub, P1 P2 A2 O2 P3 A3 O3 R3
+because, say iCub Give_me_the_brain_please Mary, give Mary iCub brain, P1 P2 A2 O2 R2 P3 A3 O3 R3
+because, want iCub brain, have iCub brain, P1 P2 A2 O2 P3 A3 O3
+because, give Mary brain iCub, have iCub brain, P1 P2 A2 O2 R2 P3 A3 O3
+
 
 # FINALLY
 finally, have iCub brain, P1 P2 A2 O2

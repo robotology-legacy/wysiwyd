@@ -228,14 +228,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         linkMeaningScenario(6, 4);
         cout << endl << endl;
 
-        //questionHRI_DFW();
     }
-
-    /*
-        ofstream IGARFfile;
-        IGARFfile.open(sIGARFfile);
-        listStories[0].displayNarration();
-        sm.ABMtoSM(listStories.at(0), IGARFfile);*/
 
     return true;
 }

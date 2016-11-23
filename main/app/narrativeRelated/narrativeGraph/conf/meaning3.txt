@@ -64,12 +64,13 @@ before, give Larry mug iCub, take iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
 before, remove Robert box, take iCub mug, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
-because, give Larry mug iCub, say iCub Give_me_the_mug_please Larry, P1 P2 A2 O2 R2 P3 A3 O3 R3
-because, remove Robert box, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
-because, have Larry mug, remove Robert box, P1 P2 A2 O2 P3 A3 O3
-because, have iCub mug, give Larry mug iCub, P1 P2 A2 O2 P3 A3 O3 R3
-because, have iCub mug, say iCub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
-because, have iCub mug, say iCub Give_me_the_mug_please Larry, P1 P2 A2 O2 P3 A3 O3 R3
+because, say iCub Give_me_the_mug_please Larry, give Larry mug iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+because, say iCub can_you_remove_the_box_please? Robert, remove Robert box, P1 P2 A2 O2 R2 P3 A3 O3
+because, remove Robert box, have Larry mug, P1 P2 A2 O2 P3 A3 O3
+because, give Larry mug iCub, have iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
+because, say iCub can_you_remove_the_box_please? Robert, have iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
+because, say iCub Give_me_the_mug_please Larry, have iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
+
 
 # FINALLY
 finally, have iCub mug, P1 P2 A2 O2

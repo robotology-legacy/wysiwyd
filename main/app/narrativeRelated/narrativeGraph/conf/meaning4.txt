@@ -54,10 +54,11 @@ but, take iCub rabbit, cover box rabbit, P1 P2 A2 O2 P3 A3 O3
 but, take iCub rabbit, fail iCub take, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
-#because, take iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
-because,  take iCub rabbit, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
-because,  have iCub rabbit, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
-because,  have iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+#because, remove Sam box, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+because,  want iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+because,  want iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+because,  take iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+
 
 #FINALLY
 finally, have iCub rabbit, P1 P2 A2 O2
