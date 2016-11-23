@@ -198,10 +198,10 @@ yarp::sig::Vector wysiwyd::wrdac::SubSystem_KARMA::applySafetyMargins(const yarp
     return out;
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
+bool wysiwyd::wrdac::SubSystem_KARMA::returnArmSafely(std::string armType)
 {
-    Vector xd(3,0.0), xdL(3,0.0), xdR(3,0.0), odL(3,0.0), odR(3,0.0);
-    double travelTime = 0.5;
+    Vector xL(3,0.0), xR(3,0.0), xdL(3,0.0), xdR(3,0.0), odL(3,0.0), odR(3,0.0);
+    double travelTime = 2.0;
 
     int contextL, contextR;
     iCartCtrlL->storeContext(&contextL);
@@ -217,30 +217,39 @@ bool wysiwyd::wrdac::SubSystem_KARMA::prepare()
     iCartCtrlL->tweakSet(options);
     iCartCtrlR->tweakSet(options);
 
-    iCartCtrlL->getPose(xd,odL);
-    iCartCtrlR->getPose(xd,odR);
-    xdL[0] = 0.0;
-    xdL[1] = -0.3;
-    xdL[2] = 0.5;
+    iCartCtrlL->getPose(xL,odL);
+    iCartCtrlR->getPose(xR,odR);
 
-    xdR[0] = 0.0;
-    xdR[1] = 0.3;
-    xdR[2] = 0.5;
-
-    iCartCtrlR->goToPose(xdR,odR,1.0);
-    iCartCtrlL->goToPose(xdL,odL,1.0);
-
-    iCartCtrlL->waitMotionDone(0.1,4.0);
-    iCartCtrlR->waitMotionDone(0.1,4.0);
-
-    iCartCtrlL->stopControl();
-    iCartCtrlR->stopControl();
-
-    iCartCtrlL->restoreContext(contextL);
-    iCartCtrlL->deleteContext(contextL);
-
-    iCartCtrlR->restoreContext(contextR);
-    iCartCtrlR->deleteContext(contextR);
+    if (armType == "selectable")
+    {
+        if (xL[2]<xR[2])
+            armType = "left";
+        else
+            armType = "right";
+    }
+    yInfo("[SubSystem_KARMA] return %s arm before home",armType.c_str());
+    if (armType == "left")
+    {
+        xdL = xL;
+        xdL[2] = std::min(0.1,xL[2] + 0.1);
+        yInfo("[SubSystem_KARMA] xdL = %s",xdL.toString().c_str());
+        iCartCtrlL->goToPose(xdL,odL,1.0);
+        iCartCtrlL->waitMotionDone(0.1,4.0);
+        iCartCtrlL->stopControl();
+        iCartCtrlL->restoreContext(contextL);
+        iCartCtrlL->deleteContext(contextL);
+    }
+    else if (armType == "right")
+    {
+        xdR = xR;
+        xdR[2] = std::min(0.1,xR[2] + 0.1);
+        yInfo("[SubSystem_KARMA] xdR = %s",xdR.toString().c_str());
+        iCartCtrlR->goToPose(xdR,odR,1.0);
+        iCartCtrlR->waitMotionDone(0.1,4.0);
+        iCartCtrlR->stopControl();
+        iCartCtrlR->restoreContext(contextR);
+        iCartCtrlR->deleteContext(contextR);
+    }
 
     return true;
 }
@@ -302,6 +311,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     // Call push (no calibration)
     bool pushSucceed = push(targetCenter,theta,radius,options,sName);
 
+    if (pushSucceed)
+        returnArmSafely(armType);
+
     if (armChoose)
         chooseArmAuto();
 
@@ -315,7 +327,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     // Calculate the pushing distance (radius) for push with Karma
     Vector object = objCenter;
     Bottle opt = options;
-    double zOffset = 0.05;
+    double zOffset = 0.1;
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
     double radius = fabs(object[0] - targetPosXFront);
     yInfo ("objectX = %f",object[0]);
@@ -338,6 +350,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     // Call push (no calibration)
     bool pushSucceed = push(targetCenter,-90,radius,options,sName);
 
+    if (pushSucceed)
+        returnArmSafely(armType);
+
     if (armChoose)
         chooseArmAuto();
 
@@ -348,8 +363,6 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
                                            const double theta, const double radius,
                                            const yarp::os::Bottle &options, const std::string &sName)
 {
-    prepare();
-
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -404,8 +417,6 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
 
 bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter, const double theta, const double radius, const double dist, const yarp::os::Bottle &options, const std::string &sName)
 {
-    prepare();
-
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
