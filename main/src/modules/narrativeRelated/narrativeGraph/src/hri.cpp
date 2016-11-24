@@ -184,6 +184,12 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         else if (bSemantic.get(0).asString() == "Why"){
                             vResponses = whyPAOR(bSemantic, sPAOR, scenarioToRecall);
                         }
+                        else if (bSemantic.get(0).asString() == "Why_is_that"){
+                            if (vSaid.size()!=0){
+                                vResponses = whyIsThat(vSaid[vSaid.size()-1], scenarioToRecall);
+                            }
+
+                        }
                         vQuestions.push_back(tuple<Bottle, PAOR>(bSemantic, sPAOR));
 
                         string picked = pickResponse(vResponses, vSaid);
@@ -339,6 +345,23 @@ vector < hriResponse > narrativeHandler::whyPAOR(Bottle bInput, PAOR &sPAOR, int
     cout << "returning: " << endl << vResponses.size() << endl;
     return vResponses;
 }
+
+/*
+* bInput:  (What_happen_DFW_double ((dfw_double "dfw") (agent "name") (predicate "predicate") opt: (CCW "ccw") (object "obj")))
+* ie: (What_happen_DFW_double ((dfw_double because) (agent Sam) (predicate remove) (CCW the) (object box)))
+*/
+vector < hriResponse > narrativeHandler::whyIsThat(PAOR &sPAOR, int iScenario){
+    vector < hriResponse > vResponses;
+    yInfo() << " whyIsThat launched, scenario: " << iScenario << ", PAOR: " << sPAOR.toString();
+    string sdfw = "because";
+
+    vResponses = useDFW(iScenario, sdfw, sPAOR, false);
+
+    cout << "returning: " << endl << vResponses.size() << endl;
+    return vResponses;
+}
+
+
 
 
 string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector<PAOR> &vSaid){

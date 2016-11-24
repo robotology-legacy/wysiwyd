@@ -22,6 +22,14 @@
     <P>What else</P>    
   </RULE>
   
+
+  <RULE  NAME="Why_is_that"  TOPLEVEL="ACTIVE"  EXPORT="1">
+<L>
+    <P>Why is that</P>   
+    <P>Why did this happened</P> 
+</L>
+  </RULE>
+  
   
   <RULE  NAME="When"  TOPLEVEL="ACTIVE"  EXPORT="1">
     <P>Do you remember when</P>    
@@ -132,7 +140,7 @@
   <RULE NAME="predicate" DYNAMIC="TRUE">
     <L>
       <P>want</P>
-      <P>ask</P>
+      <P>take</P>
       <P>give</P>
       <P>have</P>
       <P>reason</P>
