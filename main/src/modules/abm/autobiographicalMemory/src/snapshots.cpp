@@ -91,6 +91,26 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             osMain << bTemp.get(2).asString() << "' , '"; // activitytype
             done = true;
         }
+        else if (bTemp.get(0) == "reasoning" && !done)
+        {
+            osMain << bTemp.get(1).asString() << "' , '"; // activityname
+            sName = bTemp.get(1).asString();
+            imgLabel = bTemp.get(1).asString();
+
+            //used to name the single image
+            ostringstream labelImg;
+            labelImg << imgLabel << "_" << instance;
+            fullSentence = labelImg.str();
+
+            activityType = bTemp.get(2).asString();
+            //if activity is an action -> stream
+            if (activityType == "action") {
+                isStreamActivity = true;
+            }
+
+            osMain << bTemp.get(2).asString() << "' , '"; // activitytype
+            done = true;
+        }
     }
     if (!done) {
         osMain << "unknown' , 'unknown', '";
@@ -527,6 +547,8 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     /*
     format of input bottle :
     snapshot (action name_action type_action) (arg1 arg2 argn) (role1 role 2 rolen) (begin 0/1)
+    or
+    snapshot (reasoning name_action type_action) (arg1 arg2 argn) (role1 role 2 rolen) (begin 0/1)
 
     Arguments are from 2 types:
     - something from the OPC : just argN is enough
