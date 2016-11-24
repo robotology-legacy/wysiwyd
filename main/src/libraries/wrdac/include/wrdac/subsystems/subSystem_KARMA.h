@@ -161,6 +161,18 @@ namespace wysiwyd {
                       const std::string &sName="target");
 
             /**
+             * @brief pullBack (KARMA): pull an object to a certain location along x-axis of robot RoF
+             * @param objCenter: coordinate of object
+             * @param targetPosXBack: x coordinate of location to pull object to
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @param sName: name of object to pull
+             * @return true in case of success release, false otherwise
+             */
+            bool pullBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+                                                           const std::string &armType,
+                                                           const yarp::os::Bottle &options, const std::string &sName);
+            /**
              * @brief draw (KARMA): draw action, along the positive direction of the x-axis (in robot FoR)
              * @param targetCenter: center of a circle
              * @param theta: angle between the y-axis (in robot FoR) and starting position of draw action.

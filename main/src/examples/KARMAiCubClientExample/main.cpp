@@ -95,8 +95,17 @@ int main()
     x[0] = -0.45;
     x[1] =  0.1;
     x[2] = -0.05;
-    yInfo()<<"[KARMAiCubClientExample] try to pull with KARMA...";
+    yInfo()<<"[KARMAiCubClientExample] try to pure pull with KARMA...";
     ok = iCub.drawKarma(x,0,0,0.2);
+    yInfo()<<(ok?"success":"failed");
+    Time::delay(4.0);
+
+    iCub.home();    // Home by using ARE
+    x[0] = -0.45;
+    x[1] = -0.1;
+    x[2] = -0.05;
+    yInfo()<<"[KARMAiCubClientExample] try to pullBack with KARMA...";
+    ok = iCub.pullKarmaBack(x,-0.25);
     yInfo()<<(ok?"success":"failed");
     Time::delay(4.0);
 

@@ -415,7 +415,48 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
 
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter, const double theta, const double radius, const double dist, const yarp::os::Bottle &options, const std::string &sName)
+bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+                                               const std::string &armType,
+                                               const yarp::os::Bottle &options, const std::string &sName)
+{
+    // Calculate the pulling distance (dist) for pull with Karma
+    Vector object = objCenter;
+    Bottle opt = options;
+    double zOffset = 0.05;
+    selectHandCorrectTarget(opt,object);    // target is calibrated by this method
+    double dist = fabs(object[0] - targetPosXBack); // dist in pulling ~ radius in pushing; radius in pulling ~ radius in pushing
+    yInfo ("objectX = %f",object[0]);
+    yInfo ("targetPosXBack = %f",targetPosXBack);
+    yInfo ("dist = %f",dist);
+    Vector targetCenter = object;
+
+    if (hasTable)
+        targetCenter[2] = tableHeight + zOffset;
+    else
+        targetCenter[2] += zOffset;
+    yInfo ("object height = %f",targetCenter[2]);
+
+    // Choose arm
+    bool armChoose = false;
+    if (armType =="right" || armType == "left")
+        armChoose = chooseArm(armType);
+
+    // Call draw (no calibration)
+    bool drawSucceed = draw(targetCenter,0,0,dist,options,sName);
+
+    if (drawSucceed)
+        returnArmSafely(armType);
+
+    if (armChoose)
+        chooseArmAuto();
+
+    return drawSucceed;
+}
+
+bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter,
+                                           const double theta, const double radius,
+                                           const double dist,
+                                           const yarp::os::Bottle &options, const std::string &sName)
 {
     if (ABMconnected)
     {
@@ -470,7 +511,10 @@ bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter
     return bReturn;
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const yarp::sig::Vector &targetCenter, const double theta, const double radius, const double dist, const yarp::os::Bottle &options, const std::string &sName)
+bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const yarp::sig::Vector &targetCenter,
+                                            const double theta, const double radius,
+                                            const double dist,
+                                            const yarp::os::Bottle &options, const std::string &sName)
 {
     if (ABMconnected)
     {
