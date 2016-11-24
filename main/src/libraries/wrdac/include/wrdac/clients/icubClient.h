@@ -294,7 +294,7 @@ namespace wysiwyd{
 
 
             /**
-             * @brief pushKarmaLeft: push an object to right side, this wrapper simplify pure push action of KARMA
+             * @brief pushKarmaLeft: push an object by name to right side
              * @param objName: name of object, which will be looked for in OPC
              * @param targetPosYLeft: Y coordinate of object to push to
              * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
@@ -306,7 +306,7 @@ namespace wysiwyd{
                                const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
-             * @brief pushKarmaRight: push an object to right side, this wrapper simplify pure push action of KARMA
+             * @brief pushKarmaRight: push an object by name to right side
              * @param objName: name of object, which will be looked for in OPC
              * @param targetPosYRight: Y coordinate of object to push to
              * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
@@ -318,7 +318,7 @@ namespace wysiwyd{
                                 const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
-             * @brief pushKarmaFront: push an object to front, this wrapper simplify pure push action of KARMA
+             * @brief pushKarmaFront: push an object by name to front
              * @param objName: name of object, which will be looked for in OPC
              * @param targetPosXFront: Y coordinate of object to push to
              * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
@@ -328,7 +328,17 @@ namespace wysiwyd{
             bool pushKarmaFront(const std::string &objName, const double &targetPosXFront,
                                 const std::string &armType = "selectable",
                                 const yarp::os::Bottle &options = yarp::os::Bottle());
-
+            /**
+             * @brief pullKarmaBack: pull an object by name back
+             * @param objName: name of object, which will be looked for in OPC
+             * @param targetPosXBack: Y coordinate of object to pull back
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @return true in case of success release, false otherwise
+             */
+            bool pullKarmaBack(const std::string &objName, const double &targetPosXBack,
+                               const std::string &armType = "selectable",
+                               const yarp::os::Bottle &options = yarp::os::Bottle());
             /**
              * @brief pushKarmaLeft: push an object to left side, this wrapper simplify pure push action of KARMA
              * @param objCenter: coordinate of object's center
@@ -366,7 +376,18 @@ namespace wysiwyd{
             bool pushKarmaFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
                                 const std::string &armType = "selectable",
                                 const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
-
+            /**
+             * @brief pullKarmaBack: pull an object back, this wrapper simplify pure draw action of KARMA
+             * @param objCenter: coordinate of object's center
+             * @param targetPosXBack: X coordinate of object to pull back
+             * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
+             * @param options
+             * @param sName: name of object to pull
+             * @return true in case of success release, false otherwise
+             */
+            bool pullKarmaBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+                               const std::string &armType = "selectable",
+                               const yarp::os::Bottle &options  = yarp::os::Bottle(), const std::string &sName="target");
             /**
             * Take at a specified location.
             * @param oName is the name of the entity in the OPC where the

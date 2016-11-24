@@ -793,6 +793,53 @@ bool ICubClient::pushKarma(const yarp::sig::Vector &targetCenter, const double &
     return karma->push(targetCenter,theta,radius,options,sName);
 }
 
+// Back pull
+bool ICubClient::pullKarmaBack(const std::string &objName, const double &targetPosXBack,
+                               const std::string &armType,
+                               const yarp::os::Bottle &options)
+{
+    if (opc->isConnected())
+    {
+        Entity *target = opc->getEntity(objName, true);
+        if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
+        {
+            yWarning() << "[iCubClient] Called pushKarmaFront() on a unallowed entity: \"" << objName << "\"";
+            return false;
+        }
+
+        Object *oTarget = dynamic_cast<Object*>(target);
+        if (oTarget->m_present!=1.0)
+        {
+            yWarning() << "[iCubClient] Called pushKarmaFront() on an unavailable entity: \"" << objName << "\"";
+            return false;
+        }
+
+        yInfo("[icubClient pullKarmaBack] object %s position from OPC (no calibration): %s",oTarget->name().c_str(),
+              oTarget->m_ego_position.toString().c_str());
+        return pullKarmaBack(oTarget->m_ego_position, targetPosXBack, armType, options, oTarget->name());
+    }
+    else
+    {
+        yWarning() << "[iCubClient] There is no OPC connection";
+        return false;
+    }
+}
+
+bool ICubClient::pullKarmaBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+                               const std::string &armType,
+                               const yarp::os::Bottle &options, const std::string &sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called pullKarmaBack() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->pullBack(objCenter,targetPosXBack,armType,options,sName);
+}
+
+
+// Pure pull (draw) in KARMA
 bool ICubClient::drawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
                            const double &radius, const double &dist,
                            const yarp::os::Bottle &options, std::string sName)
