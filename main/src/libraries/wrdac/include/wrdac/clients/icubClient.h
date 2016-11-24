@@ -331,7 +331,7 @@ namespace wysiwyd{
             /**
              * @brief pullKarmaBack: pull an object by name back
              * @param objName: name of object, which will be looked for in OPC
-             * @param targetPosXFront: Y coordinate of object to push to
+             * @param targetPosXBack: Y coordinate of object to pull back
              * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
              * @param options
              * @return true in case of success release, false otherwise
