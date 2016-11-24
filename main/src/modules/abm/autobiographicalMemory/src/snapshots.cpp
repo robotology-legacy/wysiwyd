@@ -71,27 +71,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     for (int i = 1; i < bInput.size(); i++)
     {
         bTemp = *(bInput.get(i).asList());
-        if (bTemp.get(0) == "action" && !done)
-        {
-            osMain << bTemp.get(1).asString() << "' , '"; // activityname
-            sName = bTemp.get(1).asString();
-            imgLabel = bTemp.get(1).asString();
-
-            //used to name the single image
-            ostringstream labelImg;
-            labelImg << imgLabel << "_" << instance;
-            fullSentence = labelImg.str();
-
-            activityType = bTemp.get(2).asString();
-            //if activity is an action -> stream
-            if (activityType == "action") {
-                isStreamActivity = true;
-            }
-
-            osMain << bTemp.get(2).asString() << "' , '"; // activitytype
-            done = true;
-        }
-        else if (bTemp.get(0) == "reasoning" && !done)
+        if (((bTemp.get(0) == "action") || (bTemp.get(0) == "reasoning")) && !done)
         {
             osMain << bTemp.get(1).asString() << "' , '"; // activityname
             sName = bTemp.get(1).asString();
