@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #ifndef _RESERVOIRHANDLER_H_
 #define _RESERVOIRHANDLER_H_
@@ -29,79 +29,79 @@
 class reservoirHandler : public yarp::os::RFModule {
 private:
 
-	std::string testObject;
-	std::string testAction;
-	std::string testLocation;
+    std::string testObject;
+    std::string testAction;
+    std::string testLocation;
 
     double offsetGrasp;
 
-	std::string moduleName;
-	std::string sKeyWord;
+    std::string moduleName;
+    std::string sKeyWord;
 
-	std::string handlerPortName;
-	std::string port2SpeechRecogName;
-	std::string port2iSpeakName;
+    std::string handlerPortName;
+    std::string port2SpeechRecogName;
+    std::string port2iSpeakName;
 
-	std::string nameGrammarNodeType;
-	std::string nameGrammarNodeModality;
-	std::string nameGrammarNodeTrainAP;
-	std::string nameGrammarNodeTestAP;
-	std::string nameGrammarNodeTrainSD;
-	std::string nameGrammarYesNo;
+    std::string nameGrammarNodeType;
+    std::string nameGrammarNodeModality;
+    std::string nameGrammarNodeTrainAP;
+    std::string nameGrammarNodeTestAP;
+    std::string nameGrammarNodeTrainSD;
+    std::string nameGrammarYesNo;
 
-	std::string fileAPimputS;
-	std::string fileAPoutputM;
-	std::string fileSRinputM;
-	std::string fileSRoutputS;
-	std::string fileXavierTrain;
-	std::string fileXavierTrainAP;
-	std::string fileSD;
-	std::string fileAP;
+    std::string fileAPimputS;
+    std::string fileAPoutputM;
+    std::string fileSRinputM;
+    std::string fileSRoutputS;
+    std::string fileXavierTrain;
+    std::string fileXavierTrainAP;
+    std::string fileSD;
+    std::string fileAP;
 
-	std::string pythonPath;
+    std::string pythonPath;
 
-	std::string sHand;
-	std::string bMode;
+    std::string sHand;
+    std::string bMode;
     double ZRTObjects;
 
 
-	yarp::os::Port handlerPort;               // a port to handle messages
+    yarp::os::Port handlerPort;               // a port to handle messages
     yarp::os::Port Port2SpeechRecog;      // a port to send grammar to the speech recog
     yarp::os::Port Port2iSpeak;       // a port to send grammar to the speech recog
 
     bool isAwake;
-	wysiwyd::wrdac::ICubClient *iCub;
+    wysiwyd::wrdac::ICubClient *iCub;
 
     int iCurrentInstance;                   // instance of the current request
     int inbsentence;
-	std::string sCurrentActivity;
-	std::string sCurrentType;
-	std::string sCurrentNode;
-	std::string sCurrentCanonical;
-	std::string sCurrentGrammarFile;
-	std::string sLastSentence;
-	std::string sSentence_type;
-	std::string sSentence;
-	std::string sdataTestSD;
+    std::string sCurrentActivity;
+    std::string sCurrentType;
+    std::string sCurrentNode;
+    std::string sCurrentCanonical;
+    std::string sCurrentGrammarFile;
+    std::string sLastSentence;
+    std::string sSentence_type;
+    std::string sSentence;
+    std::string sdataTestSD;
     // last sentence said (in case of a repeat)
-	std::pair<std::string, std::string> psCurrentComplement;
+    std::pair<std::string, std::string> psCurrentComplement;
 
-	std::string sentence;
-	std::list<std::string> lMeaningsSentences;
+    std::string sentence;
+    std::list<std::string> lMeaningsSentences;
     //Vector coordinates;
 
     std::ofstream fileVectorAP;
     std::ifstream fileVectorAPRead;
-	std::string nameGrammarNodeInteraction;
-	std::string svector,sanswer;
-	std::string fvector;
-	std::string sVectorFileAP;
-	std::string sagent;
+    std::string nameGrammarNodeInteraction;
+    std::string svector, sanswer;
+    std::string fvector;
+    std::string sVectorFileAP;
+    std::string sagent;
     int iquestion;
-	std::list<int> nbCaracters(std::string ssequence);
-	std::string sConstrualLocation;
-	std::string sobjectFocusChanged;
-	std::map<std::string, std::string> mAssociation;
+    std::list<int> nbCaracters(std::string ssequence);
+    std::string sConstrualLocation;
+    std::string sobjectFocusChanged;
+    std::map<std::string, std::string> mAssociation;
 
 
     bool nodeType();
@@ -117,20 +117,20 @@ private:
     bool grammarNodeInteraction();
     bool mainNodeInteraction();
 
-	bool createVectorFile(std::string sVectorFile);
+    bool createVectorFile(std::string sVectorFile);
     bool spatialRelation();
     bool launchSpatialRelation();
 
-	bool callReservoir(std::string fPython);
-	std::string  grammarToString(std::string sPath);
+    bool callReservoir(std::string fPython);
+    std::string  grammarToString(std::string sPath);
 
     int copyTrainData(const char* fileNameIn, const char* fileNameOut);
     int copyPastFile(const char* in, const char* fileNameOut);
     int trainSaveMeaningSentence(const char *filename);
-	int createTestwithTrainData(const char* filename, std::string sMeaningSentence);
-	std::string openResult(const char* fileNameIn);
-	bool AREactions(std::vector<std::string> seq);
-	std::vector<std::string> extractVocabulary(std::string sequence);
+    int createTestwithTrainData(const char* filename, std::string sMeaningSentence);
+    std::string openResult(const char* fileNameIn);
+    bool AREactions(std::vector<std::string> seq);
+    std::vector<std::string> extractVocabulary(std::string sequence);
 
 
     // For simulator
@@ -142,10 +142,10 @@ public:
      * document your methods too.
      */
 
-	bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
+    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
     bool interruptModule();                       // interrupt, e.g., the ports
     bool close();                                 // close and shut down the module
-	bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
+    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
     double getPeriod();
     bool updateModule();
 };

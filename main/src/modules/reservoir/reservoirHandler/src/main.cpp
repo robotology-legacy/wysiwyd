@@ -13,18 +13,18 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #include "reservoirHandler.h"
 
 int main(int argc, char * argv[]) {
     /* initialize yarp network */
-	yarp::os::Network yarp;
-	reservoirHandler module;
+    yarp::os::Network yarp;
+    reservoirHandler module;
 
 
     /* prepare and configure the resource finder */
-	yarp::os::ResourceFinder rf;
+    yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("reservoirHandler.ini"); //overridden by --from parameter
     rf.setDefaultContext("reservoirHandler/conf");   //overridden by --context parameter
