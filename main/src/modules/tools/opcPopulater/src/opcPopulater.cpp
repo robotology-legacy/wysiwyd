@@ -162,7 +162,7 @@ bool opcPopulater::updateModule() {
     //Just for testing: 
     if (move==true)
     {
-        double speed = 1./10.;
+        //double speed = 1./10.;
         iCub->opc->checkout();
 
         Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("moving_1");

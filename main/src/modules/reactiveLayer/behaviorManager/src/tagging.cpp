@@ -10,7 +10,7 @@ void Tagging::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Tagging::run";
     yDebug() << "send rpc to proactiveTagging";
     string type, target, sentence;
-    bool no_objects = true;
+    //bool no_objects = true;
     Bottle cmd;
     Bottle rply;
     if (args.size()!=0){
