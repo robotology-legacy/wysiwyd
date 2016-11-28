@@ -446,7 +446,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 {
     Bottle bError;
     bReply.clear();
-    bReply.addVocab(Vocab::encode("many"));
 
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +

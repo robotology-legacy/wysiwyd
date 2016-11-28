@@ -186,7 +186,6 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 {
 
     bReply.clear();
-    bReply.addVocab(Vocab::encode("many"));
 
     if (!bReady)
     {

@@ -298,7 +298,6 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     yInfo() << " rpc command received: " << command.toString();
 
     reply.clear();
-    reply.addVocab(Vocab::encode("many"));
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");

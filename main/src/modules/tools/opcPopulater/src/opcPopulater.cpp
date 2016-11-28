@@ -93,7 +93,6 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         "setSaliencyEntity entity_name saliency_name\n";
 
     reply.clear();
-    reply.addVocab(Vocab::encode("many"));
 
 
     if (command.get(0).asString() == "quit") {
