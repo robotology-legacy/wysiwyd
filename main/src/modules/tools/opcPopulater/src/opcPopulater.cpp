@@ -609,7 +609,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     //        true);
     //}
     yInfo() << " start grasping";
-    bool finished = iCub->getARE()->take(ObjStory->m_ego_position);
+    iCub->getARE()->take(ObjStory->m_ego_position);
 
     //if (iCub->getABMClient()->Connect())
     //{
@@ -1350,7 +1350,7 @@ bool opcPopulater::populateScenario1()
     iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     Time::delay(1.0);
     yInfo() << " start grasping";
-    bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -1502,7 +1502,7 @@ bool opcPopulater::populateScenario1()
     Time::delay(2.);
     iCub->getARE()->look(Mouse->m_ego_position, bOption, sObjError);
     iCub->say("This is not the " + sObject, false);
-    finished = iCub->getARE()->point(Mouse->m_ego_position, bOption, sObjError);
+    iCub->getARE()->point(Mouse->m_ego_position, bOption, sObjError);
     iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
     iCub->say("Can you give me the " + sObject + " please", false);
     Time::delay(1.0);
@@ -1545,7 +1545,7 @@ bool opcPopulater::populateScenario1()
         false);
     iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     iCub->say("Yes, this is the " + sObject);
-    finished = iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
 
     return true;
@@ -1656,7 +1656,7 @@ bool opcPopulater::populateScenario2(){
     Time::delay(1.5);
 
     yInfo() << " start grasping";
-    bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -1783,7 +1783,7 @@ bool opcPopulater::populateScenario2(){
         false);
 
     // Realisation of the iCub
-    iCub->say("Yes, this is the " + sObject), false;
+    iCub->say("Yes, this is the " + sObject);
     iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
     Time::delay(2.);
@@ -1891,7 +1891,7 @@ bool opcPopulater::populateScenario3(){
     Time::delay(1.0);
 
     yInfo() << " start grasping";
-    bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -2170,7 +2170,7 @@ bool opcPopulater::populateScenario5(){
     Time::delay(1.0);
 
     yInfo() << " start grasping";
-    bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -2259,7 +2259,7 @@ bool opcPopulater::populateScenario5(){
     yInfo(" iCub ask the ObjStory");
 
     list<pair<string, string> > lArgument;
-    finished = iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
     Time::delay(1.0);
     string sentence;
     sentence = "Give me the " + sObject;
@@ -2437,7 +2437,7 @@ bool opcPopulater::populateScenario6(){
     Time::delay(1.0);
 
     yInfo() << " start grasping";
-    bool finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -2501,7 +2501,7 @@ bool opcPopulater::populateScenario6(){
     // TRY TO GRASP
 
     yInfo() << " start grasping";
-    finished = iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());

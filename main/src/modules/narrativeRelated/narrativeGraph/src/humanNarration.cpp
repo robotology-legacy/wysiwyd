@@ -882,7 +882,7 @@ void narrativeHandler::checkScenarios(int iScena){
         }
     }
     else {
-        if (iScena < listAutoScenarios.size())
+        if (iScena < (int)listAutoScenarios.size())
         {
             int iSuccss = 0, iTot = 0;
             cout << endl << "narration number: " << iScena << endl;
@@ -907,7 +907,7 @@ void narrativeHandler::checkScenarios(int iScena){
 void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
 
     // check sizes:
-    if (iNarration > listAutoScenarios.size() || iScenario > listStories.size()){
+    if (iNarration > (int)listAutoScenarios.size() || iScenario > (int)listStories.size()){
         yWarning(" in narrativeHandler::linkNarrationScenario - index out or range.");
         return;
     }
@@ -915,7 +915,7 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
     loadSM(iScenario);
 
     // getting narration
-    if (iNarration < listAutoScenarios.size())
+    if (iNarration < (int)listAutoScenarios.size())
     {
         int iSuccss = 0, iTot = 0;
         cout << endl << "Narration number: " << iNarration << endl;
@@ -941,7 +941,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     cout << "in linkMeaningScenario: meaning " << iMeaning << " - scenario " << iScenario << endl;
 
     // check sizes:
-    if (iMeaning > listAutoMeaning.size() || iScenario > listStories.size()){
+    if (iMeaning > (int)listAutoMeaning.size() || iScenario > (int)listStories.size()){
         yWarning(" in narrativeHandler::linkMeaningScenario - index out or range.");
         return " in narrativeHandler::linkMeaningScenario - index out or range.";
     }
@@ -963,7 +963,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
     IGARFfile.close();
     // getting narration
-    if (iMeaning <= listAutoMeaning.size())
+    if (iMeaning <= (int)listAutoMeaning.size())
     {
         cout << endl << "meaning number: " << iMeaning << endl;
         for (vector<string>::iterator itLi = listAutoMeaning[iMeaning].begin();
@@ -1065,7 +1065,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                     yWarning() << level1->getSentence();
                 }
 
-                bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
+                bAllAction &= !(iScore <= (int)iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
 
                 if (bAllAction){     // if found;
                     for (unsigned int kk = 0; kk < vkTmp.size(); kk++)

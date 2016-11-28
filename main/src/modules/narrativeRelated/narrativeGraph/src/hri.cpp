@@ -497,7 +497,7 @@ bool narrativeHandler::doYouRemember(string sInput){
                         yWarning() << level1->getSentence();
                     }
 
-                    bAllAction &= !(iScore <= iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
+                    bAllAction &= !(iScore <= (int)iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
 
                     if (bAllAction){     // if found;
                         for (unsigned int kk = 0; kk < vkTmp.size(); kk++)

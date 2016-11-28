@@ -2385,7 +2385,7 @@ string narrativeHandler::lowerKey(string input){
 
 
 void narrativeHandler::loadSM(int iScenario){
-    if (iScenario < 0 || iScenario >= listStories.size()) {
+    if (iScenario < 0 || iScenario >= (int)listStories.size()) {
         yWarning(" in NarrativeGraph::useDFW check instance scenario (out of range, sent to 0");
         iScenario = 0;
     }
@@ -2493,7 +2493,7 @@ discourseform::meaningSentence narrativeHandler::sentenceToEvent(string level1){
                 int iNumberProposition = atoi(&(meaningPAOR[iWords].at(1)));
 
                 // if new proposition
-                if (currentSentence.vSentence.size() < iNumberProposition){
+                if (currentSentence.vSentence.size() < (int)iNumberProposition){
                     storygraph::PAOR paor;
 
                     currentSentence.vSentence.push_back(paor);

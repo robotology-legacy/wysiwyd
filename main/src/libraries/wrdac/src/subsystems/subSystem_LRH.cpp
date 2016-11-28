@@ -38,7 +38,7 @@ wysiwyd::wrdac::SubSystem_LRH::SubSystem_LRH(const std::string &masterName) : Su
     bForwardABM = true;
     SubABM = new SubSystem_ABM(m_masterName + "/lrh");
 
-    ABMconnected() ? "LRH connected to ABM" : "LRH not connected to ABM";
+    ABMconnected() ? yInfo() << "LRH connected to ABM" : yWarning() << "LRH not connected to ABM";
 }
 
 void wysiwyd::wrdac::SubSystem_LRH::Close() {
