@@ -397,7 +397,7 @@ bool narrativeHandler::narrationToMeaning(story &target){
                         for (auto& tt : target.vEvents){
                             adaptMeaning(tt);
                         }
-                        //target.displayNarration();
+                        target.displayNarration();
                     }
                 }
             }
@@ -770,8 +770,9 @@ void narrativeHandler::listeningStory(){
     target.humanNarration = storyToTest;
     target.meaningStory = meaningToTest;
 
-    //    addNarrationToStory(target);
+    //addNarrationToStory(target);
     narrationToMeaning(target);
+    yInfo("narration to meaning ended, going to imagine the story");
 
     imagineStory(target);
 }

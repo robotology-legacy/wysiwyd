@@ -2,8 +2,7 @@
 """
 Created on 11 janv. 2012
 
-@author: Xavier HINAUT
-xavier.hinaut #/at\# inserm.fr
+@author: Xavier HINAUT  Anne-Laure MEALIER
 
 """
 
@@ -16,18 +15,19 @@ import pickle
 import shelve 
 
 class Comprehension:
-    def __init__(self, corpusFile, fileResult, smode, closed_class_words, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, nbNeuron):
+    def __init__(self, corpusFile, fileResult, smode, closed_class_words, l_elt_pred, nbNeuron, verbose):
         self.corpusFile = corpusFile
         self.fileResult = fileResult
         self.smode = smode
         self.closed_class_words = closed_class_words 
-        self.imax_nr_ocw = imax_nr_ocw
-        self.imax_nr_actionrelation = imax_nr_actionrelation
         self.l_elt_pred= l_elt_pred
         self.nbNeurons = nbNeuron
-        self.mainFunc()        
+        self.verbose = verbose
+        
+        self.mainFunc()
                 
-    def meaning_stim_to_meaning_code(self, stim, ocw_array, l_m_elt, verbose=False):
+    def meaning_stim_to_meaning_code(self, stim, ocw_array, l_m_elt):
+        
         """
         inputs:
             -stim: meaning stim for one time step
@@ -44,6 +44,12 @@ class Comprehension:
          _1-P1            _2-O1              _3-P2                     _4-O2             _5-F1&_5-F2   # '_' indicates an open class word
         1,0,0,0,0,0,0,0,  0,0,1,0,0,0,0,0,   0,0,0,0,1,0,0,0,          0,0,0,0,0,0,1,0,  0,1,0,0,0,1,0,0  # coded in the order PFOR (Predicate Focus Object Recipient)
         """
+        if self.verbose:
+            print "stim : ", stim
+            print "ocw_array : ", ocw_array
+            print "l_m_elt : ", l_m_elt
+            print "self.l_elt_pred : ", self.l_elt_pred
+            print "self.imax_nr_actionrelation : ", self.imax_nr_actionrelation
         ocws = ocw_array[:]
         ocws.reverse()
         meanings = []
@@ -53,34 +59,38 @@ class Comprehension:
             for i_elt_pred in range(0,len(self.l_elt_pred)):
                 meaning.append(None)
             meanings.append(meaning)
-        if verbose:
+   
+        if self.verbose:
+            print "self.l_elt_pred : ", self.l_elt_pred  #  ['P', 'A', 'O', 'R', 'V', 'W']
             print "  initial meanings:", meanings
+            print "l_m_elt : ", l_m_elt
         # for each signal in stim/output
+
         for i in range(len(l_m_elt)):
-            if stim[i]==1:
+            #print "stim[i]==1: ", stim[i]==1
+            if stim[i]==True:
                 m_elt = l_m_elt[i]
-                idx_ocw = int(m_elt[1]) # looking at '#' in '_#-P1'
+                pos1 = m_elt.find('_')
+                pos2 = m_elt.find('-')
+                idx_ocw = int(m_elt[pos1+1:pos2]) # looking at '#' in '_#-P1'
+
                 try:
                     word = ocw_array[idx_ocw-1]
                 except:
                     word = '_X_'
-                e_p = str(m_elt[3]) # looking at 'X' in '_1-X1'
+                    
+                e_p = str(m_elt[pos2+1]) # looking at 'X' in '_1-X1'
                 idx_elt_pred = self.l_elt_pred.index(e_p)
-                idx_meaning = int(m_elt[4]) # looking at '#' in '_1-P#'
-                meanings[idx_meaning-1][idx_elt_pred] = word
-                tmp=[]
-                tmp.append(word)
-                tmp.append(m_elt.split("-",1)[1])
-                PAOR.append(tmp);
-                if verbose:
-                    print "  i=", i
-                    print "  m_elt (l_m_elt[i])=", m_elt
-                    print "  idx_ocw:", idx_ocw
-                    print "  word:", word
-                    print "  e_p:", e_p
-                    print "  idx_meaning:", idx_meaning
-                    print "  meanings:", meanings
-        for i_m in range(0,imax_nr_actionrelation):
+                idx_meaning = int(m_elt[pos2+2:]) # looking at '#' in '_1-P#'
+
+                if (meanings[idx_meaning-1][idx_elt_pred] != word):
+                    meanings[idx_meaning-1][idx_elt_pred] = word
+                    tmp=[]
+                    tmp.append(word)
+                    tmp.append(m_elt.split("-",1)[1])
+                    PAOR.append(tmp);
+                    
+        for i_m in range(0,self.imax_nr_actionrelation):
             while True:
                 try:
                     meanings[i_m].remove(None)
@@ -94,23 +104,30 @@ class Comprehension:
 	  # create proper meaning
         isUsed = []
         properPAOR = []
+        
         for jj in range(0,len(meanings)):
             for ii in range(0,len(meanings[jj])):
                 isUsed.append(True)
+        
         for jj in range(0,len(meanings)):
             for ii in range(0,len(meanings[jj])):
                 missing = True
                 for kk in range(0,len(PAOR)):
-                    if missing and PAOR[kk][0] ==  meanings[jj][ii] and isUsed[kk]:
-                        properPAOR.append(PAOR[kk][1])
-                        isUsed[kk] = False
-                        missing = False
+                    try:
+                        if missing and PAOR[kk][0] ==  meanings[jj][ii] and isUsed[kk]:
+                            properPAOR.append(PAOR[kk][1])
+                            isUsed[kk] = False
+                            missing = False
+                    except:
+                        print " "
         meanings.append(properPAOR)
         return meanings
     
     def convert_one_output_activity_in_meaning(self, out_act, ocw_array, l_m_elt, thres=0.6):
         # threshold the output
         act_thres = (out_act>thres)
+        if self.verbose:
+            print " act_thres : ",  act_thres
         # get the code from the last time time activity
         meanings = self.meaning_stim_to_meaning_code(stim=act_thres[-1,:], ocw_array=ocw_array, l_m_elt=l_m_elt)
         # get meanings with code and l_ocw_array
@@ -122,56 +139,58 @@ class Comprehension:
         for i_out in range(len(l_out_act)):
             meanings = self.convert_one_output_activity_in_meaning(l_out_act[i_out], l_ocw_array[i_out], l_m_elt=l_m_elt)
             l_meanings.append(meanings)
+        if self.verbose:
+            print "l_meanings : ", l_meanings
         return l_meanings
 
-    def extract_data_io(self, path_file, verbose=False):
-        flag_train = False
-        flag_test = False
+    
+    def extract_data_io(self, path_file):
         
-        train = []
-        test = []
-        
-        f = open(path_file, "r")
-        for line in f:
-                if verbose:
-    #                print " "
-                    print "* current line:", line
-                #remove commentaries
+        train_flag = False
+        test_flag = False
+        if (self.smode == "train"):
+            train = []
+            f = open(path_file, "r")
+            for line in f:
                 (line_tmp,x,x)=line.partition('#')
-                # remove useless spaces
                 line_tmp = line_tmp.strip()
-                if verbose:
-                    print " after removed commentaries and spaces:", line_tmp
-                if line_tmp=='':
-                    pass
-                elif line_tmp[:12]=='<train data>':
-                    if flag_test == True:
-                        raise Exception, "Entering <train data>, but <test data> is not finished. Line concerned: /n"+line
-                    flag_train = True
-                elif line_tmp[:13]=='</train data>':
-                    if flag_test == True:
-                        raise Exception, "Found </train data>, but <test data> is not finished. Line concerned: /n"+line
-                    flag_train = False
-                elif line_tmp[:11]=='<test data>':
-                    if flag_train == True:
-                        raise Exception, "Entering <test data>, but <train data> is not finished. Line concerned: /n"+line
-                    flag_test = True
-                elif line_tmp[:12]=='</test data>':
-                    if flag_train == True:
-                        raise Exception, "Found </test data>, but <train data> is not finished. Line concerned: /n"+line
-                    flag_test = False
-                else:
-    				# in train mode
-                    if flag_train:
-                        x = self.extract_line_train(l=line_tmp)
-                        train.append(x)
-    					
-                    elif flag_test:
-                        y = self.extract_line_test(l=line_tmp)
-                        test.append(y)
-        f.close()
-        return [train, test]
 
+                if line_tmp=='<train data>':                    
+                    train_flag = True
+                elif line_tmp=='</train data>':
+                    train_flag = False
+                elif line_tmp=='':
+                    pass
+                elif (train_flag==True and test_flag==False):
+                    x = self.extract_line_train(l=line_tmp)
+                    train.append(x)
+            if self.verbose:
+                print "train : ", train
+            f.close()
+            return train 
+            
+        else:
+            test = []
+            f = open(path_file, "r")
+            for line in f:
+                (line_tmp,x,x)=line.partition('#')
+                line_tmp = line_tmp.strip()
+                
+                if line_tmp=='<test data>':
+                    test_flag = True
+                elif line_tmp=='</test data>':
+                    test_flag = False
+                elif line_tmp=='':
+                    pass
+                elif (train_flag==False and test_flag==True):
+                    x = self.extract_line_test(l=line_tmp)
+                    test.append(x)
+            
+            print "test : ", test
+            f.close()
+            return test
+            
+                    
     def txt2corpus_and_meaning(self, train_txt):
         train_corpus, train_meaning  = [], []
         ## For each (sentence,meanings) tuple
@@ -180,7 +199,6 @@ class Comprehension:
             train_meaning.append(m)
         return train_corpus, train_meaning
         
-    
     def get_and_remove_ocw_in_corpus(self, corpus, _OCW, l_closed_class):
         new_corpus = []
         l_ocw_array = []
@@ -193,9 +211,32 @@ class Comprehension:
         else:
             construction_words = l_closed_class+[_OCW]
         return (new_corpus, l_ocw_array, construction_words)
+
+
+    def get_meaning_coding_optimized(self):
+        l=[]
+        for spred in range (0, len(self.focus)):
+            if self.verbose:
+                print "spred : ", self.focus[spred]
+            for paor in range (0,len(self.focus[spred])):
+                if self.verbose:
+                    print "paor : ", self.focus[spred][paor]
+                i=0
+                for scaractere in self.focus[spred][paor]:
+                    if scaractere != '_':
+                        l.append('_'+str(spred+1)+'-'+str(scaractere)+str(i+1))
+                    if scaractere == '_':
+                        l.append('_'+str(spred+1)+'-'+'X'+str(i+1))
+                    i+=1
+        if self.verbose:
+            print "l :", l
+        return l  
         
+
     
-    def get_meaning_coding(self, imax_nr_ocw=10, imax_nr_actionrelation=3, elt_pred=['P','A','O','R','V']):
+    def get_meaning_coding(self):
+                
+
         """
         # action and relation is a full predicate (with max_nr_elt_pred element describing it)
         
@@ -208,16 +249,19 @@ class Comprehension:
          _1-P1            _2-O1              _3-P2                     _4-O2             _5-F1&_5-F2   # '_' indicates an open class word
         1,0,0,0,0,0,0,0,  0,0,1,0,0,0,0,0,   0,0,0,0,1,0,0,0,          0,0,0,0,0,0,1,0,  0,1,0,0,0,1,0,0  # coded in the order PFOR (Predicate Focus Object Recipient)
         """
+
+        if self.verbose:
+            print "self.l_elt_pred : ", self.l_elt_pred
         l = []
-        for i in range(1,imax_nr_ocw+1):
-            for j in range(1,imax_nr_actionrelation+1):
-                for elt_p in elt_pred:
+        for i in range(1,self.imax_nr_ocw+1):
+            for j in range(1,self.imax_nr_actionrelation+1):
+                for elt_p in self.l_elt_pred:
                     l.append('_'+str(i)+'-'+str(elt_p)+str(j))
         return l
     
     def generate_meaning_stim(self, l_data, l_ocw_array, full_time, l_offset=None, l_m_elt=None,
                               elt_pred=['P','A','O','R','V'], ocw_predicate_matches_with_one_meaning=False,
-                              initial_pause=True, pause=True, act_time=None, verbose=False):
+                              initial_pause=True, pause=True, act_time=None):
         """ 
         
         Inputs:
@@ -245,12 +289,8 @@ class Comprehension:
         """
         def make_stim():
             m_code = '_'+str(idx_ocw+1)+'-'+str(elt_p)+str(idx_m+1)
-            if verbose:
-                print "   m_code", m_code
             idx = l_m_elt.index(m_code)
             indices_m_code.append(idx)
-            if verbose:        
-                print "   idx", idx
             if l_offset is None:
                 stim_seq[:full_time,idx] = np.ones((full_time,1)).T
             else:
@@ -258,6 +298,23 @@ class Comprehension:
                 stim_seq[:st,idx] = np.zeros((st,1)).T
                 stim_seq[st:full_time,idx] = np.ones((full_time-st,1)).T
             meaning_code.append(m_code)
+        
+#            meaning_code=[]
+#            for spred in range (0, len(self.focus)):
+#                if self.verbose:
+#                    print "spred : ", self.focus[spred]
+#                for paor in range (0,len(self.focus[spred])):
+#                    if self.verbose:
+#                        print "paor : ", self.focus[spred][paor]
+#                    i=0
+#                    for scaractere in self.focus[spred][paor]:
+#                        if scaractere != '_':
+#                            meaning_code.append('_'+str(spred+1)+'-'+str(scaractere)+str(i+1))
+#                        if scaractere == '_':
+#                            meaning_code.append('_'+str(spred+1)+'-'+'X'+str(i+1))
+#                        i+=1
+#            if self.verbose:
+#                print "l :", meaning_code
         
         def get_starting_point_in_act_time(offset):
             """
@@ -280,9 +337,10 @@ class Comprehension:
             for i_os in range(len(l_offset)):
                 start_AT = get_starting_point_in_act_time(l_offset[i_os])
                 l_start_TS.append(start_AT*act_time)
+        if self.verbose:    
+            print "l_m_elt : ", l_m_elt   
+        # Need to be clean
             
-            
-    
     #    stim = len(l_data)*[np.zeros((len(l_m_elt), full_time))]
     #    stim = len(l_data)*[np.zeros((full_time,len(l_m_elt)))]
         stim = []
@@ -290,16 +348,13 @@ class Comprehension:
         l_indices_m_code = []
         for seq_id in range(len(l_data)):
             # For each sentence
-    #        print " *** seq_id "+str(seq_id)+" ... ***"
             meanings = l_data[seq_id]
             ocw_array = l_ocw_array[seq_id]
             stim_seq = np.zeros((full_time,len(l_m_elt)))
             meaning_code = []
             indices_m_code = []
-    #        print " meanings", meanings
-    #        print " ocw_array", ocw_array
             if self.is_there_several_time_the_same_elt_in_list(l=ocw_array):
-                if verbose:
+                if self.verbose:
                     print "  ! There is several times the same OCW(s) in the current ocw_array."
                     print "  ! This(These) Open Class Words is(are):"+str(self.is_there_several_time_the_same_elt_in_list(l=ocw_array))
             ## TODO: it may be more effecient reversing the order of the "for" loops (interverting idx_m with idx_ocw)
@@ -308,22 +363,17 @@ class Comprehension:
             dic_predicate_already_attributed = {} # dictionary of predicates already attributed
             for idx_ocw in range(len(ocw_array)):
                 # For each open class word in ocw_array
-    #            print "  idx_ocw", idx_ocw
-    #            print "  l_ocw_array[idx_ocw]", ocw_array[idx_ocw]
                 for idx_m in range(len(meanings)):
                     # For each meaning
-    #                print "   idx_m", idx_m
-    #                print "   meanings[idx_m]", meanings[idx_m]
                     if ocw_array[idx_ocw] in meanings[idx_m]:
-    #                    print "   meanings[idx_m].index(ocw_array[idx_ocw])", meanings[idx_m].index(ocw_array[idx_ocw])
                         i_action = meanings[idx_m].index(ocw_array[idx_ocw])
                         elt_p = elt_pred[i_action]
-    #                    print "   elt_p", elt_p
+
                         # if element is a predicate and if each predicate should match with only one meaning
                         if elt_p=='P' and ocw_predicate_matches_with_one_meaning:
                             # if the predicate has already been coded/attributed
                             if (idx_ocw in dic_predicate_already_attributed.keys()) or (idx_m in dic_predicate_already_attributed.values()):
-                                if verbose:
+                                if self.verbose:
                                     print "   !predicate "+str(ocw_array[idx_ocw])+" has already been attributed to meaning "+str(meanings[idx_m])
                                     print "     dic_predicate_already_attributed:"+str(dic_predicate_already_attributed)
                             else:
@@ -339,8 +389,43 @@ class Comprehension:
             stim.append(stim_seq)
             l_meaning_code.append(meaning_code)
             l_indices_m_code.append(indices_m_code)
+
+
+        # Anne            
+        l_meaning_code = []
+        for listM in l_data:
+            l_meaning_temp = []
+
+            if len(listM)%2 == 0:
+                tabMean = listM[:(len(listM)/2)]
+                tabFocus = listM[(len(listM)/2):]
+                for i in range (len(tabFocus)):                   
+                    for j in range (len(tabFocus[i])):
+                        if tabFocus[i][j] != '_':
+                            code = '_' +  str(j+1) + '-' + tabFocus[i][j] + str(i+1)
+                            l_meaning_temp.append(code)
+                l_meaning_code.append(l_meaning_temp)
+            else:
+                print "error  ", listM
         
         print "** ... generate_meaning_stim"
+        
+
+#        stimuli=[]
+#        verbose = True
+#        
+#        for spred in range (0, len(self.focus)):
+#            temp = []
+#            for paor in range (0,len(self.focus[spred])):
+#                temp2 = []        
+#                for scaractere in self.focus[spred][paor]:
+#                    if scaractere != '_':
+#                        temp2.append(1.)
+#                    else:
+#                        temp2.append(0.)
+#                temp.append(temp2)
+#            stimuli.append(np.array(temp))
+#    
         return (stim, l_meaning_code)
 
     def is_there_several_time_the_same_elt_in_list(self, l):
@@ -417,7 +502,8 @@ class Comprehension:
         _flow.train(learning_data)
         return _flow   
    
-    def teach_and_test_flow(self, inputs_train_set, teacher_outputs_train_set, inputs_test_set, _flow, _reservoir, keep_internal_states=False, type_reservoir="", return_flow=False, reset_state_before_begin=None):
+    def teach_and_test_flow(self, inputs_train_set, teacher_outputs_train_set, inputs_test_set, _flow, _reservoir, keep_internal_states=False,
+                            type_reservoir="", return_flow=False, reset_state_before_begin=None):
         """
         return _flow  
         A 'Flow' is a sequence of nodes that are trained and executed together to form a more complex algorithm.
@@ -447,6 +533,8 @@ class Comprehension:
                     raise Exception, "Too much arguments. You must choose between file and file_path."
                 else:
                     file = open(file_path, 'w')
+                    file.seek(0)
+		    file.truncate()
             if file is None:
                 raise Exception, "No file given in input."
             
@@ -468,12 +556,12 @@ class Comprehension:
         
         # processing meaning
         # ex: guitar over violin
-        m_res = self.extr_meaning(meaning, verbose=False)
+        m_res = self.extr_meaning(meaning)
         
         # processing sentence
         # ex: the guitar over the violin is
         s_res = self.extr_sent(sent=sentence)
-        
+
         return (s_res, m_res)
     
     def extract_line_test(self, l):
@@ -489,7 +577,7 @@ class Comprehension:
             raise Exception, " No words in sentence."
         return sent.split(' ')
 
-    def extr_meaning(self, meaning, verbose=False):
+    def extr_meaning(self, meaning):
         m_res = []
         a_res = []
         meaning = meaning.strip()
@@ -581,9 +669,11 @@ class Comprehension:
         print "**********************************************"
 
     
-    def train(self, d, train_data, sr=1, iss=0.25, leak=0.25/5.0, seed=5, plot=False, fast=False, keep_internal_states=False, verbose=False):            
+    def train(self, d, train_data, focus, sr=1, iss=0.25, leak=0.25/5.0, seed=5, plot=False, fast=False, keep_internal_states=False):            
         train_corpus, train_meaning  = self.txt2corpus_and_meaning(train_txt=train_data)
-
+        if self.verbose:
+            print "train_corpus ", train_corpus
+            print "train_meaning ", train_meaning
         ## Random parameters
         if seed is not None:
             mdp.numx.random.seed(seed)
@@ -591,36 +681,38 @@ class Comprehension:
             
         # making the list of constructions (refering to "construction grammar"), a construction is a sentence without its open class words (Nouns and Verbs)
         (l_construction_train, l_ocw_array_train, construction_words) = self.get_and_remove_ocw_in_corpus(corpus=train_corpus, _OCW='X', l_closed_class=self.closed_class_words)          
-        
+                        
         #################################################
         ## Generating all the sentence stimulus (in order to have the same length for each sentence)
        
         l_full_train = l_construction_train        
-        slice_train = slice(0,len(l_construction_train))                
-
-
+        slice_train = slice(0,len(l_construction_train))
+        if self.verbose:
+            print "slice_train: ", slice_train               
+            print "l_construction_train : ", l_construction_train
+            
         (stim_full_data_train, l_full_offset_train) = CtIolangcod.generate_stim_input_nodic(l_data=l_full_train,
-    #                            act_time=d['act_time'], subset=None, l_input=None,
                                 act_time=d['act_time'], subset=None, l_input=construction_words,
                                 l_nr_word=None, mult=None, full_time=None,
                                 with_offset=d['offset'], pause=d['pause'], initial_pause=d['initial_pause'],
-                                suppl_pause_at_the_end=d['suppl_pause_at_the_end'], verbose=False)
+                                suppl_pause_at_the_end=d['suppl_pause_at_the_end'])
                                 
         stim_sent_train = stim_full_data_train[slice_train]
-        
-
         
         #################################################
         ## Generating all the meaning stimulus 
         #################################################
     
-        l_m_elt = self.get_meaning_coding(imax_nr_ocw=self.imax_nr_ocw, imax_nr_actionrelation=self.imax_nr_actionrelation, elt_pred=self.l_elt_pred)
+    
+
+    
+        l_m_elt = self.get_meaning_coding()
     
         (stim_mean_train, l_meaning_code_train) = self.generate_meaning_stim(l_data=train_meaning,
                l_ocw_array=l_ocw_array_train, full_time=stim_sent_train[0].shape[0],
-               l_m_elt=l_m_elt, l_offset=l_full_offset_train[slice_train], verbose=False,
+               l_m_elt=l_m_elt, l_offset=l_full_offset_train[slice_train],
                initial_pause=d['initial_pause'], pause=d['pause'], act_time=d['act_time'])
-         
+        
         
         ## Defining reservoir, readout and flow
         reservoir = Oger.nodes.LeakyReservoirNode(output_dim = self.nbNeurons, spectral_radius=sr, input_scaling=iss, nonlin_func=np.tanh, leak_rate=leak)
@@ -631,15 +723,7 @@ class Comprehension:
         ## Trainning and testing
         (states_out_train, internal_states_train, internal_outputs_train, neuron_states_train) = \
             self.teach_and_test_flow(inputs_train_set=stim_sent_train, teacher_outputs_train_set=stim_mean_train, inputs_test_set=stim_sent_train, _flow=flow, _reservoir=reservoir, keep_internal_states=keep_internal_states)
-    
-        if verbose:
-            for i in range(len(stim_mean_train)):
-                print "len(stim_mean_train)", len(stim_mean_train)
-                print "len(l_meaning_code_train)", len(l_meaning_code_train)
-                print l_meaning_code_train[i]
-                print (stim_mean_train[0]==stim_mean_train[i])
-                print (l_meaning_code_train[0]==l_meaning_code_train[i])
-        
+
         return l_construction_train, stim_full_data_train, flow, reservoir, keep_internal_states, l_m_elt, construction_words
 
     def test(self, d, test_corpus, shelf):
@@ -671,14 +755,16 @@ class Comprehension:
         
 
     
-    def mainFunc(self, verbose = False, plot=False):
+    def mainFunc(self, plot=False):
         import os
         #sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
         #print "path   ", os.path.dirname(os.path.abspath(__file__))+"/.."
-        current_directory = os.path.dirname(os.path.abspath(__file__))
-        parent_directory = os.path.dirname(current_directory)
-        sys.path.append(parent_directory)
-        
+
+#        current_directory = os.path.dirname(os.path.abspath(__file__))
+#        parent_directory = os.path.dirname(current_directory)
+#        sys.path.append(parent_directory)
+#        
+
         # Definning parameters of stimulus (in a dictionary)
         d = {}
         d['act_time'] = 5#2#1#5#10#2
@@ -690,30 +776,56 @@ class Comprehension:
         #leak=0.25/float(d['act_time'])        
         #N = 500
 
-        [train_data, test_data] = self.extract_data_io(path_file=self.corpusFile)
-        test_corpus = test_data
+        data = self.extract_data_io(path_file=self.corpusFile)
+        focus = []
+        meaning = []
+        sentence = []
+        
+        for i in range (0, len(data)):
+            sentence.append(data[i][0])
+            meaningFocus = data[i][1]
+            meaning.append(meaningFocus[0:(len(meaningFocus)/2)])
+            focus.append(meaningFocus[(len(meaningFocus)/2):])
+            if self.verbose:
+                print "focus : ", focus
+                print "meaning : ", meaning 
+
+
+
+        if self.verbose:
+            print "################"
+            print "data : ", data
+            print "  "
+            print "sentence : ", sentence
+            print "focus : ", focus
+            print "meaning : ", meaning
+            print "################"
+            print "         "
+        
+        
+        sdir = os.path.dirname(os.path.abspath(self.fileResult))
+        print "sdir main func : ", sdir
         
         if self.smode =="test":
-            print "I'm here"
-            shelf = shelve.open('shelf.db', flag='r')
+            shelf = shelve.open(sdir + '/shelf.db', flag='r')
             flag = shelf.has_key("l_construction_train")
             if flag:
-                test_corpus = test_data               
+                test_corpus = data               
                 
+                self.imax_nr_actionrelation = shelf["imax_nr_actionrelation"]
+                self.imax_nr_ocw = shelf["imax_nr_ocw"]
+                self.focus = shelf["focus"]
                 l_recovered_meaning_test = self.test(d,test_corpus,shelf)
                 ## Writting output meaning       
             
-                if verbose:
+                if self.verbose:
                     print "l_recovered_meaning_test", l_recovered_meaning_test
                 l_final_mean_test = []
                 for meanings in l_recovered_meaning_test:
                     current_meanings = ""
-                    if verbose:
+                    if self.verbose:
                         print "meanings", meanings, shelf["construction_words"]
                     for i_m in range(len(meanings)):
-                        # if verbose:
-                        # print " i_m:",i_m
-                        #  print " meanings[i_m]:",meanings[i_m]
                         if i_m>0:
                             current_meanings+=','
                         current_meanings+=" ".join(meanings[i_m])
@@ -726,7 +838,7 @@ class Comprehension:
                 print "**********************************************"
             
                 ## Writting sentences to output file
-                print " *** Writting to output file ... *** "
+                print " *** Writting to output file ... *** "                
                 self.write_list_in_file(l=l_final_mean_test, file_path=self.fileResult)   
                 shelf.close()
                 print " *** ... Writting done ***"
@@ -735,16 +847,44 @@ class Comprehension:
                raise Exception, "The train was not launched"
     
         else:
-            shelf = shelve.open('shelf.db', writeback=True)
-            (l_construction_train, stim_full_data_train, flow, reservoir, keep_internal_states, l_m_elt, construction_words) = self.train(d, train_data)
+            sentence = []
+            meaningFocus = []
+            meaning = []
+            self.focus = []
+            for i in range (0, len(data)):
+                sentence.append(data[i][0])
+                meaningFocus = data[i][1]
+                meaning.append(meaningFocus[0:(len(meaningFocus)/2)])
+                self.focus.append(meaningFocus[(len(meaningFocus)/2):])    
+                
+            self.imax_nr_ocw = 0
+            self.imax_nr_actionrelation = 0
+
+            for i in range (len(self.focus)): 
+                itemp = 0
+                temp_nr_actionrelation = len(self.focus[i])   
+                for j in range (len(self.focus[i])):
+                    for k in range (len(self.focus[i][j])):
+                        if self.focus[i][j][k] != '_':
+                            itemp+=1
+                    if itemp > self.imax_nr_ocw:
+                        self.imax_nr_ocw = itemp
+                if temp_nr_actionrelation > self.imax_nr_actionrelation:
+                    self.imax_nr_actionrelation = temp_nr_actionrelation
+                    
+            shelf = shelve.open(sdir + '/shelf.db', writeback=True)
+            (l_construction_train, stim_full_data_train, flow, reservoir, keep_internal_states, l_m_elt, construction_words) = self.train(d, data, focus)
             
-            shelf["l_construction_train"]= l_construction_train
-            shelf["stim_full_data_train"]= stim_full_data_train
-            shelf["flow"]= flow
-            shelf["reservoir"]= reservoir
-            shelf["keep_internal_states"]= keep_internal_states
-            shelf["l_m_elt"]= l_m_elt
-            shelf["construction_words"]= construction_words
+            shelf["l_construction_train"]=l_construction_train
+            shelf["stim_full_data_train"]=stim_full_data_train
+            shelf["flow"]=flow
+            shelf["reservoir"]=reservoir
+            shelf["keep_internal_states"]=keep_internal_states
+            shelf["l_m_elt"]=l_m_elt
+            shelf["construction_words"]=construction_words
+            shelf["imax_nr_actionrelation"]= self.imax_nr_actionrelation
+            shelf["imax_nr_ocw"]= self.imax_nr_ocw
+            shelf["focus"]= focus
             shelf.close()
             
             
@@ -752,30 +892,38 @@ if __name__ == '__main__':
     import sys, os
     # global variables 
     sdir = os.path.dirname(os.path.abspath(__file__))
-    
-    corpusFileAP = sys.argv[1]
+    print "sdir : ", sdir    
+    corpusFile = sys.argv[1]
     fileResult = sys.argv[2]
     sMode = sys.argv[3]
     closed_class_wordsAP = sys.argv[4].split(',') # ['after', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now']
-    imax_nr_ocw = int(sys.argv[5])              #10
-    imax_nr_actionrelation = int(sys.argv[6])    #4
-    l_elt_pred= sys.argv[7].split(',')     #['P','A','O','R','V']
-    nbNeurons = int(sys.argv[8])  # 500
+    l_elt_pred= sys.argv[5].split(',')     #['P','A','O','R','V']
+    nbNeurons = int(sys.argv[6])  # 500
+    print "corpusFile : ", corpusFile
+    print "fileResult : ", fileResult
+    print "sMode : ", sMode
+    print "closed_class_wordsAP : ", closed_class_wordsAP
+    print "l_elt_pred : ", l_elt_pred
+    print "nbNeurons : ", nbNeurons
+    Comprehension(corpusFile, fileResult, sMode, closed_class_wordsAP, l_elt_pred, nbNeurons, False)
 
-#    corpusFileAP =  "/home/anne/.local/share/yarp/contexts/lrh/conf/Corpus/narrator_inversed.txt"
-#    fileResult =  "/home/anne/.local/share/yarp/contexts/lrh/conf/Corpus/output.txt"
-#    sMode = "test"
-#    #closed_class_wordsAP = ['after', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now']
-#    closed_class_wordsAP = ['after','than','before','to','the','slowly','quickly','with','that','for','a','an','this','of','while','when']
-#    #closed_class_wordsAP = ['the', 'a', 'and', 'to']    
-#    imax_nr_ocw = 10 
-#    imax_nr_actionrelation = 4 
-#    l_elt_pred = ['P','A','O','R','V']
-#    nbNeurons = 500
     
-    Comprehension(corpusFileAP, fileResult, sMode, closed_class_wordsAP, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, nbNeurons)
+#    sdir = os.path.dirname(os.path.abspath(__file__))
+#    #corpusFile = sdir + "/Corpus/corpus.txt"
+#    corpusFile = sdir +  "/Corpus/temporaryCorpus.txt"
+#    fileResult = sdir + "/Corpus/output.txt"
+#    closed_class_wordsAP = ['to', 'the', 'with', 'that', 'a', 'an','for']
+#    #closed_class_wordsAP = ['wa','wo','no','ni','ga','you','koto']  
+#    l_elt_pred = ['P','A','O','R','V','W']
+#    nbNeurons = 1000         
+#    lMode = ["test"]    
+#    for sMode in lMode:    
+#        Comprehension(corpusFile, fileResult, sMode, closed_class_wordsAP, l_elt_pred, nbNeurons, False)
 
 
     print "*********END OF PROGRAM********"
+
+
+
 
 

@@ -173,6 +173,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
 
     reply.clear();
 
+
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
 

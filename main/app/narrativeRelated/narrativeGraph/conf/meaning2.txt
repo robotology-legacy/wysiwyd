@@ -1,0 +1,64 @@
+#   story: 13/10/2016 14:2:53 (2210)  to 13/10/2016 14:3:30 (2222)
+#   At the beginning, Anne-Laure have croco and Anne-Laure have mouse and iCub want croco
+#   iCub take the croco
+#   But it failed.
+#   iCub reason
+#   The goal was that: icub have the croco
+#   iCub reason
+#   iCub said to Anne-Laure: Give me the croco please
+#   Anne-Laure give the mouse iCub
+#   And now, Anne-Laure have croco and iCub want croco and iCub have mouse
+#   iCub said to partner: This is not the croco
+#   iCub said to partner: Can you give me the croco
+#   Anne-Laure give the croco iCub
+#   And now, iCub have mouse and iCub have croco
+#   In the end, iCub have mouse and iCub have croco
+
+# FIRST
+first, have Anne-Laure croco, P1 P2 A2 O2
+first, have Anne-Laure mouse, P1 P2 A2 O2
+first, want iCub croco, P1 P2 A2 O2
+
+# AND
+and, have Anne-Laure croco, have Anne-Laure mouse, P1 P2 A2 O2 P3 A3 O3
+and, say iCub Give_me_the_croco_please Anne-Laure, give Anne-Laure croco iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, say iCub Give_me_the_croco_please Anne-Laure, give Anne-Laure mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+
+# SO
+so, take iCub croco, P1 P2 A2 O2
+so, take reason, P1 P2 A2
+so, say iCub Give_me_the_croco_please Anne-Laure, P1 P2 A2 O2 R2
+so, give Anne-Laure croco iCub, P1 P2 A2 O2 R2
+
+# THEN
+then, take reason, P1 P2 A2
+then, say iCub Give_me_the_croco_please Anne-Laure, P1 P2 A2 O2 R2
+then, give Anne-Laure croco iCub, P1 P2 A2 O2 R2
+then, give Anne-Laure mouse iCub, P1 P2 A2 O2 R2
+
+#BUT
+but, want iCub croco, give Anne-Laure mouse iCub, P1 P2 A2 O2 P3 A3 O3 R3
+but, want iCub croco, have Anne-Laure croco, P1 P2 A2 O2 P3 A3 O3
+but, say iCub Give_me_the_croco_please Anne-Laure, give Anne-Laure mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+
+# BEFORE
+before, have iCub mouse, have Anne-Laure mouse, P1 P2 A2 O2 P3 A3 O3
+before, have iCub croco, have Anne-Laure croco, P1 P2 A2 O2 P3 A3 O3
+before, give Anne-Laure croco iCub, have Anne-Laure croco, P1 P2 A2 O2 R2 P3 A3 O3
+before, give Anne-Laure croco iCub, give Anne-Laure mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+
+# AFTER
+after, take iCub croco, reason iCub, P1 P2 A2 O2 P3 A3
+after, say iCub Give_me_the_croco_please Anne-Laure, give Anne-Laure croco iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+after, give Anne-Laure croco iCub, have iCub croco, P1 P2 A2 O2 R2 P3 A3 O3
+after, give Anne-Laure mouse iCub, have iCub mouse, P1 P2 A2 O2 P3 A3 O3 R3
+
+# BECAUSE
+because, want iCub croco, have iCub croco, P1 P2 A2 O2 P3 A3 O3
+because, give Anne-Laure mouse iCub, have iCub mouse, P1 P2 A2 O2 R2 P3 A3 O3
+because, say iCub Give_me_the_croco_please Anne-Laure, give Anne-Laure mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+
+
+# FINALLY
+finally, have iCub croco, P1 P2 A2 O2
+finally, have iCub mouse, P1 P2 A2 O2

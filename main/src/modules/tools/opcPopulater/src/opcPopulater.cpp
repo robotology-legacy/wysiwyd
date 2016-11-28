@@ -50,14 +50,14 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
     cout << "Z_ag " << Z_ag << endl;
     cout << "noise " << noise << endl;
 
-    move=false;
+    move = false;
     spd1.push_back(0.);
     spd1.push_back(0.);
     spd1.push_back(0.);
     spd2.push_back(0.);
     spd2.push_back(0.);
     spd2.push_back(0.);
-    iter=0;
+    iter = 0;
 
     iCub->lookStop();
     iCub->home();
@@ -79,20 +79,21 @@ bool opcPopulater::close() {
 
 bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
-        " commands are: \n " +
-        "help \n " +
-        "quit \n " +
-        "populateSpecific1 entity_type entity_name \n " +
-        "populateSpecific2 \n " +
-        "populateSpecific3 \n " +
-        "populateMoving \n " +
-        "addUnknownEntity entity_type \n " +
-        "populateABM \n " +
-        "populateABMiCubStory \n " +
-        "storyFromPOV POV \n "
-        "setSaliencyEntity entity_name saliency_name \n ";
+        " commands are: \n" +
+        "help \n" +
+        "quit \n" +
+        "populateSpecific1 entity_type entity_name \n" +
+        "populateSpecific2 \n" +
+        "populateSpecific3 \n"
+        "addUnknownEntity entity_type\n" +
+        "populateABM \n" +
+        "populateABMiCubStory \n" +
+        "storyFromPOV POV\n" +
+        "populateScenario + N\n" +
+        "setSaliencyEntity entity_name saliency_name\n";
 
     reply.clear();
+
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
@@ -148,6 +149,24 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         iCub->opc->update();
         reply.addString("clearing OPC");
     }
+    else if (command.get(0) == "populateScenario"){
+        int scenarioNB = 1;
+        if (command.size() == 2){
+            scenarioNB = command.get(1).asInt();
+            if (scenarioNB < 1) scenarioNB = 1;
+            if (scenarioNB > 6) scenarioNB = 6;
+        }
+        yInfo() << " populating with scenario: " << scenarioNB;
+        switch (scenarioNB)
+        {
+        case 1: populateScenario1() ? reply.addString("populating scenario 1 done !") : reply.addString("populating scenario failed !"); break;
+        case 2: populateScenario2() ? reply.addString("populating scenario 2 done !") : reply.addString("populating scenario failed !"); break;
+        case 3: populateScenario3() ? reply.addString("populating scenario 3 done !") : reply.addString("populating scenario failed !"); break;
+        case 4: populateScenario4() ? reply.addString("populating scenario 4 done !") : reply.addString("populating scenario failed !"); break;
+        case 5: populateScenario5() ? reply.addString("populating scenario 5 done !") : reply.addString("populating scenario failed !"); break;
+        case 6: populateScenario6() ? reply.addString("populating scenario 6 done !") : reply.addString("populating scenario failed !"); break;
+        }
+    }
     else {
         yInfo() << helpMessage;
         reply.addString("wrong command");
@@ -160,7 +179,7 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool opcPopulater::updateModule() {
     //Just for testing: 
-    if (move==true)
+    if (move == true)
     {
         //double speed = 1./10.;
         iCub->opc->checkout();
@@ -168,29 +187,29 @@ bool opcPopulater::updateModule() {
         Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("moving_1");
         Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("moving_2");
 
-        if (iter % 30==0)
+        if (iter % 30 == 0)
         {
-            spd1[0]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd1[1]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd1[2]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd2[0]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd2[1]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            spd2[2]=(rand()%100)*pow(-1.,(rand()%2)+1);
-            double av1 = sqrt(pow(spd1[0],2)+pow(spd1[1],2)+pow(spd1[2],2));
-            double av2 = sqrt(pow(spd2[0],2)+pow(spd2[1],2)+pow(spd2[2],2));
-            spd1[0]/=av1;
-            spd1[1]/=av1;
-            spd1[2]/=av1;
-            spd2[0]/=av2;
-            spd2[1]/=av2;
-            spd2[2]/=av2;
+            spd1[0] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd1[1] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd1[2] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd2[0] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd2[1] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            spd2[2] = (rand() % 100)*pow(-1., (rand() % 2) + 1);
+            double av1 = sqrt(pow(spd1[0], 2) + pow(spd1[1], 2) + pow(spd1[2], 2));
+            double av2 = sqrt(pow(spd2[0], 2) + pow(spd2[1], 2) + pow(spd2[2], 2));
+            spd1[0] /= av1;
+            spd1[1] /= av1;
+            spd1[2] /= av1;
+            spd2[0] /= av2;
+            spd2[1] /= av2;
+            spd2[2] /= av2;
         }
-       /* obj1->m_ego_position[0] = min(max(obj1->m_ego_position[0]+spd1[0]*period*speed,-0.2),-0.5);
-        obj1->m_ego_position[1] = min(max(obj1->m_ego_position[1]+spd1[1]*period*speed,0.0),0.5);
-        obj1->m_ego_position[2] = min(max(obj1->m_ego_position[2]+spd1[2]*period*speed,0.0),0.5);
-        obj2->m_ego_position[0] = min(max(obj2->m_ego_position[0]+spd2[0]*period*speed,-0.2),-0.5);
-        obj2->m_ego_position[1] = min(max(obj2->m_ego_position[1]+spd2[1]*period*speed,0.0),0.5);
-        obj2->m_ego_position[2] = min(max(obj2->m_ego_position[2]+spd2[2]*period*speed,0.0),0.5);*/
+        /* obj1->m_ego_position[0] = min(max(obj1->m_ego_position[0]+spd1[0]*period*speed,-0.2),-0.5);
+         obj1->m_ego_position[1] = min(max(obj1->m_ego_position[1]+spd1[1]*period*speed,0.0),0.5);
+         obj1->m_ego_position[2] = min(max(obj1->m_ego_position[2]+spd1[2]*period*speed,0.0),0.5);
+         obj2->m_ego_position[0] = min(max(obj2->m_ego_position[0]+spd2[0]*period*speed,-0.2),-0.5);
+         obj2->m_ego_position[1] = min(max(obj2->m_ego_position[1]+spd2[1]*period*speed,0.0),0.5);
+         obj2->m_ego_position[2] = min(max(obj2->m_ego_position[2]+spd2[2]*period*speed,0.0),0.5);*/
         obj1->m_ego_position[0] = -0.18;
         obj1->m_ego_position[1] = 0.10;
         obj1->m_ego_position[2] = 0.1;
@@ -241,7 +260,7 @@ bool opcPopulater::populateEntityRandom(Bottle bInput){
         obj->m_color[1] = Random::uniform(0, 80);
         obj->m_color[2] = Random::uniform(180, 250);
         obj->m_value = 1.5;
-        yDebug()<<"value: "<<obj->m_value;
+        yDebug() << "value: " << obj->m_value;
         iCub->opc->commit(obj);
 
         obj = NULL;
@@ -334,7 +353,6 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
 *  change the saliency of an entity in the OPC
 *  input: Bottle ("setSaliencyEntity" entity_name saliency_level )
 */
-
 bool opcPopulater::setSaliencyEntity(Bottle bInput){
 
     if (bInput.size() != 3)
@@ -396,8 +414,9 @@ bool opcPopulater::setValueEntity(Bottle bInput){
         Object* temp = dynamic_cast<Object*>(e);
         temp->m_value = targetValue;
         iCub->opc->commit();
-    }else{
-        yWarning()<<"Trying to change value of the non-object entity: "<<sName<<". Please check!";
+    }
+    else{
+        yWarning() << "Trying to change value of the non-object entity: " << sName << ". Please check!";
     }
     return true;
 }
@@ -411,12 +430,12 @@ bool opcPopulater::populateABM(Bottle bInput)
     Agent* Robert = iCub->opc->addOrRetrieveEntity<Agent>("Robert");
     Object* Giraffe = iCub->opc->addOrRetrieveEntity<Object>("giraffe");
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
-    Action* Has = iCub->opc->addOrRetrieveEntity<Action>("has");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
     iCub->opc->commit();
 
-    Relation LarryHasGiraffe(Larry, Has, Giraffe);
+    Relation LarryHasGiraffe(Larry, Have, Giraffe);
     Relation LarryWantsGiraffe(Larry, Want, Giraffe);
-    Relation RobertHasGiraffe(Robert, Has, Giraffe);
+    Relation RobertHasGiraffe(Robert, Have, Giraffe);
     Relation RobertWantsGiraffe(Robert, Want, Giraffe);
 
     int iRepetition = 5;
@@ -465,11 +484,11 @@ bool opcPopulater::populateABM(Bottle bInput)
 
         if (iCub->getABMClient()->Connect())
         {
-            std::list<std::pair<std::string, std::string> > lArgument;
-            lArgument.push_back(std::pair<std::string, std::string>("Give me the giraffe", "sentence"));
-            lArgument.push_back(std::pair<std::string, std::string>("(predicate give) (subject larry) (giraffe object)", "semantic"));
-            lArgument.push_back(std::pair<std::string, std::string>("qRM", "provider"));
-            lArgument.push_back(std::pair<std::string, std::string>("Robert", "speaker"));
+            list<pair<string, string> > lArgument;
+            lArgument.push_back(pair<string, string>("Give me the giraffe", "sentence"));
+            lArgument.push_back(pair<string, string>("(predicate give) (subject larry) (giraffe object)", "semantic"));
+            lArgument.push_back(pair<string, string>("qRM", "provider"));
+            lArgument.push_back(pair<string, string>("Robert", "speaker"));
             iCub->getABMClient()->sendActivity("action",
                 "sentence",
                 "recog",
@@ -521,12 +540,12 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
     Object* ObjStory = iCub->opc->addOrRetrieveEntity<Object>(sOject);
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
-    Action* Has = iCub->opc->addOrRetrieveEntity<Action>("has");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
     iCub->opc->commit();
 
-    Relation InterlocutorHasObjStory(Interlocutor, Has, ObjStory);
+    Relation InterlocutorHasObjStory(Interlocutor, Have, ObjStory);
     Relation iCubWantsObjStory(icub, Want, ObjStory);
-    Relation iCubHasObjStory(icub, Has, ObjStory);
+    Relation iCubHasObjStory(icub, Have, ObjStory);
 
 
     double XInterlocutor = -1.5,
@@ -575,52 +594,52 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
 
     yInfo() << " start recording in ABM";
 
-    if (iCub->getABMClient()->Connect())
-    {
-        yInfo(" abm connected");
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("take", "predicate"));
-        lArgument.push_back(std::pair<std::string, std::string>(sOject, "object"));
-        lArgument.push_back(std::pair<std::string, std::string>("qRM", "provider"));
-        iCub->getABMClient()->sendActivity("action",
-            "take",
-            "action",
-            lArgument,
-            true);
-    }
+    //if (iCub->getABMClient()->Connect())
+    //{
+    //    yInfo(" abm connected");
+    //    list<pair<string, string> > lArgument;
+    //    lArgument.push_back(pair<string, string>("iCub", "agent"));
+    //    lArgument.push_back(pair<string, string>("take", "predicate"));
+    //    lArgument.push_back(pair<string, string>(sOject, "object"));
+    //    lArgument.push_back(pair<string, string>("qRM", "provider"));
+    //    iCub->getABMClient()->sendActivity("action",
+    //        "take",
+    //        "action",
+    //        lArgument,
+    //        true);
+    //}
     yInfo() << " start grasping";
-    bool finished = iCub->getARE()->take(ObjStory->m_ego_position);
+    iCub->getARE()->take(ObjStory->m_ego_position);
 
-    if (iCub->getABMClient()->Connect())
-    {
-        std::list<std::pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
-        lArgument.push_back(pair<string, string>("take", "predicate"));
-        lArgument.push_back(pair<string, string>(sOject, "object"));
-        lArgument.push_back(pair<string, string>("failed", "status"));
-        lArgument.push_back(pair<string, string>("outofreach", "reason"));
-        lArgument.push_back(pair<string, string>("qRM", "provider"));
-        iCub->getABMClient()->sendActivity("action",
-            "take",
-            "action",
-            lArgument,
-            finished);
-    }
+    //if (iCub->getABMClient()->Connect())
+    //{
+    //    list<pair<string, string> > lArgument;
+    //    lArgument.push_back(pair<string, string>("iCub", "agent"));
+    //    lArgument.push_back(pair<string, string>("take", "predicate"));
+    //    lArgument.push_back(pair<string, string>(sOject, "object"));
+    //    lArgument.push_back(pair<string, string>("failed", "status"));
+    //    lArgument.push_back(pair<string, string>("outofreach", "reason"));
+    //    lArgument.push_back(pair<string, string>("qRM", "provider"));
+    //    iCub->getABMClient()->sendActivity("action",
+    //        "take",
+    //        "action",
+    //        lArgument,
+    //        finished);
+    //}
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
 
     yInfo() << " searching for an action";
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("reason", "predicate"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sOject << ")";
         string tmp = osTmp.str();
-        lArgument.push_back(std::pair<std::string, std::string>(tmp, "goal"));
-        lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
+        lArgument.push_back(pair<string, string>(tmp, "goal"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "reason",
             "reasoning",
@@ -633,19 +652,19 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     yInfo() << " searching for an action";
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("reason", "predicate"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sOject << ")";
         string tmp = osTmp.str();
-        lArgument.push_back(std::pair<std::string, std::string>(tmp, "goal"));
+        lArgument.push_back(pair<string, string>(tmp, "goal"));
         ostringstream osTmp2;
         osTmp2 << "(predicate sentence) (speaker icub) (object " << sOject << ")";
         string tmp2 = osTmp2.str();
-        lArgument.push_back(std::pair<std::string, std::string>(tmp2, "result"));
-        lArgument.push_back(std::pair<std::string, std::string>("addressee#have#object", "needs"));
-        lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
+        lArgument.push_back(pair<string, string>(tmp2, "result"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "needs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "reason",
             "reasoning",
@@ -657,11 +676,11 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     yInfo() << " whatIs give ?";
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("reason", "predicate"));
-        lArgument.push_back(std::pair<std::string, std::string>("give", "whatIs"));
-        lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "reason",
             "reasoning",
@@ -673,15 +692,15 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     yInfo() << " return: whatIs give ?";
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("reason", "predicate"));
-        lArgument.push_back(std::pair<std::string, std::string>("give", "whatIs"));
-        lArgument.push_back(std::pair<std::string, std::string>("addressee#have#object", "sentence_before"));
-        lArgument.push_back(std::pair<std::string, std::string>("speaker#have#object", "sentence_after"));
-        lArgument.push_back(std::pair<std::string, std::string>("agent#have#object", "action_before"));
-        lArgument.push_back(std::pair<std::string, std::string>("recipient#have#object", "action_after"));
-        lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
+        lArgument.push_back(pair<string, string>("speaker#have#object", "sentence_after"));
+        lArgument.push_back(pair<string, string>("agent#have#object", "action_before"));
+        lArgument.push_back(pair<string, string>("recipient#have#object", "action_after"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "reason",
             "reasoning",
@@ -752,8 +771,6 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
 }
 
 
-
-
 bool opcPopulater::populateSpecific(){
 
     double errorMargin = noise;
@@ -803,6 +820,7 @@ bool opcPopulater::populateSpecific(){
 
     return true;
 }
+
 
 bool opcPopulater::populateSpecific3(){
 
@@ -882,6 +900,7 @@ bool opcPopulater::populateRedBall(){
     return true;
 }
 
+
 /*
 * Populate the ABM with precific action comming from a external file
 */
@@ -957,12 +976,12 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
     Object* Giraffe = iCub->opc->addOrRetrieveEntity<Object>("giraffe");
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
-    Action* Has = iCub->opc->addOrRetrieveEntity<Action>("has");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
     iCub->opc->commit();
 
-    Relation NathanHasGiraffe(Nathan, Has, Giraffe);
+    Relation NathanHasGiraffe(Nathan, Have, Giraffe);
     Relation iCubWantsGiraffe(icub, Want, Giraffe);
-    Relation iCubHasGiraffe(icub, Has, Giraffe);
+    Relation iCubHasGiraffe(icub, Have, Giraffe);
 
 
     double XNathan = -1.5,
@@ -1043,11 +1062,11 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         yInfo(" abm connected");
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("take", "predicate"));
-        lArgument.push_back(std::pair<std::string, std::string>("giraffe", "object"));
-        lArgument.push_back(std::pair<std::string, std::string>("qRM", "provider"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("take", "predicate"));
+        lArgument.push_back(pair<string, string>("giraffe", "object"));
+        lArgument.push_back(pair<string, string>("qRM", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "take",
             "action",
@@ -1062,7 +1081,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
 
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<string, string> > lArgument;
+        list<pair<string, string> > lArgument;
         lArgument.push_back(pair<string, string>("iCub", "agent"));
         lArgument.push_back(pair<string, string>("take", "predicate"));
         lArgument.push_back(pair<string, string>("giraffe", "object"));
@@ -1089,11 +1108,11 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     yInfo() << " searching for an action";
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("reason", "predicate"));
-        lArgument.push_back(std::pair<std::string, std::string>("(predicate have) (agent icub) (object giraffe)", "goal"));
-        lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("(predicate have) (agent icub) (object giraffe)", "goal"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "reason",
             "reasoning",
@@ -1106,13 +1125,13 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     yInfo() << " searching for an action";
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("reason", "predicate"));
-        lArgument.push_back(std::pair<std::string, std::string>("(predicate have) (agent icub) (object giraffe)", "goal"));
-        lArgument.push_back(std::pair<std::string, std::string>("(predicate sentence) (speaker icub) (object giraffe)", "result"));
-        lArgument.push_back(std::pair<std::string, std::string>("addressee#have#object", "needs"));
-        lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("(predicate have) (agent icub) (object giraffe)", "goal"));
+        lArgument.push_back(pair<string, string>("(predicate sentence) (speaker icub) (object giraffe)", "result"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "needs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "reason",
             "reasoning",
@@ -1124,11 +1143,11 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     yInfo() << " whatIs give ?";
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("reason", "predicate"));
-        lArgument.push_back(std::pair<std::string, std::string>("give", "whatIs"));
-        lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "reason",
             "reasoning",
@@ -1140,15 +1159,15 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     yInfo() << " return: whatIs give ?";
     if (iCub->getABMClient()->Connect())
     {
-        std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-        lArgument.push_back(std::pair<std::string, std::string>("reason", "predicate"));
-        lArgument.push_back(std::pair<std::string, std::string>("give", "whatIs"));
-        lArgument.push_back(std::pair<std::string, std::string>("addressee#have#object", "sentence_before"));
-        lArgument.push_back(std::pair<std::string, std::string>("speaker#have#object", "sentence_after"));
-        lArgument.push_back(std::pair<std::string, std::string>("agent#have#object", "action_before"));
-        lArgument.push_back(std::pair<std::string, std::string>("recipient#have#object", "action_after"));
-        lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
+        lArgument.push_back(pair<string, string>("speaker#have#object", "sentence_after"));
+        lArgument.push_back(pair<string, string>("agent#have#object", "action_before"));
+        lArgument.push_back(pair<string, string>("recipient#have#object", "action_after"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
             "reason",
             "reasoning",
@@ -1236,6 +1255,1401 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
         iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
+
+    return true;
+}
+
+
+/*
+* 1 agent, that gives the wrong object first.
+*/
+bool opcPopulater::populateScenario1()
+{
+
+    string sAgent = "Allan";
+    string sObject = "croco";
+    string sObjError = "mouse";
+
+    Time::delay(4.);
+    // first the ObjStory is close to larry (from left to right)
+    iCub->opc->clear();
+    iCub->opc->checkout();
+    Agent* Interlocutor = iCub->opc->addOrRetrieveEntity<Agent>(sAgent);
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
+    Object* Mouse = iCub->opc->addOrRetrieveEntity<Object>(sObjError);
+    Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
+    iCub->opc->commit();
+
+    Relation InterlocutorHasCroco(Interlocutor, Have, Croco);
+    Relation InterlocutorHasMouse(Interlocutor, Have, Mouse);
+    Relation iCubWantsCroco(icub, Want, Croco);
+    Relation iCubHasCroco(icub, Have, Croco);
+    Relation iCubHasMouse(icub, Have, Mouse);
+
+
+    double XInterlocutor = -1.5,
+        YInterlocutor = 0,
+        ZInterlocutor = 0.6,
+        distanceNat_Gir = 0.2;
+
+    //int iRepetition = 5;
+    double dDelay = 1.5;
+    double dThresholdDelay = 1.5;
+
+    yInfo() << " initialisation of the OPC";
+
+    Interlocutor->m_ego_position[0] = XInterlocutor;
+    Interlocutor->m_ego_position[1] = YInterlocutor;
+    Interlocutor->m_ego_position[2] = ZInterlocutor;
+    Interlocutor->m_present = 1.0;
+    Interlocutor->m_color[0] = Random::uniform(0, 80);
+    Interlocutor->m_color[1] = Random::uniform(180, 250);
+    Interlocutor->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(Interlocutor);
+
+    Croco->m_ego_position[0] = XInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    Croco->m_ego_position[1] = YInterlocutor + distanceNat_Gir*(Random::uniform() + 0.5);
+    Croco->m_ego_position[2] = -0.1;
+    Croco->m_present = 1.0;
+    Croco->m_color[0] = Random::uniform(0, 250);
+    Croco->m_color[1] = Random::uniform(0, 250);
+    Croco->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Croco);
+
+    Mouse->m_ego_position[0] = XInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    Mouse->m_ego_position[1] = YInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    Mouse->m_ego_position[2] = -0.1;
+    Mouse->m_present = 1.0;
+    Mouse->m_color[0] = Random::uniform(0, 250);
+    Mouse->m_color[1] = Random::uniform(0, 250);
+    Mouse->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Mouse);
+
+    icub->m_ego_position[0] = 0.0;
+    icub->m_ego_position[1] = 0.0;
+    icub->m_ego_position[2] = 0.0;
+    icub->m_present = 1.0;
+    icub->m_color[0] = Random::uniform(0, 80);
+    icub->m_color[1] = Random::uniform(180, 250);
+    icub->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(icub);
+
+    iCub->opc->addRelation(InterlocutorHasCroco);
+    iCub->opc->addRelation(InterlocutorHasMouse);
+    iCub->opc->addRelation(iCubWantsCroco);
+    yInfo() << " delay...";
+
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+    Bottle bOption;
+
+    yInfo() << " start recording in ABM";
+
+
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(1.0);
+    yInfo() << " start grasping";
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+
+    yInfo() << " end of grasping... delay";
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    yInfo() << " searching for an action";
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        ostringstream osTmp;
+        osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
+        string tmp = osTmp.str();
+        lArgument.push_back(pair<string, string>(tmp, "goal"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            true);
+    }
+
+    yInfo(" return: sentence 'give'...delay");
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " searching for an action";
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        ostringstream osTmp;
+        osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
+        string tmp = osTmp.str();
+        lArgument.push_back(pair<string, string>(tmp, "goal"));
+        ostringstream osTmp2;
+        osTmp2 << "(predicate sentence) (speaker icub) (object " << sObject << ")";
+        string tmp2 = osTmp2.str();
+        lArgument.push_back(pair<string, string>(tmp2, "result"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "needs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            false);
+    }
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " whatIs give ?";
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            true);
+    }
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " return: whatIs give ?";
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
+        lArgument.push_back(pair<string, string>("speaker#have#object", "sentence_after"));
+        lArgument.push_back(pair<string, string>("agent#have#object", "action_before"));
+        lArgument.push_back(pair<string, string>("recipient#have#object", "action_after"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            false);
+    }
+
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" iCub ask the ObjStory");
+
+    list<pair<string, string> > lArgument;
+    string sentence;
+    sentence = "Give me the " + sObject;
+    sentence += " please";
+    lArgument.push_back(pair<string, string>(sentence, "sentence"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sAgent, "agent"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "adj1"));
+    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("none", "subject"));
+    lArgument.push_back(pair<string, string>(sAgent, "addressee"));
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
+    iCub->say("Can you give me the " + sObject + " please", false);
+    Time::delay(1.0);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    iCub->getABMClient()->sendActivity("action",
+        "sentence",
+        "recog",
+        lArgument,
+        true);
+
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
+    iCub->say(sentence);
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" Interlocutor gives the ObjError");
+
+    lArgument.clear();
+
+    lArgument.push_back(pair<string, string>(sAgent, "agent"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sObjError, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        true);
+
+    yInfo() << " in delay of action";
+    Time::delay(2 + 4 * Random::uniform());
+
+    Mouse->m_ego_position[0] = -0.20 - 0.1 * Random::uniform();
+    Mouse->m_ego_position[1] = -0.25 + 0.1 * Random::uniform();
+    iCub->opc->commit(Mouse);
+
+    iCub->opc->removeRelation(InterlocutorHasMouse);
+    iCub->opc->addRelation(iCubHasMouse);
+
+    Time::delay(2.);
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        false);
+
+    // Realisation of the iCub
+
+    Time::delay(2.);
+    iCub->getARE()->look(Mouse->m_ego_position, bOption, sObjError);
+    iCub->say("This is not the " + sObject, false);
+    iCub->getARE()->point(Mouse->m_ego_position, bOption, sObjError);
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
+    iCub->say("Can you give me the " + sObject + " please", false);
+    Time::delay(1.0);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" Interlocutor gives the good object");
+
+    lArgument.clear();
+
+    lArgument.push_back(pair<string, string>(sAgent, "agent"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        true);
+
+    yInfo() << " in delay of action";
+    Time::delay(2 + 4 * Random::uniform());
+
+    Croco->m_ego_position[0] = -0.25;
+    Croco->m_ego_position[1] = 0.15;
+    iCub->opc->commit(Croco);
+
+    iCub->opc->removeRelation(InterlocutorHasCroco);
+    iCub->opc->addRelation(iCubHasCroco);
+    iCub->opc->removeRelation(iCubWantsCroco);
+
+    Time::delay(2);
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        false);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    iCub->say("Yes, this is the " + sObject);
+    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
+
+
+    return true;
+}
+
+
+/*
+*  2 Agents + iCub + 1 step
+*/
+bool opcPopulater::populateScenario2(){
+    string sLarry = "Peter";
+    string sRobert = "Carol";
+    string sObject = "mug";
+    string sBox = "box";
+
+    Time::delay(4.);
+    // first the ObjStory is close to larry (from left to right)
+    iCub->opc->clear();
+    iCub->opc->checkout();
+    Agent* Robert = iCub->opc->addOrRetrieveEntity<Agent>(sRobert);
+    Agent* Larry = iCub->opc->addOrRetrieveEntity<Agent>(sLarry);
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
+    Object* Box = iCub->opc->addOrRetrieveEntity<Object>(sBox);
+    Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
+    Action* Cover = iCub->opc->addOrRetrieveEntity<Action>("cover");
+    iCub->opc->commit();
+
+    Relation iCubWantsCroco(icub, Want, Croco);
+    Relation iCubHasCroco(icub, Have, Croco);
+    Relation BoxCoverCroco(Box, Cover, Croco);
+    Relation LarryHaveCroco(Larry, Have, Croco);
+
+
+    double XInterlocutor = -1.5,
+        YInterlocutor = 0.4,
+        ZInterlocutor = 0.05,
+        distanceNat_Gir = 0.2;
+
+    //int iRepetition = 5;
+    double dDelay = 2.;
+    double dThresholdDelay = 1.;
+
+    yInfo() << " initialisation of the OPC";
+
+    Robert->m_ego_position[0] = XInterlocutor;
+    Robert->m_ego_position[1] = YInterlocutor;
+    Robert->m_ego_position[2] = ZInterlocutor;
+    Robert->m_present = 1.0;
+    Robert->m_color[0] = Random::uniform(0, 80);
+    Robert->m_color[1] = Random::uniform(180, 250);
+    Robert->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(Robert);
+
+    Larry->m_ego_position[0] = XInterlocutor;
+    Larry->m_ego_position[1] = -YInterlocutor;
+    Larry->m_ego_position[2] = ZInterlocutor;
+    Larry->m_present = 1.0;
+    Larry->m_color[0] = Random::uniform(0, 80);
+    Larry->m_color[1] = Random::uniform(180, 250);
+    Larry->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(Larry);
+
+    double xPos = XInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    double yPos = distanceNat_Gir*(Random::uniform() - 0.5);
+
+    Croco->m_ego_position[0] = xPos;
+    Croco->m_ego_position[1] = yPos;
+    Croco->m_ego_position[2] = -0.1;
+    Croco->m_present = 1.0;
+    Croco->m_color[0] = Random::uniform(0, 250);
+    Croco->m_color[1] = Random::uniform(0, 250);
+    Croco->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Croco);
+
+    Box->m_ego_position[0] = xPos;
+    Box->m_ego_position[1] = yPos;
+    Box->m_ego_position[2] = 0.15;
+    Box->m_dimensions[0] = 0.25;
+    Box->m_dimensions[1] = 0.25;
+    Box->m_dimensions[2] = 0.03;
+    Box->m_present = 1.0;
+    Box->m_color[0] = Random::uniform(0, 250);
+    Box->m_color[1] = Random::uniform(0, 250);
+    Box->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Box);
+
+    icub->m_ego_position[0] = 0.0;
+    icub->m_ego_position[1] = 0.0;
+    icub->m_ego_position[2] = 0.0;
+    icub->m_present = 1.0;
+    icub->m_color[0] = Random::uniform(0, 80);
+    icub->m_color[1] = Random::uniform(180, 250);
+    icub->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(icub);
+
+    iCub->opc->addRelation(BoxCoverCroco);
+    iCub->opc->addRelation(iCubWantsCroco);
+    yInfo() << " delay...";
+    Bottle bOption;
+
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    yInfo() << " start recording in ABM";
+
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(1.5);
+
+    yInfo() << " start grasping";
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+
+    yInfo() << " end of grasping... delay";
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" iCub ask the ObjStory");
+
+    list<pair<string, string> > lArgument;
+    string sentence;
+    sentence = sRobert + " can you remove the box please?";
+    lArgument.push_back(pair<string, string>(sentence, "sentence"));
+    lArgument.push_back(pair<string, string>("remove", "predicate"));
+    lArgument.push_back(pair<string, string>(sRobert, "agent"));
+    lArgument.push_back(pair<string, string>(sBox, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "adj1"));
+    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("none", "subject"));
+    lArgument.push_back(pair<string, string>(sRobert, "addressee"));
+    iCub->getABMClient()->sendActivity("action",
+        "sentence",
+        "recog",
+        lArgument,
+        true);
+
+    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
+    Time::delay(1.);
+    iCub->say(sentence);
+
+    lArgument.clear();
+    sentence = "Then " + sLarry + " can you give me the " + sObject + " please";
+    lArgument.push_back(pair<string, string>(sentence, "sentence"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sLarry, "agent"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "adj1"));
+    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("none", "subject"));
+    lArgument.push_back(pair<string, string>(sLarry, "addressee"));
+    iCub->getABMClient()->sendActivity("action",
+        "sentence",
+        "recog",
+        lArgument,
+        true);
+    iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
+    Time::delay(1.);
+    iCub->say(sentence);
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" Interlocutor gives the ObjError");
+
+    lArgument.clear();
+
+    lArgument.push_back(pair<string, string>(sRobert, "agent"));
+    lArgument.push_back(pair<string, string>("remove", "predicate"));
+    lArgument.push_back(pair<string, string>(sBox, "object"));
+    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
+    iCub->getABMClient()->sendActivity("action",
+        "remove",
+        "action",
+        lArgument,
+        true);
+    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
+    yInfo() << " in delay of action";
+
+    Time::delay(2.5);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(2.5);
+
+
+
+    Box->m_ego_position[1] += 0.75;
+    iCub->opc->commit(Box);
+
+    iCub->opc->removeRelation(BoxCoverCroco);
+    iCub->opc->addRelation(LarryHaveCroco);
+
+    Time::delay(1);
+    iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
+    Time::delay(2.5);
+
+
+    iCub->getABMClient()->sendActivity("action",
+        "remove",
+        "action",
+        lArgument,
+        false);
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" Interlocutor gives the ObjError");
+
+    lArgument.clear();
+
+    lArgument.push_back(pair<string, string>(sLarry, "agent"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        true);
+
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(2.5);
+
+    Croco->m_ego_position[0] = -0.35;
+    Croco->m_ego_position[1] = 0.1;
+    Croco->m_ego_position[2] = 0.;
+    iCub->opc->commit(Croco);
+
+    yInfo("Commit done");
+    iCub->opc->removeRelation(LarryHaveCroco);
+    iCub->opc->addRelation(iCubHasCroco);
+    iCub->opc->removeRelation(iCubWantsCroco);
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+
+    Time::delay(3);
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        false);
+
+    // Realisation of the iCub
+    iCub->say("Yes, this is the " + sObject);
+    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
+
+    Time::delay(2.);
+
+
+
+    return true;
+}
+
+
+/*
+*  iCub + Agent + Box
+*  iCub fails, ask to remove, grasp.
+*/
+bool opcPopulater::populateScenario3(){
+
+    string sAgent = "Sam";
+    string sObject = "rabbit";
+    string sBox = "box";
+    string sObjError = "mouse";
+
+    Time::delay(4.);
+    // first the ObjStory is close to larry (from left to right)
+    iCub->opc->clear();
+    iCub->opc->checkout();
+    Agent* Interlocutor = iCub->opc->addOrRetrieveEntity<Agent>(sAgent);
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
+    Object* Box = iCub->opc->addOrRetrieveEntity<Object>(sBox);
+    Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
+    Action* Cover = iCub->opc->addOrRetrieveEntity<Action>("cover");
+    iCub->opc->commit();
+
+    Relation InterlocutorHasCroco(Interlocutor, Have, Croco);
+    Relation iCubWantsCroco(icub, Want, Croco);
+    Relation iCubHasCroco(icub, Have, Croco);
+    Relation BoxCoverCroco(Box, Cover, Croco);
+
+
+    double XInterlocutor = -1.5,
+        YInterlocutor = 0,
+        ZInterlocutor = 0.6,
+        distanceNat_Gir = 0.2;
+
+    //int iRepetition = 5;
+    double dDelay = 2.5;
+    double dThresholdDelay = 1.5;
+
+    yInfo() << " initialisation of the OPC";
+
+    Interlocutor->m_ego_position[0] = XInterlocutor;
+    Interlocutor->m_ego_position[1] = YInterlocutor;
+    Interlocutor->m_ego_position[2] = ZInterlocutor;
+    Interlocutor->m_present = 1.0;
+    Interlocutor->m_color[0] = Random::uniform(0, 80);
+    Interlocutor->m_color[1] = Random::uniform(180, 250);
+    Interlocutor->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(Interlocutor);
+
+
+    double xPos = XInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    double yPos = YInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+
+    Croco->m_ego_position[0] = xPos;
+    Croco->m_ego_position[1] = yPos;
+    Croco->m_ego_position[2] = -0.1;
+    Croco->m_present = 1.0;
+    Croco->m_color[0] = Random::uniform(0, 250);
+    Croco->m_color[1] = Random::uniform(0, 250);
+    Croco->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Croco);
+
+    Box->m_ego_position[0] = xPos;
+    Box->m_ego_position[1] = yPos;
+    Box->m_ego_position[2] = 0.15;
+    Box->m_dimensions[0] = 0.25;
+    Box->m_dimensions[1] = 0.25;
+    Box->m_dimensions[2] = 0.03;
+    Box->m_present = 1.0;
+    Box->m_color[0] = Random::uniform(0, 250);
+    Box->m_color[1] = Random::uniform(0, 250);
+    Box->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Box);
+
+    icub->m_ego_position[0] = 0.0;
+    icub->m_ego_position[1] = 0.0;
+    icub->m_ego_position[2] = 0.0;
+    icub->m_present = 1.0;
+    icub->m_color[0] = Random::uniform(0, 80);
+    icub->m_color[1] = Random::uniform(180, 250);
+    icub->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(icub);
+
+    iCub->opc->addRelation(BoxCoverCroco);
+    iCub->opc->addRelation(iCubWantsCroco);
+    yInfo() << " delay...";
+    Bottle bOption;
+
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    yInfo() << " start recording in ABM";
+
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(1.0);
+
+    yInfo() << " start grasping";
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+
+    yInfo() << " end of grasping... delay";
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" iCub ask the ObjStory");
+
+    list<pair<string, string> > lArgument;
+    string sentence;
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
+    sentence = "Can you remove the box please?";
+    iCub->say(sentence);
+    lArgument.push_back(pair<string, string>(sentence, "sentence"));
+    lArgument.push_back(pair<string, string>("remove", "predicate"));
+    lArgument.push_back(pair<string, string>(sAgent, "agent"));
+    lArgument.push_back(pair<string, string>(sBox, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "adj1"));
+    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("none", "subject"));
+    lArgument.push_back(pair<string, string>(sAgent, "addressee"));
+    iCub->getABMClient()->sendActivity("action",
+        "sentence",
+        "recog",
+        lArgument,
+        true);
+
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" Interlocutor gives the ObjError");
+
+    lArgument.clear();
+
+    lArgument.push_back(pair<string, string>(sAgent, "agent"));
+    lArgument.push_back(pair<string, string>("remove", "predicate"));
+    lArgument.push_back(pair<string, string>(sBox, "object"));
+
+    iCub->getABMClient()->sendActivity("action",
+        "remove",
+        "action",
+        lArgument,
+        true);
+
+    yInfo() << " in delay of action";
+    Time::delay(2 + 4 * Random::uniform());
+
+    Box->m_ego_position[1] += 0.75;
+    iCub->opc->commit(Box);
+
+    iCub->opc->removeRelation(BoxCoverCroco);
+
+    Time::delay(3);
+
+    iCub->getABMClient()->sendActivity("action",
+        "remove",
+        "action",
+        lArgument,
+        false);
+
+    // ICUB TAKE THE CROCO
+
+    Time::delay(2.);
+
+    yInfo() << " start grasping";
+
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("take", "predicate"));
+        lArgument.push_back(pair<string, string>(sObject, "object"));
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("opcPopulater", "provider"));
+        lArgument.push_back(pair<string, string>("ARE", "subsystem"));
+        iCub->getABMClient()->sendActivity("action", "take", "action", lArgument, true);
+    }
+
+    Croco->m_ego_position[0] = -0.15 - 0.1 * Random::uniform();
+    Croco->m_ego_position[1] = 0.15 - 0.3 * Random::uniform();
+    iCub->opc->commit(Croco);
+
+    iCub->opc->addRelation(iCubHasCroco);
+    iCub->opc->removeRelation(iCubWantsCroco);
+
+    Time::delay(4 * Random::uniform());
+
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("take", "predicate"));
+        lArgument.push_back(pair<string, string>(sObject, "object"));
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("opcPopulater", "provider"));
+        lArgument.push_back(pair<string, string>("ARE", "subsystem"));
+        lArgument.push_back(pair<string, string>("success", "status"));
+        iCub->getABMClient()->sendActivity("action", "take", "action", lArgument, false);
+    }
+
+    return true;
+
+}
+
+
+/*
+* Nao just grasp the croco
+*/
+bool opcPopulater::populateScenario4(){
+
+    string sObject = "bottle";
+
+    Time::delay(4.);
+
+
+    /*
+    * iCub wants the croco
+    */
+
+    iCub->opc->clear();
+    iCub->opc->checkout();
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
+    Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
+    iCub->opc->commit();
+
+    Relation iCubWantsCroco(icub, Want, Croco);
+    Relation iCubHasCroco(icub, Have, Croco);
+
+    double XInterlocutor = -1.5,
+        YInterlocutor = 0,
+        distanceNat_Gir = 0.2;
+
+    //int iRepetition = 5;
+    double dDelay = 2.;
+    double dThresholdDelay = 1.5;
+
+    yInfo() << " initialisation of the OPC";
+
+    Croco->m_ego_position[0] = XInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    Croco->m_ego_position[1] = YInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    Croco->m_ego_position[2] = -0.1;
+    Croco->m_present = 1.0;
+    Croco->m_color[0] = Random::uniform(0, 250);
+    Croco->m_color[1] = Random::uniform(0, 250);
+    Croco->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Croco);
+
+    icub->m_ego_position[0] = 0.0;
+    icub->m_ego_position[1] = 0.0;
+    icub->m_ego_position[2] = 0.0;
+    icub->m_present = 1.0;
+    icub->m_color[0] = Random::uniform(0, 80);
+    icub->m_color[1] = Random::uniform(180, 250);
+    icub->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(icub);
+
+    iCub->opc->addRelation(iCubWantsCroco);
+    yInfo() << " delay...";
+    Bottle bOption;
+
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    yInfo() << " start recording in ABM";
+
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(1.0);
+
+    yInfo() << " start grasping";
+
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("take", "predicate"));
+        lArgument.push_back(pair<string, string>(sObject, "object"));
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("opcPopulater", "provider"));
+        lArgument.push_back(pair<string, string>("ARE", "subsystem"));
+        iCub->getABMClient()->sendActivity("action", "take", "action", lArgument, true);
+    }
+
+    Croco->m_ego_position[0] = -0.15 - 0.1 * Random::uniform();
+    Croco->m_ego_position[1] = 0.15 - 0.3 * Random::uniform();
+    iCub->opc->commit(Croco);
+
+    iCub->opc->addRelation(iCubHasCroco);
+    iCub->opc->removeRelation(iCubWantsCroco);
+
+    Time::delay(4 * Random::uniform());
+
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("take", "predicate"));
+        lArgument.push_back(pair<string, string>(sObject, "object"));
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("opcPopulater", "provider"));
+        lArgument.push_back(pair<string, string>("ARE", "subsystem"));
+        lArgument.push_back(pair<string, string>("success", "status"));
+        iCub->getABMClient()->sendActivity("action", "take", "action", lArgument, false);
+    }
+
+    return true;
+}
+
+
+/*
+* iCub + Agent: iCub wants croco, fails, ask, get
+*/
+bool opcPopulater::populateScenario5(){
+
+    string sAgent = "Mary";
+    string sObject = "brain";
+
+    Time::delay(4.);
+    // first the ObjStory is close to larry (from left to right)
+    iCub->opc->clear();
+    iCub->opc->checkout();
+    Agent* Interlocutor = iCub->opc->addOrRetrieveEntity<Agent>(sAgent);
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
+    Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
+    iCub->opc->commit();
+
+    Relation InterlocutorHasCroco(Interlocutor, Have, Croco);
+    Relation iCubWantsCroco(icub, Want, Croco);
+    Relation iCubHasCroco(icub, Have, Croco);
+
+
+    double XInterlocutor = -1.5,
+        YInterlocutor = 0,
+        ZInterlocutor = 0.05,
+        distanceNat_Gir = 0.2;
+
+    //int iRepetition = 5;
+    double dDelay = 2.5;
+    double dThresholdDelay = 1.5;
+
+    yInfo() << " initialisation of the OPC";
+
+    Interlocutor->m_ego_position[0] = XInterlocutor;
+    Interlocutor->m_ego_position[1] = YInterlocutor;
+    Interlocutor->m_ego_position[2] = ZInterlocutor;
+    Interlocutor->m_present = 1.0;
+    Interlocutor->m_color[0] = Random::uniform(0, 80);
+    Interlocutor->m_color[1] = Random::uniform(180, 250);
+    Interlocutor->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(Interlocutor);
+
+    Croco->m_ego_position[0] = XInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    Croco->m_ego_position[1] = YInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    Croco->m_ego_position[2] = -0.1;
+    Croco->m_present = 1.0;
+    Croco->m_color[0] = Random::uniform(0, 250);
+    Croco->m_color[1] = Random::uniform(0, 250);
+    Croco->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Croco);
+
+    icub->m_ego_position[0] = 0.0;
+    icub->m_ego_position[1] = 0.0;
+    icub->m_ego_position[2] = 0.0;
+    icub->m_present = 1.0;
+    icub->m_color[0] = Random::uniform(0, 80);
+    icub->m_color[1] = Random::uniform(180, 250);
+    icub->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(icub);
+
+    iCub->opc->addRelation(InterlocutorHasCroco);
+    iCub->opc->addRelation(iCubWantsCroco);
+    yInfo() << " delay...";
+    Bottle bOption;
+
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    yInfo() << " start recording in ABM";
+
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(1.0);
+
+    yInfo() << " start grasping";
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+
+    yInfo() << " end of grasping... delay";
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    yInfo() << " searching for an action";
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        ostringstream osTmp;
+        osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
+        string tmp = osTmp.str();
+        lArgument.push_back(pair<string, string>(tmp, "goal"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            true);
+    }
+
+    yInfo(" return: sentence 'give'...delay");
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " searching for an action";
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        ostringstream osTmp;
+        osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
+        string tmp = osTmp.str();
+        lArgument.push_back(pair<string, string>(tmp, "goal"));
+        ostringstream osTmp2;
+        osTmp2 << "(predicate sentence) (speaker icub) (object " << sObject << ")";
+        string tmp2 = osTmp2.str();
+        lArgument.push_back(pair<string, string>(tmp2, "result"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "needs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            false);
+    }
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " whatIs give ?";
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            true);
+    }
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " return: whatIs give ?";
+    if (iCub->getABMClient()->Connect())
+    {
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
+        lArgument.push_back(pair<string, string>("speaker#have#object", "sentence_after"));
+        lArgument.push_back(pair<string, string>("agent#have#object", "action_before"));
+        lArgument.push_back(pair<string, string>("recipient#have#object", "action_after"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            false);
+    }
+
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" iCub ask the ObjStory");
+
+    list<pair<string, string> > lArgument;
+    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
+    Time::delay(1.0);
+    string sentence;
+    sentence = "Give me the " + sObject;
+    sentence += " please";
+    iCub->say(sentence, false);
+    lArgument.push_back(pair<string, string>(sentence, "sentence"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sAgent, "agent"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "adj1"));
+    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("none", "subject"));
+    lArgument.push_back(pair<string, string>(sAgent, "addressee"));
+    iCub->getABMClient()->sendActivity("action",
+        "sentence",
+        "recog",
+        lArgument,
+        true);
+
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" Interlocutor gives the ObjError");
+
+    lArgument.clear();
+
+    lArgument.push_back(pair<string, string>(sAgent, "agent"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        true);
+
+    yInfo() << " in delay of action";
+    Time::delay(2 + 2 * Random::uniform());
+    yInfo() << "before commit";
+
+    Croco->m_ego_position[0] = -0.30;
+    Croco->m_ego_position[1] = 0.1;
+    iCub->opc->commit(Croco);
+    yInfo() << "after commit";
+
+    iCub->opc->removeRelation(InterlocutorHasCroco);
+    iCub->opc->addRelation(iCubHasCroco);
+    iCub->opc->removeRelation(iCubWantsCroco);
+
+    Time::delay(1.0);
+
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+
+    Time::delay(1.0);
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        false);
+
+    // Realisation of the iCub
+
+
+    iCub->say("Yes, this is the " + sObject, false);
+    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
+
+
+    Time::delay(2.);
+
+    return true;
+}
+
+
+/*
+* 2 agents + iCub + box + 2 steps
+*/
+bool opcPopulater::populateScenario6(){
+    string sLarry = "Jonny";
+    string sRobert = "Carol";
+    string sObject = "ball";
+    string sBox = "box";
+    string sObjError = "mouse";
+
+    Time::delay(4.);
+    // first the ObjStory is close to larry (from left to right)
+    iCub->opc->clear();
+    iCub->opc->checkout();
+    Agent* Robert = iCub->opc->addOrRetrieveEntity<Agent>(sRobert);
+    Agent* Larry = iCub->opc->addOrRetrieveEntity<Agent>(sLarry);
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
+    Object* Box = iCub->opc->addOrRetrieveEntity<Object>(sBox);
+    Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
+    Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
+    Action* Cover = iCub->opc->addOrRetrieveEntity<Action>("cover");
+    iCub->opc->commit();
+
+    Relation iCubWantsCroco(icub, Want, Croco);
+    Relation iCubHasCroco(icub, Have, Croco);
+    Relation BoxCoverCroco(Box, Cover, Croco);
+    Relation LarryHaveCroco(Larry, Have, Croco);
+
+
+    double XInterlocutor = -1.5,
+        YInterlocutor = 0.5,
+        ZInterlocutor = 0.6,
+        distanceNat_Gir = 0.2;
+
+    //int iRepetition = 5;
+    double dDelay = 2.5;
+    double dThresholdDelay = 1.5;
+
+    yInfo() << " initialisation of the OPC";
+
+    Robert->m_ego_position[0] = XInterlocutor;
+    Robert->m_ego_position[1] = YInterlocutor;
+    Robert->m_ego_position[2] = ZInterlocutor;
+    Robert->m_present = 1.0;
+    Robert->m_color[0] = Random::uniform(0, 80);
+    Robert->m_color[1] = Random::uniform(180, 250);
+    Robert->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(Robert);
+
+    Larry->m_ego_position[0] = XInterlocutor;
+    Larry->m_ego_position[1] = -YInterlocutor;
+    Larry->m_ego_position[2] = ZInterlocutor;
+    Larry->m_present = 1.0;
+    Larry->m_color[0] = Random::uniform(0, 80);
+    Larry->m_color[1] = Random::uniform(180, 250);
+    Larry->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(Larry);
+
+    double xPos = XInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
+    double yPos = distanceNat_Gir*(Random::uniform() - 0.5);
+
+    Croco->m_ego_position[0] = xPos;
+    Croco->m_ego_position[1] = yPos;
+    Croco->m_ego_position[2] = -0.1;
+    Croco->m_present = 1.0;
+    Croco->m_color[0] = Random::uniform(0, 250);
+    Croco->m_color[1] = Random::uniform(0, 250);
+    Croco->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Croco);
+
+    Box->m_ego_position[0] = xPos;
+    Box->m_ego_position[1] = yPos;
+    Box->m_ego_position[2] = 0.15;
+    Box->m_dimensions[0] = 0.25;
+    Box->m_dimensions[1] = 0.25;
+    Box->m_dimensions[2] = 0.03;
+    Box->m_present = 1.0;
+    Box->m_color[0] = Random::uniform(0, 250);
+    Box->m_color[1] = Random::uniform(0, 250);
+    Box->m_color[2] = Random::uniform(0, 250);
+    iCub->opc->commit(Box);
+
+    icub->m_ego_position[0] = 0.0;
+    icub->m_ego_position[1] = 0.0;
+    icub->m_ego_position[2] = 0.0;
+    icub->m_present = 1.0;
+    icub->m_color[0] = Random::uniform(0, 80);
+    icub->m_color[1] = Random::uniform(180, 250);
+    icub->m_color[2] = Random::uniform(80, 180);
+    iCub->opc->commit(icub);
+
+    iCub->opc->addRelation(BoxCoverCroco);
+    iCub->opc->addRelation(iCubWantsCroco);
+    yInfo() << " delay...";
+    Bottle bOption;
+
+
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
+    Time::delay(1.0);
+
+    yInfo() << " start grasping";
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+
+    yInfo() << " end of grasping... delay";
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" iCub ask the ObjStory");
+
+    list<pair<string, string> > lArgument;
+    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
+    string sentence;
+    sentence = "Can you remove the box please " + sRobert + " ?";
+    iCub->say(sentence);
+    lArgument.push_back(pair<string, string>(sentence, "sentence"));
+    lArgument.push_back(pair<string, string>("remove", "predicate"));
+    lArgument.push_back(pair<string, string>(sRobert, "agent"));
+    lArgument.push_back(pair<string, string>(sBox, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "adj1"));
+    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("none", "subject"));
+    lArgument.push_back(pair<string, string>(sRobert, "addressee"));
+    iCub->getABMClient()->sendActivity("action",
+        "sentence",
+        "recog",
+        lArgument,
+        true);
+
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" Interlocutor gives the ObjError");
+
+    lArgument.clear();
+
+    lArgument.push_back(pair<string, string>(sRobert, "agent"));
+    lArgument.push_back(pair<string, string>("remove", "predicate"));
+    lArgument.push_back(pair<string, string>(sBox, "object"));
+
+    iCub->getABMClient()->sendActivity("action",
+        "remove",
+        "action",
+        lArgument,
+        true);
+
+    yInfo() << " in delay of action";
+    Time::delay(2 + 4 * Random::uniform());
+
+    Box->m_ego_position[1] += 0.75;
+    iCub->opc->commit(Box);
+
+    iCub->opc->removeRelation(BoxCoverCroco);
+    iCub->opc->addRelation(LarryHaveCroco);
+    iCub->getARE()->look(Box->m_ego_position, bOption, sBox);
+    Time::delay(2);
+
+    iCub->getABMClient()->sendActivity("action",
+        "remove",
+        "action",
+        lArgument,
+        false);
+
+
+    // TRY TO GRASP
+
+    yInfo() << " start grasping";
+    iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
+
+    yInfo() << " end of grasping... delay";
+    Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    yInfo() << " searching for an action";
+    if (iCub->getABMClient()->Connect())
+    {
+        lArgument.clear();
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        ostringstream osTmp;
+        osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
+        string tmp = osTmp.str();
+        lArgument.push_back(pair<string, string>(tmp, "goal"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            true);
+    }
+
+    yInfo(" return: sentence 'give'...delay");
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " searching for an action";
+    if (iCub->getABMClient()->Connect())
+    {
+        lArgument.clear();
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        ostringstream osTmp;
+        osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
+        string tmp = osTmp.str();
+        lArgument.push_back(pair<string, string>(tmp, "goal"));
+        ostringstream osTmp2;
+        osTmp2 << "(predicate sentence) (speaker icub) (object " << sObject << ")";
+        string tmp2 = osTmp2.str();
+        lArgument.push_back(pair<string, string>(tmp2, "result"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "needs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            false);
+    }
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " whatIs give ?";
+    if (iCub->getABMClient()->Connect())
+    {
+        lArgument.clear();
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            true);
+    }
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo() << " return: whatIs give ?";
+    if (iCub->getABMClient()->Connect())
+    {
+        lArgument.clear();
+        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("reason", "predicate"));
+        lArgument.push_back(pair<string, string>("give", "whatIs"));
+        lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
+        lArgument.push_back(pair<string, string>("speaker#have#object", "sentence_after"));
+        lArgument.push_back(pair<string, string>("agent#have#object", "action_before"));
+        lArgument.push_back(pair<string, string>("recipient#have#object", "action_after"));
+        lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
+        iCub->getABMClient()->sendActivity("action",
+            "reason",
+            "reasoning",
+            lArgument,
+            false);
+    }
+
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" iCub ask the ObjStory");
+
+    lArgument.clear();
+    iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
+    sentence = "Give me the " + sObject + " please " + sLarry + " ?";
+    iCub->say(sentence);
+    lArgument.push_back(pair<string, string>(sentence, "sentence"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sLarry, "agent"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "adj1"));
+    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("none", "subject"));
+    lArgument.push_back(pair<string, string>(sLarry, "addressee"));
+    iCub->getABMClient()->sendActivity("action",
+        "sentence",
+        "recog",
+        lArgument,
+        true);
+
+
+    Time::delay(dDelay*Random::uniform());
+    yInfo(" Interlocutor gives the ObjError");
+
+    lArgument.clear();
+
+    lArgument.push_back(pair<string, string>(sLarry, "agent"));
+    lArgument.push_back(pair<string, string>("give", "predicate"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        true);
+
+    yInfo() << " in delay of action";
+    Time::delay(4 + 4 * Random::uniform());
+
+    Croco->m_ego_position[0] = -0.15 - 0.1 * Random::uniform();
+    Croco->m_ego_position[1] = 0.15 - 0.3 * Random::uniform();
+    iCub->opc->commit(Croco);
+
+    iCub->opc->removeRelation(LarryHaveCroco);
+    iCub->opc->addRelation(iCubHasCroco);
+    iCub->opc->removeRelation(iCubWantsCroco);
+
+    Time::delay(3);
+
+    iCub->getABMClient()->sendActivity("action",
+        "give",
+        "action",
+        lArgument,
+        false);
+
+    // Realisation of the iCub
+
+
+    iCub->say("Yes, this is the " + sObject, false);
+    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
+
+    Time::delay(2.);
 
     return true;
 }

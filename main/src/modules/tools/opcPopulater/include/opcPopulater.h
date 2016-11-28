@@ -56,6 +56,12 @@ public:
     bool    setValueEntity(Bottle bInput);
 
     bool    populateABM(Bottle bInput);
+    bool    populateScenario1();
+    bool    populateScenario2();
+    bool    populateScenario3();
+    bool    populateScenario4();
+    bool    populateScenario5();
+    bool    populateScenario6();
     bool    populateABMiCubStory(Bottle bInput);
     bool    storyFromPOV(Bottle bInput);
 

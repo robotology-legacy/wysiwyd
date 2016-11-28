@@ -122,6 +122,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     counter = 0;
     findStories();
 
+    listeningStory();
+
     //    narrationToMeaning();
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";

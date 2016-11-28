@@ -1,0 +1,184 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+
+<GRAMMAR  LANGID="409">
+
+  <DEFINE>
+    <ID  NAME="agent"  VAL="1"/>
+    <ID  NAME="predicate"  VAL="2"/>
+    <ID  NAME="object"  VAL="3"/>
+    <ID  NAME="recipient"  VAL="4"/>
+    <ID  NAME="CCW"  VAL="5"/>
+    <ID  NAME="dfw_simple"  VAL="6"/>
+    <ID  NAME="dfw_double"  VAL="7"/>
+  </DEFINE>
+
+
+  <RULE  NAME="stop"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>stop</P>
+  </RULE>
+
+
+  <RULE  NAME="Else"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>What else</P>    
+  </RULE>
+  
+
+  <RULE  NAME="Why_is_that"  TOPLEVEL="ACTIVE"  EXPORT="1">
+<L>
+    <P>Why is that</P>   
+    <P>Why did this happened</P> 
+</L>
+  </RULE>
+  
+  
+  <RULE  NAME="When"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>Do you remember when</P>    
+  </RULE>
+  
+    <RULE  NAME="What_happen_DFW_simple"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>What happen</P>
+    <RULEREF NAME="dfw_simple"/>
+  </RULE>
+
+  <RULE  NAME="What_happen_DFW_double"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>What happen</P>
+    <RULEREF NAME="dfw_double"/>
+    <RULEREF NAME="agent"/>
+    <RULEREF NAME="predicate"/>
+    <O>
+      <RULEREF NAME="CCW"/>
+      <RULEREF NAME="object"/>
+      <O>
+        <RULEREF NAME="CCW"/>
+        <RULEREF NAME="recipient"/>
+      </O>
+    </O>
+  </RULE>
+
+  <RULE  NAME="Why"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>Why did</P>
+    <RULEREF NAME="agent"/>
+    <RULEREF NAME="predicate"/>
+    <O>
+      <RULEREF NAME="CCW"/>
+      <RULEREF NAME="object"/>
+      <O>
+        <RULEREF NAME="CCW"/>
+        <RULEREF NAME="recipient"/>
+      </O>
+    </O>
+  </RULE>
+
+
+ <RULE  NAME="PAORsimple"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <RULEREF NAME="dfw_simple"/>
+    <RULEREF NAME="agent"/>
+    <RULEREF NAME="predicate"/>
+    <O>
+      <RULEREF NAME="CCW"/>
+      <RULEREF NAME="object"/>
+      <O>
+        <RULEREF NAME="CCW"/>
+        <RULEREF NAME="recipient"/>
+      </O>
+    </O>
+  </RULE>
+  
+   <RULE  NAME="PAORdouble"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <RULEREF NAME="agent"/>
+    <RULEREF NAME="predicate"/>
+    <O>
+      <RULEREF NAME="CCW"/>
+      <RULEREF NAME="object"/>
+      <O>
+        <RULEREF NAME="CCW"/>
+        <RULEREF NAME="recipient"/>
+      </O>
+    </O>
+    <RULEREF NAME="dfw_double"/>
+    <RULEREF NAME="agent"/>
+    <RULEREF NAME="predicate"/>
+    <O>
+      <RULEREF NAME="CCW"/>
+      <RULEREF NAME="object"/>
+      <O>
+        <RULEREF NAME="CCW"/>
+        <RULEREF NAME="recipient"/>
+      </O>
+    </O>
+  </RULE>
+
+
+  
+
+  <RULE NAME="dfw_simple" DYNAMIC="TRUE">
+    <L>
+      <P>first</P>
+      <P>then</P>
+      <P>finally</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="dfw_double" DYNAMIC="TRUE">
+    <L>
+      <P>because</P>
+      <P>before</P>
+      <P>after</P>
+      <P>but</P>
+    </L>
+  </RULE>
+
+
+ <RULE NAME="agent" DYNAMIC="TRUE">
+    <L>
+      <P>you</P>
+      <P>Anne-Laure</P>
+      <P>Greg</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="predicate" DYNAMIC="TRUE">
+    <L>
+      <P>want</P>
+      <P>take</P>
+      <P>give</P>
+      <P>have</P>
+      <P>reason</P>
+      <P>fail</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="object" DYNAMIC="TRUE">
+    <L>
+      <P>croco</P>
+      <P>mouse</P>
+      <P>brain</P>
+      <P>take</P>
+    </L>
+  </RULE>
+
+
+  <RULE NAME="recipient" DYNAMIC="TRUE">
+    <L>
+      <P>me</P>
+      <P>John</P>
+      <P>iCub</P>
+      <P>Larry</P>
+      <P>Mary</P>
+      <P>Robert</P>
+      <P>you</P>
+      <P>take</P>
+    </L>
+  </RULE>
+
+
+  <RULE NAME="CCW" DYNAMIC="TRUE">
+    <L>
+      <P>to</P>
+      <P>the</P>
+    </L>
+  </RULE>
+
+
+
+</GRAMMAR>

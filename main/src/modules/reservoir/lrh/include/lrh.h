@@ -18,28 +18,13 @@
 #ifndef _LRH_H_
 #define _LRH_H_
 
-#ifdef WIN32
-//#include <windows.h>
-#define  BOOST_ALL_NO_LIB
-#endif
-
-//#include <iostream>
-//#include <fstream>
-//#include <sstream>
-//#include <string>
-//#include <list>
-
-#include <boost/python.hpp>
-
-//#include <yarp/sig/all.h>
-//#include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
 
 
 class LRH : public yarp::os::RFModule {
 private:
 
-    //int iCurrentInstance;
+    int iCurrentInstance;
 
     std::string sKeyWord;
     std::string moduleName;
@@ -54,8 +39,6 @@ private:
 
     std::string sclosed_class_words;
     
-    std::string smax_nr_ocw;
-    std::string smax_nr_actionrelation;
     std::string selt_pred;
     std::string sNbNeurons;
     std::string sMode;
@@ -65,6 +48,8 @@ private:
 
     float offsetGrasp;
 
+    std::map<std::string, std::string> mAssociation;
+    
     std::string sobjectFocusChanged;
 
     yarp::os::Port handlerPort;               // a port to handle messages
@@ -82,6 +67,11 @@ private:
 
     bool AREactions(std::vector<std::string> seq);
     bool spatialRelation(std::string sObjectFocus);
+    std::string train();
+    std::string construal(std::string svector, int iquestion);
+    bool createVector(std::vector<std::string> seq);
+    std::list<int> nbCaracters(std::string ssequence);
+    //std::tuple<char, std::string, std::string> getPAOR(int id, vector<string>)
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

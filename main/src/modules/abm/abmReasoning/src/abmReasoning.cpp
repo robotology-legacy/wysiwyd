@@ -186,6 +186,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 {
 
     bReply.clear();
+
     if (!bReady)
     {
         bReply.addString("module not initialised yet, please wait.");
