@@ -2493,7 +2493,7 @@ discourseform::meaningSentence narrativeHandler::sentenceToEvent(string level1){
                 int iNumberProposition = atoi(&(meaningPAOR[iWords].at(1)));
 
                 // if new proposition
-                if (currentSentence.vSentence.size() < (int)iNumberProposition){
+                if ((int)currentSentence.vSentence.size() < iNumberProposition){
                     storygraph::PAOR paor;
 
                     currentSentence.vSentence.push_back(paor);

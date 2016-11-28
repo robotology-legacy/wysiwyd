@@ -1015,7 +1015,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         level1++
         )
     { // for each sentence of the discourse
-        DFW *currentDFW;
+        DFW *currentDFW = nullptr;
         bool isMultiple = false; // if a sentence is multiple (with a DFW)
         int iPreposition = 0;   // get the order of the preposition in the sentence
         int iNbPreposition = level1->vSentence.size();  // nb of preposition in the sentence
@@ -1145,7 +1145,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             iPreposition++;
         }  // end preposition
 
-        if (bAllAction){
+        if (currentDFW != nullptr && bAllAction){
             if (isDFW && isMultiple){
                 if (iNbPreposition <= 2){
                     //cout << "filling single vector ...";
