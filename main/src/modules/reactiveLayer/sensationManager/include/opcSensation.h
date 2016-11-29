@@ -34,7 +34,7 @@ private:
 
 public:
 
-    Bottle u_entities, k_entities, up_entities, kp_entities, p_entities;
+    Bottle u_entities, k_entities, up_entities, kp_entities, p_entities, o_positions;
     void configure();
     void publish();
     int get_property(string name, string property);

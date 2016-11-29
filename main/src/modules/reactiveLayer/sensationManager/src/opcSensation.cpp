@@ -98,16 +98,18 @@ Bottle OpcSensation::handleEntities()
     bool unknown_obj = false;
     bool known_obj = false;
     bool agentPresent = false;
-    Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities;
+    Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities, temp_o_positions;
     Bottle objects;
-
     for (auto& entity : lEntities)
     {
+        Object* o = dynamic_cast<Object*>(entity);
+        string label = o->objectAreaAsString();
+        addToEntityList(temp_o_positions, o->objectAreaAsString(), entity->name());
         if (entity->name().find("unknown") == 0) {
             if (entity->entity_type() == "object")
             {
-                // yInfo() << "I found an unknown entity: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
+                
                 if(o && (o->m_present==1.0)) {
                     unknown_obj = true;
                     addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
@@ -122,7 +124,6 @@ Bottle OpcSensation::handleEntities()
         }
 
         else if (entity->name() == "partner" && entity->entity_type() == "agent") {
-            //yInfo() << "I found an unknown partner: " << entity->name();
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
                 unknown_obj = true;
@@ -160,8 +161,6 @@ Bottle OpcSensation::handleEntities()
                         obj1->m_dimensions[1] = bot->get(4).asDouble();
                         obj1->m_dimensions[2] = bot->get(5).asDouble();
                         obj1->m_present = bot->get(6).asDouble();
-                        /*iCub->opc->commit(obj1);
-                        yDebug("opc updated...");*/
                         
                     }
                 }
@@ -202,6 +201,7 @@ Bottle OpcSensation::handleEntities()
     p_entities.copy( temp_p_entities);
     up_entities.copy( temp_up_entities);
     kp_entities.copy( temp_kp_entities);
+    o_positions.copy( temp_o_positions);
 
     Bottle& output=outputPPSPort.prepare();
     output.clear();
@@ -220,6 +220,7 @@ Bottle OpcSensation::handleEntities()
 int OpcSensation::get_property(string name,string property)
 {
     Bottle b;
+    bool check_position;
 
     if (property == "known")
     {
@@ -233,23 +234,48 @@ int OpcSensation::get_property(string name,string property)
     {
         b = p_entities;
     }
-    if (name == "any"){
-        yDebug() << "name is any"; 
-        yDebug() << b.size();
-        if (b.size()!=0){
-            return 1;
-        }else{
-            return 0;
-        }
-    }else{
+    else 
+    {
+        b = o_positions;
+        check_position=true;
+    }
+    if (check_position)
+    {
+        yDebug()<<"Checking object position"<<name<<property;
         for (int i=0;i<b.size();i++)
         {
-            if (b.get(i).asList()->get(1).asString()==name)
-            {
-                return 1;
+            if (name == "any"){
+                if (b.get(i).asList()->get(0).asString()==property)
+                {
+                    return 1;
+                }
+            }else{
+                if (b.get(i).asList()->get(1).asString()==name && b.get(i).asList()->get(0).asString()==property)
+                {
+                    yDebug()<<b.toString();
+                    return 1;
+                }
             }
         }
         return 0;
+
+    }else{
+        if (name == "any"){
+            if (b.size()!=0){
+                return 1;
+            }else{
+                return 0;
+            }
+        }else{
+            for (int i=0;i<b.size();i++)
+            {
+                if (b.get(i).asList()->get(1).asString()==name)
+                {
+                    return 1;
+                }
+            }
+            return 0;
+        }
     }
 }
 
