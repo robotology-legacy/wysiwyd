@@ -204,6 +204,18 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
         }
     }
 
+
+    if (!portReadJoinsAwareness.open("/" + getName() + "/portReadJoinsAwareness:i")) {
+        yError() << ": Unable to open port " << "/" << getName() << "portReadJoinsAwareness:i";
+        bEveryThingisGood = false;
+    }
+    while(!Network::isConnected("/jointsAwareness/"+part+"/toleftCam/joints2DProj:o", portReadJoinsAwareness.getName())) {
+        Network::connect("/jointsAwareness/"+part+"/toleftCam/joints2DProj:o", portReadJoinsAwareness.getName());
+        yInfo() << "Waiting for port " << "/jointsAwareness/"+part+"/toleftCam/joints2DProj:o" << " to connect to " << portReadJoinsAwareness.getName();
+        Time::delay(1.0);
+    }
+
+
     yInfo() << "Connections ok...";
 
     // Initialize iCub
@@ -227,10 +239,17 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
 
     cvtColor(cvImage1,cvImage2,CV_RGB2BGR);
 
+    Bottle *handPosCart;
+    handPosCart = portReadJoinsAwareness.read(true);
+
+    double x_roi = handPosCart->get(12).asDouble();
+    double y_roi = handPosCart->get(13).asDouble();
+
     image = cvImage2;
     //roi=selectROI("tracker",image);
-    roi = Rect(180,130,50,50); //this for piano
-    roi = Rect(165,100,50,50); //this for ELIMB
+//    roi = Rect(180,130,50,50); //this for piano
+//    roi = Rect(165,100,50,50); //this for ELIMB
+    roi = Rect(x_roi,y_roi,50,50);
     tracker->init(image,roi);
 
     //tracking
@@ -273,7 +292,7 @@ bool SensoryProcessor::interruptModule() {
     portReadSkinArm.interrupt();
     portMidiOut.interrupt();
     portCartesianCtrlOut.interrupt();
-
+    portReadJoinsAwareness.interrupt();
     yInfo() << "Bye!";
 
     return true;
@@ -331,6 +350,9 @@ bool SensoryProcessor::close() {
 
     portCartesianCtrlOut.interrupt();
     portCartesianCtrlOut.close();
+
+    portReadJoinsAwareness.interrupt();
+    portReadJoinsAwareness.close();
 
     handlerPort.interrupt();
     handlerPort.close();

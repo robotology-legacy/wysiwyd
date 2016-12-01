@@ -53,6 +53,7 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> portHandPositionFromTrackOut;
     yarp::os::BufferedPort<yarp::os::Bottle> portMidiOut;
     yarp::os::BufferedPort<yarp::os::Bottle> portCartesianCtrlOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portReadJoinsAwareness;
 
     yarp::os::RpcClient portToSFM;
 
