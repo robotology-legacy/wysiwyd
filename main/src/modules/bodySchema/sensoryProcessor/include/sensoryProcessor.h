@@ -19,6 +19,10 @@
 #define _SENSORYPROCESSOR_H_
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/tracking.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
@@ -46,7 +50,9 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinForearm;
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinArm;
     yarp::os::BufferedPort<yarp::os::Bottle> portHandPositionFromFeaturesOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portHandPositionFromTrackOut;
     yarp::os::BufferedPort<yarp::os::Bottle> portMidiOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portCartesianCtrlOut;
 
     yarp::os::RpcClient portToSFM;
 
@@ -55,6 +61,9 @@ private:
 
     yarp::dev::PolyDriver* armDev;
     yarp::dev::PolyDriver* headDev;
+    yarp::dev::PolyDriver* icartClient;
+
+    yarp::dev::ICartesianControl* icart;
 
     yarp::sig::Vector encodersArm;
     yarp::sig::Vector encodersHead;
@@ -63,8 +72,13 @@ private:
 
     RtMidiIn *midiin;
 
+
+
     int MAX_COUNT;
     int fps;
+
+    cv::Ptr<cv::Tracker> tracker;
+    cv::Rect2d roi;
 
     std::string part;
     std::string robot;
