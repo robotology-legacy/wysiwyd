@@ -308,7 +308,7 @@ bool jointsAwareness::streamCartesian(string part, string cartesianPart){
         //yDebug() << "bProj for " << part << " : (" << bProj.toString() << ")" ;
 
     } else {
-        yError() << "Invalid PolyDriver: exit!";
+        yError() << "[streamCartesian] Invalid PolyDriver: exit!";
         return false;
     }
 
@@ -327,7 +327,7 @@ bool jointsAwareness::configCartesian(string part, string cameraSuffix){
 
     Property option;
     option.put("device","cartesiancontrollerclient");
-    option.put("remote","/icub/cartesianController/" + part);
+    option.put("remote","/"+robot+"/cartesianController/" + part);
     option.put("local","/client/" + part);
 
     yarp::dev::PolyDriver *driver = polydriver_map.find(part)->second;
@@ -342,7 +342,7 @@ bool jointsAwareness::configCartesian(string part, string cameraSuffix){
         driver->view(cartesian_map.find(part)->second);
         projPorts_map.find(part)->second->open((basePartPortName + cameraSuffix + "/" + "joints2DProj:o").c_str());
     } else {
-        yError() << "Invalid PolyDriver: exit!";
+        yError() << "[configCartesian] Invalid PolyDriver: exit!";
         return false;
     }
 
