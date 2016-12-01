@@ -146,8 +146,12 @@ bool jointsAwareness::updateModule() {
 
     isTorsoDone = false;
 
-    isTorsoDone = streamCartesian("left_arm");
-    isTorsoDone = streamCartesian("right_arm");
+    if(arm == "both"){
+        isTorsoDone = streamCartesian("left_arm"); // this is needed, don't remove the isTorsoDone
+        isTorsoDone = streamCartesian("right_arm"); // this is needed, don't remove the isTorsoDone
+    } else {
+        isTorsoDone = streamCartesian(arm);
+    }
 
     if(read_ObjLoc_Port.getInputCount() > 0){
         streamObjects();
@@ -241,8 +245,10 @@ bool jointsAwareness::streamCartesian(string part, string cartesianPart){
 
     yarp::dev::PolyDriver *driver;
     if(part == "torso"){ //if torso, we take the associated cartesianPart (e.g. left_arm or right_arm)
+        //yDebug() << "Doing the torso with the cartesian part " << cartesianPart ;
         driver = polydriver_map.find(cartesianPart)->second;
     } else {
+        //yDebug() << "Doing the part = " << part ;
         driver = polydriver_map.find(part)->second;
     }
 
