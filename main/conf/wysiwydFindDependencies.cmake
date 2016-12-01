@@ -27,6 +27,7 @@ find_package(OTL)
 find_package(CURL QUIET)
 find_package(kinectWrapper QUIET)
 find_package(Boost COMPONENTS chrono thread system QUIET)
+find_package(ALSA QUIET)
 
 message(STATUS "I have found the following libraries:")
 checkandset_dependency(OpenCV)
@@ -39,3 +40,5 @@ checkandset_dependency(OTL)
 checkandset_dependency(CURL)
 checkandset_dependency(kinectWrapper)
 checkandset_dependency(Boost)
+checkandset_dependency(ALSA)
+
