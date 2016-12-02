@@ -48,9 +48,9 @@ bool kinematicStructureInterface::configure(yarp::os::ResourceFinder &rf)
     attach(rpcPort);
 
     /******************************** to be removed, add a dummy bodypart in the opc just for testing ************************************/
-    //wysiwyd::wrdac::Bodypart* o;
-    //o = iCub->opc->addOrRetrieveEntity<Bodypart>("bodypartTest");
-    //yInfo() << " [configureOPC] Bodypart " << o->name() << "added";
+    wysiwyd::wrdac::Bodypart* o;
+    o = iCub->opc->addOrRetrieveEntity<Bodypart>("bodypartTest");
+    yInfo() << " [configureOPC] Bodypart " << o->name() << "added";
     /******************************** to be removed, add a dummy bodypart in the opc just for testing ************************************/
 
 
@@ -101,25 +101,29 @@ Bottle kinematicStructureInterface::updateCorrespondenceOpc(string bpName, strin
 
     Bottle bOutput;
 
-    //check that bpCorrespondence is one valid kinectNode?
-    /*if(bpCorrespondence == EFAA_OPC_BODY_PART_TYPE_HEAD){
-
-    }*/
+    //check that bpCorrespondence is one valid kinectNode? 
+    if(find(begin(ALL_AVAILABLE_BODYPARTS), end(ALL_AVAILABLE_BODYPARTS), bpCorrespondence) == end(ALL_AVAILABLE_BODYPARTS)){
+        yError() << "[updateCorrespondenceOpc] the bpCorrespondence (" << bpCorrespondence << ") is NOT a valid kinectNode!";
+        bOutput.addString("ERROR");
+        bOutput.addString("NOT a valid kinectNode");
+        return bOutput;
+    }
 
     //search through opc for the bodypart with bpName
     iCub->opc->checkout();
     Entity* e = iCub->opc->getEntity(bpName, true);
     if(!e) {
         yError() << "Could not get bodypart" << bpName;
-        iCub->say("Could not get bodypart" + bpName);
-        bOutput.addString("nack");
+        //iCub->say("Could not get bodypart" + bpName);
+        bOutput.addString("ERROR");
+        bOutput.addString("entity is unknown");
         return bOutput;
     }
 
     //Error if the name does NOT correspond to a bodypart
     if(!e->isType("bodypart")) {
         yError() << " error in kinematicStructureInterface::updateCorrespondenceOpc | for " << bpName << " | " << bpName << " is NOT a bodypart!" ;
-        bOutput.addString("error");
+        bOutput.addString("ERROR");
         bOutput.addString("NOT a bodypart");
         return bOutput;
     }
