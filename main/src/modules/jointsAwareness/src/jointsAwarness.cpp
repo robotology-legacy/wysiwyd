@@ -16,6 +16,7 @@
 */
 
 #include "jointsAwareness.h"
+#include "wrdac/tags.h"
 
 using namespace std;
 using namespace yarp::os;
