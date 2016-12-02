@@ -22,6 +22,7 @@ add_subdirectory(systemMotor)
 add_subdirectory(tools)
 add_subdirectory(samRelated)
 add_subdirectory(jointsAwareness)
+add_subdirectory(kinematicStructureLearning)
 
 #Add modules with dependencies here
 if(WYSIWYD_USE_OpenCV)
