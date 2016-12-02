@@ -176,11 +176,19 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         reply = actionCommand(sActionName, sActionArg);
     }
     else if (command.get(0).asString() == "proto"){
-        reply = protoDataToR(18287, 18292);
-        reply = protoDataToR(18295, 18300);
-        reply = protoDataToR(18308, 18313);
-        reply = protoDataToR(18322, 18327);
-        reply = protoDataToR(18337, 18342);
+        //these one seems to not be perfectly labelled/good
+        reply = protoDataToR(19751, 19756); //amp 15, start 25, freq 0.15
+        //reply = protoDataToR(19765, 19770); //amp 15, start 25, freq 0.15 the start is similar!!!
+        //reply = protoDataToR(18337, 18342); //->not good, freq 0.2
+        //reply = protoDataToR(18287, 18292); //amp 20, start X, freq 0.1  -> was not very slow actually------------>it is fast
+        reply = protoDataToR(18295, 18300); //amp 10, start X, freq 0.1
+        reply = protoDataToR(18322, 18327); //freq 0.2? goes to 35? --------> amp different, impact on speed
+
+        reply = protoDataToR(19813, 19818); //amp 30, start 25, freq 0.15
+        reply = protoDataToR(19736, 19741); //amp 15, start 25, freq 0.15
+        reply = protoDataToR(19779, 19784); //amp 30, start 25, freq 0.15
+        reply = protoDataToR(19835, 19840); //amp 20, start 10, freq 0.05 // slow partial
+        reply = protoDataToR(19877, 19882); //amp 7.5, start 10, freq 0.15 // fast partial
         reply = rAnalysis();
         emptyRData();
         //reply = extractProtoProprio(15366, "left_arm", 15367, "fold", "thumb");
@@ -424,7 +432,7 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
         // install.packages("zoo") for that!
         R["winSize"] = 5;
         R["winStep"] = 2;
-        R["threshold.flat"] = 0.2;
+        R["threshold.flat"] = 0.1;
         cmd =
             "library(zoo);"
             "list.proto <- levels(as.factor(babblingData$instanceProto));"
@@ -535,8 +543,8 @@ yarp::os::Bottle learnPrimitive::rAnalysis(){
               "for(babbling in as.numeric(levels(as.factor(cleanedBabblingData$instanceBabbling)))){"
               "     df.current.babbling <- subset(cleanedBabblingData, cleanedBabblingData$instanceBabbling == babbling);"
               "     x11();"
-
-              "     myQplot <- qplot(df.current.babbling$frame_number, df.current.babbling$value, col=as.factor(df.current.babbling$instanceProto), pch = df.current.babbling$protoName);"
+              "     plotTitle <- paste(df.current.babbling$adverbSpeed, df.current.babbling$adverbAngle, sep=' ');"
+              "     myQplot <- qplot(df.current.babbling$frame_number, df.current.babbling$value, col=as.factor(df.current.babbling$instanceProto), pch = df.current.babbling$protoName, xlim = c(-100,8000), ylim = c(0,105), main = plotTitle);"
               "     plot(myQplot);"
               "     filepath <- paste('/home/maxime/CloudStation/R/fold-unfold/plot/', as.character(babbling), '.pdf', sep = '');"
               "     pdf(filepath);"
