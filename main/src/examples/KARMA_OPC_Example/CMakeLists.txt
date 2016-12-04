@@ -2,7 +2,7 @@
 # Authors: Nguyen Dong Hai Phuong
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-project(KARMAiCubClientExample)
+project(KARMA_OPC_Example)
 
 set(source_files main.cpp)
 set(doc_files ${PROJECT_NAME}.xml)

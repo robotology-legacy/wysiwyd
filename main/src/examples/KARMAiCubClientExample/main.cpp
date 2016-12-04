@@ -84,7 +84,7 @@ int main()
     Time::delay(4.0);
 
     iCub.home();    // Home by using ARE
-    x[0] = -0.25;
+    x[0] = -0.3;
     x[1] = 0.1;
     yInfo()<<"[KARMAiCubClientExample] try to pushFront with KARMA ...";
     ok = iCub.pushKarmaFront(x,-0.4);
@@ -101,7 +101,7 @@ int main()
     Time::delay(4.0);
 
     iCub.home();    // Home by using ARE
-    x[0] = -0.45;
+    x[0] = -0.4;
     x[1] = -0.1;
     x[2] = -0.05;
     yInfo()<<"[KARMAiCubClientExample] try to pullBack with KARMA...";

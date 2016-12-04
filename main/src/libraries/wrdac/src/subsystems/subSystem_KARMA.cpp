@@ -445,7 +445,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
         armChoose = chooseArm(armType);
 
     // Call draw (no calibration)
-    bool drawSucceed = draw(targetCenter,0,0,dist + actionOffset,options,sName);
+    bool drawSucceed = draw(targetCenter,90,actionOffset,dist + actionOffset,options,sName);
 
     if (drawSucceed)
         returnArmSafely(armType);
