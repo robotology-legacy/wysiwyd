@@ -231,7 +231,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::returnArmSafely(std::string armType)
     if (armType == "left")
     {
         xdL = xL;
-        xdL[2] = std::min(0.1,xL[2] + 0.1);
+        xdL[2] = std::min(0.05,xL[2] + 0.1);
         yInfo("[SubSystem_KARMA] xdL = %s",xdL.toString().c_str());
         iCartCtrlL->goToPose(xdL,odL,1.0);
         iCartCtrlL->waitMotionDone(0.1,4.0);
@@ -242,7 +242,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::returnArmSafely(std::string armType)
     else if (armType == "right")
     {
         xdR = xR;
-        xdR[2] = std::min(0.1,xR[2] + 0.1);
+        xdR[2] = std::min(0.05,xR[2] + 0.1);
         yInfo("[SubSystem_KARMA] xdR = %s",xdR.toString().c_str());
         iCartCtrlR->goToPose(xdR,odR,1.0);
         iCartCtrlR->waitMotionDone(0.1,4.0);
