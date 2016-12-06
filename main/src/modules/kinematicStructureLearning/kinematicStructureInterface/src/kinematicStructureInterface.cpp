@@ -141,7 +141,6 @@ bool kinematicStructureInterface::updateModule() {
 /* interrupt ports when interrupting the module */
 bool kinematicStructureInterface::interruptModule() {
     rpcPort.interrupt();
-    iCub->close();
 
     return true;
 }
