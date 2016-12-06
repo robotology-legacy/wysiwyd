@@ -15,7 +15,7 @@ for h = 1:cdata.height
     end
 end
 
-mask(img_std < 20) = 0;
+mask(img_std < 10) = 0;
 
 figure(343)
 mesh(img_std)

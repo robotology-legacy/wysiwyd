@@ -204,6 +204,29 @@ end
 
 cal_motion_dist;
 
+%%
+node_info_org = cell(length(node_info),1);
+for idx = 1:length(node_info)
+    subchunk = regexp(node_info{idx}, '(?<=")[^"]+(?=")', 'match');
+    imt = subchunk{1};
+    node_info_org{idx} = imt;
+end
+
+node_info_transformed = cell(numNode,1);
+node_info_transformed{1} = node_info_org{9};
+node_info_transformed{2} = node_info_org{4};
+node_info_transformed{3} = node_info_org{2};
+node_info_transformed{4} = node_info_org{14};
+node_info_transformed{5} = node_info_org{10};
+node_info_transformed{6} = node_info_org{3};
+node_info_transformed{7} = node_info_org{15};
+node_info_transformed{8} = node_info_org{11};
+node_info_transformed{9} = node_info_org{1};
+node_info_transformed{10} = node_info_org{5};
+node_info_transformed{11} = node_info_org{12};
+node_info_transformed{12} = node_info_org{6};
+node_info_transformed{13} = node_info_org{13};
+
 %% Kinematic Structure
 KineStruct.width = width;
 KineStruct.height = height;
@@ -213,7 +236,8 @@ KineStruct.motion_dist = motion_dist;
 KineStruct.affinity = motion_dist / max(max(motion_dist));
 KineStruct.structure_i = idx_i;
 KineStruct.structure_j = idx_j;
-KineStruct.nodeName = node_info;
+KineStruct.nodeName_org = node_info_org;
+KineStruct.nodeName_transformed = node_info_transformed;
 KineStruct.seg_center = nodeLoc;
 KineStruct.joint_center = joint_center;
 

@@ -210,6 +210,7 @@ for frm_idx = 1:KineStruct.num_frames
     end
 end
 
+
 %%
 % if augmented_result_save_ON
 %     close(writerobj_graph);
