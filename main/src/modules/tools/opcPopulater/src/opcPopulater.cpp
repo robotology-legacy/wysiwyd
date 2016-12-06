@@ -1346,9 +1346,6 @@ bool opcPopulater::populateScenario1()
 
     yInfo() << " start recording in ABM";
 
-
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-    Time::delay(1.0);
     yInfo() << " start grasping";
     iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
@@ -1450,17 +1447,14 @@ bool opcPopulater::populateScenario1()
     lArgument.push_back(pair<string, string>("iCub", "speaker"));
     lArgument.push_back(pair<string, string>("none", "subject"));
     lArgument.push_back(pair<string, string>(sAgent, "addressee"));
-    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
     iCub->say("Can you give me the " + sObject + " please", false);
     Time::delay(1.0);
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     iCub->getABMClient()->sendActivity("action",
         "sentence",
         "recog",
         lArgument,
         true);
 
-    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
     iCub->say(sentence);
 
     Time::delay(dDelay*Random::uniform());
@@ -1500,13 +1494,8 @@ bool opcPopulater::populateScenario1()
     // Realisation of the iCub
 
     Time::delay(2.);
-    iCub->getARE()->look(Mouse->m_ego_position, bOption, sObjError);
     iCub->say("This is not the " + sObject, false);
-    iCub->getARE()->point(Mouse->m_ego_position, bOption, sObjError);
-    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
     iCub->say("Can you give me the " + sObject + " please", false);
-    Time::delay(1.0);
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
 
 
     Time::delay(dDelay*Random::uniform());
@@ -1543,10 +1532,6 @@ bool opcPopulater::populateScenario1()
         "action",
         lArgument,
         false);
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-    iCub->say("Yes, this is the " + sObject);
-    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
-
 
     return true;
 }
@@ -1652,9 +1637,6 @@ bool opcPopulater::populateScenario2(){
 
     yInfo() << " start recording in ABM";
 
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-    Time::delay(1.5);
-
     yInfo() << " start grasping";
     iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
@@ -1681,7 +1663,6 @@ bool opcPopulater::populateScenario2(){
         lArgument,
         true);
 
-    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
     Time::delay(1.);
     iCub->say(sentence);
 
@@ -1700,7 +1681,6 @@ bool opcPopulater::populateScenario2(){
         "recog",
         lArgument,
         true);
-    iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
     Time::delay(1.);
     iCub->say(sentence);
 
@@ -1712,19 +1692,13 @@ bool opcPopulater::populateScenario2(){
     lArgument.push_back(pair<string, string>(sRobert, "agent"));
     lArgument.push_back(pair<string, string>("remove", "predicate"));
     lArgument.push_back(pair<string, string>(sBox, "object"));
-    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
     iCub->getABMClient()->sendActivity("action",
         "remove",
         "action",
         lArgument,
         true);
-    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
     yInfo() << " in delay of action";
-
     Time::delay(2.5);
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-    Time::delay(2.5);
-
 
 
     Box->m_ego_position[1] += 0.75;
@@ -1732,10 +1706,6 @@ bool opcPopulater::populateScenario2(){
 
     iCub->opc->removeRelation(BoxCoverCroco);
     iCub->opc->addRelation(LarryHaveCroco);
-
-    Time::delay(1);
-    iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
-    Time::delay(2.5);
 
 
     iCub->getABMClient()->sendActivity("action",
@@ -1760,7 +1730,6 @@ bool opcPopulater::populateScenario2(){
         lArgument,
         true);
 
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
     Time::delay(2.5);
 
     Croco->m_ego_position[0] = -0.35;
@@ -1768,11 +1737,9 @@ bool opcPopulater::populateScenario2(){
     Croco->m_ego_position[2] = 0.;
     iCub->opc->commit(Croco);
 
-    yInfo("Commit done");
     iCub->opc->removeRelation(LarryHaveCroco);
     iCub->opc->addRelation(iCubHasCroco);
     iCub->opc->removeRelation(iCubWantsCroco);
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
 
     Time::delay(3);
 
@@ -1781,10 +1748,6 @@ bool opcPopulater::populateScenario2(){
         "action",
         lArgument,
         false);
-
-    // Realisation of the iCub
-    iCub->say("Yes, this is the " + sObject);
-    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
     Time::delay(2.);
 
@@ -1887,9 +1850,6 @@ bool opcPopulater::populateScenario3(){
 
     yInfo() << " start recording in ABM";
 
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-    Time::delay(1.0);
-
     yInfo() << " start grasping";
     iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
@@ -1901,7 +1861,6 @@ bool opcPopulater::populateScenario3(){
 
     list<pair<string, string> > lArgument;
     string sentence;
-    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
     sentence = "Can you remove the box please?";
     iCub->say(sentence);
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
@@ -2054,9 +2013,6 @@ bool opcPopulater::populateScenario4(){
 
     yInfo() << " start recording in ABM";
 
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-    Time::delay(1.0);
-
     yInfo() << " start grasping";
 
     if (iCub->getABMClient()->Connect())
@@ -2166,9 +2122,6 @@ bool opcPopulater::populateScenario5(){
 
     yInfo() << " start recording in ABM";
 
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-    Time::delay(1.0);
-
     yInfo() << " start grasping";
     iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
 
@@ -2259,11 +2212,8 @@ bool opcPopulater::populateScenario5(){
     yInfo(" iCub ask the ObjStory");
 
     list<pair<string, string> > lArgument;
-    iCub->getARE()->look(Interlocutor->m_ego_position, bOption, sAgent);
-    Time::delay(1.0);
     string sentence;
-    sentence = "Give me the " + sObject;
-    sentence += " please";
+    sentence = "Give me the " + sObject + "please";
     iCub->say(sentence, false);
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
@@ -2298,22 +2248,14 @@ bool opcPopulater::populateScenario5(){
 
     yInfo() << " in delay of action";
     Time::delay(2 + 2 * Random::uniform());
-    yInfo() << "before commit";
 
     Croco->m_ego_position[0] = -0.30;
     Croco->m_ego_position[1] = 0.1;
     iCub->opc->commit(Croco);
-    yInfo() << "after commit";
 
     iCub->opc->removeRelation(InterlocutorHasCroco);
     iCub->opc->addRelation(iCubHasCroco);
     iCub->opc->removeRelation(iCubWantsCroco);
-
-    Time::delay(1.0);
-
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-
-    Time::delay(1.0);
 
     iCub->getABMClient()->sendActivity("action",
         "give",
@@ -2322,10 +2264,6 @@ bool opcPopulater::populateScenario5(){
         false);
 
     // Realisation of the iCub
-
-
-    iCub->say("Yes, this is the " + sObject, false);
-    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
 
     Time::delay(2.);
@@ -2433,8 +2371,6 @@ bool opcPopulater::populateScenario6(){
 
 
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
-    iCub->getARE()->look(Croco->m_ego_position, bOption, sObject);
-    Time::delay(1.0);
 
     yInfo() << " start grasping";
     iCub->getARE()->take(Croco->m_ego_position, bOption, sObject);
@@ -2446,7 +2382,6 @@ bool opcPopulater::populateScenario6(){
     yInfo(" iCub ask the ObjStory");
 
     list<pair<string, string> > lArgument;
-    iCub->getARE()->look(Robert->m_ego_position, bOption, sRobert);
     string sentence;
     sentence = "Can you remove the box please " + sRobert + " ?";
     iCub->say(sentence);
@@ -2488,7 +2423,6 @@ bool opcPopulater::populateScenario6(){
 
     iCub->opc->removeRelation(BoxCoverCroco);
     iCub->opc->addRelation(LarryHaveCroco);
-    iCub->getARE()->look(Box->m_ego_position, bOption, sBox);
     Time::delay(2);
 
     iCub->getABMClient()->sendActivity("action",
@@ -2590,8 +2524,7 @@ bool opcPopulater::populateScenario6(){
     yInfo(" iCub ask the ObjStory");
 
     lArgument.clear();
-    iCub->getARE()->look(Larry->m_ego_position, bOption, sLarry);
-    sentence = "Give me the " + sObject + " please " + sLarry + " ?";
+    sentence = "Give me the " + sObject + " please " + sLarry;
     iCub->say(sentence);
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
@@ -2644,10 +2577,6 @@ bool opcPopulater::populateScenario6(){
         false);
 
     // Realisation of the iCub
-
-
-    iCub->say("Yes, this is the " + sObject, false);
-    iCub->getARE()->point(Croco->m_ego_position, bOption, sObject);
 
     Time::delay(2.);
 
