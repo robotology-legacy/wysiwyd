@@ -47,13 +47,6 @@ bool kinematicStructureInterface::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
-    /******************************** to be removed, add a dummy bodypart in the opc just for testing ************************************/
-    wysiwyd::wrdac::Bodypart* o;
-    o = iCub->opc->addOrRetrieveEntity<Bodypart>("bodypartTest");
-    yInfo() << " [configureOPC] Bodypart " << o->name() << "added";
-    /******************************** to be removed, add a dummy bodypart in the opc just for testing ************************************/
-
-
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready! \n \n ";
 
     return true;
@@ -148,7 +141,7 @@ bool kinematicStructureInterface::updateModule() {
 /* interrupt ports when interrupting the module */
 bool kinematicStructureInterface::interruptModule() {
     rpcPort.interrupt();
-
+    iCub->close();
 
     return true;
 }
@@ -159,7 +152,7 @@ bool kinematicStructureInterface::close() {
     rpcPort.interrupt();
     rpcPort.close();
 
-
+    iCub->close();
 
     return true;
 }
