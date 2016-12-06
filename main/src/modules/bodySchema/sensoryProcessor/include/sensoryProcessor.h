@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Martina Zambelli, Tobias Fischer
  * email:   m.zambelli13@imperial.ac.uk, t.fischer@imperial.ac.uk
@@ -19,12 +19,18 @@
 #define _SENSORYPROCESSOR_H_
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/tracking.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
+#include <thread>
 
 #include <wrdac/clients/icubClient.h>
+#include "RtMidi.h"
 
 class SensoryProcessor : public yarp::os::RFModule {
 private:
@@ -43,6 +49,11 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinHand;
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinForearm;
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinArm;
+    yarp::os::BufferedPort<yarp::os::Bottle> portHandPositionFromFeaturesOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portHandPositionFromTrackOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portMidiOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portCartesianCtrlOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portReadJoinsAwareness;
 
     yarp::os::RpcClient portToSFM;
 
@@ -51,14 +62,24 @@ private:
 
     yarp::dev::PolyDriver* armDev;
     yarp::dev::PolyDriver* headDev;
+    yarp::dev::PolyDriver* icartClient;
+
+    yarp::dev::ICartesianControl* icart;
 
     yarp::sig::Vector encodersArm;
     yarp::sig::Vector encodersHead;
 
     std::string leftCameraPort, rightCameraPort;
 
+    RtMidiIn *midiin;
+
+
+
     int MAX_COUNT;
     int fps;
+
+    cv::Ptr<cv::Tracker> tracker;
+    cv::Rect2d roi;
 
     std::string part;
     std::string robot;
@@ -71,6 +92,9 @@ private:
     cv::Mat gray, prevGray, image;
     std::vector<cv::Point2f> points[2];
 
+    std::thread readMidi;
+
+
 public:
     bool configure(yarp::os::ResourceFinder &rf);
     bool interruptModule();
@@ -80,9 +104,13 @@ public:
     bool updateModule();
 
 private:
+
+
     bool init_iCub(std::string &part);
     bool getMultimodalData();
     bool findFeatures(cv::TermCriteria &termcrit, cv::Size &subPixWinSize, cv::Size &winSize);
+    void readMidiKeyboard();
+    void midiCallback( double deltatime, std::vector< unsigned char > *message, void */*userData*/ );
     void find_image(yarp::sig::Vector &handTarget, yarp::sig::Vector &armTarget, yarp::sig::Vector &fingerTarget);
 };
 
