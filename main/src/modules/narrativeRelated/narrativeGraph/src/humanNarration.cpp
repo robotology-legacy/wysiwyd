@@ -934,6 +934,260 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
 
 
 /*
+* Try to link the naives sentences of a narration to a SM
+*
+*/
+string narrativeHandler::linkNaiveScenario(int iNaive, int iScenario){
+    cout << "in linkNaiveScenario: meaning " << iNaive << " - scenario " << iScenario << endl;
+
+    // check sizes:
+    if (iNaive > (int)listAutoNaives.size() || iScenario > (int)listStories.size()){
+        yWarning(" in narrativeHandler::linkMeaningScenario - index out or range.");
+        return " in narrativeHandler::linkMeaningScenario - index out or range.";
+    }
+
+    bool display = true;
+
+
+    listStories.at(iScenario).displayNarration();
+
+    // getting scenario
+    loadSM(iScenario);
+
+    int iLost = 0;
+
+    //    sm.displayEvent();
+
+    ofstream IGARFfile;
+    IGARFfile.open(sIGARFfile);
+    sm.ABMtoSM(listStories.at(iScenario), IGARFfile);
+    IGARFfile.close();
+    // getting narration
+    if (iNaive <= (int)listAutoNaives.size())
+    {
+        cout << endl << "meaning of naive number: " << iNaive << endl;
+        for (vector<string>::iterator itLi = listAutoNaives[iNaive].begin();
+            itLi != listAutoNaives[iNaive].end();
+            itLi++){
+            //                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
+            cout << *itLi << endl;
+        }
+        cout << "initialized." << endl;
+    }
+
+    meaningDiscourse MD;
+    // creatino of the MD from the discourse
+    string sReturn = MD.meaningToDiscourseForm(listAutoNaives[iNaive]);
+
+    // check for each proposition, if it can be asociated to a event of the Scenario
+    int count = 0;
+
+    if (display){
+
+        cout << "DL" << endl;
+        for (vector<sDiscourseLink>::iterator itDL = sm.vDiscourseLinks.begin(); itDL != sm.vDiscourseLinks.end(); itDL++){
+            cout << "[" << count << "] [" << itDL->word << "] [" << itDL->fromEvt.iIGARF << "-" << itDL->fromEvt.cPart << "-" << itDL->fromEvt.iRel << "] to "
+                << "[" << itDL->toEvt.iIGARF << "-" << itDL->toEvt.cPart << "-" << itDL->toEvt.iRel << "]" << endl;
+            count++;
+        }
+
+        count = 0;
+        cout << "actions: " << endl;
+        for (vector < sActionEvt >::iterator itIG = sm.vActionEvts.begin(); itIG != sm.vActionEvts.end(); itIG++)
+        {
+            cout << "[" << count << "] [" << itIG->predicate << "-" << itIG->agent << "-" << itIG->object << "-" << itIG->recipient << "]" << endl;
+            count++;
+        }
+
+        cout << "Relation: " << endl;
+
+        for (vector < sRelation >::iterator itIG = sm.vRelations.begin(); itIG != sm.vRelations.end(); itIG++)
+        {
+            cout << "[" << count << "] [" << itIG->subject << "-" << itIG->object << "-" << itIG->verb << "]" << endl;
+            count++;
+        }
+        count = 0;
+        cout << "init finished" << endl;
+    }
+
+    for (vector<meaningSentence>::iterator level1 = MD.meanings.vDiscourse.begin();
+        level1 != MD.meanings.vDiscourse.end();
+        level1++
+        )
+    { // for each sentence of the discourse
+        DFW *currentDFW = nullptr;
+        bool isMultiple = false; // if a sentence is multiple (with a DFW)
+        int iPreposition = 0;   // get the order of the preposition in the sentence
+        int iNbPreposition = level1->vSentence.size();  // nb of preposition in the sentence
+        bool isDFW = level1->vSentence[0].A == "";
+        vector<EVT_IGARF> singleIGARF;
+        vector<EVT_IGARF>  doubleBefore;
+        vector<EVT_IGARF>  doubleAfter;
+
+        bool bAllAction = true;  //depend of the score of findBest
+
+        if (display) cout << "\n---------------------------------------------------------------------\n" << "Sentence full is size: " << iNbPreposition << " and contain DFW: " << isDFW << endl;
+
+
+        for (vector<PAOR>::iterator level2 = level1->vSentence.begin();
+            level2 != level1->vSentence.end();
+            level2++){  // for each preposition of the sentence
+            if (true){
+                cout << " [" << level2->toString() << "]  ";
+            }
+
+            int iScore = 0;
+            if (isDFW && iPreposition == 0){ // only one OCW: DFW
+                //cout << "\t\t\t sentence has a DFW." << endl;
+                string nameDFW = level2->P;
+                isMultiple = true;
+                bool found = false;
+                for (vector<DFW>::iterator itDFW = vDFW.begin(); itDFW != vDFW.end(); itDFW++){
+                    if (!found && itDFW->sName == nameDFW){
+                        found = true;
+                        currentDFW = &(*itDFW);
+                        if (display) cout << " found existing DFW: " << currentDFW->sName << endl;
+                    }
+                }
+                if (!found) {
+                    currentDFW = new DFW(nameDFW);
+                    vDFW.push_back(*currentDFW);
+                    currentDFW = &vDFW[vDFW.size() - 1];
+                    if (display) cout << " creating new DFW: " << currentDFW->sName << endl;
+                }
+            }
+            else{
+                vector<sKeyMean> vkTmp = sm.findBest(*level2, iScore);
+
+                if (vkTmp.size() == 0){
+                    iLost++;
+                    yWarning() << " in narrativeGraph::humanNarration.cpp::linkMeaningScenario:: findBest : no target found.";
+                    yWarning() << level1->getSentence();
+                }
+
+                bAllAction &= !(iScore <= (int)iThresholdScoreIGARFPAOR && iPreposition != 0);   // all action except the fisrt one need to be found
+
+                if (bAllAction){     // if found;
+                    for (unsigned int kk = 0; kk < vkTmp.size(); kk++)
+                    {
+                        sKeyMean kTmp = vkTmp[kk];
+                        if (display) cout << "\t result find: " << (kTmp.toString());
+                        int iIg = -1,
+                            iL = -1;
+                        if (kTmp.iIGARF != -1){
+                            //currentIGARF = sm.vIGARF[kTmp.iIGARF];
+                            iIg = sm.vIGARF[kTmp.iIGARF].iAction;
+                            iL = sm.vIGARF[kTmp.iIGARF].iLevel;
+
+                            if (display){
+
+                                //vIGARF.at(j).vGoal.at(k)
+                                if (kTmp.cPart == 'A'){
+                                    cout << "\t  " << iIg << " - " << iL
+                                        << " [" << sm.vActionEvts[iIg].agent
+                                        << "-" << sm.vActionEvts[iIg].predicate
+                                        << "-" << sm.vActionEvts[iIg].object
+                                        << "-" << sm.vActionEvts[iIg].recipient << "]" << endl;
+                                }
+                                else if (kTmp.cPart == 'G'){
+                                    cout << "\t  " << iIg << " - " << iL
+                                        << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
+                                        << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].verb
+                                        << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
+                                }
+                                else if (kTmp.cPart == 'I'){
+                                    cout << "\t  " << iIg << " - " << iL
+                                        << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
+                                        << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].verb
+                                        << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
+                                }
+                                else if (kTmp.cPart == 'F'){
+                                    cout << "\t  " << iIg << " - " << iL
+                                        << " [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
+                                        << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].verb
+                                        << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
+                                }
+                                else if (kTmp.cPart == 'R'){
+                                    cout << "\t  " << iIg << " - " << iL
+                                        << " [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].agent
+                                        << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].predicate
+                                        << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].object
+                                        << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iResult].recipient << "]" << endl;
+                                }
+                            }
+                        }
+
+                        // double dI = iIg / (sm.vChronoIgarf.size() *1.0);
+                        storygraph::EVT_IGARF evtKM(kTmp, iIg, iL);
+                        sm.checkEVTIGARF(evtKM);
+
+                        //cout << "KM is: " << evtKM.toString() << endl;
+
+                        if (iNbPreposition > 2){
+                            if (iPreposition < 2){
+                                doubleBefore.push_back(evtKM);
+                            }
+                            else{
+                                doubleAfter.push_back(evtKM);
+                            }
+                        }
+                        else{
+                            singleIGARF.push_back(evtKM);
+                        }
+
+                    }
+                }
+            }
+            //else {
+            //    cout << "Action not recognized" << endl;
+            //}
+
+            iPreposition++;
+        }  // end preposition
+
+        if (currentDFW != nullptr && bAllAction){
+            if (isDFW && isMultiple){
+                if (iNbPreposition <= 2){
+                    //cout << "filling single vector ...";
+                    for (auto Single : singleIGARF)
+                    {
+                        currentDFW->vSingleIGARF.push_back(Single);
+                    }
+                    //cout << " done !" << endl;
+                }
+                else{
+                    if (display) cout << "filling double vector ... " << doubleBefore.size() << "*" << doubleAfter.size() << " ";
+                    int doku = 0;
+                    for (unsigned int iFirst = 0; iFirst < doubleBefore.size(); iFirst++){
+                        pair<EVT_IGARF, EVT_IGARF>  kTmpDouble;
+                        kTmpDouble.first = doubleBefore[iFirst];
+                        for (unsigned int iSecond = 0; iSecond < doubleAfter.size(); iSecond++){
+                            kTmpDouble.second = doubleAfter[iSecond];
+                            currentDFW->vDoubleIGARF.push_back(kTmpDouble);
+                            doku++;
+                        }
+                    }
+                }
+            }
+        }
+        //cout << "\t\t\t\t\end of sentence" << endl;
+    } // end sentence
+    //cout << "end of the loop, starting to display" << endl;
+
+    //displayDFW();
+
+    //MD.print();
+
+    iLost += (listAutoNaives[iNaive].size() - MD.meanings.vDiscourse.size());
+
+    sReturn += to_string(iLost) + " sentences lost.";
+    return sReturn;
+
+}
+
+
+
+/*
 * Try to link the meaning of a narration to a SM
 *
 */
@@ -1224,7 +1478,7 @@ void narrativeHandler::NaiveToPAOR(){
     string tmpResp = "";
     yInfo(" Starting to change sentence from naive to PAOR");
     // for each scenario
-    for (auto scenario : listAutoNaives){
+    for (auto &scenario : listAutoNaives){
         yInfo() << " New scenario: " << scenario.first;
         int count = 0;
         // for each sentence for the given scenario

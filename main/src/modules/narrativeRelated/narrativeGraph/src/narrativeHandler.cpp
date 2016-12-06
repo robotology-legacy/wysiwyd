@@ -68,12 +68,6 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     Bottle *bMeaning = rf.find("listMeaning").asList();
     initializeMeaning(*bMeaning, rf);
 
-    if (rf.find("loadNaives").asInt() == 1){
-        Bottle *bNaives = rf.find("listNaives").asList();
-        initializeNaives(*bNaives, rf);
-        NaiveToPAOR();
-    }
-
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
 
     sIGARFfile = rf.findFile(rf.check("IGARFfile", Value("igarffile.txt")).toString());
@@ -211,9 +205,32 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     storygraph::VocabularyHandler::initVoc(listStories);
 
+
+    if (rf.find("loadNaives").asInt() == 1){
+        yInfo("Loading naives\n");
+        Bottle *bNaives = rf.find("listNaives").asList();
+        initializeNaives(*bNaives, rf);
+        NaiveToPAOR();
+    }
+
+
     //    narrationToMeaning();
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
+
+    cout << "linking scenarios 2 2" << endl;
+    cout << linkNaiveScenario(1, 0) << endl;
+    cout << "linking scenarios 3 3" << endl;
+    linkNaiveScenario(2, 1);
+    cout << "linking scenarios 4 4" << endl;
+    linkNaiveScenario(3, 2);
+    cout << "linking scenarios 5 5" << endl;
+    linkNaiveScenario(4, 3);
+    cout << "linking scenarios 6 6" << endl;
+    linkNaiveScenario(5, 4);
+    cout << endl << endl;
+
+    exportDFW();
 
     if (rf.find("initialize").asInt() == 1){
         cout << "linking scenarios 2 2" << endl;

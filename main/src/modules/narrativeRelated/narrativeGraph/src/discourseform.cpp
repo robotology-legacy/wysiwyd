@@ -10,10 +10,12 @@ using namespace std;
 string meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
     cout << "Meaning to discourse ... ";
     ostringstream os;
+    bool toSkip = false;
     // get each sentence
     for (vector<string>::iterator level1 = vMeaning.begin(); level1 != vMeaning.end(); level1++){
         //level1 is:  OCW, OCW OCW OCW, OCW OCW, P1, P2 A2 O2, P3 A3 ...
         if (*level1 != ""){
+            toSkip = false;
 
             // get the meaning:
             //cout << "level1 is: " << *level1 << endl;
@@ -109,22 +111,28 @@ string meaningDiscourse::meaningToDiscourseForm(vector<string> vMeaning){
                         currentSentence.vSentence.push_back(paor);
                     }
 
-                    // add the OCW and PAOR
-                    if (meaningPAOR[iWords].at(0) == 'P'){
-                        currentSentence.vSentence[iNumberProposition - 1].P = meaningWords[iWords];
+                    if (meaningPAOR.size() <= iWords || currentSentence.vSentence.size() <= (iNumberProposition-1) || meaningWords.size() <= iWords){
+                        toSkip = true;
                     }
-                    if (meaningPAOR[iWords].at(0) == 'A'){
-                        currentSentence.vSentence[iNumberProposition - 1].A = meaningWords[iWords];
-                    }
-                    if (meaningPAOR[iWords].at(0) == 'O'){
-                        currentSentence.vSentence[iNumberProposition - 1].O = meaningWords[iWords];
-                    }
-                    if (meaningPAOR[iWords].at(0) == 'R'){
-                        currentSentence.vSentence[iNumberProposition - 1].R = meaningWords[iWords];
+
+                    if (!toSkip){
+                        // add the OCW and PAOR
+                        if (meaningPAOR[iWords].at(0) == 'P'){
+                            currentSentence.vSentence[iNumberProposition - 1].P = meaningWords[iWords];
+                        }
+                        if (meaningPAOR[iWords].at(0) == 'A'){
+                            currentSentence.vSentence[iNumberProposition - 1].A = meaningWords[iWords];
+                        }
+                        if (meaningPAOR[iWords].at(0) == 'O'){
+                            currentSentence.vSentence[iNumberProposition - 1].O = meaningWords[iWords];
+                        }
+                        if (meaningPAOR[iWords].at(0) == 'R'){
+                            currentSentence.vSentence[iNumberProposition - 1].R = meaningWords[iWords];
+                        }
                     }
                 }
 
-                if (currentSentence.vSentence.size() != 0){
+                if (currentSentence.vSentence.size() != 0 && !toSkip){
                     meanings.vDiscourse.push_back(currentSentence);
                 }
             }
