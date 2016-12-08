@@ -15,3 +15,4 @@ WYSIWYD.includes
 main/src/modules/perspectiveTaking/build
 main/src/modules/perspectiveTaking/logs
 main/src/modules/perspectiveTaking/devel
+main/src/modules/samRelated/SAM/.idea/

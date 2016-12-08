@@ -250,16 +250,17 @@ class interactionSAMModel(yarp.RFModule):
                 self.dataList = []
                 for j in range(self.bufferSize):
                     self.dataList.append(self.readFrame())
-                # thisClass = self.mm[0].processLiveData(self.dataList, self.mm)
+
                 thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
                 if thisClass is None:
                     reply.addString('None')
                 else:
-                    reply.addString(thisClass)
+                    reply.addString(thisClass[0])
                     # reply.addDouble(likelihood)
         else:
             reply.addString('nack')
             reply.addString('No input connections to ' + str(self.portsList[self.labelPort].getName()))
+        print '--------------------------------------'
 
     def generateInstance(self, reply, instanceName):
         if self.portsList[self.instancePort].getOutputCount() != 0:
@@ -343,7 +344,6 @@ class interactionSAMModel(yarp.RFModule):
         return True
 
     def readFrame(self):
-
         if self.inputType == 'imagergb':
             frame = yarp.ImageRgb()
         elif self.inputType == 'imagemono':
@@ -352,7 +352,11 @@ class interactionSAMModel(yarp.RFModule):
             frame = yarp.Bottle()
 
         frameRead = self.portsList[self.labelPort].read(True)
-        frame.fromString(frameRead.toString())
+
+        if self.inputType == 'bottle':
+            frame.fromString(frameRead.toString())
+        elif 'image' in self.inputType:
+            frame.copy(frameRead)
         return frame
 
     def collectData(self):

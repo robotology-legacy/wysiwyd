@@ -78,11 +78,11 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     //out to SAM
     portToSAM.open(("/" + moduleName + "/toSAM:o").c_str());
-    SAMRpc = rf.check("SAMRpc", Value("/sam/face/rpc:i")).asString().c_str();
+    SAMRpc = rf.check("SAMRpc", Value("/sam/rpc:i")).asString().c_str();
 
     if (!Network::connect(portToSAM.getName().c_str(), SAMRpc.c_str())) {
         yDebug() << "SAM NOT CONNECTED: face recognition will not work";
-        //iCub->say("SAM NOT CONNECTED");
+        iCub->say("SAM NOT CONNECTED");
     }
 
     // out to pasar
@@ -428,13 +428,13 @@ Bottle proactiveTagging::recogName(string entityType)
 Bottle proactiveTagging::getNameFromSAM(string sNameTarget, string currentEntityType) {
     Bottle bOutput;
     Bottle bToSam, bReplySam;
-    bToSam.addString("ask_name");
+    bToSam.addString("ask_face_label");
 
     yDebug() << "Request to SAM: " << bToSam.toString();
     portToSAM.write(bToSam, bReplySam);
     yDebug() << "Reply from SAM: " << bReplySam.toString();
     string sNameSAM = bReplySam.get(0).asString();
-    if(sNameSAM != "nack" && sNameSAM != "partner" && sNameSAM != "") {
+    if(sNameSAM != "nack" && sNameSAM != "unknown" && sNameSAM != "" && sNameSAM != "None") {
         Agent* TARGET = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameTarget));
         yDebug() << "Changing name from " << TARGET->name() << " to " << sNameSAM;
         iCub->changeName(TARGET,sNameSAM);
@@ -448,7 +448,12 @@ Bottle proactiveTagging::getNameFromSAM(string sNameTarget, string currentEntity
         bOutput.addString(currentEntityType);
     }
     else {
-        iCub->say("I could not get the name from SAM");
+        if(sNameSAM == "nack")
+        {
+             yError() << bReplySam.get(1).asString();
+             iCub->say("I could not get the name from SAM");
+        }
+        
         bOutput.addString("nack");
     }
     return bOutput;
@@ -462,6 +467,7 @@ Bottle proactiveTagging::getNameFromSAM(string sNameTarget, string currentEntity
 Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
 {
     Bottle bOutput;
+    Bottle tryRecog;
     if (bInput.size() != 3)
     {
         yInfo() << " proactiveTagging::exploreEntity | Problem in input size.";
@@ -487,10 +493,19 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
             yWarning() << " SAM NOT CONNECTED: face recognition will not work";
         }
         if(portToSAM.getOutputCount()>0) {
-           return getNameFromSAM(sNameTarget, currentEntityType);
-        }
+           tryRecog = getNameFromSAM(sNameTarget, currentEntityType);
 
-        sQuestion = " Hello, I don't know you. Who are you?";
+           if (tryRecog.get(0).toString() == "nack" ){
+              sQuestion = " Hello, I don't know you. Who are you?";
+           }
+           else{
+              return tryRecog;
+           }
+        }
+        else
+        {
+            sQuestion = " Hello, I don't know you. Who are you?";
+        }
     }
     else if (currentEntityType == "object" || currentEntityType == "rtobject") {
         iCub->look(sNameTarget);

@@ -225,8 +225,9 @@ def initialiseModels(argv, update, initMode='training'):
                 mySAMpy.useMaxDistance = modelPickle['useMaxDistance']
             except:
                 print 'Failed to load useMaxDistace. Possible reasons: Not saved or multiple model implementation'
-            mySAMpy.classificationDict = modelPickle['classificationDict']
             mySAMpy.calibrateUnknown = modelPickle['calibrateUnknown']
+            if mySAMpy.calibrateUnknown:
+                mySAMpy.classificationDict = modelPickle['classificationDict']
 
             # try:
             #     mySAMpy.listOfModels = modelPickle['listOfModels']
