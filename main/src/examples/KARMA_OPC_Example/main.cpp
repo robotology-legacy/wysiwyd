@@ -67,38 +67,42 @@ int main()
         return -1;
     }
 
-    
     bool connected = iCub.connectOPC();
     yInfo()<<"connected to OPC port";
     yInfo()<<(connected?"success":"failed");
     bool ok = false;
-
     iCub.home();    // Home by using ARE
+
     yInfo()<<"[KARMA_OPC_Example] try to pushLeft target with KARMA ...";
-    iCub.look(target);
+    //iCub.look(target);
     ok = iCub.pushKarmaLeft(target,-0.2);
     yInfo()<<(ok?"success":"failed");
+    Time::delay(1.0);
+    iCub.home();    // Home by using ARE
     Time::delay(10.0);
 
-    iCub.home();    // Home by using ARE
     yInfo()<<"[KARMA_OPC_Example] try to pushRight target with KARMA ...";
-    iCub.look(target);
+    //iCub.look(target);
     ok = iCub.pushKarmaRight(target, 0.2);
     yInfo()<<(ok?"success":"failed");
+    Time::delay(1.0);
+    iCub.home();    // Home by using ARE
     Time::delay(10.0);
 
-    iCub.home();    // Home by using ARE
     yInfo()<<"[KARMA_OPC_Example] try to pushFront target with KARMA ...";
-    iCub.look(target);
-    ok = iCub.pushKarmaFront(target,-0.4);
+    //iCub.look(target);
+    ok = iCub.pushKarmaFront(target,-0.45);
     yInfo()<<(ok?"success":"failed");
+    Time::delay(1.0);
+    iCub.home();    // Home by using ARE
     Time::delay(10.0);
 
-    iCub.home();    // Home by using ARE
     yInfo()<<"[KARMA_OPC_Example] try to pullBack target with KARMA ...";
-    iCub.look(target);
+    //iCub.look(target);
     ok = iCub.pullKarmaBack(target,-0.25);
     yInfo()<<(ok?"success":"failed");
+    Time::delay(1.0);
+    iCub.home();    // Home by using ARE
     Time::delay(10.0);
 
     yInfo()<<"[KARMA_OPC_Example] shutting down ... ";
