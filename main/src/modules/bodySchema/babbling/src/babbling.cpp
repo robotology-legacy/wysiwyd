@@ -88,10 +88,11 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         for(int i=0; i<b_start_command->size(); i++)
             start_command[i] = b_start_command->get(i).asDouble();
     }
+    yWarning() << "Hello";
 
-    if (b_start_command_left->isNull() ||
+    if (b_start_command_left == nullptr || b_start_command_left->isNull() ||
        (!b_start_command_left->isNull() && b_start_command_left->size()<16) ||
-        b_start_command_right->isNull() ||
+        b_start_command_right == nullptr || b_start_command_right->isNull() ||
        (!b_start_command_right->isNull() && b_start_command_right->size()<16) )
     {
         yWarning("Something is wrong in ini file. Default value is used");
@@ -120,7 +121,7 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         for(int i=0; i<b_start_command_right->size(); i++)
             start_command_right[i] = b_start_command_right->get(i).asDouble();
     }
-
+    yWarning() << "Goodnight";
 
     Bottle &babbl_par = rf.findGroup("babbling_param");
     freq = babbl_par.check("freq", Value(0.2)).asDouble();
