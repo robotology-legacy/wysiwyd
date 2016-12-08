@@ -743,9 +743,16 @@ void IOL2OPCBridge::updateOPC()
             CvRect bbox;
             if (it.second.is_tracking(bbox))
             {
+                CvPoint cog;
+                cog.x=bbox.x+(bbox.width>>1);
+                cog.y=bbox.y+(bbox.height>>1);
+
                 // find 3d position
-                Vector x,dim;
-                if (get3DPositionAndDimensions(bbox,x,dim))
+                Vector dim(3,0.05);
+                Vector x;
+
+                //if (get3DPositionAndDimensions(bbox,x,dim))
+                if (get3DPosition(cog,x))
                 {
                     Bottle bObjNameLoc;
                     Vector x_filtered,dim_filtered;
