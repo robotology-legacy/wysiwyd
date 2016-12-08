@@ -88,7 +88,6 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         for(int i=0; i<b_start_command->size(); i++)
             start_command[i] = b_start_command->get(i).asDouble();
     }
-    yWarning() << "Hello";
 
     if (b_start_command_left == nullptr || b_start_command_left->isNull() ||
        (!b_start_command_left->isNull() && b_start_command_left->size()<16) ||
@@ -121,8 +120,6 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         for(int i=0; i<b_start_command_right->size(); i++)
             start_command_right[i] = b_start_command_right->get(i).asDouble();
     }
-    yWarning() << "Goodnight";
-
     Bottle &babbl_par = rf.findGroup("babbling_param");
     freq = babbl_par.check("freq", Value(0.2)).asDouble();
     amp = babbl_par.check("amp", Value(5)).asDouble();
@@ -470,8 +467,7 @@ bool Babbling::doBabbling()
         reply = dealABM(abmCommand,0);
         yDebug() << "============> babbling with COMMAND is FINISHED" ;
     }
-    else
-    {
+    else if(cmd_source == "M") {
         babblingCommandsMatlab();
     }
 
