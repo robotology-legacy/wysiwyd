@@ -6,8 +6,7 @@
 # demoModule CMake file, freely inspired by the iCub demoModule.
 #
 
-set(PROJECTNAME faceTracker)
-project(${PROJECTNAME})
+project(faceTracker)
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
@@ -20,16 +19,22 @@ include_directories(
 file(GLOB sources src/*.cpp src/*.cc src/*.c)
 file(GLOB headers include/*.h)
 
-set(docs ${PROJECTNAME}.xml)
+set(docs ${PROJECT_NAME}.xml)
 
 source_group("Source Files" FILES ${sources})
 source_group("Header Files" FILES ${headers})
 source_group("DOC Files"    FILES ${docs})
 
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} wrdac ${OpenCV_LIBRARIES})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
+                    ${wrdac_INCLUDE_DIRS}
+                    ${ICUB_INCLUDE_DIRS}
+                    ${YARP_INCLUDE_DIRS}
+                    ${OpenCV_INCLUDE_DIRS})
+
+add_executable(${PROJECT_NAME} ${headers} ${sources} ${docs})
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES} wrdac ${OpenCV_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER visionRelated)
-install(TARGETS ${PROJECTNAME} DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 yarp_install(FILES ${docs} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
+
