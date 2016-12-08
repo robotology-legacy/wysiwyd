@@ -60,8 +60,12 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     yInfo() << target;
 
     if ( target != "none" && type != "bodypart" && type != "kinematic structure" && type != "kinematic structure correspondence"){           //we dont have searchEntity for bodypart
+        bool verboseSearch=true;
+        if( action == "this is" ) {
+            verboseSearch=false;
+        }
         yInfo() << "there are objects to search!!!";
-        handleSearch(type, target);
+        handleSearch(type, target, verboseSearch);
     }
 
     //FollowingOrder implying objects
@@ -255,7 +259,7 @@ bool FollowingOrder::handleActionBP(string type, string target, string action) {
     return false;
 }
 
-bool FollowingOrder::handleSearch(string type, string target)
+bool FollowingOrder::handleSearch(string type, string target, bool verboseSearch)
 {
     // look if the object (from human order) exist and if not, trigger proactivetagging
 
@@ -291,6 +295,7 @@ bool FollowingOrder::handleSearch(string type, string target)
     cmd.addString("searchingEntity");
     cmd.addString(type);
     cmd.addString(target);
+    cmd.addInt(verboseSearch);
     rpc_out_port.write(cmd,rply);
     yDebug() << rply.toString();
 

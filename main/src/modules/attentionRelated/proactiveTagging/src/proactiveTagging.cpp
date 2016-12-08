@@ -624,7 +624,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 {
     Bottle bOutput;
 
-    if (bInput.size() != 3)
+    if (bInput.size() != 4)
     {
         yInfo() << " proactiveTagging::searchingEntity | Problem in input size.";
         bOutput.addString("error");
@@ -634,7 +634,8 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
     string sTypeTarget = bInput.get(1).toString();
     string sNameTarget = bInput.get(2).toString();
-    yInfo() << " Entity to find: " << sNameTarget;
+    bool verboseSearch = bInput.get(3).asInt() > 0;
+    yInfo() << " Entity to find: " << sNameTarget << "(Type: " << sTypeTarget << ", verbosity: " << verboseSearch << ")";
 
     int unknownEntitiesPresent = 0;
 
@@ -702,21 +703,23 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
     // if there is several objects unknown (or at least one)
     string sSentence;
-    if(sTypeTarget == "object") {
-        sSentence = "I don't known which of these objects is a " + sNameTarget + ". Can you show me the " + sNameTarget;
-    } else if (sTypeTarget == "bodypart") {
-        sSentence = "I don't known my " + sNameTarget + ". Can you please touch my " + sNameTarget;
-    }
+    if(verboseSearch) {
+        if(sTypeTarget == "object") {
+            sSentence = "I don't known which of these objects is a " + sNameTarget + ". Can you show me the " + sNameTarget;
+        } else if (sTypeTarget == "bodypart") {
+            sSentence = "I don't known my " + sNameTarget + ". Can you please touch my " + sNameTarget;
+        }
 
-    //add name of the partner at the end of the question if defined
-    string partnerName = iCub->getPartnerName();
-    if(partnerName != defaultPartnerName){
-        sSentence += ", " + partnerName;
-    }
+        //add name of the partner at the end of the question if defined
+        string partnerName = iCub->getPartnerName();
+        if(partnerName != defaultPartnerName){
+            sSentence += ", " + partnerName;
+        }
 
-    iCub->lookAtPartner();
-    iCub->say(sSentence);
-    yInfo() << sSentence;
+        iCub->lookAtPartner();
+        iCub->say(sSentence);
+        yInfo() << sSentence;
+    }
 
     if(sTypeTarget == "object") {
         iCub->home();
@@ -765,7 +768,6 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
     if (iCub->getABMClient()->Connect())
     {
-        //                yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
         std::list<std::pair<std::string, std::string> > lArgument;
         lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
         lArgument.push_back(std::pair<std::string, std::string>("name", "predicate"));
