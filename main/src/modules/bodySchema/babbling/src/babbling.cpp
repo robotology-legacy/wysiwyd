@@ -89,7 +89,10 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
             start_command[i] = b_start_command->get(i).asDouble();
     }
 
-    if (((b_start_command_left->isNull()) | (b_start_command_left->size()<16)) & ((b_start_command_right->isNull()) | (b_start_command_right->size()<16)) )
+    if (b_start_command_left->isNull() ||
+       (!b_start_command_left->isNull() && b_start_command_left->size()<16) ||
+        b_start_command_right->isNull() ||
+       (!b_start_command_right->isNull() && b_start_command_right->size()<16) )
     {
         yWarning("Something is wrong in ini file. Default value is used");
         start_command_left[0] = -35.0;  start_command_right[0] = -55.0;
