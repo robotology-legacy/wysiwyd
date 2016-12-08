@@ -679,11 +679,11 @@ def calculateData(textLabels, confMatrix, numItems=None):
 
 
 def combineClassifications(thisModel, labels, likelihoods):
-    if len(thisModel) > 1:
-        labelList = copy.deepcopy(thisModel[0].textLabels)
-        labelList.append('unknown')
-    else:
-        labelList = copy.deepcopy(thisModel[0].textLabels)
+    # if len(thisModel) > 1:
+    #     labelList = copy.deepcopy(thisModel[0].textLabels)
+    #     labelList.append('unknown')
+    # else:
+    labelList = copy.deepcopy(thisModel[0].textLabels)
 
     sumLikelihoods = [None] * (len(labelList))
     counts = [0] * (len(labelList))
@@ -692,10 +692,11 @@ def combineClassifications(thisModel, labels, likelihoods):
         idx = [j for j, k in enumerate(labelList) if k == labels[i]][0]
         counts[idx] += 1
         if sumLikelihoods[idx] is None:
-            sumLikelihoods[idx] = likelihoods[i]
+            sumLikelihoods[idx] = likelihoods[i][thisModel[0].SAMObject.Q]
         else:
-            sumLikelihoods[idx] += likelihoods[i]
+            sumLikelihoods[idx] += likelihoods[i][thisModel[0].SAMObject.Q]
 
     m = max(sumLikelihoods)
     maxIdx = [j for j, k in enumerate(sumLikelihoods) if k == m][0]
+
     return [labelList[maxIdx], m / counts[maxIdx]]
