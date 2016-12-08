@@ -6,6 +6,7 @@ add_subdirectory(AREiCubClientExample)
 add_subdirectory(wrdacExample)
 add_subdirectory(ABMRosToYarpBridge)
 add_subdirectory(KARMAiCubClientExample)
+add_subdirectory(KARMA_OPC_Example)
 add_subdirectory(ARE_KARMAiCubClientExample)
 
 if(YARP_VERSION_STRING VERSION_GREATER "2.3.63.1") #because of copyPortable

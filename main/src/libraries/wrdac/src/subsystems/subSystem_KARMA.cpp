@@ -231,7 +231,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::returnArmSafely(std::string armType)
     if (armType == "left")
     {
         xdL = xL;
-        xdL[2] = std::min(0.1,xL[2] + 0.1);
+        xdL[2] = std::min(0.05,xL[2] + 0.1);
         yInfo("[SubSystem_KARMA] xdL = %s",xdL.toString().c_str());
         iCartCtrlL->goToPose(xdL,odL,1.0);
         iCartCtrlL->waitMotionDone(0.1,4.0);
@@ -242,7 +242,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::returnArmSafely(std::string armType)
     else if (armType == "right")
     {
         xdR = xR;
-        xdR[2] = std::min(0.1,xR[2] + 0.1);
+        xdR[2] = std::min(0.05,xR[2] + 0.1);
         yInfo("[SubSystem_KARMA] xdR = %s",xdR.toString().c_str());
         iCartCtrlR->goToPose(xdR,odR,1.0);
         iCartCtrlR->waitMotionDone(0.1,4.0);
@@ -289,6 +289,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     Vector object = objCenter;
     Bottle opt = options;
     double zOffset = 0.05;
+    double actionOffset = 0.05;             // add 5cm offset to deal with object dimension
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
     double radius = fabs(object[1] - targetPosY);
     yInfo ("objectY = %f",object[1]);
@@ -309,7 +310,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
         armChoose = chooseArm(armType);
 
     // Call push (no calibration)
-    bool pushSucceed = push(targetCenter,theta,radius,options,sName);
+    bool pushSucceed = push(targetCenter,theta,radius + actionOffset,options,sName);
 
     if (pushSucceed)
         returnArmSafely(armType);
@@ -328,6 +329,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     Vector object = objCenter;
     Bottle opt = options;
     double zOffset = 0.1;
+    double actionOffset = 0.05;             // add 5cm offset to deal with object dimension
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
     double radius = fabs(object[0] - targetPosXFront);
     yInfo ("objectX = %f",object[0]);
@@ -348,7 +350,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
         armChoose = chooseArm(armType);
 
     // Call push (no calibration)
-    bool pushSucceed = push(targetCenter,-90,radius,options,sName);
+    bool pushSucceed = push(targetCenter,-90,radius + actionOffset,options,sName);
 
     if (pushSucceed)
         returnArmSafely(armType);
@@ -423,7 +425,8 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
     Vector object = objCenter;
     Bottle opt = options;
     double zOffset = 0.05;
-    selectHandCorrectTarget(opt,object);    // target is calibrated by this method
+    double actionOffset = 0.05;                     // add 5cm offset to deal with object dimension
+    selectHandCorrectTarget(opt,object);            // target is calibrated by this method
     double dist = fabs(object[0] - targetPosXBack); // dist in pulling ~ radius in pushing; radius in pulling ~ radius in pushing
     yInfo ("objectX = %f",object[0]);
     yInfo ("targetPosXBack = %f",targetPosXBack);
@@ -442,7 +445,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
         armChoose = chooseArm(armType);
 
     // Call draw (no calibration)
-    bool drawSucceed = draw(targetCenter,0,0,dist,options,sName);
+    bool drawSucceed = draw(targetCenter,90,actionOffset,dist + actionOffset,options,sName);
 
     if (drawSucceed)
         returnArmSafely(armType);
