@@ -393,9 +393,9 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
 }
 
 bool Babbling::updateModule() {
-    single_joint = 1;
-    part = "right_arm";
-    doBabbling();
+    //single_joint = 1;
+    //part = "right_arm";
+    //doBabbling();
     return true;
 }
 
