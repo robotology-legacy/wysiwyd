@@ -52,18 +52,14 @@ private:
     yarp::dev::IControlMode2 *ictrlRightArm;
     yarp::dev::IControlLimits *ictrlLimRightArm;
 
-    yarp::dev::IPositionControl* posHead;
-    yarp::dev::IVelocityControl* velHead;
-    yarp::dev::IEncoders* encsHead;
-    yarp::dev::IControlMode2 *ictrlHead;
+    yarp::dev::IGazeControl* igaze;
 
-    yarp::dev::PolyDriver* leftArmDev;
-    yarp::dev::PolyDriver* rightArmDev;
-    yarp::dev::PolyDriver* headDev;
+    yarp::dev::PolyDriver leftArmDev;
+    yarp::dev::PolyDriver rightArmDev;
+    yarp::dev::PolyDriver headDev;
 
     yarp::sig::Vector encodersLeftArm, encodersRightArm, cmd, command, new_command, tmpSpeed, tmpAcc;
-    yarp::sig::Vector encodersHead, commandHead;
-    yarp::sig::Vector handTarget, armTarget, fingerTarget;
+    yarp::sig::Vector handTarget, armTarget, fingerTarget;    
 
     std::string part;
     std::string robot;
@@ -77,12 +73,12 @@ private:
 
     double freq, amp;
     double train_duration;
-
-    double start_commandHead[5];
+    
     double start_command[16];
     double start_command_left[16];
     double start_command_right[16];
     double ref_command[16];
+    yarp::sig::Vector start_commandHead;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -92,21 +88,17 @@ public:
     double getPeriod();
     bool updateModule();
 
-
-
 private:
-
     bool init_iCub(std::string &part);
     bool doBabbling();
     yarp::sig::Vector babblingCommands(double &t, int j_idx);
     int babblingCommandsMatlab();
     bool doBabblingKinStruct();
+    bool moveHeadToStartPos();
     bool gotoStartPos();
-    bool gotoStartPos2();
-    bool gotoStartPosPiano();
     bool gotoHomePos();
     yarp::os::Bottle dealABM(const yarp::os::Bottle& command, int begin);
-
 };
 
 #endif // _BABBLING_H_
+
