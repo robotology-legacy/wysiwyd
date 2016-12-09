@@ -69,7 +69,7 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     }
 
     //FollowingOrder implying objects
-    if ( (action == "point" || action == "look at" || action == "push") && type == "object"){
+    if ( (action == "point" || action == "look at" || action == "push" || action == "this is") && type == "object"){
         // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         if (sens->size()<2){
             iCub->say("I can't " + action + "if you don't tell me the object");
@@ -121,6 +121,11 @@ bool FollowingOrder::handleNarrate(){
 
 bool FollowingOrder::handleAction(string type, string target, string action) {
     yInfo() << "[handleAction] type: " << type << "target:" << target << "action:" << action;
+    if(action == "this is") {
+        yDebug() << "[handleAction] For action \"" + action + "\" there is nothing to do here. Return.";
+        return true;
+    }
+
     iCub->opc->checkout();
     yInfo() << " [handleAction]: opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
