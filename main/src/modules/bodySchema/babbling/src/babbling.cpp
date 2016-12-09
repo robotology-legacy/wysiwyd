@@ -756,7 +756,7 @@ int Babbling::babblingCommandsMatlab()
 
 bool Babbling::moveHeadToStartPos()
 {
-    Vector ang=start_commandHead;
+    yarp::sig::Vector ang=start_commandHead;
     if (part=="right_arm")
         ang[0]=-ang[0];
     return igaze->lookAtAbsAngles(ang);
@@ -1092,7 +1092,7 @@ bool Babbling::gotoHomePos()
     yarp::os::Time::delay(2.0);
 
     /* Move head to home position */
-    Vector ang(3,0.0);
+    yarp::sig::Vector ang(3,0.0);
     igaze->lookAtAbsAngles(ang);
     igaze->waitMotionDone();
     yInfo() << "Done head.";
