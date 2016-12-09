@@ -60,12 +60,16 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     yInfo() << target;
 
     if ( target != "none" && type != "bodypart" && type != "kinematic structure" && type != "kinematic structure correspondence"){           //we dont have searchEntity for bodypart
+        bool verboseSearch=true;
+        if( action == "this is" ) {
+            verboseSearch=false;
+        }
         yInfo() << "there are objects to search!!!";
-        handleSearch(type, target);
+        handleSearch(type, target, verboseSearch);
     }
 
     //FollowingOrder implying objects
-    if ( (action == "point" || action == "look at" || action == "push") && type == "object"){
+    if ( (action == "point" || action == "look at" || action == "push" || action == "this is") && type == "object"){
         // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         if (sens->size()<2){
             iCub->say("I can't " + action + "if you don't tell me the object");
@@ -117,6 +121,11 @@ bool FollowingOrder::handleNarrate(){
 
 bool FollowingOrder::handleAction(string type, string target, string action) {
     yInfo() << "[handleAction] type: " << type << "target:" << target << "action:" << action;
+    if(action == "this is") {
+        yDebug() << "[handleAction] For action \"" + action + "\" there is nothing to do here. Return.";
+        return true;
+    }
+
     iCub->opc->checkout();
     yInfo() << " [handleAction]: opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
@@ -255,7 +264,7 @@ bool FollowingOrder::handleActionBP(string type, string target, string action) {
     return false;
 }
 
-bool FollowingOrder::handleSearch(string type, string target)
+bool FollowingOrder::handleSearch(string type, string target, bool verboseSearch)
 {
     // look if the object (from human order) exist and if not, trigger proactivetagging
 
@@ -291,6 +300,7 @@ bool FollowingOrder::handleSearch(string type, string target)
     cmd.addString("searchingEntity");
     cmd.addString(type);
     cmd.addString(target);
+    cmd.addInt(verboseSearch);
     rpc_out_port.write(cmd,rply);
     yDebug() << rply.toString();
 

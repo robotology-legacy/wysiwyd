@@ -43,7 +43,7 @@ public:
     bool handleAction(string type, string target, string action);
     bool handleActionBP(string type, string target, string action);
     bool handleActionKS(string action, string type);
-    bool handleSearch(string type, string action);
+    bool handleSearch(string type, string action, bool verboseSearch);
     bool handleNarrate();
     bool handleGame(string type);
     bool handleEnd();
