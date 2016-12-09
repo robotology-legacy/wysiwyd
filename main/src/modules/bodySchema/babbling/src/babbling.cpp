@@ -1278,24 +1278,10 @@ bool Babbling::init_iCub(string &part)
     yInfo() << "Arms initialized.";
 
     /* Init. head */
-    string portnameHead = "head";
-    option.put("robot", robot.c_str()); //"icub"); // typically from the command line.
-    option.put("device", "remote_controlboard");
-    Value& robotnameHead = option.find("robot");
-
-    string sH("/babbling/");
-    sH += robotnameHead.asString();
-    sH += "/";
-    sH += portnameHead.c_str();
-    sH += "/control";
-    option.put("local", sH.c_str());
-
-    sH.clear();
-    sH += "/";
-    sH += robotnameHead.asString();
-    sH += "/";
-    sH += portnameHead.c_str();
-    option.put("remote", sH.c_str());
+    option.clear();
+    option.put("device", "gazecontrollerclient");
+    option.put("remote", "/iKinGazeCtrl");
+    option.put("local",  "/babbling/gaze");
 
     if (!headDev.open(option)) {
         yError() << "Device not available.  Here are the known devices:";
