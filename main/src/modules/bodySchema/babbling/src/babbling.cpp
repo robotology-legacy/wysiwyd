@@ -440,24 +440,18 @@ bool Babbling::doBabbling()
     {
         double startTime = yarp::os::Time::now();
 
-        Bottle reply;
-
-        //check ABM reply
-        if (reply.isNull()) {
-            cout << "Reply from ABM is null : NOT connected?" << endl;
-        } else if (reply.get(0).asString()!="ack"){
-            cout << reply.toString() << endl;
-        }
-
-        reply.clear();
-
         Bottle abmCommand;
         abmCommand.addString("babbling");
         abmCommand.addString("arm");
         abmCommand.addString(part);
 
         yDebug() << "============> babbling with COMMAND will START" ;
-        reply = dealABM(abmCommand,1);
+        Bottle reply = dealABM(abmCommand,1);
+        if (reply.isNull()) {
+            yWarning() << "Reply from ABM is null : NOT connected?";
+        } else if (reply.get(0).asString()!="ack"){
+            yWarning() << reply.toString();
+        }
 
         while (Time::now() < startTime + train_duration){
             //            yInfo() << Time::now() << "/" << startTime + train_duration;
@@ -467,7 +461,13 @@ bool Babbling::doBabbling()
             babblingCommands(t,single_joint);
         }
 
-        reply = dealABM(abmCommand,0);
+        Bottle reply = dealABM(abmCommand,0);
+        if (reply.isNull()) {
+            yWarning() << "Reply from ABM is null : NOT connected?";
+        } else if (reply.get(0).asString()!="ack"){
+            yWarning() << reply.toString();
+        }
+
         yDebug() << "============> babbling with COMMAND is FINISHED" ;
     }
     else if(cmd_source == "M") {
@@ -639,26 +639,20 @@ int Babbling::babblingCommandsMatlab()
 //        ictrlRightArm->setControlMode(i,VOCAB_CM_TORQUE);
     }
 
-    /********************************** snapshot to ABM **********************************/
-    Bottle reply;
-
-    //check ABM reply
-    if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
-    } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
-    }
-
-    reply.clear();
-
     Bottle abmCommand;
     abmCommand.addString("babbling");
     abmCommand.addString("arm");
     abmCommand.addString(part);
 
     yDebug() << "============> babbling with COMMAND will START" ;
-    reply = dealABM(abmCommand,1);
+
     /********************************** snapshot to ABM **********************************/
+    Bottle reply = dealABM(abmCommand,1);
+    if (reply.isNull()) {
+        yWarning() << "Reply from ABM is null : NOT connected?";
+    } else if (reply.get(0).asString()!="ack"){
+        yWarning() << reply.toString();
+    }
 
     Bottle *endMatlab;
     Bottle *cmdMatlab;
@@ -738,15 +732,15 @@ int Babbling::babblingCommandsMatlab()
     portReadMatlab.close();
 
     yInfo() << "Finished and ports to/from Matlab closed.";
+    yDebug() << "============> babbling is FINISHED";
 
     /********************************** snapshot to ABM **********************************/
+    reply.clear();
     reply = dealABM(abmCommand,0);
-    yDebug() << "============> babbling is FINISHED" ;
-    //check ABM reply
     if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
+        yWarning() << "Reply from ABM is null : NOT connected?";
     } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
+        yWarning() << reply.toString();
     }
     /********************************** snapshot to ABM **********************************/
 
@@ -864,21 +858,15 @@ bool Babbling::doBabblingKinStruct()
     }
 
 
-    Bottle reply;
     Bottle abmCommand;
     abmCommand.addString("babbling");
     abmCommand.addString("arm");
-    reply = dealABM(abmCommand,1);
-
-    //check ABM reply
+    Bottle reply = dealABM(abmCommand,1);
     if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
+        yWarning() << "Reply from ABM is null : NOT connected?";
     } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
+        yWarning() << reply.toString();
     }
-
-    reply.clear();
-
 
     yInfo() << "AMP " << amp<< "FREQ " << freq ;
 
@@ -991,12 +979,13 @@ bool Babbling::doBabblingKinStruct()
         ////////////////////////////////////////////////////////////////////////////////
     }
 
+    reply.clear();
     reply = dealABM(abmCommand,0);
     //check ABM reply
     if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
+        yWarning() << "Reply from ABM is null : NOT connected?";
     } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
+        yWarning() << reply.toString();
     }
 
     bool homeEnd = gotoStartPos();
