@@ -17,7 +17,7 @@ using namespace yarp::sig;
 class Tagging: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const Bottle &args);
     
 public:
     Tagging(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {

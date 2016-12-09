@@ -17,7 +17,7 @@ using namespace yarp::sig;
 class Pointing: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const Bottle &args);
     
 public:
     Pointing(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {

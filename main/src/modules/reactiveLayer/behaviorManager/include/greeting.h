@@ -21,7 +21,7 @@ class Greeting: public Behavior
 {
 public:
     void configure();
-    void run(Bottle args=Bottle());
+    void run(const Bottle &args);
     Greeting(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }

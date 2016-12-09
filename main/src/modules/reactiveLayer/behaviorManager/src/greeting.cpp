@@ -10,7 +10,7 @@ void Greeting::configure() {
     from_sensation_port_name = "/opcSensation/greeting:o";
 }
 
-void Greeting::run(Bottle args) {
+void Greeting::run(const Bottle &args) {
     yInfo() << "Greeting::run";
     // Bottle *objects = sensation.get(1).asList();
     // Might want to include gestures like looking at partner and waving a hand

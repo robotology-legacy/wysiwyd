@@ -8,7 +8,7 @@ void Ask::configure() {
     ;
 }
 
-void Ask::run(Bottle args) {
+void Ask::run(const Bottle &args) {
     // expects a bottle (objectName actionType)
     yInfo() << "Ask::run";
 

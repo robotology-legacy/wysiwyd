@@ -24,7 +24,7 @@ private:
     string port_to_avoidance_name;
     string port_to_homeo_name;
 
-    void run(Bottle args=Bottle());
+    void run(const Bottle &args);
     string homeoPort;
 
     //followingOrder option

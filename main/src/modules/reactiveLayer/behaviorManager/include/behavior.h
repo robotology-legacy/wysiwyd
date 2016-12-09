@@ -16,7 +16,7 @@ class Behavior
 private:
     Mutex* mut;
 
-    virtual void run(Bottle args=Bottle()) = 0;
+    virtual void run(const Bottle &args) = 0;
 public:
 
     Behavior(Mutex* _mut, ResourceFinder &_rf, std::string _behaviorName) : mut(_mut), behaviorName(_behaviorName), rf(_rf){

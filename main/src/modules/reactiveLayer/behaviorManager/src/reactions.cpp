@@ -6,7 +6,7 @@ void Reactions::configure() {
     from_sensation_port_name = "None";
 }
 
-void Reactions::run(Bottle args/*=Bottle()*/) {
+void Reactions::run(const Bottle &args) {
     yInfo() << "Reactions::run";
 
     Object* touchLocation = dynamic_cast<Object*>(iCub->opc->getEntity("touchLocation"));

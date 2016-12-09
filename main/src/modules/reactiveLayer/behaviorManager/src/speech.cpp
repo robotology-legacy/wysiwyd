@@ -8,7 +8,7 @@ void Speech::configure() {
     ;
 }
 
-void Speech::run(Bottle args) {
+void Speech::run(const Bottle &args) {
     yInfo() << "Speech::run";
     // Bottle *objects = sensation.get(1).asList();
     // Might want to include gestures like looking at partner and waving a hand

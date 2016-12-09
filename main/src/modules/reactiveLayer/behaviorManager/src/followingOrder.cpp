@@ -27,7 +27,7 @@ void FollowingOrder::configure() {
     manual = false;
 }
 
-void FollowingOrder::run(Bottle args/*=Bottle()*/) {
+void FollowingOrder::run(const Bottle &args) {
 
     yInfo() << "FollowingOrder::run";
 

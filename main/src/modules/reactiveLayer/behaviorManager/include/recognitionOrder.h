@@ -17,7 +17,7 @@ using namespace yarp::sig;
 class recognitionOrder: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const Bottle &args);
     yarp::os::Port port_to_homeo;
     string port_to_homeo_name;
     string homeoPort;

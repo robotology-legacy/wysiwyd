@@ -6,7 +6,7 @@ void Tagging::configure() {
     from_sensation_port_name = "/opcSensation/unknown_entities:o";
 }
 
-void Tagging::run(Bottle args/*=Bottle()*/) {
+void Tagging::run(const Bottle &args) {
     yInfo() << "Tagging::run";
     yDebug() << "send rpc to proactiveTagging";
     string type, target, sentence;

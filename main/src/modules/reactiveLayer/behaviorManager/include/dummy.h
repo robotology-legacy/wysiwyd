@@ -21,7 +21,7 @@ class Dummy: public Behavior
 private:
     static int n_instances;
 
-    void run(Bottle args=Bottle()) {
+    void run(const Bottle &args) {
         yDebug() << "Dummmy::run start " + behaviorName;
         Time::delay(4);
         yDebug() << "Dummmy::run stop " + behaviorName;

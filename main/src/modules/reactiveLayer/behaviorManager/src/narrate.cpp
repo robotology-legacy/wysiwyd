@@ -8,7 +8,7 @@ void Narrate::configure() {
     from_sensation_port_name = "None";
 }
 
-void Narrate::run(Bottle args/*=Bottle()*/) {
+void Narrate::run(const Bottle &args) {
     yInfo() << "Narrate::run";
     Bottle cmd;
     Bottle rply;

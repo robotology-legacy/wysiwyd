@@ -15,7 +15,7 @@ public:
         ;
     }    
     void configure();
-    void run(Bottle args=Bottle());
+    void run(const Bottle &args);
     void close_extra_ports() {
         ;
     }    

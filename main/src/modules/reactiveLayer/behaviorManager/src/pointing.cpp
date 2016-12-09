@@ -6,7 +6,7 @@ void Pointing::configure() {
     from_sensation_port_name = "/opcSensation/known_entities:o";
 }
 
-void Pointing::run(Bottle args/*=Bottle()*/) {
+void Pointing::run(const Bottle &args) {
     yInfo() << "Pointing::run";
     Bottle *sensation = sensation_port_in.read();
 

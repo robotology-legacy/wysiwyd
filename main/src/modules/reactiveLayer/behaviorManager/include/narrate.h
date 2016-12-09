@@ -17,7 +17,7 @@ using namespace yarp::sig;
 class Narrate: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const Bottle &args);
     
 public:
     Narrate(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
