@@ -11,11 +11,9 @@ project(wysiwyd)
 
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
-find_package(ICUBcontrib REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH}
                               ${ICUB_MODULE_PATH}
-                              ${ICUBCONTRIB_MODULE_PATH}
                               ${PROJECT_SOURCE_DIR}/conf)
 
 message(STATUS "YARP is version: ${YARP_VERSION}")
@@ -27,9 +25,6 @@ yarp_configure_external_installation(wysiwyd)
 
 include(iCubOptions)
 include(iCubHelpers)
-
-include(ICUBcontribHelpers)
-include(ICUBcontribOptions)
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 make_directory(${LIBRARY_OUTPUT_PATH})
