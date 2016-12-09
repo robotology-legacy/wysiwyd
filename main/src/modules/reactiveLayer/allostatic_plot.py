@@ -102,6 +102,7 @@ class AllostaticPlotModule(yarp.RFModule):
         self.homeo_min_lines = [self.ax.plot([], [], self.colors[i] + '--', lw=1) for i,d in enumerate(self.drives)]
         self.homeo_max_lines = [self.ax.plot([], [], self.colors[i] + '--', lw=1) for i,d in enumerate(self.drives)]
         plt.legend(change_drive_names(self.drives))
+        self.ax.set_xlim(0- self.win_size, 0)
 
 
         self.drive_values = [[0.] * self.win_size for _ in self.drives]
@@ -173,16 +174,13 @@ class AllostaticPlotModule(yarp.RFModule):
             self.reconnect_ports()
         self.drive_values = [values[1:] + [0.] for values in self.drive_values]
         for i, (port, homeo_max, v_line, min_line, max_line) in enumerate(zip(self.drive_value_ports, self.homeo_maxs, self.value_lines, self.homeo_min_lines, self.homeo_max_lines)):
-            res = port.read()
+            res = port.read(False)
             if res is not None:
                 self.drive_values[i][-1] = res.get(0).asDouble() + homeo_max
-            else:
-                self.drive_values[i][-1] = res
-            v_line[0].set_data(range(t- self.win_size, t), self.drive_values[i])
-            min_line[0].set_data((t- self.win_size, t), (self.homeo_mins[i], self.homeo_mins[i]))
-            max_line[0].set_data((t- self.win_size, t), (self.homeo_maxs[i], self.homeo_maxs[i]))
-            self.ax.set_xlim(t- self.win_size, t)
-        for name, port in zip(self.behaviors, self.behavior_ports):
+                v_line[0].set_data(range(0- self.win_size, 0), self.drive_values[i])
+                min_line[0].set_data((0- self.win_size, 0), (self.homeo_mins[i], self.homeo_mins[i]))
+                max_line[0].set_data((0- self.win_size, 0), (self.homeo_maxs[i], self.homeo_maxs[i]))
+        '''for name, port in zip(self.behaviors, self.behavior_ports):
             res = port.read(False)
             if res is not None:
                 msg = res.get(0).asString()
@@ -200,9 +198,9 @@ class AllostaticPlotModule(yarp.RFModule):
                     self.text_to_plot[name].set_x(self.behaviors_to_plot[name].get_x() + self.behaviors_to_plot[name].get_width())
                     self.text_to_plot[name].set_horizontalalignment("right")
                         #behaviors_to_plot[-1][1] = copy(t)
-                    print "Behavior " + name + " stops"
+                    print "Behavior " + name + " stops"'''
         plt.draw()
-        plt.pause(0.05)
+        plt.pause(0.1)
 
     def updateModule(self):
         # Don't forget the following:
