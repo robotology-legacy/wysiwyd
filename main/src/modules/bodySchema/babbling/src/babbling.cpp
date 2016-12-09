@@ -461,7 +461,8 @@ bool Babbling::doBabbling()
             babblingCommands(t,single_joint);
         }
 
-        Bottle reply = dealABM(abmCommand,0);
+        reply.clear();
+        reply = dealABM(abmCommand,0);
         if (reply.isNull()) {
             yWarning() << "Reply from ABM is null : NOT connected?";
         } else if (reply.get(0).asString()!="ack"){
