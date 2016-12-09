@@ -310,6 +310,9 @@ bool Planner::updateModule() {
                 vector<int> priority_store;
                 vector<int> actionPos_store;
 
+                // holding the prerequisites that failed
+                vector<string> preqFail;
+
                 for (int ii = grpPlans.find(planName + "-totactions").asInt(); ii > 0; ii--)
                 {
                     // string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
@@ -363,12 +366,18 @@ bool Planner::updateModule() {
                             yDebug() << "state before && is " << state;
                             state = state && indiv;
 
+                            // record a failed prerequisite
+                            string failState;
+                            if (!indiv)
+                            {
+                                if (negate) { failState = auxMsg.get(2).asString(); }
+                                else { failState = "not " + auxMsg.get(2).asString(); }
+                                preqFail.push_back(failState);
+                            }
+
                             // formulate step for recording in ABM
                             string recState;
-                            if (negate)
-                            {
-                                recState = "not " + auxMsg.get(2).asString();
-                            }
+                            if (negate) { recState = "not " + auxMsg.get(2).asString(); }
                             else { recState = auxMsg.get(2).asString(); }
                             string strind;
                             if (indiv == true) { strind = "true"; }
@@ -378,6 +387,7 @@ bool Planner::updateModule() {
                             lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(k)));
                             lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(k)));
                             yDebug() << "lArgument formed for condition";
+
                             auxMsg.clear();
                         }
                     }
@@ -495,6 +505,21 @@ bool Planner::updateModule() {
                 else
                 {
                     yWarning() << "None of the sets of prerequisites are met, unable to handle plan.";
+                    string errorMsg = "I could not execute the plan " + planName + " because the " + object + " is ";
+                    for (unsigned int ii = 0; ii<preqFail.size(); ii++)
+                    {
+                        if (ii!=0)
+                        {
+                            errorMsg += " and " + preqFail[ii];
+                        }
+                        else
+                        {
+                            errorMsg += preqFail[ii];
+                        }
+                    }
+                    iCub->lookAtPartner();
+                    iCub->say(errorMsg);
+                    iCub->home();
                 }
 
                 // remove elements from holding lists to make way for new plan input
@@ -504,6 +529,8 @@ bool Planner::updateModule() {
                 object_store.clear();
                 type_store.clear();
                 actionPos_store.clear();
+
+                preqFail.clear();
             }
             else
             {
