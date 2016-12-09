@@ -3,7 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 find_package(PythonLibs 2.7)
-if(PythonLibs_FOUND)
+if(PYTHONLIBS_FOUND)
   project(lrh)
 
   file(GLOB sources src/*.cpp)
