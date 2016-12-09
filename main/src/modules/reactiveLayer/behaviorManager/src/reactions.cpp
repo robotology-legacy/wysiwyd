@@ -1,5 +1,9 @@
 #include "reactions.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::sig;
+
 void Reactions::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "None";

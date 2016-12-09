@@ -1,5 +1,9 @@
 #include "recognitionOrder.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::sig;
+
 void recognitionOrder::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "/sam/rpc:i";

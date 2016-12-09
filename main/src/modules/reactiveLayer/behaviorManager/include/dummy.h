@@ -10,12 +10,6 @@
 
 #include "behavior.h"
 
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::math;
-using namespace wysiwyd::wrdac;
-
 class Dummy: public Behavior
 {
 private:

@@ -1,5 +1,9 @@
 #include "followingOrder.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::sig;
+
 void FollowingOrder::configure() {
     Bottle bFollowingOrder = rf.findGroup("followingOrder");
     bKS1.clear();
