@@ -53,7 +53,7 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         start_commandHead[0] = -20.0;//-25.0;
         start_commandHead[1]= 0.0;//-15.0;
         start_commandHead[2]= -20.0;//0.0;
-        start_commandHead[3]= -15.0;
+        start_commandHead[3]= 0.0;//-15.0;
         start_commandHead[4]= 0.0;//-20.0;
     }
     else
@@ -66,22 +66,22 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     if ((b_start_command->isNull()) | (b_start_command->size()<16))
     {
         yWarning("Something is wrong in ini file. Default value is used");
-        start_command[0] = -40.0;
-        start_command[1] = 25.0;
-        start_command[2] = 20.0;
-        start_command[3] = 85.0;
-        start_command[4] = -50.0;
+        start_command[0] = -45.0; //-40.0;
+        start_command[1] = 35.0; //25.0;
+        start_command[2] = 0.0; //20.0;
+        start_command[3] = 50.0; //85.0;
+        start_command[4] = -45.0; //-50.0;
         start_command[5] = 0.0;
-        start_command[6] = 8.0;
-        start_command[7] = 15.0;
-        start_command[8] = 30.0;
-        start_command[9] = 4.0;
-        start_command[10] = 2.0;
+        start_command[6] = 0.0; //8.0;
+        start_command[7] = 0.0; //15.0;
+        start_command[8] = 10.0; //30.0;
+        start_command[9] = 0.0; //4.0;
+        start_command[10] = 0.0; //2.0;
         start_command[11] = 0.0;
-        start_command[12] = 7.0;
-        start_command[13] = 14.0;
-        start_command[14] = 5.0;
-        start_command[15] = 14.0;
+        start_command[12] = 0.0; //7.0;
+        start_command[13] = 0.0; //14.0;
+        start_command[14] = 0.0; //5.0;
+        start_command[15] = 0.0; //14.0;
     }
     else
     {
@@ -95,22 +95,39 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
        (!b_start_command_right->isNull() && b_start_command_right->size()<16) )
     {
         yWarning("Something is wrong in ini file. Default value is used");
-        start_command_left[0] = -35.0;  start_command_right[0] = -55.0;
-        start_command_left[1] = 70.0;   start_command_right[1] = 25.0;
-        start_command_left[2] = 20.0;   start_command_right[2] = 20.0;
-        start_command_left[3] = 40.0;   start_command_right[3] = 35.0;
-        start_command_left[4] = 50.0;   start_command_right[4] = 70.0;
-        start_command_left[5] = -25.0;  start_command_right[5] = 0.0;
-        start_command_left[6] = 10.0;   start_command_right[6] = 10.0;
-        start_command_left[7] = 35.0;   start_command_right[7] = 0.0;
+//        start_command_left[0] = -35.0;  start_command_right[0] = -55.0;
+//        start_command_left[1] = 70.0;   start_command_right[1] = 25.0;
+//        start_command_left[2] = 20.0;   start_command_right[2] = 20.0;
+//        start_command_left[3] = 40.0;   start_command_right[3] = 35.0;
+//        start_command_left[4] = 50.0;   start_command_right[4] = 70.0;
+//        start_command_left[5] = -25.0;  start_command_right[5] = 0.0;
+//        start_command_left[6] = 10.0;   start_command_right[6] = 10.0;
+//        start_command_left[7] = 35.0;   start_command_right[7] = 0.0;
+//        start_command_left[8] = 10.0;   start_command_right[8] = 10.0;
+//        start_command_left[9] = 0.0;    start_command_right[9] = 0.0;
+//        start_command_left[10] = 0.0;   start_command_right[10] = 155.0;
+//        start_command_left[11] = 0.0;   start_command_right[11] = 0.0;
+//        start_command_left[12] = 0.0;   start_command_right[12] = 0.0;
+//        start_command_left[13] = 0.0;   start_command_right[13] = 40.0;
+//        start_command_left[14] = 0.0;   start_command_right[14] = 125.0;
+//        start_command_left[15] = 0.0;   start_command_right[15] = 205.0;
+
+        start_command_left[0] = -45.0;  start_command_right[0] = -45.0;
+        start_command_left[1] = 35.0;   start_command_right[1] = 35.0;
+        start_command_left[2] = 0.0;    start_command_right[2] = 0.0;
+        start_command_left[3] = 50.0;   start_command_right[3] = 50.0;
+        start_command_left[4] = -45.0;   start_command_right[4] = -45.0;
+        start_command_left[5] = 0.0;    start_command_right[5] = 0.0;
+        start_command_left[6] = 0.0;   start_command_right[6] = 0.0;
+        start_command_left[7] = 0.0;    start_command_right[7] = 0.0;
         start_command_left[8] = 10.0;   start_command_right[8] = 10.0;
         start_command_left[9] = 0.0;    start_command_right[9] = 0.0;
-        start_command_left[10] = 0.0;   start_command_right[10] = 155.0;
+        start_command_left[10] = 0.0;  start_command_right[10] = 0.0;
         start_command_left[11] = 0.0;   start_command_right[11] = 0.0;
         start_command_left[12] = 0.0;   start_command_right[12] = 0.0;
-        start_command_left[13] = 0.0;   start_command_right[13] = 40.0;
-        start_command_left[14] = 0.0;   start_command_right[14] = 125.0;
-        start_command_left[15] = 0.0;   start_command_right[15] = 205.0;
+        start_command_left[13] = 0.0;   start_command_right[13] = 0.0;
+        start_command_left[14] = 0.0;   start_command_right[14] = 0.0;
+        start_command_left[15] = 0.0;   start_command_right[15] = 0.0;
 
     }
     else
@@ -406,17 +423,17 @@ double Babbling::getPeriod() {
 
 bool Babbling::doBabbling()
 {
-//    // First go to home position
-//    bool homeStart = gotoStartPos();
-//    if(!homeStart) {
-//        cout << "I got lost going home!" << endl;
-//    }
-
-//    bool homeStart = gotoStartPos2();
-    bool homeStart = gotoStartPosPiano();
+    // First go to home position
+    bool homeStart = gotoStartPos();
     if(!homeStart) {
         cout << "I got lost going home!" << endl;
     }
+
+//    bool homeStart = gotoStartPos2();
+//    bool homeStart = gotoStartPosPiano();
+//    if(!homeStart) {
+//        cout << "I got lost going home!" << endl;
+//    }
 
     yDebug() << "OK";
 
@@ -471,15 +488,15 @@ bool Babbling::doBabbling()
         babblingCommandsMatlab();
     }
 
-//    bool homeEnd = gotoStartPos();
-//    if(!homeEnd) {
-//        cout << "I got lost going home!" << endl;
-//    }
-//    bool homeEnd = gotoStartPos2();
-    bool homeEnd = gotoStartPosPiano();
+    bool homeEnd = gotoStartPos();
     if(!homeEnd) {
         cout << "I got lost going home!" << endl;
     }
+//    bool homeEnd = gotoStartPos2();
+//    bool homeEnd = gotoStartPosPiano();
+//    if(!homeEnd) {
+//        cout << "I got lost going home!" << endl;
+//    }
 
 
 
@@ -1036,7 +1053,7 @@ bool Babbling::gotoStartPos()
         commandHead[i] = start_commandHead[i];
     }
     if(part=="right_arm"){
-        commandHead[2] = -2*start_commandHead[2];
+        commandHead[2] = -1*start_commandHead[2];
     }
     posHead->positionMove(commandHead.data());
 
