@@ -46,7 +46,7 @@ class Recorder : public RFModule
 
 public:
     /*******************************************************/
-    Recorder() : icubclient("actionRecogDataDumper") { }
+    Recorder() : icubclient("actionRecogDataDumper", "actionRecogDataDumper") { }
 
     /*******************************************************/
     bool configure(ResourceFinder &rf)
