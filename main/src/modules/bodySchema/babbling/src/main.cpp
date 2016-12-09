@@ -26,18 +26,17 @@
 using namespace std;
 using namespace yarp::os;
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
     srand(time(NULL));
     Network yarp;
+
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("babbling");
     rf.setDefaultConfigFile("babbling.ini");
-    rf.configure(argc, argv);
-//    string part = rf.find("part").asString();
+    rf.configure(argc,argv);
+
     Babbling mod;
-    mod.runModule(rf);
-    cout << "Bye bye." << endl;
-    return 0;
+    return mod.runModule(rf);
 }
