@@ -48,7 +48,7 @@ configure_file("${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake.in"
                "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake"
                @ONLY)
 add_custom_target(uninstall_wysiwyd "${CMAKE_COMMAND}" -P
-                  "${CMAKE_BINARY_DIR}/icub-config-uninstall.cmake")
+                  "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake")
 ####
 
 #### install cmake scripts
