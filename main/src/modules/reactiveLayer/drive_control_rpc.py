@@ -20,6 +20,15 @@ alloRPC = "/AllostaticController/rpc"
 print yarp.Network.connect(homeoPortName,homeoRPC)
 print yarp.Network.connect(alloPortName,alloRPC)
 
+def updateDriveList():
+	cmd = yarp.Bottle()
+	rply = yarp.Bottle()
+	cmd.clear()
+	cmd.addString('names')
+	toHomeo.write(cmd,rply)
+	driveList = rply.toString().strip('()').split(' ')
+	print driveList
+	return driveList
 
 def close_ports():		
 	print "Interrupting and closing ports"		
