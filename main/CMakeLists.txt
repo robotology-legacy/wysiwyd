@@ -66,7 +66,6 @@ foreach(conf_i ${WYSIWYD_CMAKE_SCRIPTS})
 endforeach()
 ####
 
-option(WYSIWYD_USE_GPU "Compile components requiring GPU capabilities" OFF)
 add_subdirectory(src)
 add_subdirectory(app)
 
