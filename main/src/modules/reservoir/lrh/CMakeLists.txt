@@ -17,11 +17,10 @@ if(PythonLibs_FOUND)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
                       ${wrdac_INCLUDE_DIRS}
                       ${YARP_INCLUDE_DIRS}
-                      ${ICUB_INCLUDE_DIRS}
                       ${PYTHON_INCLUDE_DIRS})
 
   add_executable(${PROJECT_NAME} ${headers} ${sources} ${docs})
-  target_link_libraries(${PROJECT_NAME} wrdac ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${PYTHON_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME} wrdac ${YARP_LIBRARIES} ${PYTHON_LIBRARIES})
   set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER lrh)
   install(TARGETS ${PROJECT_NAME} DESTINATION bin)
   yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})

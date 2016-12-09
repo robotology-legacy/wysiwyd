@@ -31,7 +31,7 @@ if(WYSIWYD_BUILD_IOL2OPC)
                        ${wrdac_INCLUDE_DIRS}
                        ${OpenCV_INCLUDE_DIRS}
                        ${YARP_INCLUDE_DIRS}
-                       ${ICUB_INCLUDE_DIRS})
+                       ${ICUB_INCLUDE_DIRS} )
 
    add_executable(${PROJECT_NAME} ${idl_files} ${folder_header} ${folder_source})
    target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} ctrlLib ${YARP_LIBRARIES} wrdac)
