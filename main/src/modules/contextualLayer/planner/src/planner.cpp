@@ -338,6 +338,7 @@ bool Planner::updateModule() {
                                 string aux = msg->get(i).asString();
                                 for (int j = 0; j < args.size(); j++)
                                 {
+                                    // check and replace matches in pre/postrequisites and action (e.g. _obj in point)
                                     if (args.get(j).asString() == msg->get(i).asString())
                                     {
                                         aux = object;
@@ -413,6 +414,13 @@ bool Planner::updateModule() {
                             yInfo() << actionName + " reasoning has been recorded in the ABM";
                         }
                         else { yInfo() << "ABMClient is not connected."; }
+                    }
+
+                    // change objectType to action type (pull or push) for ask behaviour
+                    if (actionName == "ask")
+                    {
+                        yInfo() << "Action is ask, objectType now describes if desired action is push/pull.";
+                        objectType = args.get(0).toString();
                     }
 
                     // insert actions into the various holding lists (IN REVERSE ORDER)

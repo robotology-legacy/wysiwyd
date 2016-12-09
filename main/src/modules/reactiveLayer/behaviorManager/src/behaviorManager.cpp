@@ -59,7 +59,9 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         }  else if (behavior_name == "recognitionOrder") {
             behaviors.push_back(new recognitionOrder(&mut, rf, "recognitionOrder"));
         }  else if (behavior_name == "greeting") {
-            behaviors.push_back(new recognitionOrder(&mut, rf, "greeting"));
+            behaviors.push_back(new Greeting(&mut, rf, "greeting"));
+        }  else if (behavior_name == "ask") {
+            behaviors.push_back(new Ask(&mut, rf, "ask"));
         }  else if (behavior_name == "speech") {
             behaviors.push_back(new Speech(&mut, rf, "speech"));            
             // other behaviors here

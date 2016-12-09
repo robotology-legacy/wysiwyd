@@ -15,6 +15,8 @@
 #include "followingOrder.h"
 #include "recognitionOrder.h"
 #include "speech.h"
+#include "greeting.h"
+#include "ask.h"
 
 using namespace std;
 using namespace yarp::os;
