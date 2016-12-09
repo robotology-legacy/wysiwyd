@@ -14,7 +14,7 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     bool no_objects = true;
     if (args.size()!=0){
         yDebug()<<args.toString() << args.size();
-        obj_name = args.get(0).asList()->toString();
+        obj_name = args.get(0).asList()->get(0).asString();
         yDebug() << "Object selected: " << obj_name;
         sentence = "Okay, this is the ";
         no_objects=false;
