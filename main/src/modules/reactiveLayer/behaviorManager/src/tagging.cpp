@@ -3,6 +3,8 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace wysiwyd::wrdac;
+
 
 void Tagging::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)

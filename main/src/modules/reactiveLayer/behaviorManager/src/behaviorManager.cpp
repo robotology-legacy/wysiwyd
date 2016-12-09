@@ -78,7 +78,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
-    iCub = new ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
+    iCub = new wysiwyd::wrdac::ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
 
     if (!iCub->connect())
     {

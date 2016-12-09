@@ -11,10 +11,10 @@
 class Pointing: public Behavior
 {
 private:
-    void run(const Bottle &args);
+    void run(const yarp::os::Bottle &args);
     
 public:
-    Pointing(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    Pointing(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
         

@@ -15,15 +15,15 @@ class Dummy: public Behavior
 private:
     static int n_instances;
 
-    void run(const Bottle &args) {
+    void run(const yarp::os::Bottle &args) {
         yDebug() << "Dummmy::run start " + behaviorName;
-        Time::delay(4);
+        yarp::os::Time::delay(4);
         yDebug() << "Dummmy::run stop " + behaviorName;
     }
     int id;
 
 public:
-    Dummy(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    Dummy(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         n_instances++;
         id = n_instances;
     }

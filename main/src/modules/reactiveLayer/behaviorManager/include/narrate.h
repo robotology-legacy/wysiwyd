@@ -12,10 +12,10 @@
 class Narrate: public Behavior
 {
 private:
-    void run(const Bottle &args);
+    void run(const yarp::os::Bottle &args);
     
 public:
-    Narrate(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    Narrate(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
         

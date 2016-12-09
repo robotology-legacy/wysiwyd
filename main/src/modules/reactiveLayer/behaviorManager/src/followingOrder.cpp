@@ -3,6 +3,7 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace wysiwyd::wrdac;
 
 void FollowingOrder::configure() {
     Bottle bFollowingOrder = rf.findGroup("followingOrder");

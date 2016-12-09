@@ -18,26 +18,26 @@
 #include "greeting.h"
 #include "ask.h"
 
-class BehaviorManager: public RFModule
+class BehaviorManager: public yarp::os::RFModule
 {
 private:
 
 
-    vector<Behavior*> behaviors;
+    std::vector<Behavior*> behaviors;
 
-    string moduleName;
+    std::string moduleName;
 
     double period;
 
-    Port rpc_in_port;
+    yarp::os::Port rpc_in_port;
 
-    ICubClient *iCub;
+    wysiwyd::wrdac::ICubClient *iCub;
 
     // int behavior_to_trigger;
 
-    Mutex mut;
-    Bottle behaviorList;
-    string behavior_name;
+    yarp::os::Mutex mut;
+    yarp::os::Bottle behaviorList;
+    std::string behavior_name;
 
 public:
    bool configure(yarp::os::ResourceFinder &rf);
@@ -54,7 +54,7 @@ public:
     bool updateModule();
 
     //RPC & scenarios
-    bool respond(const Bottle& cmd, Bottle& reply);
+    bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
 
 };
 

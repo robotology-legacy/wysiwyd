@@ -11,15 +11,15 @@
 class Ask: public Behavior
 {
 public:
-    Ask(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    Ask(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }    
     void configure();
-    void run(const Bottle &args);
+    void run(const yarp::os::Bottle &args);
     void close_extra_ports() {
         ;
     }    
 
-    Bottle toSay;
+    yarp::os::Bottle toSay;
 };
 
