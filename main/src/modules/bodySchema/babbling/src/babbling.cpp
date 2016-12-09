@@ -159,8 +159,8 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
-    if (!portVelocityOut.open("/" + getName() + "/" + part + "/velocity:o")) {
-        cout << getName() << ": Unable to open port " << "/" << getName() << "/" << part << "/velocity:o" << endl;
+    if (!portVelocityOut.open("/" + getName() + "/velocity:o")) {
+        cout << getName() << ": Unable to open port " << "/" << getName() << "/velocity:o" << endl;
         bEveryThingisGood = false;
     }
 
