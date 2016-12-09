@@ -234,8 +234,8 @@ def calibrateMultipleModelRecall(thisModel):
         # model i is confident for this prediction.
         classif_thresh.append([tmp_i.mean() - tmp_s * tmp_i.std(), tmp_i.mean() + tmp_s * tmp_i.std()])
 
-    thisModel[0].classifiers = classifiers
-    thisModel[0].classif_thresh = classif_thresh
+    thisModel[0].classificationDict['classifiers'] = classifiers
+    thisModel[0].classificationDict['classif_thresh'] = classif_thresh
     thisModel[0].calibrated = True
 
 
@@ -364,7 +364,7 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimis
 
     label = 'unknown'
 
-    if not thisModel[0].classifiers:
+    if not thisModel[0].classificationDict['classifiers']:
         calibrateMultipleModelRecall(thisModel)
 
     for j in range(cmSize):
@@ -373,7 +373,7 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimis
         yy_test = thisModel[j + 1].SAMObject.familiarity(tempTest, optimise=optimise)[:, None]
         # yy_test *= thisModel[j+1].Ystd
         # yy_test += thisModel[j+1].Ymean
-        cc = thisModel[0].classifiers[j].predict_proba(yy_test)[:, j]
+        cc = thisModel[0].classificationDict['classifiers'][j].predict_proba(yy_test)[:, j]
         if verbose:
             print('Familiarity with ' + thisModel[j + 1].modelLabel + ' given current instance is: ' + str(yy_test) +
                   ' ' + str(cc[0]))
@@ -383,7 +383,8 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimis
     bestConfidence = np.argmax(classif_tmp)
 
     for j in range(cmSize):
-        if thisModel[0].classif_thresh[j][0] <= classif_tmp[j] <= thisModel[0].classif_thresh[j][1]:
+        if thisModel[0].classificationDict['classif_thresh'][j][0] <= \
+                classif_tmp[j] <= thisModel[0].classificationDict['classif_thresh'][j][1]:
             bestConfidence = j
             label = thisModel[0].textLabels[j]
 

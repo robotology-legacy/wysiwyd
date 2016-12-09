@@ -96,14 +96,13 @@ def initialiseModels(argv, update, initMode='training'):
             parser.optionxform = str
             found = parser.read(dataPath + "/config.ini")
 
+            mySAMpy.experiment_number = 'exp'
             # load parameters from config file
-            if parser.has_option(trainName, 'experiment_number'):
-                mySAMpy.experiment_number = int(parser.get(trainName, 'experiment_number'))
-            elif '.pickle' in modelPath:
-                mySAMpy.experiment_number = int(modelPath.split('__')[-2].replace('exp', '')) + 1
-            else:
-                fail = True
-                print 'No experiment_number found'
+            # if parser.has_option(trainName, 'experiment_number'):
+            #     mySAMpy.experiment_number = int(parser.get(trainName, 'experiment_number'))
+            # elif '.pickle' in modelPath:
+            #     mySAMpy.experiment_number = int(modelPath.split('__')[-2].replace('exp', '')) + 1
+            # else:
 
             if parser.has_option(trainName, 'model_type'):
                 mySAMpy.model_type = parser.get(trainName, 'model_type')
@@ -196,7 +195,7 @@ def initialiseModels(argv, update, initMode='training'):
             found = parser.read(dataPath + "/config.ini")
 
             # load parameters from config file
-            mySAMpy.experiment_number = int(modelPath.split('__')[-1].replace('exp', ''))
+            mySAMpy.experiment_number = modelPath.split('__')[-1]
 
             modelPickle = pickle.load(open(modelPath+'.pickle', 'rb'))
             mySAMpy.paramsDict = dict()
@@ -259,12 +258,12 @@ def initialiseModels(argv, update, initMode='training'):
             print 'IO Exception reading ', found
             pass
 
-    if 'exp' in modelPath:
-        fnameProto = '/'.join(modelPath.split('/')[:-1]) + '/' + dataPath.split('/')[-1] + '__' + driverName + \
-                             '__' + mySAMpy.model_type + '__exp' + str(mySAMpy.experiment_number)
+    if 'exp' in modelPath or 'best' in modelPath or 'backup' in modelPath:
+         fnameProto = '/'.join(modelPath.split('/')[:-1]) + '/' + dataPath.split('/')[-1] + '__' + driverName + \
+                             '__' + mySAMpy.model_type + '__' + str(mySAMpy.experiment_number)
     else:
         fnameProto = modelPath + dataPath.split('/')[-1] + '__' + driverName + '__' + mySAMpy.model_type + \
-                             '__exp' + str(mySAMpy.experiment_number)
+                             '__' + str(mySAMpy.experiment_number)
 
     print 'Full model name: \n', '\t' + fnameProto
     print '-------------------'
@@ -340,7 +339,7 @@ def initialiseModels(argv, update, initMode='training'):
         if mm[0].model_mode != 'temporal':
 
             [Yall, Lall, YtestAll, LtestAll] = mm[k].prepareData(mm[k].model_type, Ntr,
-                                                                 randSeed=mm[0].experiment_number,
+                                                                 randSeed=0,
                                                                  normalise=normaliseData)
             mm[k].Yall = Yall
             mm[k].Lall = Lall
@@ -348,7 +347,7 @@ def initialiseModels(argv, update, initMode='training'):
             mm[k].LtestAll = LtestAll
         elif mm[0].model_mode == 'temporal':
             [Xall, Yall, Lall, XtestAll, YtestAll, LtestAll] = mm[k].prepareData(mm[k].model_type, Ntr,
-                                                                                 randSeed=mm[0].experiment_number,
+                                                                                 randSeed=0,
                                                                                  normalise=normaliseData)
             mm[k].Xall = Xall
             mm[k].Yall = Yall
@@ -361,13 +360,14 @@ def initialiseModels(argv, update, initMode='training'):
         print 'ratioData = ' + str(mySAMpy.ratioData)
     print '-------------------------------------------------------------------------------------------------'
     if initMode == 'training':
-        samOptimiser.deleteModel(modelPath, 'exp' + str(mm[0].experiment_number))
+        samOptimiser.deleteModel(modelPath, 'exp')
         for k in range(len(mm[0].participantList)):
             # for k = 0 check if multiple model or not
             if mm[0].participantList[k] != 'root':
 
                 print "Training with ", mm[0].model_num_inducing, 'inducing points for ', \
                     mm[0].model_init_iterations, '|', mm[0].model_num_iterations
+                print "Fname:", mm[k].fname
 
                 mm[k].training(mm[0].model_num_inducing, mm[0].model_num_iterations,
                                mm[0].model_init_iterations, mm[k].fname, mm[0].save_model,

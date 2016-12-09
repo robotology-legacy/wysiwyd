@@ -166,7 +166,7 @@ class LFM(object):
 
     def learn(self, optimizer='bfgs', max_iters=1000, init_iters=300, verbose=True):
         """
-        Learn the model (analogous to "forming synapses" after perveiving data).
+        Learn the model (analogous to "forming synapses" after perceiving data).
         """
         if self.type == 'bgplvm' or self.type == 'mrd':
             self.model['.*noise'].fix()
@@ -544,7 +544,7 @@ def load_pruned_model(fileName='m_pruned', economy=False, m=None):
     if economy:
         assert m is not None
         import tables
-        f = tables.open_file(os.path.join(folderPath,SAMObjPruned['modelPath']), 'r')
+        f = tables.open_file(os.path.join(fileName+'_model.h5'), 'r')
         m.param_array[:] = f.root.param_array[:]
         f.close()
         m._trigger_params_changed()

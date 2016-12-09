@@ -55,6 +55,7 @@ class interactionSAMModel(yarp.RFModule):
         self.instancePortName = ''
         self.labelPortName = ''
         self.verboseSetting = False
+        self.exitFlag = False
 
     def configure(self, rf):
 
@@ -175,8 +176,12 @@ class interactionSAMModel(yarp.RFModule):
         # close ports of loaded models
         print 'Exiting ...'
         for j in self.portsList:
-            j.close()
+            self.closePort(j)
         return False
+
+    @SAM_utils.timeout(3)
+    def closePort(self, j):
+        j.close()
 
     def respond(self, command, reply):
         # this method responds to samSupervisor commands
@@ -377,6 +382,9 @@ class interactionSAMModel(yarp.RFModule):
             # read frame of data
             frame = self.readFrame()
             # append frame to dataList
+
+            if self.dataList is None:
+                self.dataList = []
 
             self.dataList.append(frame)
             # process list of frames for a classification

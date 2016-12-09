@@ -11,6 +11,7 @@ import pkgutil
 import time
 import datetime
 import signal
+import pickle
 import readline
 import yarp
 from ConfigParser import SafeConfigParser
@@ -60,6 +61,7 @@ class SamSupervisorModule(yarp.RFModule):
         self.nonResponsiveThreshold = 5
         self.modelConnections = dict()
         self.connectionCheckCount = 0
+        self.modelPriority = ['backup', 'exp', 'best']
 
     def configure(self, rf):
         yarp.Network.init()
@@ -345,8 +347,24 @@ class SamSupervisorModule(yarp.RFModule):
                         t.append(os.path.getmtime(loc))
                 if len(t) > 0:
                     lastMod = max(t)
-                    currModels = currModels[t.index(lastMod)]
-                    self.trainableModels[self.trainableModels.index(f)].append(currModels)
+
+                    currModelsDict = dict()
+                    currModelsDict['exp'] = ''
+                    currModelsDict['best'] = ''
+                    currModelsDict['backup'] = ''
+                    for l in t:
+                        tempModel = currModels[t.index(l)]
+                        if 'exp' in tempModel:
+                            currModelsDict['exp'] = tempModel
+                        elif 'best' in tempModel:
+                            currModelsDict['best'] = tempModel
+                        elif 'backup' in tempModel:
+                            currModelsDict['backup'] = tempModel
+
+                    # currModels = currModels[t.index(lastMod)]
+                    # self.trainableModels[self.trainableModels.index(f)].append(currModels)
+                    self.trainableModels[self.trainableModels.index(f)].append(currModelsDict)
+
                     if self.verbose:
                         print str(f[0]) + " Model last modified: %s" % time.ctime(lastMod)
                     if lastMod < f[2]:
@@ -398,9 +416,9 @@ class SamSupervisorModule(yarp.RFModule):
 
     def respond(self, command, reply):
 
-        helpMessage = ["Commands are: ", "\tcheck_all", "\tcheck modelName", "\tclose modelName",
+        helpMessage = ["Commands are: ", "\tcheck_all", "\tcheck modelName", "\tclose modelName", "\tconfig modelName",
                        "\tdelete modelName", "\thelp", "\tload modelName",  "\toptimise modelName", "\tquit",
-                       "\ttrain modelName", "\tlist_callSigns"]
+                       "\treport modelName", "\ttrain modelName", "\tlist_callSigns"]
         b = yarp.Bottle()
         self.checkAvailabilities(b)
         reply.clear()
@@ -413,6 +431,10 @@ class SamSupervisorModule(yarp.RFModule):
             self.closeModel(reply, command, True)
         elif command.get(0).asString() == "delete":
             self.deleteModel(reply, command)
+        elif command.get(0).asString() == "report":
+            self.reportModel(reply, command)
+        elif command.get(0).asString() == "config":
+            self.configModel(reply, command)
         elif command.get(0).asString() == "help":
             reply.addVocab(yarp.Vocab_encode("many"))
             for i in helpMessage:
@@ -584,7 +606,11 @@ class SamSupervisorModule(yarp.RFModule):
                             # cmd = 'ipython ' + join(self.trainingFunctionsPath, interactionFunction[0]+'.py') + \
                             #       ' -- ' + args
                             # NEW
-                            args = ' '.join([join(self.dataPath, j[0]), join(self.modelPath, j[4]),
+                            for modType in self.modelPriority:
+                                if j[4][modType] != '':
+                                    modToLoad = j[4][modType]
+
+                            args = ' '.join([join(self.dataPath, j[0]), join(self.modelPath, modToLoad),
                                              self.interactionConfFile, interactionFunction[0]])
                             cmd = 'interactionSAMModel.py' + ' -- ' + args
 
@@ -611,8 +637,12 @@ class SamSupervisorModule(yarp.RFModule):
                                 print 'connecting ' + self.rpcConnections[-1][2]+'o' + \
                                       ' with ' + self.rpcConnections[-1][2]+'i'
                             while noConn:
-                                noConn = yarp.Network.connect(self.rpcConnections[-1][2]+'o',
-                                                              self.rpcConnections[-1][2]+'i')
+                                try:
+                                    noConn = yarp.Network.connect(self.rpcConnections[-1][2]+'o',
+                                                                  self.rpcConnections[-1][2]+'i')
+                                except:
+                                    noConn = False
+
                                 noConn = not noConn
                                 time.sleep(1)
                                 iters += 1
@@ -750,16 +780,75 @@ class SamSupervisorModule(yarp.RFModule):
             reply.addString(str(command.get(1).asString()) + " model deleted.")
             modelToDelete = [s for s in self.updateModels + self.uptodateModels
                              if s[0] == command.get(1).asString()][0][4]
-            if 'L' in modelToDelete.split('__')[-1]:
-                modelToDelete = '__'.join(modelToDelete.split('__')[:-1])
-            print modelToDelete
-            filesToDelete = glob.glob(join(self.modelPath, modelToDelete + '*'))
+
+            for j in modelToDelete.keys():
+                if 'L' in modelToDelete[j].split('__')[-1]:
+                    modelToDelete[j] = '__'.join(modelToDelete.split('__')[:-1])
+
+            print modelToDelete.values()
+
+            filesToDelete = []
+            for j in modelToDelete.keys():
+                if modelToDelete[j] != '':
+                    filesToDelete += glob.glob(join(self.modelPath, modelToDelete[j] + '*'))#
 
             for i in filesToDelete:
                 os.remove(i)
 
             b = yarp.Bottle()
             self.checkAvailabilities(b)
+        else:
+            reply.addString(str(command.get(1).asString()) + " model not present")
+        return True
+
+    def configModel(self, reply, command):
+        reply.clear()
+        if command.size() != 2:
+            reply.addString("Model name required. e.g. report Actions")
+        elif command.get(1).asString() in self.trainingListHandles:
+            reply.addString("Cannot report model. Model in training")
+        elif command.get(1).asString() in self.updateModelsNames or \
+                        command.get(1).asString() in self.uptodateModelsNames or \
+                        command.get(1).asString() in self.noModelsNames:
+            modelToCheck = [s for s in self.updateModels + self.uptodateModels + self.noModels
+                            if s[0] == command.get(1).asString()][0][0]
+
+            print modelToCheck
+
+            modelConfFile = join(self.dataPath, modelToCheck, 'config.ini')
+            os.system("gedit " + modelConfFile)
+            reply.addString('ack')
+            reply.addString(modelToCheck)
+        return True
+
+    def reportModel(self, reply, command):
+        reply.clear()
+
+        if command.size() != 2:
+            reply.addString("Model name required. e.g. report Actions")
+        elif command.get(1).asString() in self.trainingListHandles:
+            reply.addString("Cannot report model. Model in training")
+        elif command.get(1).asString() in self.updateModelsNames or \
+                        command.get(1).asString() in self.uptodateModelsNames:
+
+            modelToCheck = [s for s in self.updateModels + self.uptodateModels
+                             if s[0] == command.get(1).asString()][0][4]
+
+            for j in modelToCheck.keys():
+                if 'L' in modelToCheck[j].split('__')[-1]:
+                    modelToCheck[j] = '__'.join(modelToCheck.split('__')[:-1])
+
+            reply.addVocab(yarp.Vocab_encode("many"))
+            filesToCheck = []
+            for j in modelToCheck.keys():
+                if modelToCheck[j] != '':
+                    filesToCheck = glob.glob(join(self.modelPath, modelToCheck[j] + '*'))
+                    for i in filesToCheck:
+                        if '.pickle' in i:
+                            modelPickle = pickle.load(open(i, 'rb'))
+                            reply.addString(modelToCheck[j]+":")
+                            reply.addString(str(modelPickle['overallPerformance']))
+                            reply.addString("\t"+"  ")
         else:
             reply.addString(str(command.get(1).asString()) + " model not present")
         return True
@@ -840,10 +929,16 @@ class SamSupervisorModule(yarp.RFModule):
             print 'Optimising ' + mod[0] + ' ...'
             print
         dPath = join(self.dataPath, mod[0])
-        if mod[4] != '':
-            mPath = join(self.modelPath, mod[4]) + '.pickle'
+
+        modToUse = ''
+        for nm in mod[4].keys():
+            if mod[4][nm] != '':
+                modToUse = mod[4][nm]
+
+        if modToUse != '':
+            mPath = join(self.modelPath, modToUse) + '.pickle'
         else:
-            mPath = join(self.modelPath, mod[4])
+            mPath = join(self.modelPath, modToUse)
 
         if self.verbose:
             print mPath

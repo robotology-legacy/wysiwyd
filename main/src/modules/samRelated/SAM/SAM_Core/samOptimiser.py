@@ -386,21 +386,21 @@ def main():
             # pickle.dump({'optModel', optModel}, output)
             # output.close()
 
-            # try:
-            myBopt.run_optimization(max_iter)
-            optModel.parser.write(open(optModel.dataDir + "/config.ini", 'wb'))
-            optModel.copyModel('best', 'reverse')
-            return 0
-            # except:
-            #     # pickle results list together with optimiser
-            #     d = pickle.load(open(logFilename, 'r'))
-            #     d['resultList'] = myBopt.resultsList
-            #     output = open(logFilename, 'wb')
-            #     pickle.dump(d, output)
-            #     output.close()
-            #     optModel.parser.write(open(optModel.dataDir + "/config.ini", 'wb'))
-            #     optModel.copyModel('best', 'reverse')
-            #     return -1
+            try:
+                myBopt.run_optimization(max_iter)
+                optModel.parser.write(open(optModel.dataDir + "/config.ini", 'wb'))
+                optModel.copyModel('best', 'reverse')
+                return 0
+            except:
+                # # pickle results list together with optimiser
+                # d = pickle.load(open(logFilename, 'r'))
+                # d['resultList'] = myBopt.resultsList
+                # output = open(logFilename, 'wb')
+                # pickle.dump(d, output)
+                # output.close()
+                os.system("mv " + optModel.dataDir+"/configBest.ini " + optModel.dataDir+"/config.ini")
+                # optModel.parser.write(open(optModel.dataDir + "/config.ini", 'wb'))
+                return -1
         else:
             return -1
     else:

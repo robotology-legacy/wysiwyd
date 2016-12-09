@@ -451,7 +451,7 @@ Bottle proactiveTagging::getNameFromSAM(string sNameTarget, string currentEntity
         if(sNameSAM == "nack")
         {
              yError() << bReplySam.get(1).asString();
-             iCub->say("I could not get the name from SAM");
+             //iCub->say("I could not get the name from SAM");
         }
         
         bOutput.addString("nack");
