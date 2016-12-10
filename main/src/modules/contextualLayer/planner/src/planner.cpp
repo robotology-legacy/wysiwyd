@@ -34,7 +34,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     attach(rpc);
 
     portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
-    toHomeo.open("/manager/toHomeostasis/rpc:o");
+    toHomeo.open("/planner/toHomeostasis/rpc:o");
     getState.open("/planner/state:i");
 
     if (ears)
@@ -108,29 +108,29 @@ bool Planner::exit() {
 
 bool Planner::freeze_all()
 {
-    Bottle gandalf;
+    Bottle cmd;
     // Prepare command
-    gandalf.clear();
-    gandalf.addString("freeze");
-    gandalf.addString("all");
+    cmd.clear();
+    cmd.addString("freeze");
+    cmd.addString("all");
 
     // Send command
-    toHomeo.write(gandalf);
-    yInfo() << "Gandalf has spoken.";
+    toHomeo.write(cmd);
+    yInfo() << "Sent freeze all to homeostasis.";
 
     return true;
 }
 
 bool Planner::unfreeze_all()
 {
-    Bottle gandalf;
+    Bottle cmd;
     // Prepare command
-    gandalf.clear();
-    gandalf.addString("unfreeze");
-    gandalf.addString("all");
+    cmd.clear();
+    cmd.addString("unfreeze");
+    cmd.addString("all");
     // Send command
-    toHomeo.write(gandalf);
-    yInfo() << "Gandalf has rescinded.";
+    toHomeo.write(cmd);
+    yInfo() << "Sent unfreeze all to homeostasis.";
 
     return true;
 }

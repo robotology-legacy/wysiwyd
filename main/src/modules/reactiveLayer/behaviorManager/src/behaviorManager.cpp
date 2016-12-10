@@ -162,25 +162,22 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 if (cmd.get(1).asString() == "on") {
                     yInfo() << "followingOrder behavior manual mode on";
                     dynamic_cast<FollowingOrder *>(beh)->manual = true;
-                    reply.addString("ack");
                 } else if (cmd.get(1).asString() == "off") {
                     yInfo() << "followingOrder behavior manual mode off";
                     dynamic_cast<FollowingOrder *>(beh)->manual = false;
-                    reply.addString("ack");
                 }
             }
             else if (beh->behaviorName == "recognitionOrder") {
                 if (cmd.get(1).asString() == "on") {
                     yInfo() << "recognitionOrder behavior manual mode on";
                     dynamic_cast<RecognitionOrder *>(beh)->manual = true;
-                    reply.addString("ack");
                 } else if (cmd.get(1).asString() == "off") {
                     yInfo() << "recognitionOrder behavior manual mode off";
                     dynamic_cast<RecognitionOrder *>(beh)->manual = false;
-                    reply.addString("ack");
                 }
             }
         }
+        reply.addString("ack");
     } else if (cmd.get(0).asString() == "names" ) {
         Bottle names;
         names.clear();
