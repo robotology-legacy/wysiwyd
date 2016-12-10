@@ -329,6 +329,19 @@
         </dependencies>
     </module>
     <module>
+        <name>planner</name>
+        <parameters></parameters>
+        <node>icub-b1</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/homeostasis/rpc</port>
+            <port timeout="10">/BehaviorManager/trigger:i</port>
+            <port timeout="10">/ears/rpc</port>
+            <port timeout="10">/SensationManager/rpc</port>
+        </dependencies>
+    </module>
+    <module>
         <name>proactiveTagging</name>
         <parameters>--from proactiveTagging.ini --OPC_AddOrRetrieve::populateOPC 1</parameters>
         <node>icub-b1</node>
