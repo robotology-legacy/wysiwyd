@@ -526,10 +526,8 @@ class SamSupervisorModule(yarp.RFModule):
     def loadModel(self, reply, command):
         parser = SafeConfigParser()
 
-        if command.size() != 2:
+        if command.size() < 2:
             reply.addString("Model name required. e.g. load Actions")
-        elif command.get(1).asString() in self.trainingListHandles:
-            reply.addString("Cannot load model. Model in training")
         elif command.get(1).asString() in self.noModelsNames:
             reply.addString("Cannot load model. Model training available but not yet trained.")
         elif command.get(1).asString() in self.uptodateModelsNames+self.updateModelsNames:
@@ -606,9 +604,15 @@ class SamSupervisorModule(yarp.RFModule):
                             # cmd = 'ipython ' + join(self.trainingFunctionsPath, interactionFunction[0]+'.py') + \
                             #       ' -- ' + args
                             # NEW
-                            for modType in self.modelPriority:
+                            modType = command.get(2).asString()
+                            if modType != '' and modType in j[4].keys():
                                 if j[4][modType] != '':
                                     modToLoad = j[4][modType]
+                            else:
+                                for modType in self.modelPriority:
+                                    if j[4][modType] != '':
+                                        modToLoad = j[4][modType]
+                            print modType, modToLoad
 
                             args = ' '.join([join(self.dataPath, j[0]), join(self.modelPath, modToLoad),
                                              self.interactionConfFile, interactionFunction[0]])
@@ -742,7 +746,7 @@ class SamSupervisorModule(yarp.RFModule):
     def optimise(self, reply, command):
         reply.clear()
         
-        if command.size() != 2:
+        if command.size() < 2:
             reply.addString("Model name required. e.g. optimise Actions")
         elif str(command.get(1).asString()) in self.trainingListHandles:
             reply.addString(command.get(1).asString() + " is already being trained.")
@@ -754,7 +758,7 @@ class SamSupervisorModule(yarp.RFModule):
             modelToTrain = [s for s in self.updateModels + self.uptodateModels if s[0] == command.get(1).asString()][0]
             if self.verbose:
                 print modelToTrain
-            self.optimise_model(modelToTrain)
+            self.optimise_model(modelToTrain, modName=command.get(2).asString())
         else:
             reply.addString(command.get(1).asString() + " model not available to optimise")
         
@@ -768,7 +772,7 @@ class SamSupervisorModule(yarp.RFModule):
             if k[0] == command.get(1).asString():
                 alreadyOpen = True
         
-        if command.size() != 2:
+        if command.size() < 2:
             reply.addString("Model name required. e.g. delete Actions")
         elif command.get(1).asString() in self.trainingListHandles:
             reply.addString("Cannot delete model. Model in training")
@@ -788,9 +792,15 @@ class SamSupervisorModule(yarp.RFModule):
             print modelToDelete.values()
 
             filesToDelete = []
-            for j in modelToDelete.keys():
-                if modelToDelete[j] != '':
-                    filesToDelete += glob.glob(join(self.modelPath, modelToDelete[j] + '*'))#
+            if command.get(2).asString() != '':
+                modName = command.get(2).asString()
+                if modName in modelToDelete.keys():
+                    if modelToDelete[modName] != '':
+                        filesToDelete += glob.glob(join(self.modelPath, modelToDelete[j] + '*'))
+            else:
+                for j in modelToDelete.keys():
+                    if modelToDelete[j] != '':
+                        filesToDelete += glob.glob(join(self.modelPath, modelToDelete[j] + '*'))
 
             for i in filesToDelete:
                 os.remove(i)
@@ -805,8 +815,6 @@ class SamSupervisorModule(yarp.RFModule):
         reply.clear()
         if command.size() != 2:
             reply.addString("Model name required. e.g. report Actions")
-        elif command.get(1).asString() in self.trainingListHandles:
-            reply.addString("Cannot report model. Model in training")
         elif command.get(1).asString() in self.updateModelsNames or \
                         command.get(1).asString() in self.uptodateModelsNames or \
                         command.get(1).asString() in self.noModelsNames:
@@ -826,8 +834,6 @@ class SamSupervisorModule(yarp.RFModule):
 
         if command.size() != 2:
             reply.addString("Model name required. e.g. report Actions")
-        elif command.get(1).asString() in self.trainingListHandles:
-            reply.addString("Cannot report model. Model in training")
         elif command.get(1).asString() in self.updateModelsNames or \
                         command.get(1).asString() in self.uptodateModelsNames:
 
@@ -847,6 +853,10 @@ class SamSupervisorModule(yarp.RFModule):
                         if '.pickle' in i:
                             modelPickle = pickle.load(open(i, 'rb'))
                             reply.addString(modelToCheck[j]+":")
+                            try:
+                                reply.addString(str(modelPickle['overallPerformanceLabels']))
+                            except:
+                                pass
                             reply.addString(str(modelPickle['overallPerformance']))
                             reply.addString("\t"+"  ")
         else:
@@ -869,10 +879,16 @@ class SamSupervisorModule(yarp.RFModule):
             print 'Opening ' + trainPath
             print
         dPath = join(self.dataPath, mod[0])
+
         if mod[4] != '':
-            mPath = join(self.modelPath, mod[4]) + '.pickle'
+            modToTrain = mod[4]['exp']
         else:
-            mPath = join(self.modelPath, mod[4])
+            modToTrain = ''
+
+        if modToTrain != '':
+            mPath = join(self.modelPath, modToTrain) + '.pickle'
+        else:
+            mPath = join(self.modelPath, modToTrain)
 
         if self.verbose:
             print mPath
@@ -914,7 +930,7 @@ class SamSupervisorModule(yarp.RFModule):
 
         return True
 
-    def optimise_model(self, mod):
+    def optimise_model(self, mod, modName):
         if self.verbose:
             print "Training Models:"
             print
@@ -931,9 +947,13 @@ class SamSupervisorModule(yarp.RFModule):
         dPath = join(self.dataPath, mod[0])
 
         modToUse = ''
-        for nm in mod[4].keys():
-            if mod[4][nm] != '':
-                modToUse = mod[4][nm]
+        if modName != '' and modName in mod[4].keys():
+            if mod[4][modName] != '':
+                modToUse = mod[4][modName]
+        else:
+            for nm in self.modelPriority:
+                if mod[4][nm] != '':
+                    modToUse = mod[4][nm]
 
         if modToUse != '':
             mPath = join(self.modelPath, modToUse) + '.pickle'

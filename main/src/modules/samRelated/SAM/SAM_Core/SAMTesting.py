@@ -602,7 +602,7 @@ def testSegments(thisModel, Ysample, Lnum, verbose, label, serialMode=False):
 
     dCalc = calculateData(labelList, confMatrix)
 
-    return [dCalc[0], dCalc[1]]
+    return [dCalc[0], dCalc[1], labelList]
 
 
 def calculateVarianceThreshold(segIntersections, mk, muk, vk, vuk):

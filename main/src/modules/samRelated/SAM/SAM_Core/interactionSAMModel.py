@@ -56,6 +56,7 @@ class interactionSAMModel(yarp.RFModule):
         self.labelPortName = ''
         self.verboseSetting = False
         self.exitFlag = False
+        self.recordingFile = ''
 
     def configure(self, rf):
 
@@ -141,6 +142,12 @@ class interactionSAMModel(yarp.RFModule):
                         self.instancePort = j
                         self.instancePortName = parts[0]
 
+            if self.collectionMethod == 'continuous':
+                self.portsList.append(yarp.BufferedPortBottle())
+                self.eventPort = len(self.portsList) - 1
+                self.eventPortName = '/'.join(self.labelPortName.split('/')[:3])+'/event'
+                self.portsList[self.eventPort].open(self.eventPortName)
+
             if self.svPort is None or self.labelPort is None or self.instancePort is None:
                 print 'Config file properties incorrect. Should look like this:'
                 print '[Actions]'
@@ -215,6 +222,8 @@ class interactionSAMModel(yarp.RFModule):
             reply.addString('ack')
             reply.addString(self.labelPortName)
             reply.addString(self.instancePortName)
+            if self.collectionMethod == 'continuous':
+                reply.addString(self.eventPortName)
         # -------------------------------------------------
         elif action == "EXIT":
             reply.addString('ack')
@@ -362,6 +371,7 @@ class interactionSAMModel(yarp.RFModule):
             frame.fromString(frameRead.toString())
         elif 'image' in self.inputType:
             frame.copy(frameRead)
+
         return frame
 
     def collectData(self):
@@ -395,6 +405,9 @@ class interactionSAMModel(yarp.RFModule):
                 # empty dataList
                 self.dataList = dataList
                 if thisClass != 'None':
+                    eventBottle = self.portsList[self.eventPort].prepare()
+                    eventBottle.addString('ack')
+                    self.portsList[self.eventPort].write()
                     # add classification to classificationList to be retrieved during respond method
                     print 'classList len:', len(self.classificationList)
                     if len(self.classificationList) == self.bufferSize:

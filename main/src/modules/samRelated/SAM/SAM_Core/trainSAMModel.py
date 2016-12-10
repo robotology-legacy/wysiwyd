@@ -33,14 +33,15 @@ if mm[0].calibrateUnknown or len(mm) > 1:
 
 overallPerformance = 100000
 if mm[0].model_mode != 'temporal':
-    overallPerformance = mm[0].testPerformance(mm, mm[0].Yall, mm[0].Lall, mm[0].YtestAll, mm[0].LtestAll, True)
+    overallPerformance, overallPerformanceLabels = mm[0].testPerformance(mm, mm[0].Yall, mm[0].Lall, mm[0].YtestAll, mm[0].LtestAll, True)
 elif mm[0].model_mode == 'temporal':
-    overallPerformance = mm[0].testTemporalPerformance(mm, mm[0].Xall, mm[0].Yall, mm[0].Lall,
+    overallPerformance, overallPerformanceLabels = mm[0].testTemporalPerformance(mm, mm[0].Xall, mm[0].Yall, mm[0].Lall,
                                                        mm[0].XtestAll, mm[0].YtestAll, mm[0].LtestAll, True)
 
 numParts = len(mm[0].participantList)
 for k in range(numParts):
     mm[k].paramsDict['overallPerformance'] = overallPerformance
+    mm[k].paramsDict['overallPerformanceLabels'] = overallPerformanceLabels
     mm[k].paramsDict['ratioData'] = mm[0].ratioData
     mm[k].paramsDict['model_type'] = mm[k].model_type
     mm[k].paramsDict['model_mode'] = mm[0].model_mode
