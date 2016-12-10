@@ -38,7 +38,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     iCub = new ICubClient(moduleName, "narrativeGraph", "narrativeGraph.ini", isRFVerbose);
     iCub->opc->isVerbose &= true;
 
-    contextPath = rf.getContextPath();
+    contextPath = rf.getHomeContextPath();
 
 
     // get grammar file
