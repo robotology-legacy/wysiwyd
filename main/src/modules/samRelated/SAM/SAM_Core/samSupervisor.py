@@ -67,6 +67,16 @@ class SamSupervisorModule(yarp.RFModule):
         yarp.Network.init()
         self.SIGNALS_TO_NAMES_DICT = dict(
             (getattr(signal, n), n) for n in dir(signal) if n.startswith('SIG') and '_' not in n)
+
+        # check if sam is already running by checking presence of /sam/rpc:i
+        proc = subprocess.Popen(['yarp', 'ping', '/sam/rpc:i'], stdout=subprocess.PIPE)
+        output = proc.stdout.read()
+        proc.wait()
+        del proc
+
+        if output != '':
+            print 'samSupervisor already running. /sam/rpc:i port present'
+            return False
         
         self.terminal = 'xterm'
 
@@ -670,10 +680,7 @@ class SamSupervisorModule(yarp.RFModule):
                                 print 'ping received', rep.toString()
 
                                 if self.rpcConnections[-1][0] not in self.modelConnections.keys():
-                                    print 'MODELCONNECTIONS BEFORE', self.modelConnections
-                                    print self.rpcConnections[-1][0]
                                     self.modelConnections[self.rpcConnections[-1][0]] = dict()
-                                    print 'MODELCONNECTIONS AFTER', self.modelConnections
                                 if rep.size() > 1 and rep.get(0).asString() == 'ack':
                                     for p in range(rep.size()):
                                         if rep.get(p).asString() != 'ack':
@@ -1043,34 +1050,35 @@ class SamSupervisorModule(yarp.RFModule):
                 self.nonResponsiveDict[self.rpcConnections[j][0]] = 0
                 self.connectionCheckCount += 1
                 if self.connectionCheckCount == 10:
-                    if self.rpcConnections[j][0] in self.modelConnections.keys():
-                        for k in self.modelConnections[self.rpcConnections[j][0]].keys():
-                            print 'ping', k
-                            proc = subprocess.Popen(['yarp', 'ping', k], stdout=subprocess.PIPE)
-                            output = proc.stdout.read()
-                            proc.wait()
-                            del proc
+                    for n in range(len(self.rpcConnections)):
+                        if self.rpcConnections[n][0] in self.modelConnections.keys():
+                            for k in self.modelConnections[self.rpcConnections[n][0]].keys():
+                                print 'ping', k
+                                proc = subprocess.Popen(['yarp', 'ping', k], stdout=subprocess.PIPE)
+                                output = proc.stdout.read()
+                                proc.wait()
+                                del proc
 
-                            conStrings = output.split('\n')[1:]
-                            connList = []
-                            for g in conStrings:
-                                if 'output conn' in g:
-                                    dirConnect = 'out'
-                                elif 'input conn' in g:
-                                    dirConnect = 'in'
-                                else:
-                                    dirConnect = None
+                                conStrings = output.split('\n')[1:]
+                                connList = []
+                                for g in conStrings:
+                                    if 'output conn' in g:
+                                        dirConnect = 'out'
+                                    elif 'input conn' in g:
+                                        dirConnect = 'in'
+                                    else:
+                                        dirConnect = None
 
-                                if 'from' in g and dirConnect is not None:
-                                    parts = g.split(' ')
-                                    if dirConnect == 'out':
-                                        connList.append([parts[8], dirConnect])
-                                    elif dirConnect == 'in' and '<ping>' not in g:
-                                        connList.append([parts[6], dirConnect])
+                                    if 'from' in g and dirConnect is not None:
+                                        parts = g.split(' ')
+                                        if dirConnect == 'out':
+                                            connList.append([parts[8], dirConnect])
+                                        elif dirConnect == 'in' and '<ping>' not in g:
+                                            connList.append([parts[6], dirConnect])
 
-                            self.modelConnections[self.rpcConnections[j][0]][k] = connList
-                        print self.modelConnections
-                        print
+                                self.modelConnections[self.rpcConnections[n][0]][k] = connList
+                            print self.modelConnections
+                            print
                     self.connectionCheckCount = 0
 
     def checkOperation(self, j):
