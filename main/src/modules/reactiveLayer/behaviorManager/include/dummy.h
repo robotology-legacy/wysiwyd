@@ -1,13 +1,6 @@
-#include <string>
 #include <iostream>
-#include <iomanip>
 #include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <yarp/math/SVD.h>
-#include <yarp/math/Rand.h>
 #include "wrdac/clients/icubClient.h"
-#include <map>
-
 #include "behavior.h"
 
 class Dummy: public Behavior

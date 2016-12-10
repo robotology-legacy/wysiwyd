@@ -17,4 +17,3 @@ void Speech::run(const Bottle &args) {
     iCub->say(args.get(0).asList()->get(0).asString());
 
 }
-
