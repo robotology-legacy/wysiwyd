@@ -247,23 +247,26 @@ int OpcSensation::get_property(string name,string property)
             if (name == "any"){
                 if (b.get(i).asList()->get(0).asString()==property)
                 {
+                    yDebug() << "check_position, name==any, return 1";
                     return 1;
                 }
             }else{
                 if (b.get(i).asList()->get(1).asString()==name && b.get(i).asList()->get(0).asString()==property)
                 {
-                    yDebug()<<b.toString();
+                    yDebug() << "check_position, name!=any, return 1 " << b.toString();
                     return 1;
                 }
             }
         }
+        yDebug() << "check_position, return 0";
         return 0;
-
     }else{
         if (name == "any"){
             if (b.size()!=0){
+                yDebug() << "not check_position, name==any, return 1";
                 return 1;
             }else{
+                yDebug() << "not check_position, name==any, return 0";
                 return 0;
             }
         }else{
@@ -271,9 +274,11 @@ int OpcSensation::get_property(string name,string property)
             {
                 if (b.get(i).asList()->get(1).asString()==name)
                 {
+                    yDebug() << "not check_position, name!=any, return 1";
                     return 1;
                 }
             }
+            yDebug() << "not check_position, name!=any, return 0";
             return 0;
         }
     }
