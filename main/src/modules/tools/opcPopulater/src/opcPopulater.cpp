@@ -2213,7 +2213,7 @@ bool opcPopulater::populateScenario5(){
 
     list<pair<string, string> > lArgument;
     string sentence;
-    sentence = "Give me the " + sObject + "please";
+    sentence = "Give me the " + sObject + " please";
     iCub->say(sentence, false);
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
