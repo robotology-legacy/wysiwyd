@@ -82,6 +82,7 @@ private:
 
     void enrichMeaning(std::string &meaning, std::string sentence);
     bool configure(yarp::os::ResourceFinder &rf);
+    std::string contextPath;
 
     bool interruptModule();
 
@@ -131,7 +132,7 @@ private:
 
     ///< DFW related
     void analyseDFW();      ///< run a set of analysis on the DFW
-    void exportDFW();       ///< export data of the DFW in a file csv
+    std::string exportDFW();       ///< export data of the DFW in a file csv
     std::vector <storygraph::DFW> vDFW;
     void displayDFW();
     std::vector < discourseform::hriResponse > useDFW(int iScenario, std::string sdfw, storygraph::PAOR &paor, bool first = true); ///< Create a sentence using the specified DFW

@@ -942,8 +942,8 @@ string narrativeHandler::linkNaiveScenario(int iNaive, int iScenario){
 
     // check sizes:
     if (iNaive > (int)listAutoNaives.size() || iScenario > (int)listStories.size()){
-        yWarning(" in narrativeHandler::linkMeaningScenario - index out or range.");
-        return " in narrativeHandler::linkMeaningScenario - index out or range.";
+        yWarning(" in narrativeHandler::linkNaiveScenario - index out or range.");
+        return " in narrativeHandler::linkNaiveScenario - index out or range.";
     }
 
     bool display = true;

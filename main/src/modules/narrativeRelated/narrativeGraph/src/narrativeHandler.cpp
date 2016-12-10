@@ -38,6 +38,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     iCub = new ICubClient(moduleName, "narrativeGraph", "narrativeGraph.ini", isRFVerbose);
     iCub->opc->isVerbose &= true;
 
+    contextPath = rf.getContextPath();
+
+
     // get grammar file
     GrammarNarration = rf.findFileByName(rf.check("GrammarNarration", Value("GrammarNarration.xml")).toString());
     GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
@@ -212,17 +215,18 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         initializeNaives(*bNaives, rf);
         NaiveToPAOR();
 
-        cout << "linking Naive scenarios 2 2" << endl;
-        cout << linkNaiveScenario(1, 0) << endl;
-        cout << "linking scenarios 3 3" << endl;
-        linkNaiveScenario(2, 1);
-        cout << "linking scenarios 4 4" << endl;
-        linkNaiveScenario(3, 2);
-        cout << "linking scenarios 5 5" << endl;
-        linkNaiveScenario(4, 3);
-        cout << "linking scenarios 6 6" << endl;
-        linkNaiveScenario(5, 4);
+        yInfo("linking Naive scenarios 2 2");
+        yInfo(linkNaiveScenario(1, 0));
+        yInfo("linking scenarios 3 3");
+        yInfo(linkNaiveScenario(2, 1));
+        yInfo("linking scenarios 4 4");
+        yInfo(linkNaiveScenario(3, 2));
+        yInfo("linking scenarios 5 5");
+        yInfo(linkNaiveScenario(4, 3));
+        yInfo("linking scenarios 6 6");
+        yInfo(linkNaiveScenario(5, 4));
         cout << endl << endl;
+        yInfo(exportDFW());
 
     }
 
@@ -233,7 +237,6 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
 
 
-    exportDFW();
 
     if (rf.find("initialize").asInt() == 1){
         yInfo("linking scenarios 2 2");
@@ -463,8 +466,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "exportDFW") {
         yInfo(" exporting the Discourse Function Words");
-        exportDFW();
-        reply.addString("export sucessful");
+        reply.addString(exportDFW());
     }
     //else if (command.get(0).asString() == "useDFW") {
     //    yInfo(" using a Discourse Function Words");
