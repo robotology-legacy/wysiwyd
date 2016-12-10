@@ -2,7 +2,6 @@
 
 using namespace std;
 using namespace yarp::os;
-using namespace yarp::sig;
 
 void MoveObject::configure() {
     Bottle targetGroup = (rf.findGroup("targetPos"));
@@ -19,7 +18,7 @@ void MoveObject::run(const Bottle &args) {
     bool succeeded;
     string obj_type, obj_name, move_type;
 
-    if (args.size()==3) {
+    if (args.size()!=0) {
         obj_type = args.get(0).asList()->get(0).asString();
         obj_name = args.get(0).asList()->get(1).asString();
         move_type = args.get(0).asList()->get(2).asString();
@@ -28,6 +27,7 @@ void MoveObject::run(const Bottle &args) {
         return;
     }
     yInfo() << "received context from planner:" << obj_type.c_str() << "and" << obj_name.c_str();
+    yInfo() << "move type: " << move_type;
 
     iCub->look(obj_name); // to have a better estimate of where to move the object to
     if(move_type == "front") {
