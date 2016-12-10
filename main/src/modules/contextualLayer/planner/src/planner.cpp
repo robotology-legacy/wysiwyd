@@ -417,9 +417,10 @@ bool Planner::updateModule() {
                     }
 
                     // change objectType to action type (pull or push) for ask behaviour
-                    if (actionName == "ask")
+                    if ((actionName == "ask") || (actionName == "moveObject"))
                     {
-                        yInfo() << "Action is ask, objectType now describes if desired action is push/pull.";
+                        yInfo() << "Action is ask/moveObject, objectType now describes if desired action.";
+                        yInfo() << "direction: " << args.get(0).toString();
                         objectType = args.get(0).toString();
                     }
 

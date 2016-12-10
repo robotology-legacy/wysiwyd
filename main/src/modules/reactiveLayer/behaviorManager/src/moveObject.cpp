@@ -16,18 +16,16 @@ void MoveObject::run(const Bottle &args) {
     iCub->home(); //To make sure that it can see the objects
 
     bool succeeded;
-    string obj_type, obj_name, move_type;
+    string obj_name, move_type;
 
     if (args.size()!=0) {
-        obj_type = args.get(0).asList()->get(0).asString();
-        obj_name = args.get(0).asList()->get(1).asString();
-        move_type = args.get(0).asList()->get(2).asString();
+        obj_name = args.get(0).asList()->get(0).asString();
+        move_type = args.get(0).asList()->get(1).asString();
     } else {
         yError() << "Wrong number of parameters, abort";
         return;
     }
-    yInfo() << "received context from planner:" << obj_type.c_str() << "and" << obj_name.c_str();
-    yInfo() << "move type: " << move_type;
+    yInfo() << "received context from planner:" << move_type << "and" << obj_name;
 
     iCub->look(obj_name); // to have a better estimate of where to move the object to
     if(move_type == "front") {
