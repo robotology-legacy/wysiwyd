@@ -469,12 +469,12 @@ bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter
         lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "radius"));
         lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "dist"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-        lArgument.push_back(std::pair<std::string, std::string>("draw", "predicate"));
+        lArgument.push_back(std::pair<std::string, std::string>("pull", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
         lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
         lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
         lArgument.push_back(std::pair<std::string, std::string>("KARMA", "subsystem"));
-        SubABM->sendActivity("action", "draw", "action", lArgument, true);
+        SubABM->sendActivity("action", "karmapull", "action", lArgument, true);
     }
 
     yarp::os::Bottle bCmd;
@@ -502,13 +502,13 @@ bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter
         lArgument.push_back(std::pair<std::string, std::string>(std::to_string(radius).c_str(), "radius"));
         lArgument.push_back(std::pair<std::string, std::string>(std::to_string(dist).c_str(), "dist"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-        lArgument.push_back(std::pair<std::string, std::string>("draw", "predicate"));
+        lArgument.push_back(std::pair<std::string, std::string>("pull", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
         lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
         lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
         lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
         lArgument.push_back(std::pair<std::string, std::string>("KARMA", "subsystem"));
-        SubABM->sendActivity("action", "draw", "action", lArgument, false);
+        SubABM->sendActivity("action", "karmapull", "action", lArgument, false);
     }
 
     return bReturn;
