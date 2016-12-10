@@ -1,12 +1,15 @@
 #include "pointing.h"
 
+using namespace std;
+using namespace yarp::os;
+
 void Pointing::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "/proactiveTagging/rpc";
     from_sensation_port_name = "/opcSensation/known_entities:o";
 }
 
-void Pointing::run(Bottle args/*=Bottle()*/) {
+void Pointing::run(const Bottle &args) {
     yInfo() << "Pointing::run";
     Bottle *sensation = sensation_port_in.read();
 

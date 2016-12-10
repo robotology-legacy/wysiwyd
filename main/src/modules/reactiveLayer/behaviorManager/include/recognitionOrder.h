@@ -1,29 +1,19 @@
-#include <string>
 #include <iostream>
-#include <iomanip>
 #include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <map>
-
 
 #include "behavior.h"
-
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-
 
 
 class recognitionOrder: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const yarp::os::Bottle &args);
     yarp::os::Port port_to_homeo;
-    string port_to_homeo_name;
-    string homeoPort;
+    std::string port_to_homeo_name;
+    std::string homeoPort;
 
 public:
-    recognitionOrder(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    recognitionOrder(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
        

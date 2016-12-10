@@ -1,12 +1,17 @@
 #include "tagging.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+
+
 void Tagging::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "/proactiveTagging/rpc";
     from_sensation_port_name = "/opcSensation/unknown_entities:o";
 }
 
-void Tagging::run(Bottle args/*=Bottle()*/) {
+void Tagging::run(const Bottle &args) {
     yInfo() << "Tagging::run";
     yDebug() << "send rpc to proactiveTagging";
     string type, target, sentence;

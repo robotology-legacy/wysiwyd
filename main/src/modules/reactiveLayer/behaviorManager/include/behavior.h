@@ -4,27 +4,21 @@
 #include <string>
 #include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
-#include <wrdac/clients/clients.h>
-#include "wrdac/subsystems/subSystem_ABM.h"
-
-using namespace std;
-using namespace yarp::os;
-using namespace wysiwyd::wrdac;
 
 class Behavior
 {
 private:
-    Mutex* mut;
+    yarp::os::Mutex* mut;
 
-    virtual void run(Bottle args=Bottle()) = 0;
+    virtual void run(const yarp::os::Bottle &args) = 0;
 public:
 
-    Behavior(Mutex* _mut, ResourceFinder &_rf, std::string _behaviorName) : mut(_mut), behaviorName(_behaviorName), rf(_rf){
+    Behavior(yarp::os::Mutex* _mut, yarp::os::ResourceFinder &_rf, std::string _behaviorName) : mut(_mut), behaviorName(_behaviorName), rf(_rf){
         from_sensation_port_name = "None";
         external_port_name = "None";
     }
 
-    void openPorts(string port_name_prefix) {
+    void openPorts(std::string port_name_prefix) {
         if (from_sensation_port_name != "None") {
             sensation_port_in.open("/" + port_name_prefix +"/" + behaviorName + "/sensation:i");
         }
@@ -34,15 +28,15 @@ public:
         behavior_start_stop_port.open("/" + port_name_prefix +"/" + behaviorName + "/start_stop:o");
     }
 
-    ICubClient *iCub;
-    string from_sensation_port_name, external_port_name;
-    BufferedPort<Bottle> sensation_port_in, behavior_start_stop_port;
+    wysiwyd::wrdac::ICubClient *iCub;
+    std::string from_sensation_port_name, external_port_name;
+    yarp::os::BufferedPort<yarp::os::Bottle> sensation_port_in, behavior_start_stop_port;
 
-    Port rpc_out_port;
+    yarp::os::Port rpc_out_port;
     std::string behaviorName;
-    ResourceFinder& rf;
+    yarp::os::ResourceFinder& rf;
 
-    bool trigger(Bottle args=Bottle()) {
+    bool trigger(const yarp::os::Bottle& args) {
         yDebug() << behaviorName << "::trigger starts"; 
         if (mut->tryLock()) {
             yDebug() << behaviorName << "::trigger mutex closed"; 

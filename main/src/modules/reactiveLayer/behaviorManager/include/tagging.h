@@ -1,26 +1,16 @@
-#include <string>
 #include <iostream>
-#include <iomanip>
 #include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <map>
-
 
 #include "behavior.h"
-
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-
 
 
 class Tagging: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const yarp::os::Bottle &args);
     
 public:
-    Tagging(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    Tagging(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
        

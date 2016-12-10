@@ -1,4 +1,9 @@
+#include "wrdac/subsystems/subSystem_ABM.h"
 #include "followingOrder.h"
+
+using namespace std;
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
 
 void FollowingOrder::configure() {
     Bottle bFollowingOrder = rf.findGroup("followingOrder");
@@ -27,7 +32,7 @@ void FollowingOrder::configure() {
     manual = false;
 }
 
-void FollowingOrder::run(Bottle args/*=Bottle()*/) {
+void FollowingOrder::run(const Bottle &args) {
 
     yInfo() << "FollowingOrder::run";
 

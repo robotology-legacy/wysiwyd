@@ -1,5 +1,8 @@
 #include "narrate.h"
 
+using namespace std;
+using namespace yarp::os;
+
 void Narrate::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "/narrativeHandler/rpc";
@@ -8,7 +11,7 @@ void Narrate::configure() {
     from_sensation_port_name = "None";
 }
 
-void Narrate::run(Bottle args/*=Bottle()*/) {
+void Narrate::run(const Bottle &args) {
     yInfo() << "Narrate::run";
     Bottle cmd;
     Bottle rply;

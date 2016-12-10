@@ -1,5 +1,21 @@
 #include "behaviorManager.h"
 
+#include "wrdac/subsystems/subSystem_ABM.h"
+
+#include "dummy.h"
+#include "tagging.h"
+#include "pointing.h"
+#include "reactions.h"
+#include "narrate.h"
+#include "followingOrder.h"
+#include "recognitionOrder.h"
+#include "speech.h"
+#include "greeting.h"
+#include "ask.h"
+
+using namespace std;
+using namespace yarp::os;
+
 bool BehaviorManager::interruptModule()
 {
     rpc_in_port.interrupt();
@@ -58,15 +74,14 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new Narrate(&mut, rf, "narrate"));
         }  else if (behavior_name == "recognitionOrder") {
             behaviors.push_back(new recognitionOrder(&mut, rf, "recognitionOrder"));
-            // other behaviors here
         }  else if (behavior_name == "greeting") {
-            behaviors.push_back(new recognitionOrder(&mut, rf, "greeting"));
-
-        }
-
-
-
-        else {
+            behaviors.push_back(new Greeting(&mut, rf, "greeting"));
+        }  else if (behavior_name == "ask") {
+            behaviors.push_back(new Ask(&mut, rf, "ask"));
+        }  else if (behavior_name == "speech") {
+            behaviors.push_back(new Speech(&mut, rf, "speech"));            
+            // other behaviors here
+        }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
             return false;
         }
@@ -74,7 +89,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
-    iCub = new ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
+    iCub = new wysiwyd::wrdac::ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
 
     if (!iCub->connect())
     {
