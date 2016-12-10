@@ -624,7 +624,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 {
     Bottle bOutput;
 
-    if (bInput.size() != 4)
+    if (bInput.size() < 3)
     {
         yInfo() << " proactiveTagging::searchingEntity | Problem in input size.";
         bOutput.addString("error");
@@ -634,7 +634,10 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
     string sTypeTarget = bInput.get(1).toString();
     string sNameTarget = bInput.get(2).toString();
-    bool verboseSearch = bInput.get(3).asInt() > 0;
+    bool verboseSearch = true;
+    if(bInput.size() == 4) {
+        verboseSearch = bInput.get(3).asInt() > 0;
+    }
     yInfo() << " Entity to find: " << sNameTarget << "(Type: " << sTypeTarget << ", verbosity: " << verboseSearch << ")";
 
     int unknownEntitiesPresent = 0;

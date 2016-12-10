@@ -220,7 +220,7 @@ Bottle OpcSensation::handleEntities()
 int OpcSensation::get_property(string name,string property)
 {
     Bottle b;
-    bool check_position;
+    bool check_position=false;
 
     if (property == "known")
     {
@@ -242,6 +242,7 @@ int OpcSensation::get_property(string name,string property)
     if (check_position)
     {
         yDebug()<<"Checking object position"<<name<<property;
+        yDebug()<<"b:"<<b.toString();
         for (int i=0;i<b.size();i++)
         {
             if (name == "any"){
