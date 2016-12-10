@@ -337,7 +337,7 @@
             <port timeout="10">/autobiographicalMemory/rpc</port>
             <port timeout="10">/homeostasis/rpc</port>
             <port timeout="10">/BehaviorManager/trigger:i</port>
-            <port timeout="10">/ears/rpc</port>
+            <port timeout="10">/ears/target:o</port>
             <port timeout="10">/SensationManager/rpc</port>
         </dependencies>
     </module>

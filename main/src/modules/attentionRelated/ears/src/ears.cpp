@@ -27,12 +27,7 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
     bShouldListen = true;
 
-    if (onPlannerMode) {
-        while (!Network::connect(portTarget.getName(),"/planner/rpc")) {
-            yWarning() << "Planner is unreachable...";
-            yarp::os::Time::delay(0.5);
-        }
-    } else {
+    if (!onPlannerMode) {
         portToBehavior.open("/" + moduleName + "/behavior:o");
     }
 
