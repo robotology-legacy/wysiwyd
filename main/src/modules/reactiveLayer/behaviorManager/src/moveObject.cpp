@@ -5,10 +5,10 @@ using namespace yarp::os;
 
 void MoveObject::configure() {
     Bottle targetGroup = (rf.findGroup("targetPos"));
-    target_pullback = targetGroup.check("backPos",Value(-0.1)).asDouble();
-    target_pushfront = targetGroup.check("frontPos",Value(0.1)).asDouble();
-    target_pushleft = targetGroup.check("leftPos",Value(-0.1)).asDouble();
-    target_pushright = targetGroup.check("rightPos",Value(0.1)).asDouble();
+    target_pullback = targetGroup.check("backPos",Value(-0.25)).asDouble();
+    target_pushfront = targetGroup.check("frontPos",Value(-0.5)).asDouble();
+    target_pushleft = targetGroup.check("leftPos",Value(-0.2)).asDouble();
+    target_pushright = targetGroup.check("rightPos",Value(0.2)).asDouble();
 }
 
 void MoveObject::run(const Bottle &args) {
