@@ -1,16 +1,6 @@
 #include <iostream>
 #include <yarp/os/all.h>
-
-#include "dummy.h"
-#include "tagging.h"
-#include "pointing.h"
-#include "reactions.h"
-#include "narrate.h"
-#include "followingOrder.h"
-#include "recognitionOrder.h"
-#include "speech.h"
-#include "greeting.h"
-#include "ask.h"
+#include "behavior.h"
 
 class BehaviorManager: public yarp::os::RFModule
 {

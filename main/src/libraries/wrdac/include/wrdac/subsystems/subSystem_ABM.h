@@ -23,6 +23,10 @@
 
 #include <iostream>
 #include <list>
+
+#include <yarp/os/Port.h>
+#include <yarp/os/Bottle.h>
+
 #include "wrdac/subsystems/subSystem.h"
 
 namespace wysiwyd{

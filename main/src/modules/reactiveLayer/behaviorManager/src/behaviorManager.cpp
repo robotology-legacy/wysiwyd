@@ -1,5 +1,18 @@
 #include "behaviorManager.h"
 
+#include "wrdac/subsystems/subSystem_ABM.h"
+
+#include "dummy.h"
+#include "tagging.h"
+#include "pointing.h"
+#include "reactions.h"
+#include "narrate.h"
+#include "followingOrder.h"
+#include "recognitionOrder.h"
+#include "speech.h"
+#include "greeting.h"
+#include "ask.h"
+
 using namespace std;
 using namespace yarp::os;
 
