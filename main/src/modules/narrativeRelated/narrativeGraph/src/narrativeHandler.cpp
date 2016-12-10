@@ -236,16 +236,16 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     exportDFW();
 
     if (rf.find("initialize").asInt() == 1){
-        cout << "linking scenarios 2 2" << endl;
-        linkMeaningScenario(2, 0);
-        cout << "linking scenarios 3 3" << endl;
-        linkMeaningScenario(3, 1);
-        cout << "linking scenarios 4 4" << endl;
-        linkMeaningScenario(4, 2);
-        cout << "linking scenarios 5 5" << endl;
-        linkMeaningScenario(5, 3);
-        cout << "linking scenarios 6 6" << endl;
-        linkMeaningScenario(6, 4);
+        yInfo("linking scenarios 2 2");
+        yInfo(linkMeaningScenario(2, 0));
+        yInfo("linking scenarios 3 3");
+        yInfo(linkMeaningScenario(3, 1));
+        yInfo("linking scenarios 4 4");
+        yInfo(linkMeaningScenario(4, 2));
+        yInfo("linking scenarios 5 5");
+        yInfo(linkMeaningScenario(5, 3));
+        yInfo("linking scenarios 6 6");
+        yInfo(linkMeaningScenario(6, 4));
         cout << endl << endl;
 
     }
