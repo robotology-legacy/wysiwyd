@@ -20,8 +20,6 @@ private:
     double target_pushfront;
     double target_pushleft;
     double target_pushright;
-    yarp::sig::Vector object;
-    std::string obj_name, obj_type;
 
 public:
     MoveObject(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {

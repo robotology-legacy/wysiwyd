@@ -5,9 +5,6 @@ using namespace yarp::os;
 using namespace yarp::sig;
 
 void MoveObject::configure() {
-
-    external_port_name = "/karmaMotor/rpc";
-
     Bottle targetGroup = (rf.findGroup("targetPos"));
     target_pullback = targetGroup.check("backPos",Value(-0.1)).asDouble();
     target_pushfront = targetGroup.check("frontPos",Value(0.1)).asDouble();
@@ -20,13 +17,15 @@ void MoveObject::run(const Bottle &args) {
     iCub->home(); //To make sure that it can see the objects
 
     bool succeeded;
-    string move_type;
+    string obj_type, obj_name, move_type;
 
-    if (args.size()!=0)
-    {
+    if (args.size()==3) {
         obj_type = args.get(0).asList()->get(0).asString();
         obj_name = args.get(0).asList()->get(1).asString();
         move_type = args.get(0).asList()->get(2).asString();
+    } else {
+        yError() << "Wrong number of parameters, abort";
+        return;
     }
     yInfo() << "received context from planner:" << obj_type.c_str() << "and" << obj_name.c_str();
 
