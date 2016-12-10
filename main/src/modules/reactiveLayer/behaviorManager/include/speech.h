@@ -1,3 +1,6 @@
+#ifndef SPEECH_H
+#define SPEECH_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -20,3 +23,5 @@ public:
         ;
     }
 };
+
+#endif

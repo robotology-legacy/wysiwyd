@@ -1,3 +1,6 @@
+#ifndef POINTING_H
+#define POINTING_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -20,3 +23,4 @@ public:
     }
 };
 
+#endif

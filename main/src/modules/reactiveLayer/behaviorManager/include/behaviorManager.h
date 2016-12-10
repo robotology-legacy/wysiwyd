@@ -1,3 +1,6 @@
+#ifndef BEHAVIORMANAGER_H
+#define BEHAVIORMANAGER_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 #include "behavior.h"
@@ -40,3 +43,4 @@ public:
 
 };
 
+#endif

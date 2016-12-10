@@ -1,3 +1,6 @@
+#ifndef DUMMY_H
+#define DUMMY_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -33,3 +36,4 @@ public:
 
 };
 
+#endif

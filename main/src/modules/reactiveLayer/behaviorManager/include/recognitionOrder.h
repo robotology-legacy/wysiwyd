@@ -1,3 +1,6 @@
+#ifndef RECOGNITIONORDER_H
+#define RECOGNITIONORDER_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -24,3 +27,5 @@ public:
     }
     bool manual;
 };
+
+#endif
