@@ -14,13 +14,29 @@ toAllo = yarp.Port()
 alloPortName="/manager/toAllostasis/rpc"+":o"#"/NNsound:i"    
 toAllo.open(alloPortName)
 
+toBM = yarp.Port()
+BMPortName="/manager/BehaviorManager/rpc"+":o"#"/NNsound:i"    
+toBM.open(BMPortName)
+
 homeoRPC = "/homeostasis/rpc"
 alloRPC = "/AllostaticController/rpc"
+BMRPC = "/BehaviorManager/rpc"
 
 print yarp.Network.connect(homeoPortName,homeoRPC)
 print yarp.Network.connect(alloPortName,alloRPC)
+print yarp.Network.connect(BMPortName,BMRPC)
 
 def updateDriveList():
+	cmd = yarp.Bottle()
+	rply = yarp.Bottle()
+	cmd.clear()
+	cmd.addString('names')
+	toHomeo.write(cmd,rply)
+	driveList = rply.toString().strip('()').split(' ')
+	print driveList
+	return driveList
+
+def updateDBehaviorList():
 	cmd = yarp.Bottle()
 	rply = yarp.Bottle()
 	cmd.clear()
