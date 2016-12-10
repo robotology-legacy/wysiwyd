@@ -670,7 +670,10 @@ class SamSupervisorModule(yarp.RFModule):
                                 print 'ping received', rep.toString()
 
                                 if self.rpcConnections[-1][0] not in self.modelConnections.keys():
+                                    print 'MODELCONNECTIONS BEFORE', self.modelConnections
+                                    print self.rpcConnections[-1][0]
                                     self.modelConnections[self.rpcConnections[-1][0]] = dict()
+                                    print 'MODELCONNECTIONS AFTER', self.modelConnections
                                 if rep.size() > 1 and rep.get(0).asString() == 'ack':
                                     for p in range(rep.size()):
                                         if rep.get(p).asString() != 'ack':

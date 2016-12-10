@@ -657,7 +657,7 @@ class SAMDriver_ARWin(SAMDriver):
         self.featureSequence = ['object']
         print
         combinedObjs = dict()
-        if combineObjects:
+        if combineObjects and 'object' in self.paramsDict['includeParts']:
             print 'Combining Objects'
             for n in objectDict:
                 idxBase = objectDict[n] * itemsPerJoint
@@ -670,7 +670,8 @@ class SAMDriver_ARWin(SAMDriver):
         print
         # it is now time to combine hands if multiple exist
         combinedHands = dict()
-        if combineHands and self.paramsDict['combineHands']:
+        if combineHands and self.paramsDict['combineHands'] and \
+           len([s for s in self.paramsDict['includeParts'] if 'hand' in s]) > 0:
             print 'Combining hands'
             self.handsCombined = True
             self.featureSequence.append('hand')
@@ -789,8 +790,10 @@ class SAMDriver_ARWin(SAMDriver):
             if len(splitLabel) > 2:
                 obj = splitLabel[2]
                 hand = splitLabel[4]
+
                 handSubList = [k for k in self.listOfVectorsToClassify if 'hand' + hand.capitalize() in k]
                 vec = [f for f in handSubList if obj in f][0]
+
                 printStr = ''
                 for n, k in enumerate(self.listOfVectorsToClassify):
                     if vec == k:
