@@ -4,8 +4,6 @@
 #include <string>
 #include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
-#include <wrdac/clients/clients.h>
-#include "wrdac/subsystems/subSystem_ABM.h"
 
 class Behavior
 {

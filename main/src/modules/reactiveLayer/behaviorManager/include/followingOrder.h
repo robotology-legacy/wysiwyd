@@ -1,8 +1,8 @@
 #include <iostream>
 #include <yarp/os/all.h>
 
-
 #include "behavior.h"
+
 
 class FollowingOrder: public Behavior
 {

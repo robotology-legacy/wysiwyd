@@ -1,7 +1,8 @@
 #include <iostream>
 #include <yarp/os/all.h>
-#include "wrdac/clients/icubClient.h"
+
 #include "behavior.h"
+
 
 class Dummy: public Behavior
 {
@@ -22,8 +23,7 @@ public:
     }
 
     void configure() {
-        external_port_name = "None";
-        from_sensation_port_name = "None";        
+        ;
     }
 
 
