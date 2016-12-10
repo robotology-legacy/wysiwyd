@@ -372,6 +372,14 @@
         </dependencies>
     </module>
 
+    <module>
+        <name>CLMYarp</name>
+        <parameters>--from /home/icub/robotology/human-sensing-SAM/build/bin/</parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+    </module>
 
   <connection>
   <from>/icub/face/emotions/out</from>
@@ -583,6 +591,16 @@
   <connection>
       <from>/actionRecogDataDumper/data/dump:o</from>
       <to>/sam/actions/actionData:i</to>
+      <protocol>udp</protocol>
+  </connection>
+  <connection>
+      <from>/CLM/imageSeg/out</from>
+      <to>/sam/faces/imageData:i</to>
+      <protocol>udp</protocol>
+  </connection>
+  <connection>
+      <from>/kinectServer/image:o</from>
+      <to>/CLM/image/in</to>
       <protocol>udp</protocol>
   </connection>
 </application>
