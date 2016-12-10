@@ -297,7 +297,7 @@ class modelOptClass(object):
                     np.fill_diagonal(testConf, 0)
                     # introduce a factor to give favour to specific classifications
                     factorMat = np.ones(testConf.shape)
-                    factorMat[-1, :-1] = 0.5
+                    factorMat[:-1, -1] = 0.5
                     print 'factorMat', factorMat
                     print 'testConf', testConf
                     print 'modified', testConf*factorMat
