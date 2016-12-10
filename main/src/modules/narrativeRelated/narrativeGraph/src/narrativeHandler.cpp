@@ -211,6 +211,19 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         Bottle *bNaives = rf.find("listNaives").asList();
         initializeNaives(*bNaives, rf);
         NaiveToPAOR();
+
+        cout << "linking Naive scenarios 2 2" << endl;
+        cout << linkNaiveScenario(1, 0) << endl;
+        cout << "linking scenarios 3 3" << endl;
+        linkNaiveScenario(2, 1);
+        cout << "linking scenarios 4 4" << endl;
+        linkNaiveScenario(3, 2);
+        cout << "linking scenarios 5 5" << endl;
+        linkNaiveScenario(4, 3);
+        cout << "linking scenarios 6 6" << endl;
+        linkNaiveScenario(5, 4);
+        cout << endl << endl;
+
     }
 
 
@@ -218,17 +231,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    cout << "linking scenarios 2 2" << endl;
-    cout << linkNaiveScenario(1, 0) << endl;
-    cout << "linking scenarios 3 3" << endl;
-    linkNaiveScenario(2, 1);
-    cout << "linking scenarios 4 4" << endl;
-    linkNaiveScenario(3, 2);
-    cout << "linking scenarios 5 5" << endl;
-    linkNaiveScenario(4, 3);
-    cout << "linking scenarios 6 6" << endl;
-    linkNaiveScenario(5, 4);
-    cout << endl << endl;
+
 
     exportDFW();
 
