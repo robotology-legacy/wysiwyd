@@ -1,3 +1,6 @@
+#ifndef FOLLOWINGORDER_H
+#define FOLLOWINGORDER_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -44,3 +47,5 @@ public:
         ;
     }
 };
+
+#endif

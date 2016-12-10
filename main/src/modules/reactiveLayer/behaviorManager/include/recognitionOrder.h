@@ -1,10 +1,13 @@
+#ifndef RECOGNITIONORDER_H
+#define RECOGNITIONORDER_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
 #include "behavior.h"
 
 
-class recognitionOrder: public Behavior
+class RecognitionOrder: public Behavior
 {
 private:
     void run(const yarp::os::Bottle &args);
@@ -13,7 +16,7 @@ private:
     std::string homeoPort;
 
 public:
-    recognitionOrder(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    RecognitionOrder(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
        
@@ -25,3 +28,4 @@ public:
     bool manual;
 };
 
+#endif

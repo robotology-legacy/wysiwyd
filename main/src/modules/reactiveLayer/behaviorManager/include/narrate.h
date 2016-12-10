@@ -1,3 +1,6 @@
+#ifndef NARRATE_H
+#define NARRATE_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -20,3 +23,4 @@ public:
     }
 };
 
+#endif

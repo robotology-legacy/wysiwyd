@@ -12,6 +12,7 @@
 #include "speech.h"
 #include "greeting.h"
 #include "ask.h"
+#include "moveObject.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -73,13 +74,15 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         }  else if (behavior_name == "narrate") {
             behaviors.push_back(new Narrate(&mut, rf, "narrate"));
         }  else if (behavior_name == "recognitionOrder") {
-            behaviors.push_back(new recognitionOrder(&mut, rf, "recognitionOrder"));
+            behaviors.push_back(new RecognitionOrder(&mut, rf, "recognitionOrder"));
         }  else if (behavior_name == "greeting") {
             behaviors.push_back(new Greeting(&mut, rf, "greeting"));
         }  else if (behavior_name == "ask") {
             behaviors.push_back(new Ask(&mut, rf, "ask"));
         }  else if (behavior_name == "speech") {
-            behaviors.push_back(new Speech(&mut, rf, "speech"));            
+            behaviors.push_back(new Speech(&mut, rf, "speech"));
+        } else if (behavior_name == "moveObject") {
+            behaviors.push_back(new MoveObject(&mut, rf, "moveObject"));
             // other behaviors here
         }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
@@ -169,11 +172,11 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
             else if (beh->behaviorName == "recognitionOrder") {
                 if (cmd.get(1).asString() == "on") {
                     yInfo() << "recognitionOrder behavior manual mode on";
-                    dynamic_cast<recognitionOrder *>(beh)->manual = true;
+                    dynamic_cast<RecognitionOrder *>(beh)->manual = true;
                     reply.addString("ack");
                 } else if (cmd.get(1).asString() == "off") {
                     yInfo() << "recognitionOrder behavior manual mode off";
-                    dynamic_cast<recognitionOrder *>(beh)->manual = false;
+                    dynamic_cast<RecognitionOrder *>(beh)->manual = false;
                     reply.addString("ack");
                 }
             }

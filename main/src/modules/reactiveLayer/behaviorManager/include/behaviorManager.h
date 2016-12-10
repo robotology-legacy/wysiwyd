@@ -1,3 +1,6 @@
+#ifndef BEHAVIORMANAGER_H
+#define BEHAVIORMANAGER_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 #include "behavior.h"
@@ -5,8 +8,6 @@
 class BehaviorManager: public yarp::os::RFModule
 {
 private:
-
-
     std::vector<Behavior*> behaviors;
 
     std::string moduleName;
@@ -42,3 +43,4 @@ public:
 
 };
 
+#endif

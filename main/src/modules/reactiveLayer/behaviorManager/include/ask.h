@@ -1,3 +1,6 @@
+#ifndef ASK_H
+#define ASK_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -18,3 +21,5 @@ public:
         ;
     }    
 };
+
+#endif

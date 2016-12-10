@@ -1,3 +1,6 @@
+#ifndef TAGGING_H
+#define TAGGING_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -21,3 +24,4 @@ public:
     }
 };
 
+#endif

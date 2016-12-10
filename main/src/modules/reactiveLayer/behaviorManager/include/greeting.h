@@ -1,3 +1,6 @@
+#ifndef GREETING_H
+#define GREETING_H
+
 #include <iostream>
 #include <yarp/os/all.h>
 
@@ -20,3 +23,4 @@ public:
     }
 };
 
+#endif
