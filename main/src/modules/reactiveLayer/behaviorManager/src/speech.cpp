@@ -13,7 +13,8 @@ void Speech::run(const Bottle &args) {
     // Bottle *objects = sensation.get(1).asList();
     // Might want to include gestures like looking at partner and waving a hand
 
-    iCub->say(args.get(0).asString());
+    // expects a bottle with the sentence to say in args e.g. args == ("speech example")
+    iCub->say(args.get(0).asList()->get(0).asString());
 
 }
 
