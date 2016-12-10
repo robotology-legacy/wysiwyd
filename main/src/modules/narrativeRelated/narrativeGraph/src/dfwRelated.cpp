@@ -337,11 +337,10 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
 
 
 
-void narrativeHandler::exportDFW(){
-    string dfw_file_path = "/home/icub/Documents/data.csv";
+string narrativeHandler::exportDFW(){
+    string dfw_file_path = contextPath + "/data.csv";
     ofstream file(dfw_file_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
     file << "name\tsimple\tdouble\tfrom\tto\trange1\trange2\n";
-
 
     for (auto dfw : vDFW){
         for (auto evt : dfw.vSingleIGARF){
@@ -359,7 +358,7 @@ void narrativeHandler::exportDFW(){
         cout << endl;
     }
 
-    yInfo() << "\t" << "file " << dfw_file_path << " written";
+    return ("file " + dfw_file_path + " written");
 }
 
 

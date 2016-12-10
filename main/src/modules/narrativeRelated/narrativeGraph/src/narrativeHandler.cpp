@@ -38,6 +38,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     iCub = new ICubClient(moduleName, "narrativeGraph", "narrativeGraph.ini", isRFVerbose);
     iCub->opc->isVerbose &= true;
 
+    contextPath = rf.getHomeContextPath();
+
+
     // get grammar file
     GrammarNarration = rf.findFileByName(rf.check("GrammarNarration", Value("GrammarNarration.xml")).toString());
     GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
@@ -67,12 +70,6 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     Bottle *bMeaning = rf.find("listMeaning").asList();
     initializeMeaning(*bMeaning, rf);
-
-    if (rf.find("loadNaives").asInt() == 1){
-        Bottle *bNaives = rf.find("listNaives").asList();
-        initializeNaives(*bNaives, rf);
-        NaiveToPAOR();
-    }
 
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
 
@@ -211,21 +208,47 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     storygraph::VocabularyHandler::initVoc(listStories);
 
+
+    if (rf.find("loadNaives").asInt() == 1){
+        yInfo("Loading naives\n");
+        Bottle *bNaives = rf.find("listNaives").asList();
+        initializeNaives(*bNaives, rf);
+        NaiveToPAOR();
+
+        yInfo("linking Naive scenarios 2 2");
+        yInfo(linkNaiveScenario(1, 0));
+        yInfo("linking scenarios 3 3");
+        yInfo(linkNaiveScenario(2, 1));
+        yInfo("linking scenarios 4 4");
+        yInfo(linkNaiveScenario(3, 2));
+        yInfo("linking scenarios 5 5");
+        yInfo(linkNaiveScenario(4, 3));
+        yInfo("linking scenarios 6 6");
+        yInfo(linkNaiveScenario(5, 4));
+        cout << endl << endl;
+        yInfo(exportDFW());
+
+    }
+
+
     //    narrationToMeaning();
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
+
+
+
     if (rf.find("initialize").asInt() == 1){
-        cout << "linking scenarios 2 2" << endl;
-        linkMeaningScenario(2, 0);
-        cout << "linking scenarios 3 3" << endl;
-        linkMeaningScenario(3, 1);
-        cout << "linking scenarios 4 4" << endl;
-        linkMeaningScenario(4, 2);
-        cout << "linking scenarios 5 5" << endl;
-        linkMeaningScenario(5, 3);
-        cout << "linking scenarios 6 6" << endl;
-        linkMeaningScenario(6, 4);
+        yInfo("linking scenarios 2 2");
+        yInfo(linkMeaningScenario(2, 0));
+        yInfo("linking scenarios 3 3");
+        yInfo(linkMeaningScenario(3, 1));
+        yInfo("linking scenarios 4 4");
+        yInfo(linkMeaningScenario(4, 2));
+        yInfo("linking scenarios 5 5");
+        yInfo(linkMeaningScenario(5, 3));
+        yInfo("linking scenarios 6 6");
+        yInfo(linkMeaningScenario(6, 4));
         cout << endl << endl;
 
     }
@@ -443,8 +466,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "exportDFW") {
         yInfo(" exporting the Discourse Function Words");
-        exportDFW();
-        reply.addString("export sucessful");
+        reply.addString(exportDFW());
     }
     //else if (command.get(0).asString() == "useDFW") {
     //    yInfo(" using a Discourse Function Words");
