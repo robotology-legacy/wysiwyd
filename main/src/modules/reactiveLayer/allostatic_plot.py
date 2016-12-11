@@ -186,7 +186,7 @@ class AllostaticPlotModule(yarp.RFModule):
 
         for plotitem in self.behaviors_to_plot:
             plotitem[1].set_x(plotitem[1].get_x()-1)
-            plotitem[2].set_x(plotitem[1].get_x()-30)
+            plotitem[2].set_x(plotitem[1].get_x()+5)
 
         for name, port in zip(self.behaviors, self.behavior_ports):
             res = port.read(False)
@@ -195,7 +195,7 @@ class AllostaticPlotModule(yarp.RFModule):
                 if msg == "start":
                     new_rectangle = plt.Rectangle(xy=(0, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
                     plt.gca().add_patch(new_rectangle)
-                    new_text = plt.text(-30, self.y_min, name, horizontalalignment='left', color="black")
+                    new_text = plt.text(5, self.y_min, name, horizontalalignment='left', color="black")
                     self.behaviors_to_plot.append((name, new_rectangle, new_text))
                     print "Behavior " + name + " starts"
                 elif msg == "stop":
