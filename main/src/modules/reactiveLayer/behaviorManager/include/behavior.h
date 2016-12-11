@@ -17,6 +17,7 @@ public:
         from_sensation_port_name = "None";
         external_port_name = "None";
     }
+    virtual ~Behavior() {}
 
     void openPorts(std::string port_name_prefix) {
         if (from_sensation_port_name != "None") {

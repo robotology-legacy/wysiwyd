@@ -2,8 +2,9 @@
 
 
 bool SensationManager::close() {
-    for(auto sens : sensations) {
+    for(auto& sens : sensations) {
         sens->close_ports();
+        delete sens;
     }
     sensations.clear();
 

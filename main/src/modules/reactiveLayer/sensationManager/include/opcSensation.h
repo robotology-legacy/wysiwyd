@@ -57,5 +57,7 @@ public:
         pf3dTrackerPort.close();
         outputPPSPort.interrupt();
         outputPPSPort.close();
+        iCub->close();
+        delete iCub;
     }
 };

@@ -35,6 +35,7 @@ bool BehaviorManager::close()
 
     for(auto& beh : behaviors) {
         beh->close_ports();
+        delete beh;
     }
     behaviors.clear();
 
@@ -51,7 +52,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(1.0)).asDouble();
 
     Bottle grp = rf.findGroup("BEHAVIORS");
-    behaviorList = *grp.find("behaviors").asList();  
+    Bottle behaviorList = *grp.find("behaviors").asList();
 
     rpc_in_port.open("/" + moduleName + "/trigger:i");
     yInfo() << "RPC_IN : " << rpc_in_port.getName();

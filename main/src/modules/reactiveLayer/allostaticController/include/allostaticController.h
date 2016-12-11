@@ -59,15 +59,18 @@ public:
         if (behaviorUnderPort!=nullptr) {
             behaviorUnderPort->interrupt();
             behaviorUnderPort->close();
+            delete behaviorUnderPort;
         }
         if (behaviorOverPort!=nullptr) {
             behaviorOverPort->interrupt();
             behaviorOverPort->close();
+            delete behaviorOverPort;
         }
         homeoPort->interrupt();
         homeoPort->close();
         inputSensationPort->interrupt();
         inputSensationPort->close();
+        delete inputSensationPort;
         return true;
     }
 

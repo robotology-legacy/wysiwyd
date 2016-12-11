@@ -148,6 +148,9 @@ bool HomeostaticModule::removeDrive(int d)
     input_ports[d]->close();
     outputm_ports[d]->close();
     outputM_ports[d]->close();
+    delete input_ports[d];
+    delete outputm_ports[d];
+    delete outputM_ports[d];
     //Remove ports from lists
     input_ports.erase(input_ports.begin()+d);
     outputm_ports.erase(outputm_ports.begin()+d);
@@ -518,12 +521,17 @@ bool HomeostaticModule::close()
     {
         input_ports[d]->interrupt();
         input_ports[d]->close();
+        delete input_ports[d];
 
         outputM_ports[d]->interrupt();
         outputM_ports[d]->close();
+        delete outputM_ports[d];
 
         outputm_ports[d]->interrupt();
         outputm_ports[d]->close();
+        delete outputm_ports[d];
+
+        delete manager->drives[d];
     }
     stressPort.interrupt();
     stressPort.close();

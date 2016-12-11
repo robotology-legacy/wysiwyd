@@ -21,7 +21,6 @@ private:
     // int behavior_to_trigger;
 
     yarp::os::Mutex mut;
-    yarp::os::Bottle behaviorList;
     std::string behavior_name;
 
 public:

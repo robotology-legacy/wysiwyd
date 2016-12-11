@@ -92,5 +92,6 @@ public:
     {
         opc->interrupt();
         opc->close();
+        delete opc;
     }
 };
