@@ -18,7 +18,7 @@ import numpy as np
 from SAM.SAM_Core import SAMCore
 from SAM.SAM_Core import SAMTesting
 from SAM.SAM_Core.SAM_utils import initialiseModels
-np.set_printoptions(threshold=numpy.nan)
+np.set_printoptions(threshold=numpy.nan, precision=2)
 warnings.simplefilter("ignore")
 
 dataPath = sys.argv[1]

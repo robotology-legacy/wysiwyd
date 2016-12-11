@@ -21,6 +21,7 @@ import glob
 import shutil
 import copy
 from ConfigParser import SafeConfigParser
+np.set_printoptions(precision=2)
 
 optNotFound = False
 try:

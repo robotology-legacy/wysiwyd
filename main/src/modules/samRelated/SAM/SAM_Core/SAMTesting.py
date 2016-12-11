@@ -26,7 +26,7 @@ from collections import Mapping, Container
 from sys import getsizeof
 from operator import gt
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=np.nan, precision=2)
 
 
 # thisModel = None

@@ -10,6 +10,7 @@ import warnings
 import numpy as np
 import yarp
 warnings.simplefilter("ignore")
+np.set_printoptions(precision=2)
 
 
 class interactionSAMModel(yarp.RFModule):

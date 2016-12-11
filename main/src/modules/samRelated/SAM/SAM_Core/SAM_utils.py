@@ -22,7 +22,7 @@ import os
 import subprocess
 import time
 import ipyparallel as ipp
-
+np.set_printoptions(precision=2)
 
 def initialiseModels(argv, update, initMode='training'):
     # argv[1] = dataPath

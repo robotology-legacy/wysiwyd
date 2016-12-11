@@ -16,6 +16,7 @@ import readline
 import yarp
 from ConfigParser import SafeConfigParser
 import SAM.SAM_Core.SAM_utils as utils
+# np.set_printoptions(precision=2)
 # from time import sleep
 
 
