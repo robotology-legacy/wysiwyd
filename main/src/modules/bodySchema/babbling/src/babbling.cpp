@@ -729,7 +729,9 @@ int Babbling::babblingCommandsMatlab()
     bToMatlab.addInt(1);
     portToMatlab.write(bToMatlab,replyFromMatlab);
 
+    portToMatlab.interrupt();
     portToMatlab.close();
+    portReadMatlab.interrupt();
     portReadMatlab.close();
 
     yInfo() << "Finished and ports to/from Matlab closed.";

@@ -3,11 +3,17 @@
 
 bool AllostaticController::interruptModule()
 {
+    if(iCub) {
+        iCub->close();
+        delete iCub;
+    }
+
     yDebug() << "Interrupt rpc port";
     rpc_in_port.interrupt();
 
     yDebug() << "Interrupt port to homeo rpc";
     to_homeo_rpc.interrupt();
+    to_behavior_rpc.interrupt();
     for (auto& outputm_port : outputm_ports)
     {
         // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
@@ -37,17 +43,22 @@ bool AllostaticController::close()
     yDebug() << "Closing port to homeo rpc";
     to_homeo_rpc.interrupt();
     to_homeo_rpc.close();
+    to_behavior_rpc.interrupt();
+    to_behavior_rpc.close();
+
     for (auto& outputm_port : outputm_ports)
     {
         // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
         outputm_port->interrupt();
         outputm_port->close();
+        delete outputm_port;
     }
 
     for(auto& outputM_port : outputM_ports)
     {
         outputM_port->interrupt();
         outputM_port->close();
+        delete outputM_port;
     }
 
     yDebug() << "Closing AllostaticDrive ports";

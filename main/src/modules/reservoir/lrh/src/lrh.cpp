@@ -107,6 +107,7 @@ bool LRH::configure(ResourceFinder &rf) {
 bool LRH::interruptModule(){
     iCub->opc->interrupt();
     handlerPort.interrupt();
+    PortToSam.interrupt();
 
     return true;
 }
@@ -114,6 +115,12 @@ bool LRH::interruptModule(){
 bool LRH::close() {
     iCub->opc->close();
     iCub->close();
+    delete iCub;
+
+    PortToSam.interrupt();
+    PortToSam.close;
+
+    handlerPort.interrupt();
     handlerPort.close();
 
     return true;

@@ -44,7 +44,12 @@ public:
     int randKS(yarp::os::Bottle bKS);
 
     void close_extra_ports() {
-        ;
+        port_to_narrate.interrupt();
+        port_to_narrate.close();
+        port_to_homeo.interrupt();
+        port_to_homeo.close();
+        port_to_avoidance.interrupt();
+        port_to_avoidance.close();
     }
 };
 

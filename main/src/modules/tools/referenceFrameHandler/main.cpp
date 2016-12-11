@@ -703,6 +703,7 @@ public:
     /************************************************************************/
     bool interruptModule()
     {
+        opc.interrupt();
         rpc.interrupt();
         return true;
     }
@@ -710,6 +711,9 @@ public:
     /************************************************************************/
     bool close()
     {
+        opc.interrupt();
+        opc.close();
+        rpc.interrupt();
         rpc.close();
         return true;
     }

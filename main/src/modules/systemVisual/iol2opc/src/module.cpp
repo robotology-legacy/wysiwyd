@@ -647,7 +647,7 @@ void IOL2OPCBridge::doLocalization()
     }
 }
 
-ObjectArea IOL2OPCBridge::getReachableArea(Vector objpos) {
+ObjectArea IOL2OPCBridge::getReachableArea(const Vector &objpos) {
     if ((objpos[0]>human_area_x_bounds[0]) && (objpos[0]<human_area_x_bounds[1]) &&
         (objpos[1]>human_area_y_bounds[0]) && (objpos[1]<human_area_y_bounds[1])) {
         return ObjectArea::HUMAN;

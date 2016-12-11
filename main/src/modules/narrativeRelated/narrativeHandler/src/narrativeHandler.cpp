@@ -134,6 +134,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
 bool narrativeHandler::interruptModule() {
     rpcPort.interrupt();
+    Port2abmReasoning.interrupt();
     if (mentalOPC->isConnected())    mentalOPC->interrupt();
 
     yInfo() << "--Interrupting the synchronized yarp ports module...";
@@ -146,6 +147,9 @@ bool narrativeHandler::close() {
 
     if (mentalOPC->isConnected())  mentalOPC->close();
     delete mentalOPC;
+
+    Port2abmReasoning.interrupt();
+    Port2abmReasoning.close();
 
     rpcPort.interrupt();
     rpcPort.close();
