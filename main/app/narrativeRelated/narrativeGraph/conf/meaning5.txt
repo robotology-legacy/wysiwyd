@@ -1,74 +1,48 @@
-#   story: 13/10/2016 14:10:2 (2240)  to 13/10/2016 14:10:21 (2248)
-#   At the beginning, Greg have brain and iCub want brain
-#   iCub take the brain
-#   But it failed.
-#   iCub reason
-#   The goal was that: icub have the brain
-#   iCub reason
-#   iCub said to Greg: Give me the brain please
-#   Greg give the brain iCub
-#   And now, iCub have brain
-#   In the end, iCub have brain
+# At the beginning, Mary have brain and iCub want brain
+# iCub take the brain
+# iCub reason
+# The goal was that: icub have the
+# iCub reason
+# iCub said to iCub: Give me the brain please
+# iCub said to Mary: Give me the brain please
+# Mary give the brain iCub
+# And now, iCub have brain
+# In the end, iCub have brain
 
 # FIRST
-first, have Greg brain, P1 P2 A2 O2
+first, have Mary brain, P1 P2 A2 O2
 first, want iCub brain, P1 P2 A2 O2
+
+# AND
+and, say iCub Give_me_the_brain_please Mary, give Mary brain iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # SO
 so, take iCub brain, P1 P2 A2 O2
-so, say iCub can_you_remove_the_box_please? Greg, P1 P2 A2 O2 R2
-so, remove Greg box, P1 P2 A2 O2
-so, say iCub can_you_give_me_the_brain_please Greg, P1 P2 A2 O2 R2
-so, give Greg brain iCub, P1 P2 A2 O2 R2
-so, have iCub brain, P1 P2 A2 O2
-so, have Greg brain, P1 P2 A2 O2
+so, take reason, P1 P2 A2
+so, say iCub Give_me_the_brain_please Mary, P1 P2 A2 O2 R2
+so, give Mary brain iCub, P1 P2 A2 O2 R2
 
 # THEN
-then, take iCub brain, P1 P2 A2 O2
-then, give Greg brain iCub, P1 P2 A2 O2 R2
-then, say iCub can_you_remove_the_box_please? Greg, P1 P2 A2 O2 R2
-then, remove Greg box, P1 P2 A2 O2
-then, say iCub can_you_give_me_the_brain_please Greg, P1 P2 A2 O2 R2
-then, give Greg brain iCub, P1 P2 A2 O2 R2
-then, have iCub brain, P1 P2 A2 O2
+then, take reason, P1 P2 A2
+then, say iCub Give_me_the_brain_please Mary, P1 P2 A2 O2 R2
+then, give Mary brain iCub, P1 P2 A2 O2 R2
 
-# BUT
-but, want iCub brain, fail iCub take brain, P1 P2 A2 O2 P3 A3 O3 R3
-but, want iCub brain, have Greg brain, P1 P2 A2 O2 P3 A3 O3
-but, want iCub brain, cover box brain, P1 P2 A2 O2 P3 A3 O3
-but, want iCub brain, have Greg brain, P1 P2 A2 O2 P3 A3 O3
-but, take iCub brain, cover box brain, P1 P2 A2 O2 P3 A3 O3
-but, take iCub brain, fail iCub take, P1 P2 A2 O2 P3 A3 O3
-
-# AND
-and, cover box brain, want iCub brain, P1 P2 A2 O2 P3 A3 O3
-and, say iCub can_you_remove_the_box_please? Greg, P1 P2 A2 O2 R2
-and, say iCub can_you_give_me_the_brain_please Greg, P1 P2 A2 O2 R2
-and, say iCub can_you_remove_the_box_please? Greg, say iCub can_you_give_me_the_brain_please Greg, P1 P2 A2 O2 R2 P3 A3 O3 R3
-and, say iCub can_you_remove_the_box_please? Greg, remove Greg box, P1 P2 A2 O2 R2 P3 A3 O3
-and, say iCub can_you_give_me_the_brain_please Greg, give Greg brain iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-
-# AFTER
-after, say iCub can_you_remove_the_box_please? Greg, remove Greg box, P1 P2 A2 O2 R2 P3 A3 O3
-after, say iCub can_you_give_me_the_brain_please Greg, give Greg brain iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-after, remove Greg box, give Greg brain iCub, P1 P2 A2 O2 P3 A3 O3 R3
-after, remove Greg box, have Greg brain, P1 P2 A2 O2 P3 A3 O3
-after, take iCub brain, give Greg brain iCub, P1 P2 A2 O2 P3 A3 O3 R3
-after, take iCub brain, remove Greg box, P1 P2 A2 O2 P3 A3 O3
+#BUT
+but, want iCub brain, have Mary brain, P1 P2 A2 O2 P3 A3 O3
 
 # BEFORE
-before, remove Greg box, say iCub can_you_remove_the_box_please? Greg, P1 P2 A2 O2 P3 A3 O3 R3
-before, give Greg brain iCub, say iCub can_you_give_me_the_brain_please Greg, P1 P2 A2 O2 R2 P3 A3 O3 R3
-before, give Greg brain iCub, remove Greg box, P1 P2 A2 O2 R2 P3 A3 O3
-before, have Greg brain, remove Greg box, P1 P2 A2 O2 P3 A3 O3
-before, give Greg brain iCub, take iCub brain, P1 P2 A2 O2 R2 P3 A3 O3
-before, remove Greg box, take iCub brain, P1 P2 A2 O2 P3 A3 O3
+before, have iCub brain, have Mary brain, P1 P2 A2 O2 P3 A3 O3
+before, give Mary brain iCub, have Mary brain, P1 P2 A2 O2 R2 P3 A3 O3
+
+# AFTER
+after, take iCub brain, reason iCub, P1 P2 A2 O2 P3 A3
+after, say iCub Give_me_the_brain_please Mary, give Mary brain iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+after, give Mary brain iCub, have iCub brain, P1 P2 A2 O2 R2 P3 A3 O3
 
 # BECAUSE
-because, say iCub Give_me_the_brain_please Greg, give Greg iCub brain, P1 P2 A2 O2 R2 P3 A3 O3 R3
 because, want iCub brain, have iCub brain, P1 P2 A2 O2 P3 A3 O3
-because, give Greg brain iCub, have iCub brain, P1 P2 A2 O2 R2 P3 A3 O3
-
+because, give Mary brain iCub, have iCub brain, P1 P2 A2 O2 R2 P3 A3 O3 
+because, say iCub Give_me_the_brain_please Mary, give Mary brain iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # FINALLY
 finally, have iCub brain, P1 P2 A2 O2
