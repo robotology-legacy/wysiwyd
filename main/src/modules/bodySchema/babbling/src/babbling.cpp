@@ -396,12 +396,7 @@ bool Babbling::doBabbling()
         abmCommand.addString(part);
 
         yDebug() << "============> babbling with COMMAND will START" ;
-        Bottle reply = dealABM(abmCommand,1);
-        if (reply.isNull()) {
-            yWarning() << "Reply from ABM is null : NOT connected?";
-        } else if (reply.get(0).asString()!="ack"){
-            yWarning() << reply.toString();
-        }
+        dealABM(abmCommand,1);
 
         while (Time::now() < startTime + train_duration){
             //            yInfo() << Time::now() << "/" << startTime + train_duration;
@@ -411,13 +406,7 @@ bool Babbling::doBabbling()
             babblingCommands(t,single_joint);
         }
 
-        reply.clear();
-        reply = dealABM(abmCommand,0);
-        if (reply.isNull()) {
-            yWarning() << "Reply from ABM is null : NOT connected?";
-        } else if (reply.get(0).asString()!="ack"){
-            yWarning() << reply.toString();
-        }
+        dealABM(abmCommand,0);
 
         yDebug() << "============> babbling with COMMAND is FINISHED" ;
     }
@@ -598,12 +587,7 @@ int Babbling::babblingCommandsMatlab()
     yDebug() << "============> babbling with COMMAND will START" ;
 
     /********************************** snapshot to ABM **********************************/
-    Bottle reply = dealABM(abmCommand,1);
-    if (reply.isNull()) {
-        yWarning() << "Reply from ABM is null : NOT connected?";
-    } else if (reply.get(0).asString()!="ack"){
-        yWarning() << reply.toString();
-    }
+    dealABM(abmCommand,1);
 
     Bottle *endMatlab;
     Bottle *cmdMatlab;
@@ -687,15 +671,7 @@ int Babbling::babblingCommandsMatlab()
     yInfo() << "Finished and ports to/from Matlab closed.";
     yDebug() << "============> babbling is FINISHED";
 
-    /********************************** snapshot to ABM **********************************/
-    reply.clear();
-    reply = dealABM(abmCommand,0);
-    if (reply.isNull()) {
-        yWarning() << "Reply from ABM is null : NOT connected?";
-    } else if (reply.get(0).asString()!="ack"){
-        yWarning() << reply.toString();
-    }
-    /********************************** snapshot to ABM **********************************/
+    dealABM(abmCommand,0);
 
     return 0;
 }
@@ -814,12 +790,8 @@ bool Babbling::doBabblingKinStruct()
     Bottle abmCommand;
     abmCommand.addString("babbling");
     abmCommand.addString("arm");
-    Bottle reply = dealABM(abmCommand,1);
-    if (reply.isNull()) {
-        yWarning() << "Reply from ABM is null : NOT connected?";
-    } else if (reply.get(0).asString()!="ack"){
-        yWarning() << reply.toString();
-    }
+
+    dealABM(abmCommand,1);
 
     yInfo() << "AMP " << amp<< "FREQ " << freq ;
 
@@ -932,14 +904,7 @@ bool Babbling::doBabblingKinStruct()
         ////////////////////////////////////////////////////////////////////////////////
     }
 
-    reply.clear();
-    reply = dealABM(abmCommand,0);
-    //check ABM reply
-    if (reply.isNull()) {
-        yWarning() << "Reply from ABM is null : NOT connected?";
-    } else if (reply.get(0).asString()!="ack"){
-        yWarning() << reply.toString();
-    }
+    dealABM(abmCommand,0);
 
     bool homeEnd = gotoStartPos();
     if(!homeEnd) {
@@ -1251,18 +1216,9 @@ bool Babbling::init_iCub(string &part)
 }
 
 
-Bottle Babbling::dealABM(const Bottle& command, int begin)
+bool Babbling::dealABM(const Bottle& command, bool begin)
 {
     yDebug() << "Dealing with ABM: bottle received = " << command.toString() << " of size = " << command.size() << " begin: " << begin;
-
-    if (begin<0 || begin>1)
-    {
-        yError() << "begin parameter must be 1 or 0.";
-        Bottle bError;
-        bError.addString("nack");
-        bError.addString("Error: begin item should be either 1 or 0.");
-        return bError;
-    }
 
     Bottle bABM, bABMreply;
     bABM.addString("snapshot");
@@ -1323,5 +1279,14 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     }
 
     yDebug() << "Finished dealing with ABM";
-    return bABMreply;
+
+    if (bABMreply.isNull()) {
+        yWarning() << "Reply from ABM is null : NOT connected?";
+        return false;
+    } else if (bABMreply.get(0).asString()=="nack"){
+        yWarning() << "Got nack from ABM: " << bABMreply.toString();
+        return false;
+    } else {
+        return true;
+    }
 }

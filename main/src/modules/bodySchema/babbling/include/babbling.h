@@ -95,7 +95,7 @@ private:
     bool moveHeadToStartPos();
     bool gotoStartPos();
     bool gotoHomePos();
-    yarp::os::Bottle dealABM(const yarp::os::Bottle& command, int begin);
+    bool dealABM(const yarp::os::Bottle& command, bool begin);
 };
 
 #endif // _BABBLING_H_
