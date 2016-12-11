@@ -1077,9 +1077,9 @@ list<Entity*> OPCClient::EntitiesCache()
 
 
 //Getter of the list of entities stored locally
-std::list<std::shared_ptr<Entity> > OPCClient::EntitiesCacheCopy()
+std::list<std::shared_ptr<Entity>> OPCClient::EntitiesCacheCopy()
 {
-    list<std::shared_ptr<Entity> > lR;
+    list<std::shared_ptr<Entity>> lR;
     for(map<int,Entity*>::iterator it = this->entitiesByID.begin() ; it != this->entitiesByID.end() ; it++)
     {
         std::shared_ptr<Entity> E;

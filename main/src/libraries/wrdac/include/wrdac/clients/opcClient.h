@@ -316,7 +316,7 @@ public:
     /**
     * Getter of the list of the copies of the entities stored locally
     */
-    std::list< std::shared_ptr<Entity> > EntitiesCacheCopy();
+    std::list<std::shared_ptr<Entity>> EntitiesCacheCopy();
 
     /**
     * Returns a human readable description of the client content (Entities & Relations)
