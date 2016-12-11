@@ -50,10 +50,12 @@ def close_ports():
 	print "Interrupting and closing ports"		
 	# interrupting		
 	toHomeo.interrupt()		
-	toAllo.interrupt()				
+	toAllo.interrupt()	
+	toBM.interrupt()			
 	# closing		
 	toHomeo.close()		
-	toAllo.close()		
+	toAllo.close()
+	toBM.close()		
 
 
 def trigger_behavior(behavior):
