@@ -647,6 +647,20 @@ void IOL2OPCBridge::doLocalization()
     }
 }
 
+ObjectArea IOL2OPCBridge::getReachableArea(Vector objpos) {
+    if ((objpos[0]>human_area_x_bounds[0]) && (objpos[0]<human_area_x_bounds[1]) &&
+        (objpos[1]>human_area_y_bounds[0]) && (objpos[1]<human_area_y_bounds[1])) {
+        return ObjectArea::HUMAN;
+    } else if ((objpos[0]>shared_area_x_bounds[0]) && (objpos[0]<shared_area_x_bounds[1]) &&
+               (objpos[1]>shared_area_y_bounds[0]) && (objpos[1]<shared_area_y_bounds[1])) {
+        return ObjectArea::SHARED;
+    } else if ((objpos[0]>robot_area_x_bounds[0]) && (objpos[0]<robot_area_x_bounds[1]) &&
+               (objpos[1]>robot_area_y_bounds[0]) && (objpos[1]<robot_area_y_bounds[1])) {
+        return ObjectArea::ROBOT;
+    } else {
+        return ObjectArea::NOTREACHABLE;
+    }
+}
 
 /**********************************************************/
 void IOL2OPCBridge::updateOPC()
@@ -763,19 +777,7 @@ void IOL2OPCBridge::updateOPC()
                     obj->m_ego_position=objpos;
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
-
-                    if ((objpos[0]>human_area_x_bounds[0]) && (objpos[0]<human_area_x_bounds[1]) &&
-                        (objpos[1]>human_area_y_bounds[0]) && (objpos[1]<human_area_y_bounds[1])) {
-                        obj->m_objectarea = ObjectArea::HUMAN;
-                    } else if ((objpos[0]>shared_area_x_bounds[0]) && (objpos[0]<shared_area_x_bounds[1]) &&
-                               (objpos[1]>shared_area_y_bounds[0]) && (objpos[1]<shared_area_y_bounds[1])) {
-                        obj->m_objectarea = ObjectArea::SHARED;
-                    } else if ((objpos[0]>robot_area_x_bounds[0]) && (objpos[0]<robot_area_x_bounds[1]) &&
-                               (objpos[1]>robot_area_y_bounds[0]) && (objpos[1]<robot_area_y_bounds[1])) {
-                        obj->m_objectarea = ObjectArea::ROBOT;
-                    } else {
-                        obj->m_objectarea = ObjectArea::NOTREACHABLE;
-                    }
+                    obj->m_objectarea = getReachableArea(obj->m_ego_position);
 
                     bObjNameLoc.addString(obj->name());
                     bObjNameLoc.addString(obj->m_ego_position.toString());

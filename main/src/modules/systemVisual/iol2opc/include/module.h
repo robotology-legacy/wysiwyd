@@ -264,6 +264,7 @@ protected:
     void    train(const string &object, const Bottle &blobs, const int i);
     void    doLocalization();
     void    updateOPC();
+    ObjectArea getReachableArea(yarp::sig::Vector objpos);
 
     bool    configure(ResourceFinder &rf);
     void    setBounds(ResourceFinder &rf, Vector &bounds, string configName, double std_lower, double std_upper);
