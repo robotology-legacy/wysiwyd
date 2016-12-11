@@ -186,9 +186,7 @@ Bottle OpcSensation::handleEntities()
                 if (dynamic_cast<Object*>(entity)->m_present == 1.0)
                 {
                     agentPresent = true;
-                    addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
                 }
-                addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
             }
         }
         if (dynamic_cast<Object*>(entity)->m_present == 1.0)
