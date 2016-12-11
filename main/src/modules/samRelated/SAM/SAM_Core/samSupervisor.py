@@ -430,8 +430,8 @@ class SamSupervisorModule(yarp.RFModule):
     def respond(self, command, reply):
 
         helpMessage = ["Commands are: ", "\tcheck_all", "\tcheck modelName", "\tclose modelName", "\tconfig modelName",
-                       "\tdelete modelName", "\thelp", "\tload modelName",  "\toptimise modelName", "\tquit",
-                       "\treport modelName", "\ttrain modelName", "\tlist_callSigns"]
+                       "\tdataDir modelName", "\tdelete modelName", "\thelp", "\tload modelName",
+                       "\toptimise modelName", "\tquit", "\treport modelName", "\ttrain modelName", "\tlist_callSigns"]
         b = yarp.Bottle()
         self.checkAvailabilities(b)
         reply.clear()
@@ -446,6 +446,8 @@ class SamSupervisorModule(yarp.RFModule):
             self.deleteModel(reply, command)
         elif command.get(0).asString() == "report":
             self.reportModel(reply, command)
+        elif command.get(0).asString() == "dataDir":
+            self.dataDirModel(reply, command)
         elif command.get(0).asString() == "config":
             self.configModel(reply, command)
         elif command.get(0).asString() == "help":
@@ -480,16 +482,18 @@ class SamSupervisorModule(yarp.RFModule):
                     reply.addString('Failed to respond within timeout')
 
         else:
-            reply.addVocab(yarp.Vocab_encode("many"))
-            reply.addString("Wrong command. ")
-            for i in helpMessage:
-                reply.addString(i)
-            reply.addString("Call signs available:")
-            for e in self.rpcConnections:
-                repStr = "\t" + e[0] + " Model: \t"
-                for f in e[3]:
-                    repStr += str(f) + "\t"
-                reply.addString(repStr)
+            reply.addString("nack")
+            reply.addString("Wrong command")
+            # reply.addVocab(yarp.Vocab_encode("many"))
+            # reply.addString("Wrong command. ")
+            # for i in helpMessage:
+            #     reply.addString(i)
+            # reply.addString("Call signs available:")
+            # for e in self.rpcConnections:
+            #     repStr = "\t" + e[0] + " Model: \t"
+            #     for f in e[3]:
+            #         repStr += str(f) + "\t"
+            #     reply.addString(repStr)
         return True
 
     @utils.timeout(10)
@@ -780,7 +784,8 @@ class SamSupervisorModule(yarp.RFModule):
 
     def deleteModel(self, reply, command):
         reply.clear()
-
+        b = yarp.Bottle()
+        self.checkAvailabilities(b)
         alreadyOpen = False
         for k in self.rpcConnections:
             if k[0] == command.get(1).asString():
@@ -795,7 +800,6 @@ class SamSupervisorModule(yarp.RFModule):
         elif command.get(1).asString() in self.updateModelsNames or \
                 command.get(1).asString() in self.uptodateModelsNames:
 
-            reply.addString(str(command.get(1).asString()) + " model deleted.")
             modelToDelete = [s for s in self.updateModels + self.uptodateModels
                              if s[0] == command.get(1).asString()][0][4]
 
@@ -803,25 +807,41 @@ class SamSupervisorModule(yarp.RFModule):
                 if 'L' in modelToDelete[j].split('__')[-1]:
                     modelToDelete[j] = '__'.join(modelToDelete.split('__')[:-1])
 
-            print modelToDelete.values()
+            print 'MODELS TO DELETE VALUES', modelToDelete.values()
+            print 'MODELS TO DELETE KEYS', modelToDelete.keys()
 
             filesToDelete = []
             if command.get(2).asString() != '':
                 modName = command.get(2).asString()
                 if modName in modelToDelete.keys():
                     if modelToDelete[modName] != '':
-                        filesToDelete += glob.glob(join(self.modelPath, modelToDelete[j] + '*'))
+                        filesToDelete += glob.glob(join(self.modelPath, modelToDelete[modName] + '*'))
             else:
                 for j in modelToDelete.keys():
                     if modelToDelete[j] != '':
                         filesToDelete += glob.glob(join(self.modelPath, modelToDelete[j] + '*'))
-
+            print filesToDelete
+            failFlag = False
             for i in filesToDelete:
-                os.remove(i)
+                try:
+                    os.remove(i)
+                except:
+                    failFlag = True
+
+            if len(filesToDelete) > 0 and not failFlag:
+                reply.addString('ack')
+                reply.addString(str(command.get(1).asString()) + " model deleted.")
+            elif len(filesToDelete) == 0:
+                reply.addString('nack')
+                reply.addString('Model name with ' + command.get(2).asString() + ' not found')
+            elif failFlag:
+                reply.addString('nack')
+                reply.addString('Error when deleting file')
 
             b = yarp.Bottle()
             self.checkAvailabilities(b)
         else:
+            reply.addString('nack')
             reply.addString(str(command.get(1).asString()) + " model not present")
         return True
 
@@ -841,6 +861,43 @@ class SamSupervisorModule(yarp.RFModule):
             os.system("gedit " + modelConfFile)
             reply.addString('ack')
             reply.addString(modelToCheck)
+        else:
+            reply.addString('nack')
+        return True
+
+    def dataDirModel(self, reply, command):
+        reply.clear()
+        if command.size() < 2:
+            reply.addString("Model name required. e.g. dataDir Actions")
+        elif command.get(1).asString() in self.updateModelsNames or \
+                        command.get(1).asString() in self.uptodateModelsNames:
+
+            modelToCheck = [s for s in self.updateModels + self.uptodateModels
+                             if s[0] == command.get(1).asString()][0][4]
+
+            modType = command.get(2).asString()
+            modToLoad = ''
+            if modType != '':
+                if modType in modelToCheck.keys():
+                    if modelToCheck[modType] != '':
+                        modToLoad = modelToCheck[modType]
+            else:
+                for modType in self.modelPriority:
+                    if modelToCheck[modType] != '':
+                        modToLoad = modelToCheck[modType]
+
+            if modToLoad != '':
+                modToLoad = join(self.dataPath, modToLoad) + '.pickle'
+                print modToLoad
+                reply.addString('ack')
+                reply.addString(modToLoad)
+            else:
+                reply.addString('nack')
+                reply.addString('Could not find model type ' + modType)
+        else:
+            reply.addString('nack')
+            reply.addString('Could not find ' + command.get(1).asString())
+
         return True
 
     def reportModel(self, reply, command):
