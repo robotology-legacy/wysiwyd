@@ -104,7 +104,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::connect()
     if (ATTconnected)
         yInfo()<<"KARMA connected to Attention";
     else
-        yWarning()<<"KARMA didn't connect to Attention";
+        yDebug()<<"KARMA didn't connect to Attention";
 
     AREconnected=SubARE->Connect();
     if (AREconnected)

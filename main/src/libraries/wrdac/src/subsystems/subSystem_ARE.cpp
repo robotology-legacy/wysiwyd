@@ -95,7 +95,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::connect()
     if (ATTconnected)
         yInfo()<<"ARE connected to Attention";
     else
-        yWarning()<<"ARE didn't connect to Attention";
+        yDebug()<<"ARE didn't connect to Attention";
 
     bool ret=true;
     ret&=yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");

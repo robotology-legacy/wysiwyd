@@ -185,7 +185,7 @@
         </dependencies>
     </module>
     <module>
-        <name>narrativeHandler</name>
+        <name>narrativeGraph</name>
         <parameters></parameters>
         <node>icub-b3</node>
         <dependencies>
@@ -255,6 +255,7 @@
         <node>console1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
         </dependencies>
     </module>
 
@@ -315,7 +316,7 @@
             <port timeout="10">/ears/behavior:o</port>
             <port timeout="10">/ears/target:o</port>
             <port timeout="20">/proactiveTagging/rpc</port>
-            <port timeout="10">/narrativeHandler/rpc</port>
+            <port timeout="10">/narrativeGraph/rpc</port>
             <port timeout="10">/sam/rpc:i</port>
         </dependencies>
     </module>
