@@ -15,6 +15,8 @@ void MoveObject::run(const Bottle &args) {
     yInfo() << "MoveObject::run";
     iCub->home(); //To make sure that it can see the objects
 
+    iCub->opc->checkout();
+
     bool succeeded;
     string obj_name, move_type;
 
@@ -45,8 +47,6 @@ void MoveObject::run(const Bottle &args) {
         iCub->say("I don't know this direction");
         return;
     }
-
-    Time::delay(0.2);
 
     if (succeeded) {
         iCub->lookAtPartner();

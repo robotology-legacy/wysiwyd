@@ -3,6 +3,7 @@
 using namespace std;
 using namespace yarp::os;
 
+
 void Pointing::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "/proactiveTagging/rpc";
