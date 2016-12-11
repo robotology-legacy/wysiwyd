@@ -44,6 +44,8 @@ class AllostaticPlotModule(yarp.RFModule):
         self.homeo_rpc.write(request, rep)
         self.drives = []
         names = rep.get(0).asList()
+        if not names:
+            return False
         for i in range(names.size()):
             self.drives.append(names.get(i).asString())
 
@@ -55,6 +57,8 @@ class AllostaticPlotModule(yarp.RFModule):
         self.behaviors = []
         self.behavior_ports = []
         names = rep.get(0).asList()
+        if not names:
+            return False
         for i in range(names.size()):
             self.behaviors.append(names.get(i).asString())
             self.behavior_ports.append(yarp.BufferedPortBottle())
@@ -119,32 +123,32 @@ class AllostaticPlotModule(yarp.RFModule):
         return True
 
     def reconnect_ports(self):
-        everything_connected = False
-        while not everything_connected:
-            everything_connected = True
-            for name_in, port_out in zip(self.behaviors, self.behavior_ports):
-                in_port, out_port = "/BehaviorManager/" + name_in + "/start_stop:o", port_out.getName()
-                if not yarp.Network.isConnected(in_port, out_port):
+        everything_connected = True
+        for name_in, port_out in zip(self.behaviors, self.behavior_ports):
+            in_port, out_port = "/BehaviorManager/" + name_in + "/start_stop:o", port_out.getName()
+            if not yarp.Network.isConnected(in_port, out_port):
+                if not yarp.Network.connect(in_port, out_port):
+                    print "Could not connect to /BehaviorManager/" + name_in + "/start_stop:o"
                     everything_connected = False
-                    yarp.Network.connect(in_port, out_port)
-                    yarp.Time.delay(0.1)
 
-            if not yarp.Network.isConnected(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i"):
+        if not yarp.Network.isConnected(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i"):
+            if not yarp.Network.connect(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i"):
+                print "Could not connect to /BehaviorManager/trigger:i"
                 everything_connected = False
-                yarp.Network.connect(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i")
-                yarp.Time.delay(0.1)
 
-            for i, d in enumerate(self.drives):
-                in_port, out_port = "/homeostasis/" + d + "/max:o", self.drive_value_ports[i].getName()
-                if not yarp.Network.isConnected(in_port, out_port):
+        for i, d in enumerate(self.drives):
+            in_port, out_port = "/homeostasis/" + d + "/max:o", self.drive_value_ports[i].getName()
+            if not yarp.Network.isConnected(in_port, out_port):
+                if not yarp.Network.connect(in_port, out_port):
+                    print "Coult not connect to /homeostasis/" + d + "/max:o", self.drive_value_ports[i].getName()
                     everything_connected = False
-                    yarp.Network.connect(in_port, out_port)
-                    yarp.Time.delay(0.1)
 
-            if not yarp.Network.isConnected(self.homeo_rpc.getName(), "/homeostasis/rpc"):
+        if not yarp.Network.isConnected(self.homeo_rpc.getName(), "/homeostasis/rpc"):
+            if not yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc"):
+                print "Could not connect to /homeostasis/rpc"
                 everything_connected = False
-                yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc")
-                yarp.Time.delay(0.1)
+
+        return everything_connected
 
 
     def close(self):
@@ -171,7 +175,10 @@ class AllostaticPlotModule(yarp.RFModule):
 
     def one_step(self,t):
         if t % (10 / self.getPeriod()) == 0:
-            self.reconnect_ports()
+            if not self.reconnect_ports():
+                yarp.Time.delay(0.1)
+                return
+
         self.drive_values = [values[1:] + [0.] for values in self.drive_values]
         for i, (port, homeo_max, v_line, min_line, max_line) in enumerate(zip(self.drive_value_ports, self.homeo_maxs, self.value_lines, self.homeo_min_lines, self.homeo_max_lines)):
             res = port.read(False)
@@ -186,19 +193,20 @@ class AllostaticPlotModule(yarp.RFModule):
                 msg = res.get(0).asString()
                 if msg == "start":
                     #behaviors_to_plot.append([t, -1, plt.Rectangle(xy=(t,y_min), width=10, height=(y_max-y_min)/20.)])
-                    self.behaviors_to_plot[name] = plt.Rectangle(xy=(t, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
+                    self.behaviors_to_plot[name] = plt.Rectangle(xy=(0, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
                     plt.gca().add_patch(self.behaviors_to_plot[name])
-                    self.text_to_plot[name] = plt.text(max(t, self.ax.get_xlim()[0]), self.y_min, name, horizontalalignment='left', color="white")
+                    self.text_to_plot[name] = plt.text(max(0, self.ax.get_xlim()[0]), self.y_min, name, horizontalalignment='left', color="white")
                     self.has_started[name] = True
                     print "Behavior " + name + " starts"
                 elif msg == "stop" and self.has_started[name]:
-                    self.behaviors_to_plot[name].set_width(t - self.behaviors_to_plot[name].get_x())
+                    self.behaviors_to_plot[name].set_width(0 - self.behaviors_to_plot[name].get_x())
                     #plt.text(behaviors_to_plot.get_x() + behaviors_to_plot.get_width(), 0., name, horizontalalignment='right', verticalalignment='center', transform=ax.transAxes)
                     # text_to_plot[name].set_transform(ax.transLimits)
                     self.text_to_plot[name].set_x(self.behaviors_to_plot[name].get_x() + self.behaviors_to_plot[name].get_width())
                     self.text_to_plot[name].set_horizontalalignment("right")
                         #behaviors_to_plot[-1][1] = copy(t)
                     print "Behavior " + name + " stops"
+
         plt.draw()
         plt.pause(0.1)
 
