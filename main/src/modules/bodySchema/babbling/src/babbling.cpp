@@ -713,35 +713,20 @@ bool Babbling::doBabblingKinStruct()
 
     if(part=="left_arm" || part=="right_arm")
     {
-        if(part=="left_arm")
-            command = cmd_arms;
-        else
-            command = cmd_arms;
+        command = cmd_arms;
 
-        bool successAll = false;
-        while(!successAll) {
-            successAll = true;
-            bool successIndividual = false;
+        if(part=="left_arm")
+        {
             for(int i=0; i<16; i++)
-            {
-                if(part=="left_arm")
-                    successIndividual = ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
-                else
-                    successIndividual = ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
-
-                yDebug() << "Set joint " << i << " in position mode successful: " << successIndividual;
-                command[i]=cmd_arms[i];
-                if(!successIndividual) {
-                    successAll = false;
-                }
-            }
-        }
-        if(part=="left_arm")
+                ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
             posLeftArm->positionMove(command.data());
+        }
         else
+        {
+            for(int i=0; i<16; i++)
+                ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
             posRightArm->positionMove(command.data());
-
-
+        }
 
         bool done_head=false;
         bool done_arm=false;
@@ -932,32 +917,19 @@ bool Babbling::gotoStartPos()
     if(part=="left_arm" || part=="right_arm")
     {
         if(part=="left_arm")
+        {
             command = encodersLeftArm;
-        else
-            command = encodersRightArm;
-
-        bool successAll = false;
-        while(!successAll) {
-            successAll = true;
-            bool successIndividual = false;
             for(int i=0; i<16; i++)
-            {
-                if(part=="left_arm")
-                    successIndividual = ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
-                else
-                    successIndividual = ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
-
-                yDebug() << "Set joint " << i << " in position mode successful: " << successIndividual;
-                command[i]=start_command[i];
-                if(!successIndividual) {
-                    successAll = false;
-                }
-            }
-        }
-        if(part=="left_arm")
+                ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
             posLeftArm->positionMove(command.data());
+        }
         else
+        {
+            command = encodersRightArm;
+            for(int i=0; i<16; i++)
+                ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
             posRightArm->positionMove(command.data());
+        }
 
         bool done_head=false;
         bool done_arm=false;
