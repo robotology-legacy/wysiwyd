@@ -309,7 +309,6 @@ bool Planner::updateModule() {
                 vector<string> type_store;
                 vector<int> priority_store;
                 vector<int> actionPos_store;
-		vector<string> sentence_store;
                 // holding the prerequisites that failed
                 vector<string> preqFail;
 
@@ -443,7 +442,6 @@ bool Planner::updateModule() {
                     if (state)
                     {
                         assumption = true;
-			//parse sentence
                         break;
                     }
                 }
@@ -680,7 +678,7 @@ bool Planner::updateModule() {
 
             if (actionCompleted && stateCheck)
             {
-		iCub->say(success_sentence);
+                iCub->say(success_sentence);
                 yInfo() << "removing action " << *action_list.begin();
                 action_list.erase(action_list.begin());
                 priority_list.erase(priority_list.begin());
