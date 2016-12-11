@@ -73,7 +73,7 @@ You should be very carefull with closing the module. If you forced to stop the m
 
 
 -----------------------------------------
-When using these codes, please give credit to Personal Robotics Laboratory.
+When using these codes, please give credit to the Personal Robotics Laboratory at Imperial College London.
 A convenient reference is the unsupervised kinematic structure learning work:
 
 @inproceedings{ChangCVPR2015KinematicStructure,
@@ -85,8 +85,19 @@ A convenient reference is the unsupervised kinematic structure learning work:
 	year = {2015}
 }
 
-The paper is available from http://www3.imperial.ac.uk/personalrobotics
-Also the video result is availabe at YouTube - https://www.youtube.com/watch?v=l431rT0S29U
+If you use this module to find correspondences between two kinematic structures, please refer to:
 
-If you have any question, please email to Hyung Jin Chang: hj.chang@imperial.ac.uk
+@inproceedings{ChangCVPR2016KinematicStructureCorrespondences,
+author = {Hyung Jin Chang and Tobias Fischer and Maxime Petit and Martina Zambelli and Yiannis Demiris},
+title = {{Kinematic Structure Correspondences via Hypergraph Matching}},
+booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+pages = {4216--4425},
+year = {2016},
+month = {June}
+}
+
+The papers are available from http://www3.imperial.ac.uk/personalrobotics
+Also the video results are availabe at YouTube - https://www.youtube.com/watch?v=l431rT0S29U and https://www.youtube.com/watch?v=j_3sOfc1Fyw
+
+If you have any question, please email Hyung Jin Chang: hj.chang@imperial.ac.uk
 
