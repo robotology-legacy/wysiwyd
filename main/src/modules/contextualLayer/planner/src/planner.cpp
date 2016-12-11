@@ -417,11 +417,18 @@ bool Planner::updateModule() {
                     }
 
                     // change objectType to action type (pull or push) for ask behaviour
-                    if ((actionName == "ask") || (actionName == "moveObject"))
+                    if ((actionName == "ask") || (actionName == "moveObject" ))
                     {
                         yInfo() << "Action is ask/moveObject, objectType now describes if desired action.";
                         yInfo() << "direction: " << args.get(0).toString();
                         objectType = args.get(0).toString();
+                    }
+                    if ( (actionName == "followingOrder"))
+                    {
+                        yInfo() << "Action is ask/moveObject, objectType now describes if desired action.";
+                        yInfo() << "direction: " << args.get(0).toString();
+                        objectType = args.get(1).toString();
+                        object = args.get(0).toString();
                     }
 
                     // insert actions into the various holding lists (IN REVERSE ORDER)

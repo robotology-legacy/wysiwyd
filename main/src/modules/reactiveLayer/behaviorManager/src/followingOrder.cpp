@@ -35,12 +35,13 @@ void FollowingOrder::configure() {
 void FollowingOrder::run(const Bottle &args) {
 
     yInfo() << "FollowingOrder::run";
-
+    yDebug()<< args.toString();
     if (!Network::isConnected(port_to_homeo_name,homeoPort)){
         if (!Network::connect(port_to_homeo_name,homeoPort)){
             yWarning()<<"Port to Homeostasis not available. Could not freeze the drives...";
         }
     }
+
     if (Network::isConnected(port_to_homeo_name,homeoPort)){
         yInfo()<<"freezing drives";
         Bottle cmd;
@@ -51,7 +52,7 @@ void FollowingOrder::run(const Bottle &args) {
         port_to_homeo.write(cmd, rply);
     }
 
-    Bottle* sens = args.get(0).asList();//sensation_port_in.read();
+    Bottle* sens = args.get(0).asList();
     string action = sens->get(0).asString();
     string type;
     string target;
