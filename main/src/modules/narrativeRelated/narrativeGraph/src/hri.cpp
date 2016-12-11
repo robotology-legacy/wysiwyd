@@ -77,7 +77,6 @@ Bottle narrativeHandler::questionHRI_DFW(){
     vConfirmation.push_back("I understand.");
     vConfirmation.push_back("Yes.");
 
-    bool keepInteracting = true;
     bool remember = false; // if asking to recall a situation
     bool listening = false; // is asked to the robot to listen to the human
     bool exit = false;
