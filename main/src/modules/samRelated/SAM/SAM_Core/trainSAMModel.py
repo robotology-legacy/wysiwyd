@@ -67,7 +67,7 @@ for k in range(numParts):
         mm[0].paramsDict['listOfModels'] = mm[0].listOfModels
         mm[0].paramsDict['avgClassTime'] = mm[0].avgClassTime
         mm[0].paramsDict['optimiseRecall'] = mm[0].optimiseRecall
-        mm[0].paramsDict['labelComparisonDict'] = mm[0].labelComparisonDict
+        mm[0].paramsDict['labelComparisonDict'] = labelComparisonDict
         if mm[0].calibrateUnknown:
             mm[0].paramsDict['classificationDict'] = mm[0].classificationDict
         mm[0].paramsDict['calibrateUnknown'] = mm[0].calibrateUnknown

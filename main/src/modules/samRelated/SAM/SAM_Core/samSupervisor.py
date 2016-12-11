@@ -170,7 +170,7 @@ class SamSupervisorModule(yarp.RFModule):
                     if self.windowed:
                         c = subprocess.Popen([self.terminal, '-e', command], shell=False)
                     else:
-                        c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
+                        c = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                     self.trainingListHandles['Cluster'] = c
 
@@ -644,7 +644,7 @@ class SamSupervisorModule(yarp.RFModule):
                             if self.windowed:
                                 c = subprocess.Popen(['xterm', '-e', command], shell=False)
                             else:
-                                c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
+                                c = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                             self.rpcConnections.append([j[0], interfacePort, interfacePortName[:-1], callSignList, c])
                             # pause here

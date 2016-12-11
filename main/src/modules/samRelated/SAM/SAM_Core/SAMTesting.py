@@ -603,12 +603,13 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
 
 
 def testSegments(thisModel, Ysample, Lnum, verbose, label, serialMode=False):
-    labelList, confMatrix = segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=serialMode,
-                                           optimise=thisModel[0].optimiseRecall, calibrate=False)
+    labelList, confMatrix, labelComparisonDict = segmentTesting(thisModel, Ysample, Lnum, verbose, label,
+                                                                serialMode=serialMode,
+                                                                optimise=thisModel[0].optimiseRecall, calibrate=False)
 
     dCalc = calculateData(labelList, confMatrix)
 
-    return [dCalc[0], dCalc[1], labelList]
+    return [dCalc[0], dCalc[1], labelList, labelComparisonDict]
 
 
 def calculateVarianceThreshold(segIntersections, mk, muk, vk, vuk):
