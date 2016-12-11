@@ -263,7 +263,7 @@ class Production:
         l_ocw_array = []
         for structure, meaning in zip(tab_structure, tab_meaning):
             ocw_array=[]
-            cor={'P':0, 'A':1, 'O':2, 'R':3, 'V':4}
+            cor={'P':0, 'A':1, 'O':2, 'R':3, 'V':4, 'W':5}
             m_res = self.structure_partition(structure)
     
             m_res = zip(*m_res) # transpose the list
