@@ -619,15 +619,19 @@ bool Planner::updateModule() {
             args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
             args = args.tail();
 
-            Bottle sent = *grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "sentence").asList();
-	    string success_sentence;
+            Bottle emptyBottle("()");
+            yDebug() << "Check: " << planName << "-" << to_string(actionPos_list[0]) << "success";
+            Bottle sent = *grpPlans.check(planName + "-" + to_string(actionPos_list[0]) + "success", emptyBottle.get(0)).asList();
+            yDebug() << "Sent: " << sent.toString();
+            string success_sentence;
             for (int i=0;i<sent.size();i++)
-	    {
-		if (sent.get(i).asString()=="_obj")
-			success_sentence = success_sentence +  "object";
-		else
-			success_sentence = success_sentence + sent.get(i).asString();
-	    }
+            {
+                yDebug() << "In loop" << i << sent.get(i).asString();
+                if (sent.get(i).asString()=="_obj")
+                    success_sentence = success_sentence +  "object";
+                else
+                    success_sentence = success_sentence + sent.get(i).asString();
+            }
             args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
             args = args.tail();
 

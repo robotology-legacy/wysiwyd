@@ -112,14 +112,14 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "ABM NOT CONNECTED";
     }
 
-    iCub->home();
+    //rpc port
+    rpcPort.open(("/" + moduleName + "/rpc").c_str());
+    attach(rpcPort);
 
     iCub->say("proactive tagging is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    //rpc port
-    rpcPort.open(("/" + moduleName + "/rpc").c_str());
-    attach(rpcPort);
+    iCub->home();
 
     return true;
 }
