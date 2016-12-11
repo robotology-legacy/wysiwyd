@@ -36,11 +36,10 @@ void Pointing::run(const Bottle &args) {
     iCub->opc->checkout();
     yDebug() << "[pointing]: opc checkout";
     iCub->lookAtPartner();
-    Time::delay(0.5);
+    Time::delay(0.25);
     
     iCub->say(sentence + obj_name);
     iCub->home();
-    Time::delay(1.5);
 
     bool succeeded = iCub->point(obj_name);
     Time::delay(0.2);
