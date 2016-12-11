@@ -42,8 +42,6 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     Bottle &start_pos = rf.findGroup("start_position");
     Bottle *b_start_commandHead = start_pos.find("head").asList();
     Bottle *b_start_command = start_pos.find("arm").asList();
-    Bottle *b_start_command_left = start_pos.find("arm_left").asList();
-    Bottle *b_start_command_right = start_pos.find("arm_right").asList();
 
     start_commandHead.resize(3,0.0);
     if ((b_start_commandHead->isNull()) || (b_start_commandHead->size()<3))
@@ -62,75 +60,27 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     if ((b_start_command->isNull()) || (b_start_command->size()<16))
     {
         yWarning("Something is wrong in ini file. Default value is used");
-        start_command[0] = -45.0; //-40.0;
-        start_command[1] = 35.0; //25.0;
-        start_command[2] = 0.0; //20.0;
-        start_command[3] = 50.0; //85.0;
-        start_command[4] = -45.0; //-50.0;
+        start_command[0] = -45.0;
+        start_command[1] = 35.0;
+        start_command[2] = 0.0;
+        start_command[3] = 50.0;
+        start_command[4] = -45.0;
         start_command[5] = 0.0;
-        start_command[6] = 0.0; //8.0;
-        start_command[7] = 0.0; //15.0;
-        start_command[8] = 10.0; //30.0;
-        start_command[9] = 0.0; //4.0;
-        start_command[10] = 0.0; //2.0;
+        start_command[6] = 0.0;
+        start_command[7] = 0.0;
+        start_command[8] = 10.0;
+        start_command[9] = 0.0;
+        start_command[10] = 0.0;
         start_command[11] = 0.0;
-        start_command[12] = 0.0; //7.0;
-        start_command[13] = 0.0; //14.0;
-        start_command[14] = 0.0; //5.0;
-        start_command[15] = 0.0; //14.0;
+        start_command[12] = 0.0;
+        start_command[13] = 0.0;
+        start_command[14] = 0.0;
+        start_command[15] = 0.0;
     }
     else
     {
         for(int i=0; i<b_start_command->size(); i++)
             start_command[i] = b_start_command->get(i).asDouble();
-    }
-
-    if (b_start_command_left == nullptr || b_start_command_left->isNull() ||
-       (!b_start_command_left->isNull() && b_start_command_left->size()<16) ||
-        b_start_command_right == nullptr || b_start_command_right->isNull() ||
-       (!b_start_command_right->isNull() && b_start_command_right->size()<16) )
-    {
-        yWarning("Something is wrong in ini file. Default value is used");
-//        start_command_left[0] = -35.0;  start_command_right[0] = -55.0;
-//        start_command_left[1] = 70.0;   start_command_right[1] = 25.0;
-//        start_command_left[2] = 20.0;   start_command_right[2] = 20.0;
-//        start_command_left[3] = 40.0;   start_command_right[3] = 35.0;
-//        start_command_left[4] = 50.0;   start_command_right[4] = 70.0;
-//        start_command_left[5] = -25.0;  start_command_right[5] = 0.0;
-//        start_command_left[6] = 10.0;   start_command_right[6] = 10.0;
-//        start_command_left[7] = 35.0;   start_command_right[7] = 0.0;
-//        start_command_left[8] = 10.0;   start_command_right[8] = 10.0;
-//        start_command_left[9] = 0.0;    start_command_right[9] = 0.0;
-//        start_command_left[10] = 0.0;   start_command_right[10] = 155.0;
-//        start_command_left[11] = 0.0;   start_command_right[11] = 0.0;
-//        start_command_left[12] = 0.0;   start_command_right[12] = 0.0;
-//        start_command_left[13] = 0.0;   start_command_right[13] = 40.0;
-//        start_command_left[14] = 0.0;   start_command_right[14] = 125.0;
-//        start_command_left[15] = 0.0;   start_command_right[15] = 205.0;
-
-        start_command_left[0] = -45.0;  start_command_right[0] = -45.0;
-        start_command_left[1] = 35.0;   start_command_right[1] = 35.0;
-        start_command_left[2] = 0.0;    start_command_right[2] = 0.0;
-        start_command_left[3] = 50.0;   start_command_right[3] = 50.0;
-        start_command_left[4] = -45.0;   start_command_right[4] = -45.0;
-        start_command_left[5] = 0.0;    start_command_right[5] = 0.0;
-        start_command_left[6] = 0.0;   start_command_right[6] = 0.0;
-        start_command_left[7] = 0.0;    start_command_right[7] = 0.0;
-        start_command_left[8] = 10.0;   start_command_right[8] = 10.0;
-        start_command_left[9] = 0.0;    start_command_right[9] = 0.0;
-        start_command_left[10] = 0.0;  start_command_right[10] = 0.0;
-        start_command_left[11] = 0.0;   start_command_right[11] = 0.0;
-        start_command_left[12] = 0.0;   start_command_right[12] = 0.0;
-        start_command_left[13] = 0.0;   start_command_right[13] = 0.0;
-        start_command_left[14] = 0.0;   start_command_right[14] = 0.0;
-        start_command_left[15] = 0.0;   start_command_right[15] = 0.0;
-    }
-    else
-    {
-        for(int i=0; i<b_start_command_left->size(); i++)
-            start_command_left[i] = b_start_command_left->get(i).asDouble();
-        for(int i=0; i<b_start_command_right->size(); i++)
-            start_command_right[i] = b_start_command_right->get(i).asDouble();
     }
 
     Bottle &babbl_par = rf.findGroup("babbling_param");

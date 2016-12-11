@@ -75,8 +75,6 @@ private:
     double train_duration;
     
     double start_command[16];
-    double start_command_left[16];
-    double start_command_right[16];
     double ref_command[16];
     yarp::sig::Vector start_commandHead;
 
