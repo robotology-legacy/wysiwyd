@@ -225,20 +225,12 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yInfo(linkNaiveScenario(4, 3));
         yInfo("linking scenarios 6 6");
         yInfo(linkNaiveScenario(5, 4));
-        cout << endl << endl;
         yInfo(exportDFW());
 
     }
 
-
-    //    narrationToMeaning();
-
-    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
-
-
-
-
     if (rf.find("initialize").asInt() == 1){
+        yInfo("initializing meanings");
         yInfo("linking scenarios 2 2");
         yInfo(linkMeaningScenario(2, 0));
         yInfo("linking scenarios 3 3");
@@ -249,9 +241,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yInfo(linkMeaningScenario(5, 3));
         yInfo("linking scenarios 6 6");
         yInfo(linkMeaningScenario(6, 4));
-        cout << endl << endl;
-
     }
+
+    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
+
 
     return true;
 }
