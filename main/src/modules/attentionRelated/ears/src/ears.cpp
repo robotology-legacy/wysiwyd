@@ -215,17 +215,17 @@ bool ears::updateModule() {
             sCommand = "followingOrder";
         } else if (sQuestionKind == "SENTENCEKS") {
             sCommand = "followingOrder";
-            sAction = "show";
+            sAction = "showks";
             sObjectType = "kinematic structure";
             sObject = "";
         } else if (sQuestionKind == "SENTENCEKSC") {
             sCommand = "followingOrder";
-            sAction = "show";
+            sAction = "showksc";
             sObjectType = "kinematic structure correspondence";
             sObject = "";
         } else if (sQuestionKind == "SENTENCERECOGNISE") {
             sCommand = "recognitionOrder";
-            sAction = "";
+            sAction = "recognitionOrder";
             sObjectType = "";
             sObject = "";
         } else if (sQuestionKind == "SENTENCEDONE") {
