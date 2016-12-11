@@ -161,11 +161,11 @@ bool GuiUpdater::updateModule()
         addDrives(iCub);
 
         //Display the objects
-        list<Entity*> entities = opc->EntitiesCacheCopy();
+        list<shared_ptr<Entity>> entities = opc->EntitiesCacheCopy();
         if (oldEntities.size() != entities.size()) {
             resetGUI();
         } else {
-            list<Entity*>::iterator e_new, e_old;
+            list<shared_ptr<Entity>>::iterator e_new, e_old;
             for(e_new = entities.begin(), e_old = oldEntities.begin();
                 e_new != entities.end() && e_old != oldEntities.end();
                 e_new++, e_old++)
@@ -180,9 +180,9 @@ bool GuiUpdater::updateModule()
 
         for(auto& entity : entities)
         {
-            if( isDisplayable(entity) )
+            if( isDisplayable(entity.get()) )
             {
-                Object* o = dynamic_cast<Object*>(entity);
+                Object* o = dynamic_cast<Object*>(entity.get());
                 if(!o) {
                     yError() << "Could not cast " << entity->name();
                     continue;

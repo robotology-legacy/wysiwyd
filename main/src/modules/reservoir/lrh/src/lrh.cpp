@@ -118,7 +118,7 @@ bool LRH::close() {
     delete iCub;
 
     PortToSam.interrupt();
-    PortToSam.close;
+    PortToSam.close();
 
     handlerPort.interrupt();
     handlerPort.close();

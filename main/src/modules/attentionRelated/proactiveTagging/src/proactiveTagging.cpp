@@ -646,7 +646,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
     if (iCub->opc->isConnected())
     {
         iCub->opc->checkout();
-        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+        list<shared_ptr<Entity>> lEntities = iCub->opc->EntitiesCacheCopy();
 
         for (auto& entity : lEntities) {
             if (entity->name() == sNameTarget && entity->entity_type() == sTypeTarget) {
@@ -655,7 +655,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                 bOutput.addString("entity already exists");
                 return bOutput;
             }
-            Object *o = dynamic_cast<Object*>(entity);
+            Object *o = dynamic_cast<Object*>(entity.get());
             if(o && o->name().find("unknown") != string::npos && o->entity_type() == sTypeTarget && o->m_present == 1.0) {
                 unknownEntitiesPresent++;
             }
@@ -673,7 +673,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
             yInfo() << "There is only one unknown entity";
             // let's find the only unknown entity
             for (auto& entity : lEntities) {
-                Object *o = dynamic_cast<Object*>(entity);
+                Object *o = dynamic_cast<Object*>(entity.get());
                 if(o && o->name().find("unknown") != string::npos && o->entity_type() == sTypeTarget && o->m_present == 1.0) {
                     iCub->say("There was only one object which I didn't know");
                     iCub->changeName(o, sNameTarget);

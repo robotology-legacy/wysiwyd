@@ -235,8 +235,8 @@ void humanRobotDump::DumpHumanObject()
     bDump.addList() = ag->m_body.asBottle();
 
     iCub->opc->checkout();
-    list<Entity*> lEntity = iCub->opc->EntitiesCacheCopy();
-    for (list<Entity*>::iterator itEnt = lEntity.begin(); itEnt != lEntity.end(); itEnt++)
+    list<shared_ptr<Entity>> lEntity = iCub->opc->EntitiesCacheCopy();
+    for (auto itEnt = lEntity.begin(); itEnt != lEntity.end(); itEnt++)
     {
         if ((*itEnt)->entity_type() == EFAA_OPC_ENTITY_AGENT ||
             (*itEnt)->entity_type() == EFAA_OPC_ENTITY_OBJECT ||

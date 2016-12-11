@@ -36,7 +36,7 @@ private:
     Port handlerPort;      //a port to handle messages 
     Port toGui;
     Port toGuiBase;
-    list<Entity*> oldEntities;
+    list<shared_ptr<Entity>> oldEntities;
     bool displaySkeleton;
 
 public:

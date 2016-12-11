@@ -46,7 +46,7 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
     opcNew->lEntities = OPCReal->EntitiesCacheCopy();
     opcNew->lRelations = OPCReal->getRelations();
 
-    for (list<Entity*>::iterator it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
+    for (auto it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
     {   // Check all the entities to find the iCub
         if (((*it_E)->name() == "icub" || (*it_E)->name() == "iCub") && ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT))
         {
@@ -85,7 +85,7 @@ Bottle opcEars::snapshot_string(string sName, OPCClient *OPCReal)
     opcNew->lEntities = OPCReal->EntitiesCacheCopy();
     opcNew->lRelations = OPCReal->getRelations();
 
-    for (list<Entity*>::iterator it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
+    for (auto it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
     {   // Check all the entities to find the iCub
         if (((*it_E)->name() == "icub" || (*it_E)->name() == "iCub") && ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT))
         {
@@ -395,9 +395,9 @@ Bottle opcEars::insertOPC(string sName)
     }
 
     // ---- Entities ---- //
-    for (list<Entity*>::iterator it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++)
+    for (auto it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++)
     {
-        bTemp = insertEntity(*it_E);
+        bTemp = insertEntity((*it_E).get());
 
         //        yInfo() << " bTemp = " << bTemp.toString() << endl ;
 
