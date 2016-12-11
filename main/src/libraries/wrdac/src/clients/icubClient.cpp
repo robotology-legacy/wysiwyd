@@ -867,7 +867,7 @@ bool ICubClient::vdrawKarma(const yarp::sig::Vector &targetCenter, const double 
 }
 
 
-bool ICubClient::look(const string &target)
+bool ICubClient::look(const string &target, const Bottle &options)
 {
     if (subSystems.find("attention") != subSystems.end())
         return ((SubSystem_Attention*)subSystems["attention"])->track(target);
@@ -876,7 +876,7 @@ bool ICubClient::look(const string &target)
     {
         if (Object *oTarget = dynamic_cast<Object*>(opc->getEntity(target)))
             if (oTarget->m_present==1.0)
-                return are->look(oTarget->m_ego_position, yarp::os::Bottle() , oTarget->name());
+                return are->look(oTarget->m_ego_position, options, oTarget->name());
 
         yWarning() << "[iCubClient] Called look() on an unavailable target: \"" << target << "\"";
         return false;

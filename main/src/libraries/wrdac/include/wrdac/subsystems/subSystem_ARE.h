@@ -198,8 +198,8 @@ namespace wysiwyd {
             /**
             * Look at the specified [target].
             * @param target Target to look at in cartesian coordinates
-            * @param options Options of ARE commands ("fixate", (block_eyes 
-            *             ver)).
+            * @param options Options of ARE commands ("fixate", 
+            *             "wait", (block_eyes ver)).
             * @return true in case of successfull motor command, false
             *         otherwise.
             */

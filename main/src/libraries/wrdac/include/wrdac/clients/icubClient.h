@@ -455,9 +455,11 @@ namespace wysiwyd{
 
             /**
             * Start tracking a given entity
-            * @param target is the name of the entity in the OPC where the robot should look.
+            * @param target is the name of the entity in the OPC where the robot should look. 
+            * @param options contains options to be passed on the gaze 
+            *                controller.
             */
-            bool look(const std::string &target);
+            bool look(const std::string &target, const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
             * Start tracking randomly objects in the field of view
