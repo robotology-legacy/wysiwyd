@@ -187,24 +187,23 @@ class AllostaticPlotModule(yarp.RFModule):
                 v_line[0].set_data(range(0- self.win_size, 0), self.drive_values[i])
                 min_line[0].set_data((0- self.win_size, 0), (self.homeo_mins[i], self.homeo_mins[i]))
                 max_line[0].set_data((0- self.win_size, 0), (self.homeo_maxs[i], self.homeo_maxs[i]))
+
         for name, port in zip(self.behaviors, self.behavior_ports):
+            if(self.has_started[name]):
+                self.behaviors_to_plot[name].set_x(self.behaviors_to_plot[name].get_x()-1)
+                self.text_to_plot[name].set_x(self.behaviors_to_plot[name].get_x()-30)
+
             res = port.read(False)
             if res is not None:
                 msg = res.get(0).asString()
                 if msg == "start":
-                    #behaviors_to_plot.append([t, -1, plt.Rectangle(xy=(t,y_min), width=10, height=(y_max-y_min)/20.)])
                     self.behaviors_to_plot[name] = plt.Rectangle(xy=(0, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
                     plt.gca().add_patch(self.behaviors_to_plot[name])
-                    self.text_to_plot[name] = plt.text(max(0, self.ax.get_xlim()[0]), self.y_min, name, horizontalalignment='left', color="white")
+                    self.text_to_plot[name] = plt.text(-30, self.y_min, name, horizontalalignment='left', color="black")
                     self.has_started[name] = True
                     print "Behavior " + name + " starts"
                 elif msg == "stop" and self.has_started[name]:
-                    self.behaviors_to_plot[name].set_width(0 - self.behaviors_to_plot[name].get_x())
-                    #plt.text(behaviors_to_plot.get_x() + behaviors_to_plot.get_width(), 0., name, horizontalalignment='right', verticalalignment='center', transform=ax.transAxes)
-                    # text_to_plot[name].set_transform(ax.transLimits)
-                    self.text_to_plot[name].set_x(self.behaviors_to_plot[name].get_x() + self.behaviors_to_plot[name].get_width())
-                    self.text_to_plot[name].set_horizontalalignment("right")
-                        #behaviors_to_plot[-1][1] = copy(t)
+                    self.behaviors_to_plot[name].set_width(-self.behaviors_to_plot[name].get_x())
                     print "Behavior " + name + " stops"
 
         plt.draw()
