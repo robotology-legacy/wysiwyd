@@ -64,13 +64,12 @@ bool narrativeHandler::speechConfirmation(){
 *
 */
 Bottle narrativeHandler::questionHRI_DFW(){
-    cout << "starting QUESTIONHRI_DFW" << endl;
+    yInfo("starting QUESTIONHRI_DFW");
     Bottle bReturn;
 
     vector < hriResponse > vResponses;
     vector < PAOR > vSaid;
     vector < tuple <Bottle, PAOR > >  vQuestions;
-
 
     vector<string> vConfirmation;
     vConfirmation.push_back("okay.");
@@ -78,18 +77,19 @@ Bottle narrativeHandler::questionHRI_DFW(){
     vConfirmation.push_back("I understand.");
     vConfirmation.push_back("Yes.");
 
-
     bool keepInteracting = true;
     bool remember = false; // if asking to recall a situation
     bool listening = false; // is asked to the robot to listen to the human
+    bool exit = false;
 
-    while (keepInteracting){
+    while (!exit){
+        yInfo() << "exit: " << exit;
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
             bAnswer, //response from speech recog without transfer information, including raw sentence
             bSemantic; // semantic information of the content of the recognition
         bool getAnswer = false;
 
-        while (!getAnswer){
+        while (!getAnswer && !exit){
             cout << "Remember: " << remember << " | scenario: " << scenarioToRecall << endl;
             bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, false);
             if (bRecognized.get(0).asInt() == 0)
@@ -114,6 +114,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
             if (bAnswer.get(0).asString() == "stop")
             {
                 yInfo("stop called");
+                exit = true;
             }
             else{
                 yInfo() << " confirmation: " << sSentence;
@@ -121,7 +122,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                 if (getAnswer){
                     ///<
                     if (bSemantic.get(0).asString() == "stop" && !listening){
-                        keepInteracting = false;
+                        exit = true;
                         cout << "Okay, bye !" << endl;
                     }
                     else if (bSemantic.get(0).asString() == "Else"){
@@ -198,10 +199,10 @@ Bottle narrativeHandler::questionHRI_DFW(){
                     }
                 }
             }
-            yInfo() << "keepInteracting: " << keepInteracting;
         }
     }
-
+    yInfo("leaving HRI");
+    bReturn.addString("exited HRI nicely");
     return bReturn;
 }
 
