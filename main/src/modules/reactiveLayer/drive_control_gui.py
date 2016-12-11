@@ -58,13 +58,13 @@ behaviorButtons["dummyButtonB"] = Button(window, text="dummyButton", command=ple
 
 
 
-for i,b in fixed_buttons.values():
-    b.grid(row=i+2, column=1)
+for i,b in enumerate(fixed_buttons.values()):
+    b.grid(row=i+2, column=0)
 
-for i,b in driveButtons.values():
+for i,b in enumerate(driveButtons.values()):
     b.grid(row=i+3, column=1)
-for i,b in behaviorButtons.values():
-    b.grid(row=i+3, column=1)
+for i,b in enumerate(behaviorButtons.values()):
+    b.grid(row=i+3, column=2)
 
 window.protocol("WM_DELETE_WINDOW", on_closing)
 window.mainloop()

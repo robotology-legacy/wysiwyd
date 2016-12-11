@@ -36,7 +36,7 @@ def updateDriveList():
 	print driveList
 	return driveList
 
-def updateDBehaviorList():
+def updateBehaviorList():
 	cmd = yarp.Bottle()
 	rply = yarp.Bottle()
 	cmd.clear()
