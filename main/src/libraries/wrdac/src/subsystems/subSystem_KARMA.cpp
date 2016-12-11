@@ -290,7 +290,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     Bottle opt = options;
     double zOffset = 0.05;
     double actionOffset = 0.07;             // add 7cm offset to deal with object dimension
+    yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
+    yInfo ("[subSystem_KARMA] object center calib: %s",object.toString().c_str());
     double radius = fabs(object[1] - targetPosY);
     yInfo ("objectY = %f",object[1]);
     yInfo ("targetPosYRight = %f",targetPosY);
@@ -330,7 +332,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     Bottle opt = options;
     double zOffset = 0.1;
     double actionOffset = 0.07;             // add 7cm offset to deal with object dimension
+    yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
+    yInfo ("[subSystem_KARMA] object center calib: %s",object.toString().c_str());
     double radius = fabs(object[0] - targetPosXFront);
     yInfo ("objectX = %f",object[0]);
     yInfo ("targetPosXFront = %f",targetPosXFront);
@@ -426,7 +430,9 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
     Bottle opt = options;
     double zOffset = 0.03;
     double actionOffset = 0.07;                     // add 7cm offset to deal with object dimension
+    yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
     selectHandCorrectTarget(opt,object);            // target is calibrated by this method
+    yInfo ("[subSystem_KARMA] object center calib: %s",object.toString().c_str());
     double dist = fabs(object[0] - targetPosXBack); // dist in pulling ~ radius in pushing; radius in pulling ~ radius in pushing
     yInfo ("objectX = %f",object[0]);
     yInfo ("targetPosXBack = %f",targetPosXBack);
