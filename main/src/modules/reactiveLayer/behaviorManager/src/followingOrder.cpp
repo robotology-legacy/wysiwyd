@@ -51,7 +51,7 @@ void FollowingOrder::run(const Bottle &args) {
         port_to_homeo.write(cmd, rply);
     }
 
-    Bottle* sens = args->get(0).asList();//sensation_port_in.read();
+    Bottle* sens = args.get(0).asList();//sensation_port_in.read();
     string action = sens->get(0).asString();
     string type;
     string target;
