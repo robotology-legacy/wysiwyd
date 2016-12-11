@@ -621,7 +621,7 @@ bool Planner::updateModule() {
 
             Bottle sent = *grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "sentence").asList();
 	    string success_sentence;
-            for (int i=0;i+1;sent.size())
+            for (int i=0;i<sent.size();i++)
 	    {
 		if (sent.get(i).asString()=="_obj")
 			success_sentence = success_sentence +  "object";
