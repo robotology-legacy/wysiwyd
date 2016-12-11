@@ -476,6 +476,7 @@ class SamSupervisorModule(yarp.RFModule):
                 try:
                     self.forwardCommand(command, reply)
                 except utils.TimeoutError:
+                    reply.addString('nack')
                     reply.addString('Failed to respond within timeout')
 
         else:
