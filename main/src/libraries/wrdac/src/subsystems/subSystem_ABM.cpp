@@ -52,13 +52,20 @@ void wysiwyd::wrdac::SubSystem_ABM::sendActivity(const std::string &activityType
     bBegin.addString("begin");
     bBegin.addInt((int)fBegin);
 
-    yarp::os::Bottle bSnapshot;
+    yarp::os::Bottle bSnapshot, bReply;
     bSnapshot.clear();
     bSnapshot.addString("snapshot");
     bSnapshot.addList() = bMain;
     bSnapshot.addList() = bArgument;
     bSnapshot.addList() = bBegin;
-    if (connect())  portRPC.write(bSnapshot);
+    if (connect()) {
+        portRPC.write(bSnapshot, bReply);
+        if (bReply.isNull()) {
+            yWarning() << "[subSystem_ABM] Reply from ABM is null!";
+        } else if (bReply.get(0).asString()=="nack"){
+            yWarning() << "[subSystem_ABM] Got nack from ABM: " << bReply.toString();
+        }
+    }
 }
 
 
