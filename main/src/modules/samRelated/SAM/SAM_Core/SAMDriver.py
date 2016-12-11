@@ -120,14 +120,14 @@ class SAMDriver:
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
         yTesting = SAMTesting.formatDataFunc(Yall)
-        [self.segTrainConf, self.segTrainPerc, labelsSegTrain] = SAMTesting.testSegments(testModel, yTesting, Lall, verbose,
+        [self.segTrainConf, self.segTrainPerc, labelsSegTrain, labelComparisonDict] = SAMTesting.testSegments(testModel, yTesting, Lall, verbose,
                                                                             label='Training')
 
         yTesting = SAMTesting.formatDataFunc(YtestAll)
-        [self.segTestConf, self.segTestPerc, labelsSegTest] = SAMTesting.testSegments(testModel, yTesting, LtestAll, verbose,
+        [self.segTestConf, self.segTestPerc, labelsSegTest, labelComparisonDict] = SAMTesting.testSegments(testModel, yTesting, LtestAll, verbose,
                                                                           label='Testing')
 
-        return self.segTestConf, labelsSegTest
+        return self.segTestConf, labelsSegTest, labelComparisonDict
 
     # """"""""""""""""
     # Method to train, store and load the learned model

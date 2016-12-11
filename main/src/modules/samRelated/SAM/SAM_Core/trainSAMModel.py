@@ -33,9 +33,9 @@ if mm[0].calibrateUnknown or len(mm) > 1:
 
 overallPerformance = 100000
 if mm[0].model_mode != 'temporal':
-    overallPerformance, overallPerformanceLabels = mm[0].testPerformance(mm, mm[0].Yall, mm[0].Lall, mm[0].YtestAll, mm[0].LtestAll, True)
+    overallPerformance, overallPerformanceLabels, labelComparisonDict = mm[0].testPerformance(mm, mm[0].Yall, mm[0].Lall, mm[0].YtestAll, mm[0].LtestAll, True)
 elif mm[0].model_mode == 'temporal':
-    overallPerformance, overallPerformanceLabels = mm[0].testTemporalPerformance(mm, mm[0].Xall, mm[0].Yall, mm[0].Lall,
+    overallPerformance, overallPerformanceLabels, labelComparisonDict = mm[0].testTemporalPerformance(mm, mm[0].Xall, mm[0].Yall, mm[0].Lall,
                                                        mm[0].XtestAll, mm[0].YtestAll, mm[0].LtestAll, True)
 
 numParts = len(mm[0].participantList)
@@ -67,6 +67,7 @@ for k in range(numParts):
         mm[0].paramsDict['listOfModels'] = mm[0].listOfModels
         mm[0].paramsDict['avgClassTime'] = mm[0].avgClassTime
         mm[0].paramsDict['optimiseRecall'] = mm[0].optimiseRecall
+        mm[0].paramsDict['labelComparisonDict'] = mm[0].labelComparisonDict
         if mm[0].calibrateUnknown:
             mm[0].paramsDict['classificationDict'] = mm[0].classificationDict
         mm[0].paramsDict['calibrateUnknown'] = mm[0].calibrateUnknown

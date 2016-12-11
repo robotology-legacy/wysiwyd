@@ -388,7 +388,8 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimis
             bestConfidence = j
             label = thisModel[0].textLabels[j]
 
-            # print 'min, classifier, max = ' + str(thisModel[0].classif_thresh[j][0]) + ' ' + str(classif_tmp[j]) + ' ' + \
+            # print 'min, classifier, max = ' + str(thisModel[0].classif_thresh[j][0]) + \
+            #       ' ' + str(classif_tmp[j]) + ' ' + \
             #       str(thisModel[0].classif_thresh[j][1])
 
     # if visualiseInfo:
@@ -576,6 +577,9 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
 
         return labelList, confMatrix, ret, variancesKnown, variancesUnknown
     else:
+        labelComparisonDict = dict()
+        labelComparisonDict['original'] = []
+        labelComparisonDict['results'] = []
         for i in range(len(ret)):
             currLabel = Lsample[i]
             retLabel = ret[i][0]
@@ -592,8 +596,10 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
                       retLabel.ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) + \
                       ' confidence: ' + str(result)
 
+            labelComparisonDict['original'].append(currLabel)
+            labelComparisonDict['results'].append(retLabel)
             confMatrix[labelList.index(currLabel), labelList.index(retLabel)] += 1
-        return labelList, confMatrix
+        return labelList, confMatrix, labelComparisonDict
 
 
 def testSegments(thisModel, Ysample, Lnum, verbose, label, serialMode=False):

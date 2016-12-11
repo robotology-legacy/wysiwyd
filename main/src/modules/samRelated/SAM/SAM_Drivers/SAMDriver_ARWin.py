@@ -137,18 +137,18 @@ class SAMDriver_ARWin(SAMDriver):
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
         yTrainingData = SAMTesting.formatDataFunc(Yall)
-        [self.segTrainConf, self.segTrainPerc, labelsSegTrain] = SAMTesting.testSegments(testModel, yTrainingData,
+        [self.segTrainConf, self.segTrainPerc, labelsSegTrain, labelComparisonDict] = SAMTesting.testSegments(testModel, yTrainingData,
                                                                          Lall, verbose, 'Training')
 
         yTrainingData = SAMTesting.formatDataFunc(YtestAll)
-        [self.segTestConf, self.segTestPerc, labelsSegTest] = SAMTesting.testSegments(testModel, yTrainingData,
+        [self.segTestConf, self.segTestPerc, labelsSegTest, labelComparisonDict] = SAMTesting.testSegments(testModel, yTrainingData,
                                                                        LtestAll, verbose, 'Testing')
 
         yTrainingData = SAMTesting.formatDataFunc(self.allDataDict['Y'])
-        [self.seqTestConf, self.seqTestPerc, labelsSeqTest] = SAMTesting.testSegments(testModel, yTrainingData,
+        [self.seqTestConf, self.seqTestPerc, labelsSeqTest, labelComparisonDict] = SAMTesting.testSegments(testModel, yTrainingData,
                                                                        self.allDataDict['L'], verbose, 'All')
 
-        return self.seqTestConf, labelsSeqTest
+        return self.seqTestConf, labelsSeqTest, labelComparisonDict
 
     def diskDataToLiveData(self, root_data_dir):
         onlyfiles = [f for f in listdir(root_data_dir) if isfile(join(root_data_dir, f))]
