@@ -71,7 +71,7 @@ class PasarModule : public yarp::os::RFModule {
 
     yarp::os::Port handlerPort;      //a port to handle messages 
 
-    list<Entity*> entities;
+    list<shared_ptr<Entity>> entities;
 
     yarp::sig::Vector rightHandt1;  // position of right at t1
     yarp::sig::Vector rightHandt2;  // position of right at t2

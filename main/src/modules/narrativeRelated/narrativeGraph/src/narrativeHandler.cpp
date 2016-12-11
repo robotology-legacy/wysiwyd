@@ -251,6 +251,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
 
 bool narrativeHandler::interruptModule() {
+    Port2abmReasoning.interrupt();
     rpcPort.interrupt();
     mentalOPC->interrupt();
 
@@ -264,6 +265,9 @@ bool narrativeHandler::close() {
 
     mentalOPC->close();
     delete mentalOPC;
+
+    Port2abmReasoning.interrupt();
+    Port2abmReasoning.close();
 
     rpcPort.interrupt();
     rpcPort.close();

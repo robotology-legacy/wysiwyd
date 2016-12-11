@@ -23,7 +23,8 @@ public:
     void configure();
 
     void close_extra_ports() {
-        ;
+        port_to_homeo.interrupt();
+        port_to_homeo.close();
     }
     bool manual;
 };

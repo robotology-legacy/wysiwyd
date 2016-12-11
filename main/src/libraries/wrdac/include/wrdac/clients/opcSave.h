@@ -29,7 +29,7 @@ namespace wysiwyd{namespace wrdac{
     class opcSave {
 
     public:
-        std::list<Entity*>    lEntities;
+        std::list<std::shared_ptr<Entity>>    lEntities;
         std::list<Relation>   lRelations;
         std::list<Drive>      lDrives;
         std::list< std::pair <std::string, double > > lEmotions;

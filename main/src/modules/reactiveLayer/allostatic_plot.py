@@ -180,7 +180,7 @@ class AllostaticPlotModule(yarp.RFModule):
                 v_line[0].set_data(range(0- self.win_size, 0), self.drive_values[i])
                 min_line[0].set_data((0- self.win_size, 0), (self.homeo_mins[i], self.homeo_mins[i]))
                 max_line[0].set_data((0- self.win_size, 0), (self.homeo_maxs[i], self.homeo_maxs[i]))
-        '''for name, port in zip(self.behaviors, self.behavior_ports):
+        for name, port in zip(self.behaviors, self.behavior_ports):
             res = port.read(False)
             if res is not None:
                 msg = res.get(0).asString()
@@ -198,7 +198,7 @@ class AllostaticPlotModule(yarp.RFModule):
                     self.text_to_plot[name].set_x(self.behaviors_to_plot[name].get_x() + self.behaviors_to_plot[name].get_width())
                     self.text_to_plot[name].set_horizontalalignment("right")
                         #behaviors_to_plot[-1][1] = copy(t)
-                    print "Behavior " + name + " stops"'''
+                    print "Behavior " + name + " stops"
         plt.draw()
         plt.pause(0.1)
 

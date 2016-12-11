@@ -889,10 +889,10 @@ bool ICubClient::look(const string &target)
 std::string ICubClient::getPartnerName()
 {
     string partnerName = "";
-    list<Entity*> lEntities = opc->EntitiesCacheCopy();
+    list<shared_ptr<Entity>> lEntities = opc->EntitiesCacheCopy();
     for (auto& entity : lEntities) {
         if (entity->entity_type() == "agent") {
-            Agent* a = dynamic_cast<Agent*>(entity);
+            Agent* a = dynamic_cast<Agent*>(entity.get());
             //We assume kinect can only recognize one skeleton at a time
             if(a->m_present == 1.0 && a->name()!="icub") {
                 partnerName = a->name() ;

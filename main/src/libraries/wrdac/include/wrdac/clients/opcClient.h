@@ -19,6 +19,7 @@
 #ifndef __EFAA_OPCC_H__
 #define __EFAA_OPCC_H__
 
+#include <memory>
 #include "wrdac/knowledge/representations.h"
 #include "wrdac/tags.h"
 namespace wysiwyd{namespace wrdac{
@@ -315,7 +316,7 @@ public:
     /**
     * Getter of the list of the copies of the entities stored locally
     */
-    std::list<Entity*> EntitiesCacheCopy();
+    std::list<std::shared_ptr<Entity>> EntitiesCacheCopy();
 
     /**
     * Returns a human readable description of the client content (Entities & Relations)

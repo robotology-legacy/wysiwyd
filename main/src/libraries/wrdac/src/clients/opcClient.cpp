@@ -1077,35 +1077,35 @@ list<Entity*> OPCClient::EntitiesCache()
 
 
 //Getter of the list of entities stored locally
-list<Entity*> OPCClient::EntitiesCacheCopy()
+std::list<std::shared_ptr<Entity>> OPCClient::EntitiesCacheCopy()
 {
-    list<Entity*> lR;
+    list<std::shared_ptr<Entity>> lR;
     for(map<int,Entity*>::iterator it = this->entitiesByID.begin() ; it != this->entitiesByID.end() ; it++)
     {
-        Entity* E = NULL;
+        std::shared_ptr<Entity> E;
         if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_AGENT)
         {
-            E = new Agent();
+            E = std::shared_ptr<Agent>(new Agent());
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_OBJECT)
         {
-            E = new Object();
+            E = std::shared_ptr<Object>(new Object());
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ACTION)
         {
-            E = new Action();
+            E = std::shared_ptr<Action>(new Action());
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ADJECTIVE)
         {
-            E = new Adjective();
+            E = std::shared_ptr<Adjective>(new Adjective());
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_RTOBJECT)
         {
-            E = new RTObject();
+            E = std::shared_ptr<RTObject>(new RTObject());
         }
         else if ((it->second)->m_entity_type == "bodypart")
         {
-            E = new Bodypart();
+            E = std::shared_ptr<Bodypart>(new Bodypart());
         }
         else
         {
