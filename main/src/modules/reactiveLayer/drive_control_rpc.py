@@ -41,10 +41,10 @@ def updateBehaviorList():
 	rply = yarp.Bottle()
 	cmd.clear()
 	cmd.addString('names')
-	toHomeo.write(cmd,rply)
-	driveList = rply.toString().strip('()').split(' ')
-	print driveList
-	return driveList
+	toBM.write(cmd,rply)
+	behList = rply.toString().strip('()').split(' ')
+	print behList
+	return beheList
 
 def close_ports():		
 	print "Interrupting and closing ports"		
