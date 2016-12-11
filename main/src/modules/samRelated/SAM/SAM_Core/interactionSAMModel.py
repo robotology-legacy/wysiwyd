@@ -188,6 +188,8 @@ class interactionSAMModel(yarp.RFModule):
 
     @SAM_utils.timeout(3)
     def closePort(self, j):
+        j.interrupt()
+        time.sleep(1)
         j.close()
 
     def respond(self, command, reply):

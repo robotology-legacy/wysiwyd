@@ -225,6 +225,8 @@ class SamSupervisorModule(yarp.RFModule):
         # close ports of loaded models
         for j in self.rpcConnections:
             j[1].write(yarp.Bottle('EXIT'), self.inputBottle)
+            j[1].interrupt()
+            time.sleep(1)
             j[1].close()
 
         self.supervisorPort.close()

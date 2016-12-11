@@ -573,7 +573,7 @@ class SAMDriver_ARWin(SAMDriver):
     def readData(self, root_data_dir, participant_index, *args, **kw):
         self.rawData, labelsList = self.diskDataToLiveData(root_data_dir)
         data2, jointsList, objectsList = self.convertToDict(self.rawData, 'testing', verbose=self.verbose)
-
+        print 'unique labels', set(labelsList)
         # extract a set of labels
         labels = list(set(labelsList))
         labels.sort()
@@ -609,7 +609,7 @@ class SAMDriver_ARWin(SAMDriver):
                 # This would decrease the region size of the transition blocks
                 # which are currently dependant on windowSize
                 data2Labels.append('transition')
-
+        print 'after transition unique set', set(data2Labels)
         print 'windowed data labels compressed:', len(data2Labels)
 
         print
@@ -654,10 +654,12 @@ class SAMDriver_ARWin(SAMDriver):
         # ------------------------------------------------------------------
         # it is now time to combine objects if multiple exist
         #
-        self.featureSequence = ['object']
+
         print
+        self.featureSequence = []
         combinedObjs = dict()
         if combineObjects and 'object' in self.paramsDict['includeParts']:
+            self.featureSequence.append('object')
             print 'Combining Objects'
             for n in objectDict:
                 idxBase = objectDict[n] * itemsPerJoint
@@ -719,10 +721,14 @@ class SAMDriver_ARWin(SAMDriver):
                 if self.handsCombined:
                     a = copy.deepcopy(self.listOfVectorsToClassify)
                     b = copy.deepcopy(self.listOfVectorsToClassify)
-                    for l, m in enumerate(self.listOfVectorsToClassify):
-                        a[l].append('handLeft')
-                        b[l].append('handRight')
-                        self.listOfVectorsToClassify = a + b
+                    if len(self.listOfVectorsToClassify) > 0:
+                        for l, m in enumerate(self.listOfVectorsToClassify):
+                            a[l].append('handLeft')
+                            b[l].append('handRight')
+                            self.listOfVectorsToClassify = a + b
+                    else:
+                        self.listOfVectorsToClassify.append(['handLeft'])
+                        self.listOfVectorsToClassify.append(['handRight'])
 
                 else:
                     for l, m in enumerate(self.listOfVectorsToClassify):
@@ -731,11 +737,12 @@ class SAMDriver_ARWin(SAMDriver):
             else:
                 for l, m in enumerate(self.listOfVectorsToClassify):
                     self.listOfVectorsToClassify[l].append(j)
-
+        print 'Vectors to Classify:'
         for j in self.listOfVectorsToClassify:
-            print j
+            print "\t", j
 
         dataVecReq = None
+        objSection = None
         if combinedObjs:
             objSection = None
             for j in self.listOfVectorsToClassify:
@@ -750,11 +757,12 @@ class SAMDriver_ARWin(SAMDriver):
         handsSection = None
         if combinedHands:
             for j in self.listOfVectorsToClassify:
-                print j[1]
-                if handsSection is None:
-                    handsSection = combinedHands[j[1]]
-                else:
-                    handsSection = np.vstack([handsSection, combinedHands[j[1]]])
+                for l in j:
+                    if 'hand' in l:
+                        if handsSection is None:
+                            handsSection = combinedHands[l]
+                        else:
+                            handsSection = np.vstack([handsSection, combinedHands[l]])
             if dataVecReq is None:
                 dataVecReq = handsSection
             else:
@@ -791,34 +799,42 @@ class SAMDriver_ARWin(SAMDriver):
                 obj = splitLabel[2]
                 hand = splitLabel[4]
 
-                handSubList = [k for k in self.listOfVectorsToClassify if 'hand' + hand.capitalize() in k]
-                vec = [f for f in handSubList if obj in f][0]
+                if combineHands:
+                    handSubList = [k for k in self.listOfVectorsToClassify if 'hand' + hand.capitalize() in k]
+                    if combineObjects:
+                        vec = [f for f in handSubList if obj in f][0]
+                    else:
+                        vec = handSubList[0]
+                else:
+                    vec = [f for f in self.listOfVectorsToClassify if obj in f][0]
+                # print data2Labels.index(j), vec
 
-                printStr = ''
+                # printStr = ''
                 for n, k in enumerate(self.listOfVectorsToClassify):
                     if vec == k:
                         data2LabelsAugment[n].append(action)
-                        #                 printStr += action + '\t'
-                    else:
+                        # printStr += action + '\t'
+                    # else:
                         data2LabelsAugment[n].append('idle')
-                        #                 printStr += '\tidle'
-                        #             print data2LabelsAugment[n][-1],
-                        #         print
+                #         printStr += '\tidle'
+                #     print data2LabelsAugment[n][-1],
+                # print
             else:
                 obj = ''
                 hand = ''
                 printStr = ''
                 for n, k in enumerate(self.listOfVectorsToClassify):
-                    #             printStr += action + '\t'
+                    # printStr += action + '\t'
                     data2LabelsAugment[n].append(action)
-        # print data2LabelsAugment[n][-1],
+        #             print data2LabelsAugment[n][-1],
         #         print
         #     print action, obj, hand
         #     print '---------------------'
-
+        # print 'before augment', set(data2Labels)
         data2Labels = []
         for j in data2LabelsAugment:
             data2Labels += j
+        # print 'after augment', set(data2Labels)
         print 'labels', len(data2Labels)
         print 'data', dataVecReq.shape
         self.allDataDict = dict()
@@ -851,6 +867,7 @@ class SAMDriver_ARWin(SAMDriver):
             data2ShortLabels.append(slabel)
 
         self.data2Labels = copy.deepcopy(data2ShortLabels)
+        print 'shortLabels len', set(self.data2Labels)
 
         if self.paramsDict['sepRL']:
             if 'pull_object' in self.paramsDict['actionsAllowedList']:
@@ -862,6 +879,7 @@ class SAMDriver_ARWin(SAMDriver):
                 self.paramsDict['actionsAllowedList'].append('push_object_left')
 
         # remove labels which will not be trained
+        print 'actionsallowed', self.paramsDict['actionsAllowedList']
         listToDelete = []
         for n in reversed(range(len(data2Labels))):
             if len([j for j in self.paramsDict['actionsAllowedList'] if j in data2Labels[n]]) == 0 or \
@@ -910,9 +928,10 @@ class SAMDriver_ARWin(SAMDriver):
     def messageChecker(self, dataMessage, mode):
         goAhead = True
         if mode == 'testing':
+            dataMessage = dataMessage.replace('"'+dataMessage.partition('"')[-1].rpartition('"')[0]+'"', 'partner')
             t = dataMessage.replace('(', '').replace(')', '').split(' ')[4:-1]
         elif mode == 'live':
-            t = dataMessage.replace('(', '').replace(')', '').split(' ')[2:-1]
+            t = dataMessage.replace('(', '').replace(')', '').replace('"', '').split(' ')[2:-1]
         else:
             print 'Non-existing mode. Choose either live or read'
             t = []
