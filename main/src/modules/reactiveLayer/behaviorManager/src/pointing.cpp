@@ -39,7 +39,6 @@ void Pointing::run(const Bottle &args) {
     Time::delay(0.25);
     
     iCub->say(sentence + obj_name);
-    iCub->home();
 
     bool succeeded = iCub->point(obj_name);
     Time::delay(0.2);
