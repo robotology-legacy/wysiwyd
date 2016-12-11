@@ -309,7 +309,6 @@ bool Planner::updateModule() {
                 vector<string> type_store;
                 vector<int> priority_store;
                 vector<int> actionPos_store;
-
                 // holding the prerequisites that failed
                 vector<string> preqFail;
 
@@ -618,6 +617,22 @@ bool Planner::updateModule() {
             args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
             args = args.tail();
 
+            Bottle emptyBottle("()");
+            yDebug() << "Check: " << planName << "-" << to_string(actionPos_list[0]) << "success";
+            Bottle sent = *grpPlans.check(planName + "-" + to_string(actionPos_list[0]) + "success", emptyBottle.get(0)).asList();
+            yDebug() << "Sent: " << sent.toString();
+            string success_sentence;
+            for (int i=0;i<sent.size();i++)
+            {
+                yDebug() << "In loop" << i << sent.get(i).asString();
+                if (sent.get(i).asString()=="_obj")
+                    success_sentence = success_sentence +  "object";
+                else
+                    success_sentence = success_sentence + sent.get(i).asString();
+            }
+            args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
+            args = args.tail();
+
             // checking for post condition fulfillment.
             int stateCheck = 1;
             for (int k = 0; k < stateOI.size(); k++)
@@ -663,6 +678,7 @@ bool Planner::updateModule() {
 
             if (actionCompleted && stateCheck)
             {
+                iCub->say(success_sentence);
                 yInfo() << "removing action " << *action_list.begin();
                 action_list.erase(action_list.begin());
                 priority_list.erase(priority_list.begin());
