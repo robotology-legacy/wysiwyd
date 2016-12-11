@@ -723,7 +723,7 @@ bool Babbling::doBabblingKinStruct()
 
     /* Move arm to start position */
     yarp::sig::Vector cmd_arms;
-    cmd_arms.resize(8);
+    cmd_arms.resize(16, 0.0);
     cmd_arms[0]= -70;
     cmd_arms[1]= 40;
     cmd_arms[2]= 60;
@@ -746,7 +746,7 @@ bool Babbling::doBabblingKinStruct()
         while(!successAll) {
             successAll = true;
             bool successIndividual = false;
-            for(int i=0; i<8; i++)
+            for(int i=0; i<16; i++)
             {
                 if(part=="left_arm")
                     successIndividual = ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
