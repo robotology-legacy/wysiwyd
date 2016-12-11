@@ -111,12 +111,8 @@ class AllostaticPlotModule(yarp.RFModule):
 
         self.drive_values = [[0.] * self.win_size for _ in self.drives]
 
-        self.behaviors_to_plot = {}  # plt.Rectangle(xy=(0,0), width=0, height=0)
+        self.behaviors_to_plot = []  # plt.Rectangle(xy=(0,0), width=0, height=0)
         self.text_to_plot = {}
-
-        self.has_started = {}
-        for name in self.behaviors:
-            self.has_started[name] = False
 
         self.t = 0
 
@@ -188,22 +184,26 @@ class AllostaticPlotModule(yarp.RFModule):
                 min_line[0].set_data((0- self.win_size, 0), (self.homeo_mins[i], self.homeo_mins[i]))
                 max_line[0].set_data((0- self.win_size, 0), (self.homeo_maxs[i], self.homeo_maxs[i]))
 
-        for name, port in zip(self.behaviors, self.behavior_ports):
-            if(self.has_started[name]):
-                self.behaviors_to_plot[name].set_x(self.behaviors_to_plot[name].get_x()-1)
-                self.text_to_plot[name].set_x(self.behaviors_to_plot[name].get_x()-30)
+        for plotitem in self.behaviors_to_plot:
+            plotitem[1].set_x(plotitem[1].get_x()-1)
+            plotitem[2].set_x(plotitem[1].get_x()-30)
 
+        for name, port in zip(self.behaviors, self.behavior_ports):
             res = port.read(False)
             if res is not None:
                 msg = res.get(0).asString()
                 if msg == "start":
-                    self.behaviors_to_plot[name] = plt.Rectangle(xy=(0, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
-                    plt.gca().add_patch(self.behaviors_to_plot[name])
-                    self.text_to_plot[name] = plt.text(-30, self.y_min, name, horizontalalignment='left', color="black")
-                    self.has_started[name] = True
+                    new_rectangle = plt.Rectangle(xy=(0, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
+                    plt.gca().add_patch(new_rectangle)
+                    new_text = plt.text(-30, self.y_min, name, horizontalalignment='left', color="black")
+                    self.behaviors_to_plot.append((name, new_rectangle, new_text))
                     print "Behavior " + name + " starts"
-                elif msg == "stop" and self.has_started[name]:
-                    self.behaviors_to_plot[name].set_width(-self.behaviors_to_plot[name].get_x())
+                elif msg == "stop":
+                    plot_idx = None
+                    for idx, plotitem in enumerate(self.behaviors_to_plot):
+                        if plotitem[0] == name:
+                            plot_idx = idx
+                    self.behaviors_to_plot[idx][1].set_width(-self.behaviors_to_plot[idx][1].get_x())
                     print "Behavior " + name + " stops"
 
         plt.draw()
