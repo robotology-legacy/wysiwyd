@@ -29,16 +29,16 @@ void MoveObject::run(const Bottle &args) {
 
     iCub->look(obj_name); // to have a better estimate of where to move the object to
     if(move_type == "front") {
-        iCub->say("I will push the " + obj_name + "to the front");
+        iCub->say("I will push the " + obj_name + " to the front");
         succeeded = iCub->pushKarmaFront(obj_name, target_pushfront);
     } else if(move_type == "back") {
-        iCub->say("I will pull the " + obj_name + "to the back");
+        iCub->say("I will pull the " + obj_name + " to the back");
         succeeded = iCub->pullKarmaBack(obj_name, target_pullback);
     } else if(move_type == "left") {
-        iCub->say("I will push the " + obj_name + "to the left");
+        iCub->say("I will push the " + obj_name + " to the left");
         succeeded = iCub->pushKarmaLeft(obj_name, target_pushleft);
     } else if(move_type == "right") {
-        iCub->say("I will push the " + obj_name + "to the right");
+        iCub->say("I will push the " + obj_name + " to the right");
         succeeded = iCub->pushKarmaRight(obj_name, target_pushright);
     } else {
         yError() << "[moveObject] Wrong direction";
