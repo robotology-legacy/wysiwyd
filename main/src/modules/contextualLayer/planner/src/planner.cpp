@@ -636,7 +636,6 @@ bool Planner::updateModule() {
             string success_sentence;
             for (int i=0;i<sent.size();i++)
             {
-                yDebug() << "In loop" << i << sent.get(i).asString();
                 if (sent.get(i).asString()=="_obj")
                     success_sentence = success_sentence +  "object";
                 else
@@ -669,7 +668,7 @@ bool Planner::updateModule() {
                 }
 
                 getState.write(bot, rep);
-                yDebug() << bot.toString();
+                yDebug() << "bot:"<<bot.toString();
                 bot.clear();
                 bool indiv;
                 string attach = stateOI.get(k).asList()->get(0).toString();

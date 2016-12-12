@@ -181,7 +181,6 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
         reply.addString("ack");
     } else if (cmd.get(0).asString() == "names" ) {
         Bottle names;
-        names.clear();
         for(auto& beh : behaviors) {
             names.addString(beh->behaviorName);
         }
@@ -239,9 +238,9 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 }
             }
         }
-        if (behavior_triggered)
+        if (behavior_triggered) {
             reply.addString("ack");
-        else{
+        } else {
             reply.addString("nack");
             yDebug()<< "Behavior ' " << cmd.get(0).asString() << " ' not found. \nSend 'names' to see a list of available behaviors. ";
         }
