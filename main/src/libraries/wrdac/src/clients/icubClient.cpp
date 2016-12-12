@@ -901,7 +901,9 @@ std::string ICubClient::getPartnerName(bool verbose)
             }
         }
     }
-    yWarning() << "No partner present was found!";
+    if(verbose) {
+        yWarning() << "No partner present was found!";
+    }
     return partnerName;
 }
 

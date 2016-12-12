@@ -100,11 +100,16 @@ Bottle OpcSensation::handleEntities()
     bool agentPresent = false;
     Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities, temp_o_positions;
     Bottle objects;
+
     for (auto& entity : lEntities)
     {
-        Object* o = dynamic_cast<Object*>(entity);
-        string label = o->objectAreaAsString();
-        addToEntityList(temp_o_positions, o->objectAreaAsString(), entity->name());
+        if(entity->entity_type() == "object") {
+            Object* o = dynamic_cast<Object*>(entity);
+                if(o) {
+                    addToEntityList(temp_o_positions, o->objectAreaAsString(), entity->name());
+                }
+        }
+
         if (entity->name().find("unknown") == 0) {
             if (entity->entity_type() == "object")
             {
@@ -117,12 +122,11 @@ Bottle OpcSensation::handleEntities()
                 addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
             }
             else if(entity->entity_type() == "bodypart") {
-                    unknown_obj = true;
-                    addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
-                    addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
+                unknown_obj = true;
+                addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
         }
-
         else if (entity->name() == iCub->getPartnerName(false) && entity->entity_type() == "agent") {
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
@@ -143,7 +147,7 @@ Bottle OpcSensation::handleEntities()
                 Object* obj1 = dynamic_cast<Object*>(entity);
 
                 //Handle red balls
-                if (entity->name() == "red_ball"){
+                if (obj1 && entity->name() == "red_ball"){
                     // Set color:
                     obj1->m_color[0] = 250;
                     obj1->m_color[1] = 0;
@@ -164,7 +168,7 @@ Bottle OpcSensation::handleEntities()
                         
                     }
                 }
-                if (obj1->m_present == 1.0){
+                if (obj1 && obj1->m_present == 1.0){
                     //send data to PPS
                     Bottle objec;
                     objec.clear();
@@ -179,17 +183,15 @@ Bottle OpcSensation::handleEntities()
                 }
                 addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
                 iCub->opc->commit(obj1);
-
-                
             }
             if (entity->entity_type() == "agent") {  // Known entities
-                if (dynamic_cast<Object*>(entity)->m_present == 1.0)
+                if (dynamic_cast<Agent*>(entity)->m_present == 1.0)
                 {
                     agentPresent = true;
                 }
             }
         }
-        if (dynamic_cast<Object*>(entity)->m_present == 1.0)
+        if (dynamic_cast<Object*>(entity) && dynamic_cast<Object*>(entity)->m_present == 1.0)
         {
             addToEntityList(temp_p_entities, entity->entity_type(), entity->name());
         }
@@ -209,7 +211,6 @@ Bottle OpcSensation::handleEntities()
             }
         }
     }
-
 
     u_entities.copy( temp_u_entities);
     k_entities.copy( temp_k_entities);
