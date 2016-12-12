@@ -251,10 +251,10 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         yInfo() << "fulfill has been changed to true";
         reply.addString("ack");
     }
-    else if (cmd.get(0).asString() == "manual") {
-        if (cmd.get(1).asString() == "on") {
+    else if (command.get(0).asString() == "manual") {
+        if (command.get(1).asString() == "on") {
             manual = true;
-        } else if (cmd.get(1).asString() == "off") {
+        } else if (command.get(1).asString() == "off") {
             manual = false;
         }
         reply.addString("ack");
