@@ -76,6 +76,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     action_list.clear();
     id = 0;
     attemptCnt = 0;
+    planNr = 0;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
     
@@ -167,6 +168,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     "freeze \n" +
     "unfreeze \n" +
     "actions \n" +
+    "actionPos \n" +
     "listplans \n" +
     "stopfollow \n" +
     "manual \n"
@@ -192,6 +194,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "stopfollow") {
         fulfill = false;
+        yInfo() << "fulfill has been set to false.";
         reply.addString("ack");
     }
     else if ((command.get(0).asString() == "new")&& (command.get(1).asList()->size() != 2)){
@@ -224,6 +227,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "priorities")
     {
+        if (priority_list.size() == 0) { yInfo() << "priority list is empty."; }
         for (vector<int>::const_iterator i = priority_list.begin(); i != priority_list.end(); ++i)
         {
             cout << *i << '\n';
@@ -232,7 +236,26 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "actions")
     {
+        if (action_list.size() == 0) { yInfo() << "action list is empty."; }
         for (vector<string>::const_iterator i = action_list.begin(); i != action_list.end(); ++i)
+        {
+            cout << *i << '\n';
+        }
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString() == "actionpos")
+    {
+        if (actionPos_list.size() == 0) { yInfo() << "action position list is empty."; }
+        for (vector<int>::const_iterator i = actionPos_list.begin(); i != actionPos_list.end(); ++i)
+        {
+            cout << *i << '\n';
+        }
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString() == "planid")
+    {
+        if (planNr_list.size() == 0) { yInfo() << "planNr list is empty."; }
+        for (vector<int>::const_iterator i = planNr_list.begin(); i != planNr_list.end(); ++i)
         {
             cout << *i << '\n';
         }
@@ -328,6 +351,7 @@ bool Planner::updateModule() {
                 vector<string> type_store;
                 vector<int> priority_store;
                 vector<int> actionPos_store;
+                vector<int> planNr_store;
                 // holding the prerequisites that failed
                 vector<string> preqFail;
 
@@ -468,6 +492,7 @@ bool Planner::updateModule() {
                     object_store.push_back(object);
                     type_store.push_back(objectType);
                     actionPos_store.push_back(ii);
+                    planNr_store.push_back(planNr);
 
                     if (state)
                     {
@@ -490,6 +515,7 @@ bool Planner::updateModule() {
                             object_list.push_back(object_store[a]);
                             type_list.push_back(type_store[a]);
                             actionPos_list.push_back(actionPos_store[a]);
+                            planNr_list.push_back(planNr_store[a]);
 
                             if (useABM)
                             {
@@ -523,6 +549,7 @@ bool Planner::updateModule() {
                             action_list.insert(action_list.begin() + insertID, action_store[a]);
                             actionPos_list.insert(actionPos_list.begin() + insertID, actionPos_store[a]);
                             priority_list.insert(priority_list.begin() + insertID, priority_store[a]);
+                            planNr_list.insert(planNr_list.begin() + insertID, planNr_store[a]);
 
                             if (useABM)
                             {
@@ -575,6 +602,9 @@ bool Planner::updateModule() {
                 object_store.clear();
                 type_store.clear();
                 actionPos_store.clear();
+                planNr_store.clear();
+
+                planNr += 1;
 
                 preqFail.clear();
             }
@@ -751,17 +781,20 @@ bool Planner::updateModule() {
             {
                 iCub->say(success_sentence);
                 yDebug() << "removing actions";
+                int currPlan = planNr_list[0];
                 action_list.erase(action_list.begin());
                 priority_list.erase(priority_list.begin());
                 plan_list.erase(plan_list.begin());
                 object_list.erase(object_list.begin());
                 type_list.erase(type_list.begin());
                 actionPos_list.erase(actionPos_list.begin());
+                planNr_list.erase(planNr_list.begin());
                 attemptCnt = 0;
 
-                for (unsigned int extra = 0; extra < actionPos_list.size(); extra++)
+                unsigned int length = planNr_list.size();
+                for (unsigned int extra = 0; extra < length; extra++)
                 {
-                    if (actionPos_list[0] != 1)
+                    if (planNr_list[0] == currPlan)
                     {
                         action_list.erase(action_list.begin());
                         priority_list.erase(priority_list.begin());
@@ -769,6 +802,7 @@ bool Planner::updateModule() {
                         object_list.erase(object_list.begin());
                         type_list.erase(type_list.begin());
                         actionPos_list.erase(actionPos_list.begin());
+                        planNr_list.erase(planNr_list.begin());
                     }
                     else { break; }
                 }
@@ -819,7 +853,6 @@ bool Planner::updateModule() {
         }
     }
     else{
-        yDebug() << "I am waiting to be allowed to follow my actions list.";
         Time::delay(1);
     }
 
