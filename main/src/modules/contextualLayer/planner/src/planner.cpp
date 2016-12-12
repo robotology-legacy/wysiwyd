@@ -274,6 +274,7 @@ bool Planner::updateModule() {
     {
         for (unsigned int it = 0; it < newPlan.size(); it++)
         {
+            // iterating through each new goal
             int priority;
             Bottle command = newPlan[it];
             bool knownPlan = checkKnown(command, avaiPlansList);
@@ -288,6 +289,7 @@ bool Planner::updateModule() {
                 bool assumption = false;
                 Bottle rep;
                 bool state;
+                bool presence = false;
 
                 // check if necessary to rank actions according to priority
                 unsigned int insertID = 0;
@@ -382,9 +384,20 @@ bool Planner::updateModule() {
                             string failState;
                             if (!indiv)
                             {
-                                if (negate) { failState = auxMsg.get(2).asString(); }
-                                else { failState = "not " + auxMsg.get(2).asString(); }
-                                preqFail.push_back(failState);
+                                // assumes priority implicit in order of prerequisites
+                                string keyword = auxMsg.get(2).asString();
+                                if (negate) { failState = keyword; }
+                                else { failState = "not " + keyword; }
+
+                                if ((keyword == "present") && !presence)
+                                {
+                                    presence = true;
+                                    preqFail.push_back(failState);
+                                }
+                                else if ( !((presence) && (keyword == "RobotOnly" || "Shared" || "HumanOnly")) )
+                                {
+                                    preqFail.push_back(failState);
+                                }
                             }
 
                             // formulate step for recording in ABM
@@ -433,7 +446,7 @@ bool Planner::updateModule() {
                         yInfo() << "direction: " << args.get(0).toString();
                         objectType = args.get(0).toString();
                     }
-                    if ( (actionName == "followingOrder"))
+                    else if ( (actionName == "followingOrder"))
                     {
                         yInfo() << "Action is ask/moveObject, objectType now describes if desired action.";
                         yInfo() << "direction: " << args.get(0).toString();
@@ -544,6 +557,7 @@ bool Planner::updateModule() {
                         }
                     }
                     iCub->lookAtPartner();
+                    yInfo() << errorMsg;
                     iCub->say(errorMsg);
                     iCub->home();
                 }
@@ -619,16 +633,16 @@ bool Planner::updateModule() {
             }
 
             // check for completed state
+            yDebug() << "checking for completion from SM";
             string planName = plan_list[0];
             Bottle stateOI = *grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "post").asList();
             args.clear();
             args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
             args = args.tail();
+            yDebug() << "args: " << args.toString();
 
             Bottle emptyBottle("()");
-            yDebug() << "Check: " << planName << "-" << to_string(actionPos_list[0]) << "success";
             Bottle sent = *grpPlans.check(planName + "-" + to_string(actionPos_list[0]) + "success", emptyBottle.get(0)).asList();
-            yDebug() << "Sent: " << sent.toString();
             string success_sentence;
             for (int i=0;i<sent.size();i++)
             {
@@ -637,8 +651,7 @@ bool Planner::updateModule() {
                 else
                     success_sentence = success_sentence + sent.get(i).asString();
             }
-            args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
-            args = args.tail();
+            yDebug() << "sentence_success constructed";
 
             // checking for post condition fulfillment.
             int stateCheck = 1;
