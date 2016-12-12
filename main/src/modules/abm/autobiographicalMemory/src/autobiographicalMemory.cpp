@@ -737,7 +737,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "getStreamStatus")
         {
-            bReply.addString(std::string(static_cast<char>(streamStatus), 1));
+            bReply.addString(std::string(1, static_cast<char>(streamStatus)));
         }
         else
         {
