@@ -368,13 +368,11 @@ bool Planner::updateModule() {
                                 yDebug() << "not";
                                 indiv = !rep.get(1).asBool();
                                 negate = true;
-                                yDebug() << "checking if not " << auxMsg.toString();
                             }
                             else
                             {
                                 indiv = rep.get(1).asBool();
                                 negate = false;
-                                yDebug() << "checking if " << auxMsg.toString();
                             }
                             yDebug() << "indiv from rep is " << indiv;
                             yDebug() << "state before && is " << state;
@@ -415,10 +413,9 @@ bool Planner::updateModule() {
                     if (useABM)
                     {
                         // record action selection reasoning in ABM
-                        yDebug() << "recording in ABM";
                         if (iCub->getABMClient()->Connect())
                         {
-                            yDebug() << "ABM is connected";
+                            yDebug() << "ABM is connected, recording...";
                             iCub->getABMClient()->sendActivity("reasoning",
                                 actionName,
                             "planner",  // expl: "pasar", "drives"...
@@ -426,7 +423,7 @@ bool Planner::updateModule() {
                             true);
                             yInfo() << actionName + " reasoning has been recorded in the ABM";
                         }
-                        else { yInfo() << "ABMClient is not connected."; }
+                        else { yInfo() << "ABMClient is not connected, unable to record."; }
                     }
 
                     // change objectType to action type (pull or push) for ask behaviour
@@ -584,7 +581,6 @@ bool Planner::updateModule() {
         }
         else
         {
-            yDebug() << "no actions in list.";
             Time::delay(1.0);
             skip = 1;
         }
