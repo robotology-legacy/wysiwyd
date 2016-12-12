@@ -50,7 +50,7 @@ def updateBehaviorList():
     toBM.write(cmd,rply)
     behList = rply.toString().strip('()').split(' ')
     print behList
-    return beheList
+    return behList
 
 def close_ports():
     print "Interrupting and closing ports"
