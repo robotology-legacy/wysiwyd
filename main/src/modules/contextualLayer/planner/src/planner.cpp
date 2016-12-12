@@ -685,20 +685,11 @@ bool Planner::updateModule() {
                         }
                         bot.addString(aux);
                     }
-
-<<<<<<< HEAD
-                getState.write(bot, rep);
-                yDebug() << "bot:"<<bot.toString();
-                bot.clear();
-                bool indiv;
-                string attach = stateOI.get(k).asList()->get(0).toString();
-=======
                     getState.write(bot, rep);
                     yDebug() << bot.toString();
                     bot.clear();
                     bool indiv;
                     string attach = objectives.get(Ob).asList()->get(0).toString();
->>>>>>> [planner] able to consider action as complete if main goal is reached.
 
                     if (attach == "not")
                     {
