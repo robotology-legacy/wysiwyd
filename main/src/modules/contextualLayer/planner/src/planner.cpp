@@ -659,47 +659,105 @@ bool Planner::updateModule() {
             }
             yDebug() << "sentence_success constructed";
 
-            // checking for post condition fulfillment.
+            Bottle objectives = *grpPlans.find(planName + "-objectiveState").asList();
+
+            // checking for ultimate state fulfillment.
             int stateCheck = 1;
-            for (int k = 0; k < stateOI.size(); k++)
+            if (objectives.size() != 0)
             {
-                Bottle bot;
-                Bottle rep;
-                bot.clear();
-                rep.clear();
-
-                Bottle* msg = stateOI.get(k).asList()->get(1).asList();
-                for (int i = 0; i < msg->size(); i++)
+                for (int Ob = 0; Ob < objectives.size(); Ob++)
                 {
-                    string aux = msg->get(i).asString();
-                    for (int j = 0; j < args.size(); j++)
-                    {
-                        if (args.get(j).asString() == msg->get(i).asString())
-                        {
-                            aux = object_list[0];
-                        }
-                    }
-                    bot.addString(aux);
-                }
+                    Bottle bot;
+                    Bottle rep;
+                    bot.clear();
+                    rep.clear();
 
+                    Bottle* msg = objectives.get(Ob).asList()->get(1).asList();
+                    for (int i = 0; i < msg->size(); i++)
+                    {
+                        string aux = msg->get(i).asString();
+                        for (int j = 0; j < args.size(); j++)
+                        {
+                            if (args.get(j).asString() == msg->get(i).asString())
+                            {
+                                aux = object_list[0];
+                            }
+                        }
+                        bot.addString(aux);
+                    }
+
+<<<<<<< HEAD
                 getState.write(bot, rep);
                 yDebug() << "bot:"<<bot.toString();
                 bot.clear();
                 bool indiv;
                 string attach = stateOI.get(k).asList()->get(0).toString();
+=======
+                    getState.write(bot, rep);
+                    yDebug() << bot.toString();
+                    bot.clear();
+                    bool indiv;
+                    string attach = objectives.get(Ob).asList()->get(0).toString();
+>>>>>>> [planner] able to consider action as complete if main goal is reached.
 
-                if (attach == "not")
-                {
-                    yDebug() << "not";
-                    indiv = !rep.get(1).asBool();
-                }
-                else
-                {
-                    indiv = rep.get(1).asBool();
-                }
+                    if (attach == "not")
+                    {
+                        yDebug() << "not";
+                        indiv = !rep.get(1).asBool();
+                    }
+                    else
+                    {
+                        indiv = rep.get(1).asBool();
+                    }
 
-                stateCheck = indiv && stateCheck;
-                yDebug() << "State is" << stateCheck;
+                    stateCheck = indiv && stateCheck;
+                    yDebug() << "objective of the plan is already complete: " << stateCheck;
+                }
+            }
+
+            // checking for post condition fulfillment if ultimate state is not
+            if (!stateCheck)
+            {
+                for (int k = 0; k < stateOI.size(); k++)
+                {
+                    Bottle bot;
+                    Bottle rep;
+                    bot.clear();
+                    rep.clear();
+
+                    Bottle* msg = stateOI.get(k).asList()->get(1).asList();
+                    for (int i = 0; i < msg->size(); i++)
+                    {
+                        string aux = msg->get(i).asString();
+                        for (int j = 0; j < args.size(); j++)
+                        {
+                            if (args.get(j).asString() == msg->get(i).asString())
+                            {
+                                aux = object_list[0];
+                            }
+                        }
+                        bot.addString(aux);
+                    }
+
+                    getState.write(bot, rep);
+                    yDebug() << bot.toString();
+                    bot.clear();
+                    bool indiv;
+                    string attach = stateOI.get(k).asList()->get(0).toString();
+
+                    if (attach == "not")
+                    {
+                        yDebug() << "not";
+                        indiv = !rep.get(1).asBool();
+                    }
+                    else
+                    {
+                        indiv = rep.get(1).asBool();
+                    }
+
+                    stateCheck = indiv && stateCheck;
+                    yDebug() << "State is" << stateCheck;
+                }
             }
 
             if (actionCompleted && stateCheck)
