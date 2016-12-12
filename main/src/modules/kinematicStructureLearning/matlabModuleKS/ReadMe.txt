@@ -25,6 +25,10 @@ Then, the OpenCV and YARP should be connected to Matlab.
 You can use 'mexopencv' for this. 
 Here is a well-described manual for the mexopencv setting:
 http://vision.is.tohoku.ac.jp/~kyamagu/software/mexopencv/
+Alternatively, check out the Github page (remember to choose the correct branch depending on your version of OpenCV):
+https://github.com/kyamagu/mexopencv
+Also, add the following line to `~/Documents/MATLAB/startup.m`:
+addpath /path/to/mexopencv
 
 2. Matlab + YARP
 Here are instructions for calling YARP from Matlab:
