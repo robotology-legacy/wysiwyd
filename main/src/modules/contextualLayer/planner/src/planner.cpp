@@ -637,7 +637,7 @@ bool Planner::updateModule() {
             for (int i=0;i<sent.size();i++)
             {
                 if (sent.get(i).asString()=="_obj")
-                    success_sentence = success_sentence +  "object";
+                    success_sentence = success_sentence +  object_list[0];
                 else
                     success_sentence = success_sentence + sent.get(i).asString();
             }
