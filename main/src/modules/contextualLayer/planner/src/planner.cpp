@@ -6,6 +6,8 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("planner")).asString().c_str();
     setName(moduleName.c_str());
 
+    manual = false;
+
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
     
@@ -108,29 +110,33 @@ bool Planner::exit() {
 
 bool Planner::freeze_all()
 {
-    Bottle cmd;
-    // Prepare command
-    cmd.clear();
-    cmd.addString("freeze");
-    cmd.addString("all");
+    if(!manual) {
+        Bottle cmd;
+        // Prepare command
+        cmd.clear();
+        cmd.addString("freeze");
+        cmd.addString("all");
 
-    // Send command
-    toHomeo.write(cmd);
-    yInfo() << "Sent freeze all to homeostasis.";
+        // Send command
+        toHomeo.write(cmd);
+        yInfo() << "Sent freeze all to homeostasis.";
+    }
 
     return true;
 }
 
 bool Planner::unfreeze_all()
 {
-    Bottle cmd;
-    // Prepare command
-    cmd.clear();
-    cmd.addString("unfreeze");
-    cmd.addString("all");
-    // Send command
-    toHomeo.write(cmd);
-    yInfo() << "Sent unfreeze all to homeostasis.";
+    if(!manual) {
+        Bottle cmd;
+        // Prepare command
+        cmd.clear();
+        cmd.addString("unfreeze");
+        cmd.addString("all");
+        // Send command
+        toHomeo.write(cmd);
+        yInfo() << "Sent unfreeze all to homeostasis.";
+    }
 
     return true;
 }
@@ -163,6 +169,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     "actions \n" +
     "listplans \n" +
     "stopfollow \n" +
+    "manual \n"
     "exit \n";
 
     reply.clear();
@@ -179,6 +186,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         yInfo() << "Listing available plans";
         cout << avaiPlansList.toString() << "\n";
         reply.addString("ack");
+        reply.addList().append(avaiPlansList);
     }
     else if (command.get(0).asString() == "stopfollow") {
         fulfill = false;
@@ -205,9 +213,8 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         ncmd.addList()=deet;
         newPlan.push_back(ncmd);
         reply.addString("ack");
-
     }
-        // (To-Do) Check goal not in list
+    // (To-Do) Check goal not in list
     else if (command.get(0).asString() == "exit"){
         yInfo() << "closing module planner...";
         reply.addString("ack");
@@ -244,6 +251,14 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         yInfo() << "fulfill has been changed to true";
         reply.addString("ack");
     }
+    else if (cmd.get(0).asString() == "manual") {
+        if (cmd.get(1).asString() == "on") {
+            manual = true;
+        } else if (cmd.get(1).asString() == "off") {
+            manual = false;
+        }
+        reply.addString("ack");
+    }
     else {
         yInfo() << helpMessage;
         reply.addString("wrong command");
@@ -271,7 +286,6 @@ bool Planner::updateModule() {
                 yInfo() << "plan known.";
                 // assumption is that the action plan is complete enough that at least one set of prerequisites is met
                 bool assumption = false;
-                Bottle bot;
                 Bottle rep;
                 bool state;
 
@@ -560,7 +574,6 @@ bool Planner::updateModule() {
     //Check need to fulfill goals
     if (fulfill)
     {
-        Value val;  //Likely whould be global and not local
         int skip = 0;
 
         if (action_list.size() != 0)
@@ -569,7 +582,6 @@ bool Planner::updateModule() {
             yInfo() << "putting homeostasis on hold.";
             freeze_all();
         }
-
         else
         {
             yDebug() << "no actions in list.";

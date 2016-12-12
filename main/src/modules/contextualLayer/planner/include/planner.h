@@ -33,6 +33,7 @@ private:
     bool ordering;
     bool fulfill;
     bool useABM;
+    bool manual;
     void run(Bottle args=Bottle());
 
 

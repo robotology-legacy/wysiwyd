@@ -456,8 +456,7 @@ bool AllostaticController::respond(const Bottle& cmd, Bottle& reply)
         Bottle bmCmd, bmReply;
         bmCmd.addString("manual");  
         bmCmd.addString(cmd.get(1).asString());  // on or off
-        to_behavior_rpc.write(bmCmd, bmReply);     
-
+        to_behavior_rpc.write(bmCmd, bmReply);
     } else {
         reply.addString("nack");
         reply.addString("Unknown rpc command");
