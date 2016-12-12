@@ -39,6 +39,3 @@ int main(int argc, char *argv[])
     IOL2OPCBridge bridge;
     return bridge.runModule(rf);
 }
-
-
-
