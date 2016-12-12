@@ -301,9 +301,11 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     targetCenter[1] = targetPosY;
 
     if (hasTable)
-        targetCenter[2] = tableHeight + zOffset;
-    else
-        targetCenter[2] += zOffset;
+    {
+        targetCenter[2] = std::max(tableHeight,targetCenter[2]);
+    }
+    targetCenter[2] += zOffset;
+
     yInfo ("object height = %f",targetCenter[2]);
 
     // Choose arm
@@ -343,9 +345,11 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     targetCenter[0] = targetPosXFront;
 
     if (hasTable)
-        targetCenter[2] = tableHeight + zOffset;
-    else
-        targetCenter[2] += zOffset;
+    {
+        targetCenter[2] = std::max(tableHeight,targetCenter[2]);
+    }
+    targetCenter[2] += zOffset;
+
     yInfo ("object height = %f",targetCenter[2]);
 
     // Choose arm
@@ -440,9 +444,11 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
     Vector targetCenter = object;
 
     if (hasTable)
-        targetCenter[2] = tableHeight + zOffset;
-    else
-        targetCenter[2] += zOffset;
+    {
+        targetCenter[2] = std::max(tableHeight,targetCenter[2]);
+    }
+    targetCenter[2] += zOffset;
+
     yInfo ("object height = %f",targetCenter[2]);
 
     // Choose arm
