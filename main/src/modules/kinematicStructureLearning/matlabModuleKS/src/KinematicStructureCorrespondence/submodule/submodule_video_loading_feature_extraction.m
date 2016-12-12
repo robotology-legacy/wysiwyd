@@ -61,8 +61,8 @@ switch videoName
         %-----------------------
         % From YARP
         %-----------------------
-%         wrapper_YARP_ABM_retrieve;
-        wrapper_YARP_ABM_retrieve_jointProjection;
+        wrapper_YARP_ABM_retrieve;
+%        wrapper_YARP_ABM_retrieve_jointProjection;
         
         pause(0.1)
                  

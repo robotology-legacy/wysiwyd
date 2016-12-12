@@ -16,3 +16,7 @@ main/src/modules/perspectiveTaking/build
 main/src/modules/perspectiveTaking/logs
 main/src/modules/perspectiveTaking/devel
 main/src/modules/samRelated/SAM/.idea/
+
+main/src/modules/kinematicStructureLearning/matlabModuleKS/src/KinematicStructureCorrespondence/data/
+main/src/modules/kinematicStructureLearning/matlabModuleKS/src/KinematicStructureCorrespondence/parfor_progress.txt
+
