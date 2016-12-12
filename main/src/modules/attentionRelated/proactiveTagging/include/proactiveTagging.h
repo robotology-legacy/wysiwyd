@@ -58,6 +58,7 @@ private:
     //objectTagging
     yarp::os::Bottle  exploreUnknownEntity(const yarp::os::Bottle &bInput);
     yarp::os::Bottle  searchingEntity(const yarp::os::Bottle &bInput);
+    std::string getBodyPartNameForSpeech(const std::string bodypart);
 
 
     //selfTagging.cpp

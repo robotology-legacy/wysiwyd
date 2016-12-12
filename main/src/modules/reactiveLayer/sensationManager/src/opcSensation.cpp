@@ -123,7 +123,7 @@ Bottle OpcSensation::handleEntities()
             }
         }
 
-        else if (entity->name() == iCub->getPartnerName() && entity->entity_type() == "agent") {
+        else if (entity->name() == iCub->getPartnerName(false) && entity->entity_type() == "agent") {
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
                 unknown_obj = true;
@@ -194,7 +194,7 @@ Bottle OpcSensation::handleEntities()
             addToEntityList(temp_p_entities, entity->entity_type(), entity->name());
         }
         //Add agent right hand to interfere with robot left hand
-        if (entity->name() == iCub->getPartnerName() && entity->entity_type() == "agent") {
+        if (entity->name() == iCub->getPartnerName(false) && entity->entity_type() == "agent") {
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
                 unknown_obj = true;
@@ -206,8 +206,6 @@ Bottle OpcSensation::handleEntities()
                 right_hand.addDouble(dimensions);                       //RADIUS
                 right_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
                 objects.addList()=right_hand;
-
-                addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
         }
     }

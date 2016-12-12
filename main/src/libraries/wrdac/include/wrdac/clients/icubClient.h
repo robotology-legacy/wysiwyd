@@ -493,7 +493,7 @@ namespace wysiwyd{
             * Extract the name of the agent interaction with the iCub (present, not iCub nor 'unnamed' partner)
             * @return string, the name of the agent
             */
-            std::string getPartnerName();
+            std::string getPartnerName(bool verbose = true);
 
             /**
             * Extract the localisation of the bodypart name of the partner

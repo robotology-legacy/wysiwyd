@@ -77,8 +77,6 @@ bool SensationManager::respond(const Bottle& cmd, Bottle& reply)
         reply.addString(help);
     }
     else if (cmd.get(0).asString() == "is") {
-        string entity_name = cmd.get(1).asString();
-
         for (int i = 0; i < sensationList.size(); i++)
         {
             string sensation_name = sensationList.get(i).asString();

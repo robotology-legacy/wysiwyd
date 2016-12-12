@@ -28,7 +28,7 @@ void Ask::run(const Bottle &args) {
 
     iCub->lookAtPartner();
 
-    string aux = "Can you please " + action + " the " + object + " " + direction + " me?";
+    string aux = "Can you please " + action + " the " + object + " " + direction + " the shared area?";
     iCub->say(aux);
     yInfo() << "iCub has requested a " + action + " from the human.";
 

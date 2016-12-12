@@ -92,7 +92,7 @@ public:
         icubclient.opc->checkout();
 
         // agent body + position
-        agentName = icubclient.getPartnerName();
+        agentName = icubclient.getPartnerName(false);
         if (Entity *e=icubclient.opc->getEntity(agentName))
         {
             if (Agent *agent=dynamic_cast<Agent*>(e))

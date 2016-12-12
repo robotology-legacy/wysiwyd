@@ -56,7 +56,7 @@ void MoveObject::run(const Bottle &args) {
     if (succeeded) {
         iCub->lookAtPartner();
     } else {
-        iCub->say(" I could not move the object");
+        iCub->say("I could not move the object");
         yError() << "Karma did not succeed moving the object";
     }
 

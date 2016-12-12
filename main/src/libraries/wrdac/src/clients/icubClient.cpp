@@ -886,7 +886,7 @@ bool ICubClient::look(const string &target, const Bottle &options)
     return false;
 }
 
-std::string ICubClient::getPartnerName()
+std::string ICubClient::getPartnerName(bool verbose)
 {
     string partnerName = "";
     list<shared_ptr<Entity>> lEntities = opc->EntitiesCacheCopy();

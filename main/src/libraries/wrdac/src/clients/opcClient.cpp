@@ -476,7 +476,7 @@ bool OPCClient::removeRelation(
 
     if (index == -1)
     {
-        yWarning() << "This relation do not exist on the OPC server, not removed";
+        yWarning() << "This relation does not exist on the OPC server, not removed";
     }
     else
     {

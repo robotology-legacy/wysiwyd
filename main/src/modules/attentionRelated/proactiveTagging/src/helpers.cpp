@@ -216,3 +216,11 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
 
     yDebug() << "configureOPC done";
 }
+
+std::string proactiveTagging::getBodyPartNameForSpeech(const std::string bodypart) {
+    std::string out = bodypart;
+    if(bodypart == "index" || bodypart == "middle" || bodypart == "ring") {
+        out = out + " finger";
+    }
+    return out;
+}

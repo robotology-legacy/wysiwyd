@@ -582,7 +582,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         sReply = " So this is a " + sName;
     }
     else if (currentEntityType == "bodypart") {
-        sReply = " Nice, I know that I have a " + sName;
+        sReply = " Nice, I know that I have a " + getBodyPartNameForSpeech(sName);
     } else {
         iCub->say("I do not know this entity type");
     }

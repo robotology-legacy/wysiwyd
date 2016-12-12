@@ -385,8 +385,13 @@ bool AllostaticController::updateAllostatic()
     }
 
     // Create relation for the drive
+
+    iCub->opc->addOrRetrieveEntity<Agent>("icub");
+    iCub->opc->addOrRetrieveEntity<Action>("want");
+    iCub->opc->addOrRetrieveEntity<Action>(activeDrive.name);
+
     Relation Rel;
-    Rel.m_subject = "iCub";
+    Rel.m_subject = "icub";
     Rel.m_verb = "want";
     Rel.m_object = activeDrive.name;
 
@@ -430,9 +435,6 @@ bool AllostaticController::updateAllostatic()
         // remove the relation once the drive is fulfilled
         iCub->opc->removeRelation(Rel);
         iCub->opc->commit();
-
-
-
     }
     else {
         yInfo() << "Drive " + activeDrive.name + " is not active";
