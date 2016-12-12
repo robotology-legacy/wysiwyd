@@ -639,13 +639,11 @@ bool Planner::updateModule() {
             }
 
             // check for completed state
-            yDebug() << "checking for completion from SM";
             string planName = plan_list[0];
             Bottle stateOI = *grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "post").asList();
             args.clear();
             args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
             args = args.tail();
-            yDebug() << "args: " << args.toString();
 
             Bottle emptyBottle("()");
             Bottle sent = *grpPlans.check(planName + "-" + to_string(actionPos_list[0]) + "success", emptyBottle.get(0)).asList();
@@ -662,7 +660,7 @@ bool Planner::updateModule() {
             Bottle objectives = *grpPlans.find(planName + "-objectiveState").asList();
 
             // checking for ultimate state fulfillment.
-            int stateCheck = 1;
+            bool stateCheck = true;
             if (objectives.size() != 0)
             {
                 for (int Ob = 0; Ob < objectives.size(); Ob++)
@@ -693,7 +691,6 @@ bool Planner::updateModule() {
 
                     if (attach == "not")
                     {
-                        yDebug() << "not";
                         indiv = !rep.get(1).asBool();
                     }
                     else
@@ -706,7 +703,7 @@ bool Planner::updateModule() {
                 }
             }
 
-            // checking for post condition fulfillment if ultimate state is not
+            // checking for post condition fulfillment if ultimate state is not met
             if (!stateCheck)
             {
                 for (int k = 0; k < stateOI.size(); k++)
@@ -738,7 +735,6 @@ bool Planner::updateModule() {
 
                     if (attach == "not")
                     {
-                        yDebug() << "not";
                         indiv = !rep.get(1).asBool();
                     }
                     else
@@ -754,7 +750,7 @@ bool Planner::updateModule() {
             if (actionCompleted && stateCheck)
             {
                 iCub->say(success_sentence);
-                yInfo() << "removing action " << *action_list.begin();
+                yDebug() << "removing actions";
                 action_list.erase(action_list.begin());
                 priority_list.erase(priority_list.begin());
                 plan_list.erase(plan_list.begin());
@@ -762,6 +758,20 @@ bool Planner::updateModule() {
                 type_list.erase(type_list.begin());
                 actionPos_list.erase(actionPos_list.begin());
                 attemptCnt = 0;
+
+                for (unsigned int extra = 0; extra < actionPos_list.size(); extra++)
+                {
+                    if (actionPos_list[0] != 1)
+                    {
+                        action_list.erase(action_list.begin());
+                        priority_list.erase(priority_list.begin());
+                        plan_list.erase(plan_list.begin());
+                        object_list.erase(object_list.begin());
+                        type_list.erase(type_list.begin());
+                        actionPos_list.erase(actionPos_list.begin());
+                    }
+                    else { break; }
+                }
 
                 yInfo() << "action completed and removed from lists.";
             }
