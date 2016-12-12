@@ -209,7 +209,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     storygraph::VocabularyHandler::initVoc(listStories);
 
 
-    if (rf.find("loadNaives").asInt() == 1){
+    if (rf.find("loadNaives").asInt() == 1 && listStories.size() >5){
         yInfo("Loading naives\n");
         Bottle *bNaives = rf.find("listNaives").asList();
         initializeNaives(*bNaives, rf);
@@ -229,7 +229,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     }
 
-    if (rf.find("initialize").asInt() == 1){
+    if (rf.find("initialize").asInt() == 1 && listStories.size() >5){
         yInfo("initializing meanings");
         yInfo("linking scenarios 2 2");
         yInfo(linkMeaningScenario(2, 0));
@@ -469,7 +469,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     //    yInfo(" using a Discourse Function Words");
     //    reply = useDFW(command);
     //}
-    else if (command.get(0).asString() == "HRI") {
+    else if (command.get(0).asString() == "HRI") {        
+        yInfo(" finding new stories");
+        findStories();
         yInfo(" launching HRI");
         reply = questionHRI_DFW();
     }
@@ -2404,9 +2406,13 @@ string narrativeHandler::lowerKey(string input){
 
 
 void narrativeHandler::loadSM(int iScenario){
-    if (iScenario < 0 || iScenario >= (int)listStories.size()) {
+    if (iScenario < -1 || iScenario >= (int)listStories.size()) {
         yWarning(" in NarrativeGraph::useDFW check instance scenario (out of range, sent to 0");
         iScenario = 0;
+    }
+
+    if (iScenario == -1){
+        iScenario = (int)listStories.size() - 1;
     }
 
     listStories.at(iScenario).displayNarration();

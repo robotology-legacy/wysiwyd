@@ -1,18 +1,18 @@
-#   story: 13/10/2016 14:2:53 (2210)  to 13/10/2016 14:3:30 (2222)
-#   At the beginning, Allan have croco and Allan have mouse and iCub want croco
-#   iCub take the croco
-#   But it failed.
-#   iCub reason
-#   The goal was that: icub have the croco
-#   iCub reason
-#   iCub said to Allan: Give me the croco please
-#   Allan give the mouse iCub
-#   And now, Allan have croco and iCub want croco and iCub have mouse
-#   iCub said to partner: This is not the croco
-#   iCub said to partner: Can you give me the croco
-#   Allan give the croco iCub
-#   And now, iCub have mouse and iCub have croco
-#   In the end, iCub have mouse and iCub have croco
+#  story: 13/10/2016 14:2:53 (2210) to 13/10/2016 14:3:30 (2222)
+#  At the beginning, Allan have croco and Allan have mouse and iCub want croco
+#  iCub take the croco
+#  But it failed.
+#  iCub reason
+#  The goal was that: icub have the croco
+#  iCub reason
+#  iCub said to Allan: Give me the croco please
+#  Allan give the mouse iCub
+#  And now, Allan have croco and iCub want croco and iCub have mouse
+#  iCub said to partner: This is not the croco
+#  iCub said to partner: Can you give me the croco
+#  Allan give the croco iCub
+#  And now, iCub have mouse and iCub have croco
+#  In the end, iCub have mouse and iCub have croco
 
 # FIRST
 first, have Allan croco, P1 P2 A2 O2
@@ -55,10 +55,9 @@ after, give Allan mouse iCub, have iCub mouse, P1 P2 A2 O2 P3 A3 O3 R3
 
 # BECAUSE
 because, want iCub croco, have iCub croco, P1 P2 A2 O2 P3 A3 O3
-because, give Allan mouse iCub, have iCub mouse, P1 P2 A2 O2 R2 P3 A3 O3
+because, give Allan mouse iCub, have iCub mouse, P1 P2 A2 O2 R2 P3 A3 O3 
 because, say iCub Give_me_the_croco_please Allan, give Allan mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-
 
 # FINALLY
 finally, have iCub croco, P1 P2 A2 O2
-finally, have iCub mouse, P1 P2 A2 O2
+#finally, have iCub mouse, P1 P2 A2 O2

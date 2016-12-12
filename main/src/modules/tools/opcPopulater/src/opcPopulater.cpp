@@ -1439,21 +1439,6 @@ bool opcPopulater::populateScenario1()
     string sentence;
     sentence = "Give me the " + sObject;
     sentence += " please";
-    lArgument.push_back(pair<string, string>(sentence, "sentence"));
-    lArgument.push_back(pair<string, string>("give", "predicate"));
-    lArgument.push_back(pair<string, string>(sAgent, "agent"));
-    lArgument.push_back(pair<string, string>(sObject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
-    lArgument.push_back(pair<string, string>("none", "subject"));
-    lArgument.push_back(pair<string, string>(sAgent, "addressee"));
-    iCub->say("Can you give me the " + sObject + " please", false);
-    Time::delay(1.0);
-    iCub->getABMClient()->sendActivity("action",
-        "sentence",
-        "recog",
-        lArgument,
-        true);
 
     iCub->say(sentence);
 
@@ -1649,38 +1634,13 @@ bool opcPopulater::populateScenario2(){
     list<pair<string, string> > lArgument;
     string sentence;
     sentence = sRobert + " can you remove the box please?";
-    lArgument.push_back(pair<string, string>(sentence, "sentence"));
-    lArgument.push_back(pair<string, string>("remove", "predicate"));
-    lArgument.push_back(pair<string, string>(sRobert, "agent"));
-    lArgument.push_back(pair<string, string>(sBox, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
-    lArgument.push_back(pair<string, string>("none", "subject"));
-    lArgument.push_back(pair<string, string>(sRobert, "addressee"));
-    iCub->getABMClient()->sendActivity("action",
-        "sentence",
-        "recog",
-        lArgument,
-        true);
 
     Time::delay(1.);
     iCub->say(sentence);
 
     lArgument.clear();
     sentence = "Then " + sLarry + " can you give me the " + sObject + " please";
-    lArgument.push_back(pair<string, string>(sentence, "sentence"));
-    lArgument.push_back(pair<string, string>("give", "predicate"));
-    lArgument.push_back(pair<string, string>(sLarry, "agent"));
-    lArgument.push_back(pair<string, string>(sObject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
-    lArgument.push_back(pair<string, string>("none", "subject"));
-    lArgument.push_back(pair<string, string>(sLarry, "addressee"));
-    iCub->getABMClient()->sendActivity("action",
-        "sentence",
-        "recog",
-        lArgument,
-        true);
+
     Time::delay(1.);
     iCub->say(sentence);
 
@@ -1863,20 +1823,6 @@ bool opcPopulater::populateScenario3(){
     string sentence;
     sentence = "Can you remove the box please?";
     iCub->say(sentence);
-    lArgument.push_back(pair<string, string>(sentence, "sentence"));
-    lArgument.push_back(pair<string, string>("remove", "predicate"));
-    lArgument.push_back(pair<string, string>(sAgent, "agent"));
-    lArgument.push_back(pair<string, string>(sBox, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
-    lArgument.push_back(pair<string, string>("none", "subject"));
-    lArgument.push_back(pair<string, string>(sAgent, "addressee"));
-    iCub->getABMClient()->sendActivity("action",
-        "sentence",
-        "recog",
-        lArgument,
-        true);
-
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" Interlocutor gives the ObjError");
@@ -2215,20 +2161,6 @@ bool opcPopulater::populateScenario5(){
     string sentence;
     sentence = "Give me the " + sObject + " please";
     iCub->say(sentence, false);
-    lArgument.push_back(pair<string, string>(sentence, "sentence"));
-    lArgument.push_back(pair<string, string>("give", "predicate"));
-    lArgument.push_back(pair<string, string>(sAgent, "agent"));
-    lArgument.push_back(pair<string, string>(sObject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
-    lArgument.push_back(pair<string, string>("none", "subject"));
-    lArgument.push_back(pair<string, string>(sAgent, "addressee"));
-    iCub->getABMClient()->sendActivity("action",
-        "sentence",
-        "recog",
-        lArgument,
-        true);
-
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" Interlocutor gives the ObjError");
@@ -2385,20 +2317,6 @@ bool opcPopulater::populateScenario6(){
     string sentence;
     sentence = "Can you remove the box please " + sRobert + " ?";
     iCub->say(sentence);
-    lArgument.push_back(pair<string, string>(sentence, "sentence"));
-    lArgument.push_back(pair<string, string>("remove", "predicate"));
-    lArgument.push_back(pair<string, string>(sRobert, "agent"));
-    lArgument.push_back(pair<string, string>(sBox, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
-    lArgument.push_back(pair<string, string>("none", "subject"));
-    lArgument.push_back(pair<string, string>(sRobert, "addressee"));
-    iCub->getABMClient()->sendActivity("action",
-        "sentence",
-        "recog",
-        lArgument,
-        true);
-
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" Interlocutor gives the ObjError");
@@ -2526,20 +2444,6 @@ bool opcPopulater::populateScenario6(){
     lArgument.clear();
     sentence = "Give me the " + sObject + " please " + sLarry;
     iCub->say(sentence);
-    lArgument.push_back(pair<string, string>(sentence, "sentence"));
-    lArgument.push_back(pair<string, string>("give", "predicate"));
-    lArgument.push_back(pair<string, string>(sLarry, "agent"));
-    lArgument.push_back(pair<string, string>(sObject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
-    lArgument.push_back(pair<string, string>("none", "subject"));
-    lArgument.push_back(pair<string, string>(sLarry, "addressee"));
-    iCub->getABMClient()->sendActivity("action",
-        "sentence",
-        "recog",
-        lArgument,
-        true);
-
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" Interlocutor gives the ObjError");

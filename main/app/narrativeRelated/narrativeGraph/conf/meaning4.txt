@@ -1,12 +1,12 @@
-#   At the beginning, box cover rabbit and iCub want rabbit
-#   iCub take the rabbit
-#   But it failed.
-#   iCub said to Sam: Can you remove the box please?
-#   Sam remove the box
-#   And now, iCub want rabbit
-#   iCub take the rabbit
-#   And now, iCub have rabbit
-#   In the end, iCub have rabbit
+#  At the beginning, box cover rabbit and iCub want rabbit
+#  iCub take the rabbit
+#  But it failed.
+#  iCub said to Sam: Can you remove the box please?
+#  Sam remove the box
+#  And now, iCub want rabbit
+#  iCub take the rabbit
+#  And now, iCub have rabbit
+#  In the end, iCub have rabbit
 
 # FIRST
 first, want iCub rabbit, P1 P2 A2 O2
@@ -32,7 +32,7 @@ and, say iCub Can_you_remove_the_box_please? Sam, remove Sam box, P1 P2 A2 O2 R2
 and, take iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 
 # BEFORE
-#before, take iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+before, take iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
 before, take iCub rabbit, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 before, have iCub rabbit, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 before, have iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
@@ -40,9 +40,9 @@ before, remove Sam box, want iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 before, remove Sam box, say iCub Can_you_remove_the_box_please? rabbit, P1 P2 A2 O2 P3 A3 O3 R3
 
 # AFTER
-#after, take iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
+after, take iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
 after, want iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
-#after, remove Sam box, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+after, remove Sam box, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 after, remove Sam box, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 after, take iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 after, want iCub rabbit, remove Sam box, P1 P2 A2 O2 P3 A3 O3
@@ -54,11 +54,10 @@ but, take iCub rabbit, cover box rabbit, P1 P2 A2 O2 P3 A3 O3
 but, take iCub rabbit, fail iCub take, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
-#because, remove Sam box, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
-because,  want iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
-because,  want iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
-because,  take iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
-
+because, remove Sam box, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+because, want iCub rabbit, take iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+because, want iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
+because, take iCub rabbit, have iCub rabbit, P1 P2 A2 O2 P3 A3 O3
 
 #FINALLY
 finally, have iCub rabbit, P1 P2 A2 O2

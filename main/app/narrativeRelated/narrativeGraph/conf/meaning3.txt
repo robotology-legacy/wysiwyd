@@ -1,16 +1,16 @@
-#   story: 13/10/2016 14:4:5 (2223)  to 13/10/2016 14:4:31 (2230)
-#   At the beginning, box cover mug and iCub want mug
-#   iCub take the mug
-#   But it failed.
-#   iCub said to Anne-Laure: Anne-Laure can you remove the box please?
-#   iCub said to Peter: Then Peter can you give me the mug please
-#   Anne-Laure remove the box
-#   And now, iCub want mug and Peter have mug
-#   Peter give the mug iCub
-#   And now, iCub have mug
-#   In the end, iCub have mug
-#
-#
+#  story: 13/10/2016 14:4:5 (2223) to 13/10/2016 14:4:31 (2230)
+#  At the beginning, box cover mug and iCub want mug
+#  iCub take the mug
+#  But it failed.
+#  iCub said to Carol: Carol can you remove the box please?
+#  iCub said to Peter: Then Peter can you give me the mug please
+#  Carol remove the box
+#  And now, iCub want mug and Peter have mug
+#  Peter give the mug iCub
+#  And now, iCub have mug
+#  In the end, iCub have mug
+
+
 # FIRST
 first, cover box mug, P1 P2 A2 O2
 first, want iCub mug, P1 P2 A2 O2
@@ -23,8 +23,8 @@ but, take iCub mug, fail iCub take, P1 P2 A2 O2 P3 A3 O3
 
 # SO
 so, take iCub mug, P1 P2 A2 O2
-so, say iCub can_you_remove_the_box_please? Anne-Laure, P1 P2 A2 O2 R2
-so, remove Anne-Laure box, P1 P2 A2 O2
+so, say iCub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
+so, remove Carol box, P1 P2 A2 O2
 so, say iCub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2
 so, give Peter mug iCub, P1 P2 A2 O2 R2
 so, have iCub mug, P1 P2 A2 O2
@@ -33,44 +33,43 @@ so, have Peter mug, P1 P2 A2 O2
 # THEN
 then, take iCub mug, P1 P2 A2 O2
 then, give Peter mug iCub, P1 P2 A2 O2 R2
-then, say iCub can_you_remove_the_box_please? Anne-Laure, P1 P2 A2 O2 R2
-then, remove Anne-Laure box, P1 P2 A2 O2
+then, say iCub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
+then, remove Carol box, P1 P2 A2 O2
 then, say iCub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2
 then, give Peter mug iCub, P1 P2 A2 O2 R2
 then, have iCub mug, P1 P2 A2 O2
 
 # AND
 and, cover box mug, want iCub mug, P1 P2 A2 O2 P3 A3 O3
-and, say iCub can_you_remove_the_box_please? Anne-Laure, P1 P2 A2 O2 R2
+and, say iCub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
 and, say iCub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2
-and, say iCub can_you_remove_the_box_please? Anne-Laure, say iCub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2 P3 A3 O3 R3
-and, say iCub can_you_remove_the_box_please? Anne-Laure, remove Anne-Laure box, P1 P2 A2 O2 R2 P3 A3 O3
+and, say iCub can_you_remove_the_box_please? Carol, say iCub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, say iCub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
 and, say iCub can_you_give_me_the_mug_please Peter, give Peter mug iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # AFTER
-after, say iCub can_you_remove_the_box_please? Anne-Laure, remove Anne-Laure box, P1 P2 A2 O2 R2 P3 A3 O3
+after, say iCub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
 after, say iCub can_you_give_me_the_mug_please Peter, give Peter mug iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-after, remove Anne-Laure box, give Peter mug iCub, P1 P2 A2 O2 P3 A3 O3 R3
-after, remove Anne-Laure box, have Peter mug, P1 P2 A2 O2 P3 A3 O3
+after, remove Carol box, give Peter mug iCub, P1 P2 A2 O2 P3 A3 O3 R3
+after, remove Carol box, have Peter mug, P1 P2 A2 O2 P3 A3 O3
 after, take iCub mug, give Peter mug iCub, P1 P2 A2 O2 P3 A3 O3 R3
-after, take iCub mug, remove Anne-Laure box, P1 P2 A2 O2 P3 A3 O3
+after, take iCub mug, remove Carol box, P1 P2 A2 O2 P3 A3 O3
 
 # BEFORE
-before, remove Anne-Laure box, say iCub can_you_remove_the_box_please? Anne-Laure, P1 P2 A2 O2 P3 A3 O3 R3
+before, remove Carol box, say iCub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 P3 A3 O3 R3
 before, give Peter mug iCub, say iCub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2 P3 A3 O3 R3
-before, give Peter mug iCub, remove Anne-Laure box, P1 P2 A2 O2 R2 P3 A3 O3
-before, have Peter mug, remove Anne-Laure box, P1 P2 A2 O2 P3 A3 O3
+before, give Peter mug iCub, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
+before, have Peter mug, remove Carol box, P1 P2 A2 O2 P3 A3 O3
 before, give Peter mug iCub, take iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
-before, remove Anne-Laure box, take iCub mug, P1 P2 A2 O2 P3 A3 O3
+before, remove Carol box, take iCub mug, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
 because, say iCub Give_me_the_mug_please Peter, give Peter mug iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-because, say iCub can_you_remove_the_box_please? Anne-Laure, remove Anne-Laure box, P1 P2 A2 O2 R2 P3 A3 O3
-because, remove Anne-Laure box, have Peter mug, P1 P2 A2 O2 P3 A3 O3
+because, say iCub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
+because, remove Carol box, have Peter mug, P1 P2 A2 O2 P3 A3 O3
 because, give Peter mug iCub, have iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
-because, say iCub can_you_remove_the_box_please? Anne-Laure, have iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
+because, say iCub can_you_remove_the_box_please? Carol, have iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
 because, say iCub Give_me_the_mug_please Peter, have iCub mug, P1 P2 A2 O2 R2 P3 A3 O3
-
 
 # FINALLY
 finally, have iCub mug, P1 P2 A2 O2
