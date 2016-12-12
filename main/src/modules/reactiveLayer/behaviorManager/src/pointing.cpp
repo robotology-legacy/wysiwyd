@@ -16,13 +16,13 @@ void Pointing::run(const Bottle &args) {
 
     string obj_name, sentence;
     bool no_objects = true;
-    if (args.size()!=0){
+    if (args.size()!=0) {
         yDebug()<<args.toString() << args.size();
         obj_name = args.get(0).asList()->get(0).asString();
         yDebug() << "Object selected: " << obj_name;
         sentence = "Okay, this is the ";
         no_objects=false;
-    }else{
+    } else {
         if(sensation->size()==0) {
             iCub->say("There are no objects I can point at.");
             return;
@@ -32,7 +32,7 @@ void Pointing::run(const Bottle &args) {
         yDebug() << "Randomly selected: " << id << " " << obj_name;
         sentence = "I could point to the ";
     }
-    
+
     iCub->opc->checkout();
     yDebug() << "[pointing]: opc checkout";
     iCub->lookAtPartner();
@@ -48,9 +48,8 @@ void Pointing::run(const Bottle &args) {
             iCub->lookAtPartner();
             iCub->say("Do you know that this is a " + obj_name, false);
         } else {
-            iCub->say(" I couldn't find the " + obj_name);
+            iCub->say("I couldn't find the " + obj_name, false);
         }
     }
     iCub->home();
-
 }

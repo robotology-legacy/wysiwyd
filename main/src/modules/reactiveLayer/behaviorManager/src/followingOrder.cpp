@@ -33,7 +33,6 @@ void FollowingOrder::configure() {
 }
 
 void FollowingOrder::run(const Bottle &args) {
-
     yInfo() << "FollowingOrder::run";
     yDebug()<< args.toString();
     if (!Network::isConnected(port_to_homeo_name,homeoPort)){
@@ -61,9 +60,9 @@ void FollowingOrder::run(const Bottle &args) {
     if (sens->size()>1)
         target = sens->get(2).asString();
 
-    yDebug() << action;
-    yDebug() << type;
-    yInfo() << target;
+    yDebug() << "Action:" << action;
+    yDebug() << "Type:" << type;
+    yDebug() << "Target:" << target;
 
     if ( target != "none" && type != "bodypart" && type != "kinematic structure" && type != "kinematic structure correspondence"){           //we dont have searchEntity for bodypart
         bool verboseSearch=true;
@@ -79,7 +78,7 @@ void FollowingOrder::run(const Bottle &args) {
         // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         if (sens->size()<2){
             iCub->say("I can't " + action + "if you don't tell me the object");
-        } else{
+        } else {
             handleAction(type, target, action);
         }
     } else if (action == "move" && type == "bodypart") { //FollowingOrder implying bodypart
@@ -90,7 +89,7 @@ void FollowingOrder::run(const Bottle &args) {
         }
     } else if (action == "narrate") {
         handleNarrate();
-    }  else if (action == "show" && (type == "kinematic structure" || type == "kinematic structure correspondence")){
+    }  else if (action == "show" && (type == "kinematic structure" || type == "kinematic structure correspondence")) {
         handleActionKS(action, type);
     } else if (action == "end") {
         handleEnd();
@@ -113,8 +112,11 @@ void FollowingOrder::run(const Bottle &args) {
 bool FollowingOrder::handleNarrate(){
     string port_narrate = "/narrativeHandler/rpc";
     
-    if (!yarp::os::Network::isConnected(port_to_narrate_name, port_narrate))
-        yarp::os::Network::connect(port_to_narrate_name, port_narrate);
+    if (!yarp::os::Network::isConnected(port_to_narrate_name, port_narrate)) {
+        if(!yarp::os::Network::connect(port_to_narrate_name, port_narrate)) {
+            yWarning() << "Could not connect to narrate";
+        }
+    }
 
     yInfo() << "Narrate::run";
     Bottle cmd, rply;
@@ -136,11 +138,9 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
     yInfo() << " [handleAction]: opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
-    for (auto& entity : lEntities)
-    {
+    for (auto& entity : lEntities) {
         if (entity->name() == target) {
-            if (entity->entity_type() == "object")
-            {
+            if (entity->entity_type() == "object") {
                 Object* o = dynamic_cast<Object*>(entity);
                 if(o && o->m_present==1.0) {
                     yInfo() << "I'd like to" << action << "the" << target;
@@ -151,7 +151,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
                     } else if(action == "look at") {
                         iCub->say("oh! look at the " + target + ".", false);
                         iCub->look(target);
-                        yarp::os::Time::delay(2.0);
+                        yarp::os::Time::delay(1.5);
                     } else if(action == "push") {
                         iCub->say("oh! look how I pushed the " + target + ".", false);
                         iCub->push(target);
@@ -255,7 +255,6 @@ bool FollowingOrder::handleActionBP(string type, string target, string action) {
                     iCub->babbling(joint, babblingArm, babbling_duration);
                 }
 
-                yarp::os::Time::delay(1.0);
                 iCub->home();
 
                 return true;

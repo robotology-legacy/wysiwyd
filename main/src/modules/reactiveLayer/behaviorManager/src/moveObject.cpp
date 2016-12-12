@@ -13,9 +13,6 @@ void MoveObject::configure() {
 
 void MoveObject::run(const Bottle &args) {
     yInfo() << "MoveObject::run";
-    iCub->home(); //To make sure that it can see the objects
-
-    iCub->opc->checkout();
 
     bool succeeded;
     string obj_name, move_type;
@@ -29,10 +26,15 @@ void MoveObject::run(const Bottle &args) {
     }
     yInfo() << "received context from planner:" << move_type << "and" << obj_name;
 
+    iCub->opc->checkout();
+
     Bottle options;
     options.addString("fixate");
     options.addString("wait");
     iCub->look(obj_name,options); // to have a better estimate of where to move the object to
+
+    iCub->opc->checkout();
+
     if(move_type == "front") {
         iCub->say("I will push the " + obj_name + " to the front");
         succeeded = iCub->pushKarmaFront(obj_name, target_pushfront);

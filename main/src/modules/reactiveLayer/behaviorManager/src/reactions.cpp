@@ -24,5 +24,4 @@ void Reactions::run(const Bottle &args) {
     Time::delay(1.0);    
 
     yInfo() << "Reactions::run ends";
-
 }

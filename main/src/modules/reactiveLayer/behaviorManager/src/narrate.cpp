@@ -18,9 +18,6 @@ void Narrate::run(const Bottle &args) {
     cmd.clear();
     cmd.addString("HRI");
     yInfo() << "Proactively narrating...";
-
-
     
     rpc_out_port.write(cmd, rply);
-
 }
