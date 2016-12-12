@@ -133,21 +133,25 @@ def test():
 
 def manual_mode():
     # Prepare command
-    cmd = yarp.Bottle()
-    cmd.clear()
-    cmd.addString('manual')
-    cmd.addString('on')
+    cmd_allo = yarp.Bottle()
+    cmd_allo.clear()
+    cmd_allo.addString('manual')
+    cmd_allo.addString('on')
     # Send command to allostatic controller
     if not yarp.Network.isConnected(alloPortName,alloRPC):
         print yarp.Network.connect(alloPortName,alloRPC)
         yarp.Time.delay(0.1)
-    toAllo.write(cmd)
+    toAllo.write(cmd_allo)
 
     # Send command to planner
+    cmd_planner = yarp.Bottle()
+    cmd_planner.clear()
+    cmd_planner.addString('manual')
+    cmd_planner.addString('on')
     if not yarp.Network.isConnected(plannerPortName,plannerRPC):
         print yarp.Network.connect(plannerPortName,plannerRPC)
         yarp.Time.delay(0.1)
-    toPlanner.write(cmd)
+    toPlanner.write(cmd_planner)
 
     yarp.Time.delay(0.1)
     freeze_all()

@@ -174,6 +174,8 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
 
     reply.clear();
 
+    yDebug() << "Command received: " << command.toString();
+
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         yInfo() << "quitting";
@@ -257,6 +259,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         } else if (command.get(1).asString() == "off") {
             manual = false;
         }
+        yDebug() << "Now manual mode is " << manual;
         reply.addString("ack");
     }
     else {

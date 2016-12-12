@@ -325,7 +325,6 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
             }
         }
         reply.addString("ack");
-
     }
     else if (cmd.get(0).asString()=="sleep")
     {
