@@ -874,7 +874,7 @@ bool ICubClient::look(const string &target, const Bottle &options)
 
     if (SubSystem_ARE *are = getARE())
     {
-        if (Object *oTarget = dynamic_cast<Object*>(opc->getEntity(target)))
+        if (Object *oTarget = dynamic_cast<Object*>(opc->getEntity(target, true)))
             if (oTarget->m_present==1.0)
                 return are->look(oTarget->m_ego_position, options, oTarget->name());
 
@@ -921,7 +921,7 @@ yarp::sig::Vector ICubClient::getPartnerBodypartLoc(std::string sBodypartName){
     }
 
 
-    if (Agent *oPartner = dynamic_cast<Agent*>(opc->getEntity(partnerName))){
+    if (Agent *oPartner = dynamic_cast<Agent*>(opc->getEntity(partnerName, true))){
         if (oPartner->m_present==1.0){
             if(oPartner->m_body.m_parts.find(sBodypartName) != oPartner->m_body.m_parts.end()){
                 vLoc = oPartner->m_body.m_parts[sBodypartName];
