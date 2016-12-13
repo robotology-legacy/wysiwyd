@@ -39,3 +39,12 @@ if(WYSIWYD_BUILD_IOL2OPC)
    set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER systemVisual)
    install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 endif()
+
+add_custom_target(reachable_area_build ALL)
+add_custom_command(TARGET reachable_area_build POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/reachableArea.py ${CMAKE_BINARY_DIR}/bin
+                   COMMENT "Copying reachableArea.py to ${CMAKE_BINARY_DIR}/bin")
+
+install(PROGRAMS "./reachableArea.py" DESTINATION bin PERMISSIONS WORLD_READ WORLD_WRITE WORLD_EXECUTE OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE)
+yarp_install(PROGRAMS "./reachableArea.py" DESTINATION bin PERMISSIONS WORLD_READ WORLD_WRITE WORLD_EXECUTE OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE)
+
