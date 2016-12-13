@@ -38,6 +38,7 @@ private:
     bool addNewDrive(string driveName, yarp::os::Bottle& grpHomeostatic);
     bool addNewDrive(string driveName);
     bool removeDrive(int d);
+    bool verbose;
 
 public:
 
