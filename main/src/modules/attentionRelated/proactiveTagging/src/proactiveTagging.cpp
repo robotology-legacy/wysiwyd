@@ -603,7 +603,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     }
 
     yInfo() << sReply;
-    iCub->say(sReply);
+    iCub->say(sReply, false);
 
     iCub->home();
 
