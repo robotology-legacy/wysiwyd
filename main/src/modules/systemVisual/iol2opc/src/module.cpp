@@ -37,7 +37,7 @@ void IOL2OPCBridge::yInfoGated(const char *msg, ...) const
         vsnprintf(buf,sizeof(buf),msg,arg);
         va_end(arg);
 
-        yInfo(buf);
+        yInfo("%s",buf);
     }
 }
 
