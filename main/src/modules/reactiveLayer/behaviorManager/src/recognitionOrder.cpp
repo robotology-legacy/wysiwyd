@@ -38,17 +38,15 @@ void RecognitionOrder::run(const Bottle &args) {
 
     yDebug() << "send rpc to SAM";
     //Bottle *order = sensation_port_in.read();
-    Bottle order;
-    order.addString("action");
-    string id = order.get(0).asString();
-    string toSay;
     
     Bottle cmd;
     Bottle rply;
     cmd.clear();
-    cmd.addString("ask_"+id+"_label");
+    cmd.addString("ask_action_label");
     yInfo() << "Recognising...";
     
+    string toSay;
+
     rpc_out_port.write(cmd, rply);
 
     if(rply.get(0).asString() == "ack")
