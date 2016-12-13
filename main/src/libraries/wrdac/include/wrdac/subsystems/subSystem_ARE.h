@@ -51,7 +51,8 @@ namespace wysiwyd {
             SubSystem_Attention* SubATT;
             bool ATTconnected;
 
-            yarp::os::RpcClient cmdPort;
+            yarp::os::BufferedPort<yarp::os::Bottle> cmdPortNoReply;
+            yarp::os::RpcClient cmdPort;            
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
             yarp::os::RpcClient calibPort;

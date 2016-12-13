@@ -93,7 +93,9 @@ bool wysiwyd::wrdac::SubSystem_ARE::sendCmdNoReply(yarp::os::Bottle &cmd)
             SubATT->stop();
     }
 
-    return cmdPort.write(const_cast<yarp::os::Bottle&>(cmd));
+    cmdPortNoReply.prepare()=cmd;
+    cmdPortNoReply.writeStrict();
+    return true;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::connect()
@@ -111,6 +113,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::connect()
         yDebug()<<"ARE didn't connect to Attention";
 
     bool ret=true;
+    ret&=yarp::os::Network::connect(cmdPortNoReply.getName(),"/actionsRenderingEngine/cmd:io");
     ret&=yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
     ret&=yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
     ret&=yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
@@ -128,6 +131,7 @@ wysiwyd::wrdac::SubSystem_ARE::SubSystem_ARE(const std::string &masterName) : Su
     SubABM = new SubSystem_ABM(m_masterName+"/from_ARE");
     SubATT = new SubSystem_Attention(m_masterName+"/from_ARE");
 
+    cmdPortNoReply.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:o").c_str());
     cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
     rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/rpc").c_str());
     getPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/get:io").c_str());
@@ -138,6 +142,7 @@ wysiwyd::wrdac::SubSystem_ARE::SubSystem_ARE(const std::string &masterName) : Su
 
 void wysiwyd::wrdac::SubSystem_ARE::Close()
 {
+    cmdPortNoReply.interrupt();
     cmdPort.interrupt();
     rpcPort.interrupt();
     getPort.interrupt();
@@ -146,6 +151,7 @@ void wysiwyd::wrdac::SubSystem_ARE::Close()
     SubABM->Close();
     SubATT->Close();
 
+    cmdPortNoReply.close();
     cmdPort.close();
     rpcPort.close();
     getPort.close();
