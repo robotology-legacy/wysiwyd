@@ -56,7 +56,7 @@ void wysiwyd::wrdac::SubSystem_ARE::selectHandCorrectTarget(yarp::os::Bottle &op
     lastlyUsedHand=hand;
 }
 
-bool wysiwyd::wrdac::SubSystem_ARE::sendCmd(yarp::os::Bottle &cmd, const bool disableATT)
+bool wysiwyd::wrdac::SubSystem_ARE::sendCmd(const yarp::os::Bottle &cmd, const bool disableATT)
 {
     bool ret=false;
 
@@ -69,7 +69,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::sendCmd(yarp::os::Bottle &cmd, const bool di
     }
 
     yarp::os::Bottle bReply;
-    if (cmdPort.write(cmd,bReply))
+    if (cmdPort.write(const_cast<yarp::os::Bottle&>(cmd),bReply))
         ret=(bReply.get(0).asVocab()==yarp::os::Vocab::encode("ack"));
 
     if (ATTconnected && disableATT)
@@ -81,6 +81,19 @@ bool wysiwyd::wrdac::SubSystem_ARE::sendCmd(yarp::os::Bottle &cmd, const bool di
     }
 
     return ret;
+}
+
+bool wysiwyd::wrdac::SubSystem_ARE::sendCmdNoReply(yarp::os::Bottle &cmd)
+{
+    if (ATTconnected)
+    {
+        std::string status;
+        SubATT->getStatus(status);
+        if (status!="quiet")
+            SubATT->stop();
+    }
+
+    return cmdPort.write(const_cast<yarp::os::Bottle&>(cmd));
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::connect()
@@ -169,13 +182,13 @@ yarp::sig::Vector wysiwyd::wrdac::SubSystem_ARE::applySafetyMargins(const yarp::
     return out;
 }
 
-bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part)
+bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part, const bool wait)
 {
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("home"));
     bCmd.addString(part.c_str());
     // send the result of recognition to the ABM
-    if (ABMconnected)
+    if (wait && ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
         lArgument.push_back(std::pair<std::string, std::string>(part, "argument"));
@@ -183,7 +196,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part)
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "home", "action", lArgument, true);
     }
-    bool bReturn = sendCmd(bCmd,true);
+    bool bReturn = (wait ? sendCmd(bCmd,true) : sendCmdNoReply(bCmd));
     std::string status;
     bReturn ? status = "success" : status = "failed";
     if (ABMconnected)
@@ -193,7 +206,10 @@ bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part)
         lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
         lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
-        SubABM->sendActivity("action", "home", "action", lArgument, false);
+        if (wait)
+            SubABM->sendActivity("action","home","action",lArgument,false);
+        else
+            SubABM->sendActivity("action-home","home","action-home",lArgument,false);
     }
 
     return bReturn;

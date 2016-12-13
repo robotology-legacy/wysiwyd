@@ -66,7 +66,10 @@ namespace wysiwyd {
                                          const std::string handToUse="");
 
             /********************************************************************************/
-            bool sendCmd(yarp::os::Bottle &cmd, const bool disableATT=false);
+            bool sendCmd(const yarp::os::Bottle &cmd, const bool disableATT=false);
+
+            /********************************************************************************/
+            bool sendCmdNoReply(yarp::os::Bottle &cmd);
 
             /********************************************************************************/
             bool connect();
@@ -93,10 +96,11 @@ namespace wysiwyd {
             * Put the specified part ih home position.
             * @param part the part to be homed ("gaze", "head", "arms",
             *             "fingers", "all"; "all" by default).
+            * @param wait if true it makes the call blocking.
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool home(const std::string &part = "all");
+            bool home(const std::string &part = "all", const bool wait=false);
 
             /**
             * Reach the specified [target] and grasp it. Optional parameter
