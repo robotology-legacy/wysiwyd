@@ -303,10 +303,23 @@ bool Planner::updateModule() {
             // iterating through each new goal
             int priority;
             Bottle command = newPlan[it];
-            bool knownPlan = checkKnown(command, avaiPlansList);
-            string planName = command.get(1).asList()->get(0).asString();
-            string objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
-            string object = command.get(1).asList()->get(2).asList()->get(1).asString();
+            if (command.isNull())
+            {
+                yError() << "bottle command is empty, newPlan: ";
+                for (vector<bottle>::const_iterator i = newPlan.begin(); i != newPlan.end(); ++i)
+                {
+                    cout << *i << '\n';
+                }
+                knownPlan = false;
+                newPlan.erase(newPlan.begin());
+            }
+            else
+            {
+                bool knownPlan = checkKnown(command, avaiPlansList);
+                string planName = command.get(1).asList()->get(0).asString();
+                string objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+                string object = command.get(1).asList()->get(2).asList()->get(1).asString();
+            }
 
             if (knownPlan)
             {
@@ -359,6 +372,7 @@ bool Planner::updateModule() {
                 {
                     // string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
                     Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(ii)).asList();
+                    if (fullAction.isNull()) { yError() << "fullAction is empty"; }
                     string actionName = fullAction->get(0).asString();
                     Bottle args = fullAction->tail();
 
@@ -374,6 +388,7 @@ bool Planner::updateModule() {
                         for (int k = 0; k < preconds.size(); k++)
                         {
                             Bottle* msg = preconds.get(k).asList()->get(1).asList();
+                            if (msg.isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(k).asString(); }
                             // format message to sensationsManager
                             for (int i = 0; i < msg->size(); i++)
                             {
@@ -392,6 +407,7 @@ bool Planner::updateModule() {
                             bool indiv;
                             bool negate;
                             string attach = preconds.get(k).asList()->get(0).toString();
+                            if (attach.empty()) { yError() << "attach is empty"; }
                             if (attach == "not")
                             {
                                 yDebug() << "not";
@@ -699,6 +715,7 @@ bool Planner::updateModule() {
                     Bottle rep;
 
                     Bottle* msg = objectives.get(Ob).asList()->get(1).asList();
+                    if (msg.isNull()) { yError() << "bottle msg is empty, objectives was " << objectives.get(Ob).asString(); }
                     for (int i = 0; i < msg->size(); i++)
                     {
                         string aux = msg->get(i).asString();
@@ -741,6 +758,7 @@ bool Planner::updateModule() {
                     Bottle rep;
 
                     Bottle* msg = stateOI.get(k).asList()->get(1).asList();
+                    if (msg.isNull()) { yError() << "bottle msg is empty, contents of stateOI is " << stateOI.get(k).asString(); }
                     for (int i = 0; i < msg->size(); i++)
                     {
                         string aux = msg->get(i).asString();
