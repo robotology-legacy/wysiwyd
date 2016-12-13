@@ -24,7 +24,7 @@ private:
     std::string behavior_name;
 
 public:
-   bool configure(yarp::os::ResourceFinder &rf);
+    bool configure(yarp::os::ResourceFinder &rf);
 
     bool interruptModule();
 
