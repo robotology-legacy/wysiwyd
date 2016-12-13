@@ -177,12 +177,6 @@ Bottle OpcSensation::handleEntities()
                 addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
                 iCub->opc->commit(obj1);
             }
-            if (entity->entity_type() == "agent") {  // Known entities
-                if (dynamic_cast<Agent*>(entity)->m_present == 1.0)
-                {
-                    agentPresent = true;
-                }
-            }
         }
         if (dynamic_cast<Object*>(entity) && dynamic_cast<Object*>(entity)->m_present == 1.0)
         {
@@ -191,6 +185,7 @@ Bottle OpcSensation::handleEntities()
         //Add agent right hand to interfere with robot left hand
         if (entity->name() == iCub->getPartnerName(false) && entity->entity_type() == "agent") {
             Agent* a = dynamic_cast<Agent*>(entity);
+            agentPresent = true;
             if(a && (a->m_present==1.0)) {
                 Bottle right_hand;
                 right_hand.addDouble(a->m_body.m_parts["handRight"][0]);          //X
