@@ -209,7 +209,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part, const bool wai
         if (wait)
             SubABM->sendActivity("action","home","action",lArgument,false);
         else
-            SubABM->sendActivity("action-home","home","action-home",lArgument,false);
+            SubABM->sendActivity("action","home","action-home",lArgument,false);
     }
 
     return bReturn;

@@ -388,7 +388,8 @@ Bottle opcEars::insertOPC(string sName)
 
     if (opcTemp == NULL)
     {
-        yError() << "insertOPC: OPC not connected!";
+        yError() << "insertOPC: OPC not connected!, sname="<<sName;
+        yError() << "Hint: Did you use a wrong activity type?";
         bOutput.addString("nack");
         bOutput.addString("Error, OPC not connected");
         return bOutput;
