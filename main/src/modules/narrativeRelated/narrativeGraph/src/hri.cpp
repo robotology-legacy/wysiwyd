@@ -99,7 +99,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
 
         while (!getAnswer && !exit){
             cout << "Remember: " << remember << " | scenario: " << scenarioToRecall << endl;
-            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, false);
+            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, true);
             if (bRecognized.get(0).asInt() == 0)
             {
                 yError() << " error in narrativeHandler::questionHRI_DFW | Error in speechRecog";
@@ -243,7 +243,7 @@ vector < hriResponse > narrativeHandler::what_DFW_Simple(Bottle bInput, int iSce
     vResponses = useDFW(iScenario, sdfw, paor, true);
 
     cout << "returning: " << endl << vResponses.size() << endl;
-    iCub->say("Hum, " + sdfw + " ?", false);
+    iCub->say("Hum, what " + sdfw + " ?", false);
 
     return vResponses;
 }
