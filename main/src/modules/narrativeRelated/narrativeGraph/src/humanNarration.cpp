@@ -1189,15 +1189,15 @@ string narrativeHandler::linkNaiveScenario(int iNaive, int iScenario){
 
 /*
 * Try to link the meaning of a narration to a SM
-*
+* Return number of lost sentences
 */
-string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
+int narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     cout << "in linkMeaningScenario: meaning " << iMeaning << " - scenario " << iScenario << endl;
 
     // check sizes:
     if (iMeaning > (int)listAutoMeaning.size() || iScenario > (int)listStories.size()){
         yWarning(" in narrativeHandler::linkMeaningScenario - index out or range.");
-        return " in narrativeHandler::linkMeaningScenario - index out or range.";
+        return 0;
     }
 
     bool display = false;
@@ -1231,7 +1231,7 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
     meaningDiscourse MD;
     // creatino of the MD from the discourse
-    string sReturn = MD.meaningToDiscourseForm(listAutoMeaning[iMeaning]);
+    yInfo() << MD.meaningToDiscourseForm(listAutoMeaning[iMeaning]);
 
     // check for each proposition, if it can be asociated to a event of the Scenario
     int count = 0;
@@ -1431,8 +1431,8 @@ string narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
     //displayDFW();
 
     //MD.print();
-    sReturn += to_string(iLost) + " sentences lost.";
-    return sReturn;
+    yInfo() << to_string(iLost) + " sentences lost.";
+    return iLost;
 
 }
 

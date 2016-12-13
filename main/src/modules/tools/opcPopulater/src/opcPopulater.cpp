@@ -537,7 +537,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     iCub->opc->clear();
     iCub->opc->checkout();
     Agent* Interlocutor = iCub->opc->addOrRetrieveEntity<Agent>(sAgent);
-    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("icub");
     Object* ObjStory = iCub->opc->addOrRetrieveEntity<Object>(sOject);
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
     Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
@@ -598,7 +598,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     //{
     //    yInfo(" abm connected");
     //    list<pair<string, string> > lArgument;
-    //    lArgument.push_back(pair<string, string>("iCub", "agent"));
+    //    lArgument.push_back(pair<string, string>("icub", "agent"));
     //    lArgument.push_back(pair<string, string>("take", "predicate"));
     //    lArgument.push_back(pair<string, string>(sOject, "object"));
     //    lArgument.push_back(pair<string, string>("qRM", "provider"));
@@ -614,7 +614,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     //if (iCub->getABMClient()->Connect())
     //{
     //    list<pair<string, string> > lArgument;
-    //    lArgument.push_back(pair<string, string>("iCub", "agent"));
+    //    lArgument.push_back(pair<string, string>("icub", "agent"));
     //    lArgument.push_back(pair<string, string>("take", "predicate"));
     //    lArgument.push_back(pair<string, string>(sOject, "object"));
     //    lArgument.push_back(pair<string, string>("failed", "status"));
@@ -633,7 +633,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sOject << ")";
@@ -653,7 +653,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sOject << ")";
@@ -677,7 +677,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
@@ -693,7 +693,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
@@ -720,8 +720,8 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>(sAgent, "agent"));
     lArgument.push_back(pair<string, string>(sOject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("icub", "adj1"));
+    lArgument.push_back(pair<string, string>("icub", "speaker"));
     lArgument.push_back(pair<string, string>("none", "subject"));
     lArgument.push_back(pair<string, string>(sAgent, "addressee"));
     iCub->getABMClient()->sendActivity("action",
@@ -739,7 +739,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     lArgument.push_back(pair<string, string>(sAgent, "agent"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>(sOject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+    lArgument.push_back(pair<string, string>("icub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "give",
@@ -973,7 +973,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     iCub->opc->clear();
     iCub->opc->checkout();
     Agent* Nathan = iCub->opc->addOrRetrieveEntity<Agent>("Nathan");
-    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("icub");
     Object* Giraffe = iCub->opc->addOrRetrieveEntity<Object>("giraffe");
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
     Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
@@ -1063,7 +1063,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     {
         yInfo(" abm connected");
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("take", "predicate"));
         lArgument.push_back(pair<string, string>("giraffe", "object"));
         lArgument.push_back(pair<string, string>("qRM", "provider"));
@@ -1082,7 +1082,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("take", "predicate"));
         lArgument.push_back(pair<string, string>("giraffe", "object"));
         lArgument.push_back(pair<string, string>("failed", "status"));
@@ -1109,7 +1109,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("(predicate have) (agent icub) (object giraffe)", "goal"));
         lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
@@ -1126,7 +1126,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("(predicate have) (agent icub) (object giraffe)", "goal"));
         lArgument.push_back(pair<string, string>("(predicate sentence) (speaker icub) (object giraffe)", "result"));
@@ -1144,7 +1144,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
@@ -1160,7 +1160,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
@@ -1196,8 +1196,8 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>("Nathan", "agent"));
     lArgument.push_back(pair<string, string>("giraffe", "object"));
-    lArgument.push_back(pair<string, string>("iCub", "adj1"));
-    lArgument.push_back(pair<string, string>("iCub", "speaker"));
+    lArgument.push_back(pair<string, string>("icub", "adj1"));
+    lArgument.push_back(pair<string, string>("icub", "speaker"));
     lArgument.push_back(pair<string, string>("none", "subject"));
     lArgument.push_back(pair<string, string>("Nathan", "addressee"));
     iCub->getABMClient()->sendActivity("action",
@@ -1220,7 +1220,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     lArgument.push_back(pair<string, string>("Nathan", "agent"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>("giraffe", "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+    lArgument.push_back(pair<string, string>("icub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "give",
@@ -1275,7 +1275,7 @@ bool opcPopulater::populateScenario1()
     iCub->opc->clear();
     iCub->opc->checkout();
     Agent* Interlocutor = iCub->opc->addOrRetrieveEntity<Agent>(sAgent);
-    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("icub");
     Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     Object* Mouse = iCub->opc->addOrRetrieveEntity<Object>(sObjError);
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
@@ -1356,7 +1356,7 @@ bool opcPopulater::populateScenario1()
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
@@ -1376,7 +1376,7 @@ bool opcPopulater::populateScenario1()
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
@@ -1400,7 +1400,7 @@ bool opcPopulater::populateScenario1()
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
@@ -1416,7 +1416,7 @@ bool opcPopulater::populateScenario1()
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
@@ -1450,7 +1450,7 @@ bool opcPopulater::populateScenario1()
     lArgument.push_back(pair<string, string>(sAgent, "agent"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>(sObjError, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+    lArgument.push_back(pair<string, string>("icub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "give",
@@ -1491,7 +1491,7 @@ bool opcPopulater::populateScenario1()
     lArgument.push_back(pair<string, string>(sAgent, "agent"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>(sObject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+    lArgument.push_back(pair<string, string>("icub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "give",
@@ -1537,7 +1537,7 @@ bool opcPopulater::populateScenario2(){
     iCub->opc->checkout();
     Agent* Robert = iCub->opc->addOrRetrieveEntity<Agent>(sRobert);
     Agent* Larry = iCub->opc->addOrRetrieveEntity<Agent>(sLarry);
-    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("icub");
     Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     Object* Box = iCub->opc->addOrRetrieveEntity<Object>(sBox);
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
@@ -1682,7 +1682,7 @@ bool opcPopulater::populateScenario2(){
     lArgument.push_back(pair<string, string>(sLarry, "agent"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>(sObject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+    lArgument.push_back(pair<string, string>("icub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "give",
@@ -1733,7 +1733,7 @@ bool opcPopulater::populateScenario3(){
     iCub->opc->clear();
     iCub->opc->checkout();
     Agent* Interlocutor = iCub->opc->addOrRetrieveEntity<Agent>(sAgent);
-    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("icub");
     Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     Object* Box = iCub->opc->addOrRetrieveEntity<Object>(sBox);
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
@@ -1866,7 +1866,7 @@ bool opcPopulater::populateScenario3(){
         list<pair<string, string> > lArgument;
         lArgument.push_back(pair<string, string>("take", "predicate"));
         lArgument.push_back(pair<string, string>(sObject, "object"));
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("opcPopulater", "provider"));
         lArgument.push_back(pair<string, string>("ARE", "subsystem"));
         iCub->getABMClient()->sendActivity("action", "take", "action", lArgument, true);
@@ -1886,7 +1886,7 @@ bool opcPopulater::populateScenario3(){
         list<pair<string, string> > lArgument;
         lArgument.push_back(pair<string, string>("take", "predicate"));
         lArgument.push_back(pair<string, string>(sObject, "object"));
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("opcPopulater", "provider"));
         lArgument.push_back(pair<string, string>("ARE", "subsystem"));
         lArgument.push_back(pair<string, string>("success", "status"));
@@ -1914,7 +1914,7 @@ bool opcPopulater::populateScenario4(){
 
     iCub->opc->clear();
     iCub->opc->checkout();
-    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("icub");
     Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
     Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
@@ -1966,7 +1966,7 @@ bool opcPopulater::populateScenario4(){
         list<pair<string, string> > lArgument;
         lArgument.push_back(pair<string, string>("take", "predicate"));
         lArgument.push_back(pair<string, string>(sObject, "object"));
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("opcPopulater", "provider"));
         lArgument.push_back(pair<string, string>("ARE", "subsystem"));
         iCub->getABMClient()->sendActivity("action", "take", "action", lArgument, true);
@@ -1986,7 +1986,7 @@ bool opcPopulater::populateScenario4(){
         list<pair<string, string> > lArgument;
         lArgument.push_back(pair<string, string>("take", "predicate"));
         lArgument.push_back(pair<string, string>(sObject, "object"));
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("opcPopulater", "provider"));
         lArgument.push_back(pair<string, string>("ARE", "subsystem"));
         lArgument.push_back(pair<string, string>("success", "status"));
@@ -2010,7 +2010,7 @@ bool opcPopulater::populateScenario5(){
     iCub->opc->clear();
     iCub->opc->checkout();
     Agent* Interlocutor = iCub->opc->addOrRetrieveEntity<Agent>(sAgent);
-    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("icub");
     Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
     Action* Have = iCub->opc->addOrRetrieveEntity<Action>("have");
@@ -2078,7 +2078,7 @@ bool opcPopulater::populateScenario5(){
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
@@ -2098,7 +2098,7 @@ bool opcPopulater::populateScenario5(){
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
@@ -2122,7 +2122,7 @@ bool opcPopulater::populateScenario5(){
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
@@ -2138,7 +2138,7 @@ bool opcPopulater::populateScenario5(){
     if (iCub->getABMClient()->Connect())
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
@@ -2170,7 +2170,7 @@ bool opcPopulater::populateScenario5(){
     lArgument.push_back(pair<string, string>(sAgent, "agent"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>(sObject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+    lArgument.push_back(pair<string, string>("icub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "give",
@@ -2220,7 +2220,7 @@ bool opcPopulater::populateScenario6(){
     iCub->opc->checkout();
     Agent* Robert = iCub->opc->addOrRetrieveEntity<Agent>(sRobert);
     Agent* Larry = iCub->opc->addOrRetrieveEntity<Agent>(sLarry);
-    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("iCub");
+    Agent* icub = iCub->opc->addOrRetrieveEntity<Agent>("icub");
     Object* Croco = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     Object* Box = iCub->opc->addOrRetrieveEntity<Object>(sBox);
     Action* Want = iCub->opc->addOrRetrieveEntity<Action>("want");
@@ -2362,7 +2362,7 @@ bool opcPopulater::populateScenario6(){
     if (iCub->getABMClient()->Connect())
     {
         lArgument.clear();
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
@@ -2382,7 +2382,7 @@ bool opcPopulater::populateScenario6(){
     if (iCub->getABMClient()->Connect())
     {
         lArgument.clear();
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         ostringstream osTmp;
         osTmp << "(predicate have) (agent icub) (object " << sObject << ")";
@@ -2406,7 +2406,7 @@ bool opcPopulater::populateScenario6(){
     if (iCub->getABMClient()->Connect())
     {
         lArgument.clear();
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("abmReasoning", "provider"));
@@ -2422,7 +2422,7 @@ bool opcPopulater::populateScenario6(){
     if (iCub->getABMClient()->Connect())
     {
         lArgument.clear();
-        lArgument.push_back(pair<string, string>("iCub", "agent"));
+        lArgument.push_back(pair<string, string>("icub", "agent"));
         lArgument.push_back(pair<string, string>("reason", "predicate"));
         lArgument.push_back(pair<string, string>("give", "whatIs"));
         lArgument.push_back(pair<string, string>("addressee#have#object", "sentence_before"));
@@ -2453,7 +2453,7 @@ bool opcPopulater::populateScenario6(){
     lArgument.push_back(pair<string, string>(sLarry, "agent"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>(sObject, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
+    lArgument.push_back(pair<string, string>("icub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "give",

@@ -17,6 +17,7 @@ then, take iCub croco <o>[P-_-_-_][_-A-P-O]<o>;then iCub take the croco
 # 1 - 3
 then, take iCub croco <o>[P-_-_-_][_-A-P-O]<o>;then the iCub take the croco
 
+
 # 1 - 3
 so, say iCub hello <o>[P-_-_-_][_-A-P-O]<o>;so iCub say hello
 
@@ -170,15 +171,3 @@ after , cover box mug, reason iCub <o>[_-_-P-_-_-_][_-_-_-A-P-O][A-P-_-_-_-_]<o>
 
 # DFW A B
 because , failed iCub grasp, reason robot <o>[P-_-_-_-_-_][_-A-P-O-_-_][_-_-_-_-A-P]<o>; because iCub failed to grasp robot reason
-
-
-
-
-
-
-
-
-
-
-
-

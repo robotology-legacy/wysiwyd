@@ -17,6 +17,7 @@
     <L>
       <P>stop</P>
       <P>that's all</P>
+      <P>thank you</P>
     </L>
   </RULE>
 
@@ -32,7 +33,7 @@
 
 
   <RULE  NAME="Tell_you"  TOPLEVEL="ACTIVE"  EXPORT="1">
-    <P>Let me tell you what happend.</P>
+    <P>Let me tell you what happened.</P>
   </RULE>
 
   <RULE  NAME="What_happen_DFW_simple"  TOPLEVEL="ACTIVE"  EXPORT="1">
@@ -131,14 +132,7 @@
   <RULE NAME="agent" DYNAMIC="TRUE">
     <L>
       <P>you</P>
-      <P>Sam</P>
-      <P>John</P>
-      <P>iCub</P>
-      <P>Larry</P>
       <P>Mary</P>
-      <P>Robert</P>
-      <P>Allan</P>
-      <P>Carol</P>
     </L>
   </RULE>
 
@@ -173,6 +167,9 @@
       <P>brain</P>
       <P>rabbit</P>
       <P>ball</P>
+      <P>manta</P>
+      <P>truck</P>
+      <P>car</P>
     </L>
   </RULE>
 
@@ -196,7 +193,6 @@
     <L>
       <P>to</P>
       <P>the</P>
-      <P>a</P>
     </L>
   </RULE>
 

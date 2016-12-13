@@ -72,7 +72,7 @@ private:
     yarp::os::Bottle unfoldGoal(std::string goal);
     void updateScoreStory(story &st);
     std::string narrator;
-    std::vector<std::string> initializeEVT(evtStory &evt, int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations);
+    std::vector<std::string> initializeEVT(evtStory &evt, int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations, yarp::os::Bottle _bObjects = yarp::os::Bottle());
 
     std::vector<std::pair<std::string, std::string> >  comparator;
 
@@ -108,7 +108,7 @@ private:
     void createNarration(story &sto);
     std::string createMeaning(std::string agent, std::string predicate, std::string object = "", std::string recipient = "");
     void linkNarrationScenario(int iNarration, int iScenario);
-    std::string linkMeaningScenario(int iMeaning, int iScenario);
+    int linkMeaningScenario(int iMeaning, int iScenario);
     std::string linkNaiveScenario(int iNaive, int iScenario);
 
     // SituationModel

@@ -24,6 +24,9 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 using namespace std;
+using namespace discourseform;
+using namespace storygraph;
+
 
 bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 {
@@ -209,7 +212,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     storygraph::VocabularyHandler::initVoc(listStories);
 
 
-    if (rf.find("loadNaives").asInt() == 1 && listStories.size() >5){
+    if (rf.find("loadNaives").asInt() == 1 && listStories.size() > 5){
         yInfo("Loading naives\n");
         Bottle *bNaives = rf.find("listNaives").asList();
         initializeNaives(*bNaives, rf);
@@ -229,19 +232,27 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     }
 
-    if (rf.find("initialize").asInt() == 1 && listStories.size() >5){
+    if (rf.find("initialize").asInt() == 1 && listStories.size() > 4){
+        int iLost = 0;
         yInfo("initializing meanings");
         yInfo("linking scenarios 2 2");
-        yInfo(linkMeaningScenario(2, 0));
+        iLost += (linkMeaningScenario(2, 0));
         yInfo("linking scenarios 3 3");
-        yInfo(linkMeaningScenario(3, 1));
+        iLost += (linkMeaningScenario(3, 1));
         yInfo("linking scenarios 4 4");
-        yInfo(linkMeaningScenario(4, 2));
+        iLost += (linkMeaningScenario(4, 2));
         yInfo("linking scenarios 5 5");
-        yInfo(linkMeaningScenario(5, 3));
+        iLost += (linkMeaningScenario(5, 3));
         yInfo("linking scenarios 6 6");
-        yInfo(linkMeaningScenario(6, 4));
+        iLost += (linkMeaningScenario(6, 4));
+        if (iLost != 0){
+            cout << endl << endl;
+            yWarning() << iLost << " sentences lost in training.";
+        }
     }
+
+
+    yInfo() << " " << listStories.size() << " stories";
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -341,6 +352,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         for (unsigned int ii = 0; ii < listStories.size(); ii++){
             cout << "story: " << ii << " -- instance start: " << listStories[ii].viInstances[0] << " -- size: " << listStories[ii].viInstances.size() << endl;
         }
+        reply.addString("done");
     }
     else if (command.get(0).asString() == "checkScenarios"){
         int iScena = -1;
@@ -365,7 +377,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             reply.addString("linkMeaningScenario takes 2 arguments (narration and scenario)");
         }
         else{
-            reply.addString(linkMeaningScenario(command.get(1).asInt(), command.get(2).asInt() - 1));
+            reply.addInt(linkMeaningScenario(command.get(1).asInt(), command.get(2).asInt() - 1));
         }
     }
     else if (command.get(0).asString() == "displayKnownNarrations"){
@@ -420,6 +432,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
                 }
             }
             else{
+                yWarning(" in displayStories: target higher than number of stories");
                 for (auto st : listStories){
                     st.displayNarration();
                 }
@@ -465,11 +478,134 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         yInfo(" exporting the Discourse Function Words");
         reply.addString(exportDFW());
     }
-    //else if (command.get(0).asString() == "useDFW") {
-    //    yInfo(" using a Discourse Function Words");
-    //    reply = useDFW(command);
-    //}
-    else if (command.get(0).asString() == "HRI") {        
+    else if (command.get(0).asString() == "useDFW_double") {
+        Bottle bInput = *command.get(1).asList();
+        yInfo(" using a Discourse Function Words");
+        PAOR sPAOR;
+        vector < hriResponse > vResponses;
+        // check input Bottle:
+        if (bInput.size() != 2){
+            yError() << " error in narrativeHandler::what_DFW_Double | Wrong size of response from recog ";
+            reply.addString(" error in narrativeHandler::what_DFW_Double | Wrong size of response from recog ");
+        }
+
+        Bottle bWords = *bInput.get(1).asList();
+
+        if (bWords.size() == 0){
+            yError() << " error in narrativeHandler::what_DFW_Double | Wrong size of response from recog ";
+            reply.addString(" error in narrativeHandler::what_DFW_Double | Wrong size of response from recog ");
+        }
+
+        // if inpout sPAOR is empty: get from the bottle:
+        cout << "bWords: " << bWords.toString() << endl;
+
+        string agent = bWords.find("agent").toString();
+        string predicate = bWords.find("predicate").toString();
+        string object = bWords.find("object").toString();
+        string recipient = bWords.find("recipient").toString();
+
+
+        string sdfw = bWords.find("dfw_double").toString();
+
+        cout << "extracted OCW from recog: " << sdfw
+            << " - " << agent
+            << " - " << predicate
+            << " - " << object
+            << " - " << recipient
+            << "." << endl;
+
+        if (sPAOR.nbElm() == 0){
+
+            sPAOR.P = predicate;
+            sPAOR.A = agent;
+            sPAOR.O = object;
+            sPAOR.R = recipient;
+        }
+
+
+        cout << "extracted DFW from recog: " << sdfw << endl;
+
+        vResponses = useDFW(scenarioToRecall, sdfw, sPAOR, bInput.get(0).asInt() == 1);
+
+        cout << "returning: " << vResponses.size() << endl;
+
+
+        reply.addString("ok");
+    }
+    else if (command.get(0).asString() == "useDFW_simple") {
+        yInfo(" using a Discourse Function Words");
+        PAOR sPAOR;
+        vector < hriResponse > vResponses;
+        // check input Bottle:
+        if (command.size() != 2){
+            yError() << " error in narrativeHandler::useDFW_simple | Wrong size of response from recog ";
+            reply.addString(" error in narrativeHandler::useDFW_simple | Wrong size of response from recog ");
+        }
+        string dfw = command.get(1).toString();
+
+
+        vResponses = useDFW(scenarioToRecall, dfw, sPAOR);
+
+        cout << "returning: " << vResponses.size() << endl;
+
+
+        reply.addString("ok");
+    }
+    else if (command.get(0).asString() == "useDFW_double") {
+        Bottle bInput = *command.get(1).asList();
+        yInfo(" using a Discourse Function Words");
+        PAOR sPAOR;
+        vector < hriResponse > vResponses;
+        // check input Bottle:
+        if (bInput.size() != 2){
+            yError() << " error in narrativeHandler::what_DFW_Double | Wrong size of response from recog ";
+            reply.addString(" error in narrativeHandler::what_DFW_Double | Wrong size of response from recog ");
+        }
+
+        Bottle bWords = *bInput.get(1).asList();
+
+        if (bWords.size() == 0){
+            yError() << " error in narrativeHandler::what_DFW_Double | Wrong size of response from recog ";
+            reply.addString(" error in narrativeHandler::what_DFW_Double | Wrong size of response from recog ");
+        }
+
+        // if inpout sPAOR is empty: get from the bottle:
+        cout << "bWords: " << bWords.toString() << endl;
+
+        string agent = bWords.find("agent").toString();
+        string predicate = bWords.find("predicate").toString();
+        string object = bWords.find("object").toString();
+        string recipient = bWords.find("recipient").toString();
+
+
+        string sdfw = bWords.find("dfw_double").toString();
+
+        cout << "extracted OCW from recog: " << sdfw
+            << " - " << agent
+            << " - " << predicate
+            << " - " << object
+            << " - " << recipient
+            << "." << endl;
+
+        if (sPAOR.nbElm() == 0){
+
+            sPAOR.P = predicate;
+            sPAOR.A = agent;
+            sPAOR.O = object;
+            sPAOR.R = recipient;
+        }
+
+
+        cout << "extracted DFW from recog: " << sdfw << endl;
+
+        vResponses = useDFW(scenarioToRecall, sdfw, sPAOR, bInput.get(0).asInt() == 1);
+
+        cout << "returning: " << vResponses.size() << endl;
+
+
+        reply.addString("ok");
+    }
+    else if (command.get(0).asString() == "HRI") {
         yInfo(" finding new stories");
         findStories();
         yInfo(" launching HRI");
@@ -1248,10 +1384,12 @@ void narrativeHandler::initializeStories()
         ostringstream osRelation;
         ostringstream osMain;
         ostringstream osContentarg;
+        ostringstream osObjects;
 
         osRelation << "SELECT instance, subject, verb, object FROM relation WHERE verb != 'isAtLoc' AND instance in (";
         osMain << "SELECT instance, activityname, activitytype, begin FROM main WHERE instance in (";
         osContentarg << "SELECT instance, argument, role, subtype FROM contentarg WHERE instance in (";
+        osObjects << "SELECT instance, name, presence, objectarea FROM object WHERE (objectarea is not null and instance in (";
 
 
         bool bFirst = true;
@@ -1261,19 +1399,23 @@ void narrativeHandler::initializeStories()
                 osRelation << ", ";
                 osMain << ", ";
                 osContentarg << ", ";
+                osObjects << " , ";
             }
             osRelation << itInst;
             osMain << itInst;
             osContentarg << itInst;
+            osObjects << itInst;
             bFirst = false;
         }
         osRelation << ") ORDER BY instance";
         osMain << ") ORDER BY instance";
         osContentarg << ") ORDER BY instance";
+        osObjects << ")) ORDER BY instance";
 
         Bottle bAllRelation = iCub->getABMClient()->requestFromString(osRelation.str());
         Bottle bAllMain = iCub->getABMClient()->requestFromString(osMain.str());
         Bottle bAllContentA = iCub->getABMClient()->requestFromString(osContentarg.str());
+        Bottle bAllObjLoc = iCub->getABMClient()->requestFromString(osObjects.str());
 
         for (auto& itInst : itSt.viInstances){
 
@@ -1305,11 +1447,29 @@ void narrativeHandler::initializeStories()
                 }
             }
 
-            evtStory evtTemp;
-            vector<string> tempOCW = initializeEVT(evtTemp, itInst, bTmpMain, bTmpArg, bTmpRel);
+            Bottle bTmpObj;
+            if (bAllRelation.toString() != "NULL"){
+                for (int ll = 0; ll < bAllRelation.size(); ll++){
+                    if (!bAllObjLoc.get(ll).isNull()){
+                        if (atoi(bAllObjLoc.get(ll).asList()->get(0).toString().c_str()) == itInst){
+                            // removing first element: instance
+                            bTmpObj.addList() = (*bAllObjLoc.get(ll).asList()).tail();
+                        }
+                    }
+                }
+            }
 
-            itSt.vEvents.push_back(evtTemp);
-            itSt.addOCW(tempOCW);
+            evtStory evtTemp;
+            vector<string> tempOCW = initializeEVT(evtTemp, itInst, bTmpMain, bTmpArg, bTmpRel, bTmpObj);
+
+            if (evtTemp.predicate != "appear"
+                && evtTemp.predicate != "disappear"
+                && evtTemp.predicate != "home"
+                && evtTemp.agent != ""
+                && evtTemp.predicate != ""){
+                itSt.vEvents.push_back(evtTemp);
+                itSt.addOCW(tempOCW);
+            }
         }
 
         createNarration(itSt);
@@ -1373,7 +1533,7 @@ void narrativeHandler::updateScoreStory(story &st){
 }
 
 
-vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
+vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations, Bottle _bObjects){
     evt.instance = _instance;
     evt.isNarration = false;
     evt.bRelations = _bRelations;
@@ -1404,6 +1564,9 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
     evt.begin = (bActivity.get(0).asList())->get(2).toString() == "t";
 
+    string presentAgent = "partner";
+
+    // FOR EVERY ARGUMENT
     for (int kk = 0; kk < bArguments.size(); kk++){
         if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
@@ -1429,6 +1592,8 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             else if (!isIn(vNoPAOR, bTemp.get(2).toString())) vOCW.push_back(bTemp.get(0).asString());
         }
     }
+    // END FOR EVERY ARGUMENT
+
 
     if (evt.activity_name == "production" || evt.activity_name == "comprehension" || evt.activity_name == "sentence"){
         evt.predicate = "say";
@@ -1441,7 +1606,6 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             }
         }
 
-        string presentAgent = "partner";
         ostringstream osRequest;
         osRequest << "SELECT name FROM agent WHERE instance = " << _instance << " AND presence = true";
         Bottle bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
@@ -1459,6 +1623,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             if (evt.agent == "" || evt.agent == "none" || evt.agent == "partner"){
                 evt.agent = presentAgent;
             }
+            evt.recipient = "iCub";
         }
         if (evt.activity_type == "say"){
             evt.agent = "iCub";
@@ -1473,7 +1638,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
     if (evt.activity_type == "drives"){
         evt.object = evt.agent;
         evt.agent = "iCub";
-        evt.predicate = "wants to";
+        evt.predicate = "want";
     }
 
     if (_bRelations.toString() != "NULL"){
@@ -1491,6 +1656,40 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             vOCW.push_back(evt.predicate);
         }
     }
+
+    // RELATIONS
+
+    // CHECK IF AN OBJECT IS AT A LOCATION PRECISE  
+
+    if (!_bObjects.isNull()){   // CHECK IF ALL OBJECT NOT EMPT      
+        for (int kk = 0; kk < _bObjects.size(); kk++){ // FOR EVERY OBJECT
+            if (_bObjects.get(kk).isList()) {  // IF CURRENT OBJECT EXIST
+                Bottle bTemp = *_bObjects.get(kk).asList(); 
+                // IF OBJECT IS PRESENT
+                if (bTemp.get(1).toString() == "t"){
+                    // IF OBJECT IS REACHEABLE BY HUMAN
+                    if (bTemp.get(2).toString() == "HumanOnly"){
+                        Bottle b;
+                        b.addString(presentAgent);
+                        b.addString("have");
+                        b.addString(bTemp.get(0).toString());
+                        yInfo() << "Adding relation: " << b.toString() << " FROM " << bTemp.toString();
+                        evt.bRelations.addList() = b;
+                    }
+                    else if (bTemp.get(2).toString() == "RobotOnly"){
+                        Bottle b;
+                        b.addString("icub");
+                        b.addString("have");
+                        b.addString(bTemp.get(0).toString());
+                        yInfo() << "Adding relation: " << b.toString() << " FROM " << bTemp.toString();
+                        evt.bRelations.addList() = b;
+                    }
+                }
+            }
+        }   // END FOR EVERY OBJECT
+    } // END IF OBJECT NOT EMPTY
+
+
 
     evt.addUnderscore();
 
@@ -1908,12 +2107,14 @@ void narrativeHandler::createNarration(story &sto)
                     }
                     else if (currentEvent.predicate == "tagging"){
                         if (currentEvent.object == "unknown_object"){
-                            currentEvent.predicate = "wanted to explore";
-                            currentEvent.object = "an unknown object";
+                            currentEvent.predicate = "want";
+                            currentEvent.object = "explore";
+                            currentEvent.recipient = "unnwown object";
                         }
                         if (currentEvent.object == "unknown_self"){
-                            currentEvent.predicate = "wanted to explore";
-                            currentEvent.object = "an unknown body part";
+                            currentEvent.predicate = "want";
+                            currentEvent.object = "explore";
+                            currentEvent.recipient= "unknown body part";
                         }
                         osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.predicate << " " << currentEvent.object << endl;
                     }
@@ -2406,13 +2607,13 @@ string narrativeHandler::lowerKey(string input){
 
 
 void narrativeHandler::loadSM(int iScenario){
-    if (iScenario < -1 || iScenario >= (int)listStories.size()) {
+    if (iScenario < -1 * (int)listStories.size() || iScenario >= (int)listStories.size()) {
         yWarning(" in NarrativeGraph::useDFW check instance scenario (out of range, sent to 0");
         iScenario = 0;
     }
 
-    if (iScenario == -1){
-        iScenario = (int)listStories.size() - 1;
+    if (iScenario < 0){
+        iScenario = (int)listStories.size() + iScenario;
     }
 
     listStories.at(iScenario).displayNarration();

@@ -93,6 +93,7 @@ bool story::displayNarration(bool displayAll)
             return true;
         }
         else{
+            yWarning(" Story to short to be displayed");
             return false;
         }
     }

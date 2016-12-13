@@ -316,7 +316,7 @@ vector < hriResponse > narrativeHandler::useDFW(int iScenario, string sdfw, PAOR
 
         vector < hriResponse > vTemp;
         for (auto resp : vResponses){
-            if (resp.score > 0.25 * best){
+            if (resp.score > 0.5 * best){
                 vTemp.push_back(resp);
             }
         }
@@ -447,17 +447,17 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
 
 
     // FOR BETTER HRI
-    if (M1.R == "iCub"){
+    if (M1.R == "iCub" || M1.R == "icub"){
         M1.R = "me";
     }
-    if (M1.A == "iCub"){
+    if (M1.A == "iCub" || M1.A == "icub"){
         M1.A = "I";
     }
 
-    if (M2.R == "iCub"){
+    if (M2.R == "iCub" || M2.R == "icub"){
         M2.R = "me";
     }
-    if (M2.A == "iCub"){
+    if (M2.A == "iCub" || M2.A == "icub"){
         M2.A = "I";
     }
 
@@ -465,7 +465,7 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1, PAOR M2, bool
     // if order is: M2 DFW M1
     if (!DFWAB){
         if (M1.toString() == M2.toString()){
-            yWarning(" in narrativeHandler::prepareMeaningForLRH meanings identical");
+            yInfo(" in narrativeHandler::prepareMeaningForLRH meanings identical");
             return "none";
         }
 
