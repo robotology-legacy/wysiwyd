@@ -219,7 +219,7 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
 
 std::string proactiveTagging::getBodyPartNameForSpeech(const std::string bodypart) {
     std::string out = bodypart;
-    if(bodypart == "index" || bodypart == "middle" || bodypart == "ring") {
+    if(bodypart == "index" || bodypart == "middle" || bodypart == "ring" || bodypart == "little") {
         out = out + " finger";
     }
     return out;
