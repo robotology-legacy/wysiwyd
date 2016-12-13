@@ -833,10 +833,35 @@ bool Planner::updateModule() {
                     iCub->say("I have tried too many times and failed. Do it yourself or help me.");
                     yDebug() << "iCub has said that attemptCnt reached.";
 
-                    // remove action and/or plan? Temporarily keep trying
+                    // removing all actions related to the same plan
+                    yDebug() << "removing actions";
+                    int currPlan = planNr_list[0];
+                    action_list.erase(action_list.begin());
+                    priority_list.erase(priority_list.begin());
+                    plan_list.erase(plan_list.begin());
+                    object_list.erase(object_list.begin());
+                    type_list.erase(type_list.begin());
+                    actionPos_list.erase(actionPos_list.begin());
+                    planNr_list.erase(planNr_list.begin());
                     attemptCnt = 0;
+
+                    unsigned int length = planNr_list.size();
+                    for (unsigned int extra = 0; extra < length; extra++)
+                    {
+                        if (planNr_list[0] == currPlan)
+                        {
+                            action_list.erase(action_list.begin());
+                            priority_list.erase(priority_list.begin());
+                            plan_list.erase(plan_list.begin());
+                            object_list.erase(object_list.begin());
+                            type_list.erase(type_list.begin());
+                            actionPos_list.erase(actionPos_list.begin());
+                            planNr_list.erase(planNr_list.begin());
+                        }
+                        else { break; }
+                    }
                 }
-                // wait for a second before trying again
+                // wait for a second before continuing (recover from your humiliation, iCub)
                 Time::delay(1.0);
             }
 
