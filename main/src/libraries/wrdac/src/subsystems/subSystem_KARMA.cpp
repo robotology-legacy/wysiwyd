@@ -288,7 +288,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     // Calculate the pushing distance (radius) for push with Karma
     Vector object = objCenter;
     Bottle opt = options;
-    double zOffset = 0.01;
+    double zOffset = 0.05;
     double actionOffset = 0.07;             // add 7cm offset to deal with object dimension
     yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
@@ -301,10 +301,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     targetCenter[1] = targetPosY;
 
     if (hasTable)
-    {
-        targetCenter[2] = std::max(tableHeight,targetCenter[2]);
-    }
-    targetCenter[2] += zOffset;
+        targetCenter[2] = tableHeight+zOffset;
 
     yInfo ("object height = %f",targetCenter[2]);
 
@@ -316,8 +313,8 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     // Call push (no calibration)
     bool pushSucceed = push(targetCenter,theta,radius + actionOffset,options,sName);
 
-    if (pushSucceed)
-        returnArmSafely(armType);
+    //if (pushSucceed)
+    //    returnArmSafely(armType);
 
     if (armChoose)
         chooseArmAuto();
@@ -332,7 +329,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     // Calculate the pushing distance (radius) for push with Karma
     Vector object = objCenter;
     Bottle opt = options;
-    double zOffset = 0.01;
+    double zOffset = 0.05;
     double actionOffset = 0.07;             // add 7cm offset to deal with object dimension
     yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
     selectHandCorrectTarget(opt,object);    // target is calibrated by this method
@@ -345,10 +342,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     targetCenter[0] = targetPosXFront;
 
     if (hasTable)
-    {
-        targetCenter[2] = std::max(tableHeight,targetCenter[2]);
-    }
-    targetCenter[2] += zOffset;
+        targetCenter[2] = tableHeight+zOffset;
 
     yInfo ("object height = %f",targetCenter[2]);
 
@@ -360,8 +354,8 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCent
     // Call push (no calibration)
     bool pushSucceed = push(targetCenter,-90,radius + actionOffset,options,sName);
 
-    if (pushSucceed)
-        returnArmSafely(armType);
+    //if (pushSucceed)
+    //    returnArmSafely(armType);
 
     if (armChoose)
         chooseArmAuto();
@@ -432,7 +426,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
     // Calculate the pulling distance (dist) for pull with Karma
     Vector object = objCenter;
     Bottle opt = options;
-    double zOffset = 0.01;
+    double zOffset = -0.02;
     double actionOffset = 0.07;                     // add 7cm offset to deal with object dimension
     yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
     selectHandCorrectTarget(opt,object);            // target is calibrated by this method
@@ -444,9 +438,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
     Vector targetCenter = object;
 
     if (hasTable)
-    {
         targetCenter[2] = std::max(tableHeight,targetCenter[2]);
-    }
     targetCenter[2] += zOffset;
 
     yInfo ("object height = %f",targetCenter[2]);
@@ -459,8 +451,8 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
     // Call draw (no calibration)
     bool drawSucceed = draw(targetCenter,90,actionOffset,dist + actionOffset,options,sName);
 
-    if (drawSucceed)
-        returnArmSafely(armType);
+    //if (drawSucceed)
+    //    returnArmSafely(armType);
 
     if (armChoose)
         chooseArmAuto();
