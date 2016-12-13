@@ -22,10 +22,12 @@ private:
     vector<string> type_list;
     vector<int> priority_list;
     vector<int> actionPos_list;
+    vector<int> planNr_list;
     Bottle grpPlans;
     Bottle set;
     int id;
     int attemptCnt;
+    int planNr;
 
     // bool bShouldListen;
 

@@ -76,6 +76,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     action_list.clear();
     id = 0;
     attemptCnt = 0;
+    planNr = 0;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
     
@@ -167,6 +168,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     "freeze \n" +
     "unfreeze \n" +
     "actions \n" +
+    "actionPos \n" +
     "listplans \n" +
     "stopfollow \n" +
     "manual \n"
@@ -192,6 +194,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "stopfollow") {
         fulfill = false;
+        yInfo() << "fulfill has been set to false.";
         reply.addString("ack");
     }
     else if ((command.get(0).asString() == "new")&& (command.get(1).asList()->size() != 2)){
@@ -224,6 +227,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "priorities")
     {
+        if (priority_list.size() == 0) { yInfo() << "priority list is empty."; }
         for (vector<int>::const_iterator i = priority_list.begin(); i != priority_list.end(); ++i)
         {
             cout << *i << '\n';
@@ -232,7 +236,26 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "actions")
     {
+        if (action_list.size() == 0) { yInfo() << "action list is empty."; }
         for (vector<string>::const_iterator i = action_list.begin(); i != action_list.end(); ++i)
+        {
+            cout << *i << '\n';
+        }
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString() == "actionpos")
+    {
+        if (actionPos_list.size() == 0) { yInfo() << "action position list is empty."; }
+        for (vector<int>::const_iterator i = actionPos_list.begin(); i != actionPos_list.end(); ++i)
+        {
+            cout << *i << '\n';
+        }
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString() == "planid")
+    {
+        if (planNr_list.size() == 0) { yInfo() << "planNr list is empty."; }
+        for (vector<int>::const_iterator i = planNr_list.begin(); i != planNr_list.end(); ++i)
         {
             cout << *i << '\n';
         }
@@ -328,6 +351,7 @@ bool Planner::updateModule() {
                 vector<string> type_store;
                 vector<int> priority_store;
                 vector<int> actionPos_store;
+                vector<int> planNr_store;
                 // holding the prerequisites that failed
                 vector<string> preqFail;
 
@@ -468,6 +492,7 @@ bool Planner::updateModule() {
                     object_store.push_back(object);
                     type_store.push_back(objectType);
                     actionPos_store.push_back(ii);
+                    planNr_store.push_back(planNr);
 
                     if (state)
                     {
@@ -490,6 +515,7 @@ bool Planner::updateModule() {
                             object_list.push_back(object_store[a]);
                             type_list.push_back(type_store[a]);
                             actionPos_list.push_back(actionPos_store[a]);
+                            planNr_list.push_back(planNr_store[a]);
 
                             if (useABM)
                             {
@@ -523,6 +549,7 @@ bool Planner::updateModule() {
                             action_list.insert(action_list.begin() + insertID, action_store[a]);
                             actionPos_list.insert(actionPos_list.begin() + insertID, actionPos_store[a]);
                             priority_list.insert(priority_list.begin() + insertID, priority_store[a]);
+                            planNr_list.insert(planNr_list.begin() + insertID, planNr_store[a]);
 
                             if (useABM)
                             {
@@ -575,6 +602,9 @@ bool Planner::updateModule() {
                 object_store.clear();
                 type_store.clear();
                 actionPos_store.clear();
+                planNr_store.clear();
+
+                planNr += 1;
 
                 preqFail.clear();
             }
@@ -639,13 +669,11 @@ bool Planner::updateModule() {
             }
 
             // check for completed state
-            yDebug() << "checking for completion from SM";
             string planName = plan_list[0];
             Bottle stateOI = *grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "post").asList();
             args.clear();
             args = *grpPlans.find(planName + "-action" + to_string(actionPos_list[0])).asList();
             args = args.tail();
-            yDebug() << "args: " << args.toString();
 
             Bottle emptyBottle("()");
             Bottle sent = *grpPlans.check(planName + "-" + to_string(actionPos_list[0]) + "success", emptyBottle.get(0)).asList();
@@ -659,60 +687,121 @@ bool Planner::updateModule() {
             }
             yDebug() << "sentence_success constructed";
 
-            // checking for post condition fulfillment.
-            int stateCheck = 1;
-            for (int k = 0; k < stateOI.size(); k++)
+            Bottle objectives = *grpPlans.find(planName + "-objectiveState").asList();
+
+            // checking for ultimate state fulfillment.
+            bool stateCheck = true;
+            if (objectives.size() != 0)
             {
-                Bottle bot;
-                Bottle rep;
-                bot.clear();
-                rep.clear();
-
-                Bottle* msg = stateOI.get(k).asList()->get(1).asList();
-                for (int i = 0; i < msg->size(); i++)
+                for (int Ob = 0; Ob < objectives.size(); Ob++)
                 {
-                    string aux = msg->get(i).asString();
-                    for (int j = 0; j < args.size(); j++)
+                    Bottle bot;
+                    Bottle rep;
+
+                    Bottle* msg = objectives.get(Ob).asList()->get(1).asList();
+                    for (int i = 0; i < msg->size(); i++)
                     {
-                        if (args.get(j).asString() == msg->get(i).asString())
+                        string aux = msg->get(i).asString();
+                        for (int j = 0; j < args.size(); j++)
                         {
-                            aux = object_list[0];
+                            if (args.get(j).asString() == msg->get(i).asString())
+                            {
+                                aux = object_list[0];
+                            }
                         }
+                        bot.addString(aux);
                     }
-                    bot.addString(aux);
+                    getState.write(bot, rep);
+                    yDebug() << bot.toString();
+                    bot.clear();
+                    bool indiv;
+                    string attach = objectives.get(Ob).asList()->get(0).toString();
+
+                    if (attach == "not")
+                    {
+                        indiv = !rep.get(1).asBool();
+                    }
+                    else
+                    {
+                        indiv = rep.get(1).asBool();
+                    }
+
+                    stateCheck = indiv && stateCheck;
+                    yDebug() << "objective of the plan is already complete: " << stateCheck;
                 }
+            }
 
-                getState.write(bot, rep);
-                yDebug() << "bot:"<<bot.toString();
-                bot.clear();
-                bool indiv;
-                string attach = stateOI.get(k).asList()->get(0).toString();
-
-                if (attach == "not")
+            // checking for post condition fulfillment if ultimate state is not met
+            if (!stateCheck)
+            {
+                for (int k = 0; k < stateOI.size(); k++)
                 {
-                    yDebug() << "not";
-                    indiv = !rep.get(1).asBool();
-                }
-                else
-                {
-                    indiv = rep.get(1).asBool();
-                }
+                    Bottle bot;
+                    Bottle rep;
 
-                stateCheck = indiv && stateCheck;
-                yDebug() << "State is" << stateCheck;
+                    Bottle* msg = stateOI.get(k).asList()->get(1).asList();
+                    for (int i = 0; i < msg->size(); i++)
+                    {
+                        string aux = msg->get(i).asString();
+                        for (int j = 0; j < args.size(); j++)
+                        {
+                            if (args.get(j).asString() == msg->get(i).asString())
+                            {
+                                aux = object_list[0];
+                            }
+                        }
+                        bot.addString(aux);
+                    }
+
+                    getState.write(bot, rep);
+                    yDebug() << bot.toString();
+                    bot.clear();
+                    bool indiv;
+                    string attach = stateOI.get(k).asList()->get(0).toString();
+
+                    if (attach == "not")
+                    {
+                        indiv = !rep.get(1).asBool();
+                    }
+                    else
+                    {
+                        indiv = rep.get(1).asBool();
+                    }
+
+                    stateCheck = indiv && stateCheck;
+                    yDebug() << "State is" << stateCheck;
+                }
             }
 
             if (actionCompleted && stateCheck)
             {
                 iCub->say(success_sentence);
-                yInfo() << "removing action " << *action_list.begin();
+                yDebug() << "removing actions";
+                int currPlan = planNr_list[0];
                 action_list.erase(action_list.begin());
                 priority_list.erase(priority_list.begin());
                 plan_list.erase(plan_list.begin());
                 object_list.erase(object_list.begin());
                 type_list.erase(type_list.begin());
                 actionPos_list.erase(actionPos_list.begin());
+                planNr_list.erase(planNr_list.begin());
                 attemptCnt = 0;
+
+                unsigned int length = planNr_list.size();
+                for (unsigned int extra = 0; extra < length; extra++)
+                {
+                    if (planNr_list[0] == currPlan)
+                    {
+                        action_list.erase(action_list.begin());
+                        priority_list.erase(priority_list.begin());
+                        plan_list.erase(plan_list.begin());
+                        object_list.erase(object_list.begin());
+                        type_list.erase(type_list.begin());
+                        actionPos_list.erase(actionPos_list.begin());
+                        planNr_list.erase(planNr_list.begin());
+                    }
+                    else { break; }
+                }
 
                 yInfo() << "action completed and removed from lists.";
             }
@@ -760,7 +849,6 @@ bool Planner::updateModule() {
         }
     }
     else{
-        yDebug() << "I am waiting to be allowed to follow my actions list.";
         Time::delay(1);
     }
 
