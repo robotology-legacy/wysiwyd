@@ -1481,7 +1481,7 @@ void narrativeHandler::initializeStories()
             SituationModel tmp;
             ofstream IGARFfile;
             tmp.ABMtoSM(itSt, IGARFfile);
-            if (tmp.vIGARF.size() < 5){
+            if (tmp.vIGARF.size() =< 4){
                 toDelete.push_back(iSto);
             }
         }
