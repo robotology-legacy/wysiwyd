@@ -183,6 +183,7 @@ protected:
     RpcServer  rpcPort;
     RpcClient  rpcClassifier;
     RpcClient  rpcGet3D;
+    RpcClient  rpcGetReachableArea;
     OPCClient *opc;
 
     BufferedPort<Bottle>             blobExtractor;
