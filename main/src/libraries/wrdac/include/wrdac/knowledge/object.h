@@ -100,19 +100,10 @@ public:
     yarp::sig::Vector getSelfRelativePosition(const yarp::sig::Vector &vInitialRoot);
 
     std::string objectAreaAsString() {
-        if(m_objectarea==ObjectArea::HUMAN) {
-            return "HumanOnly";
-        } else if(m_objectarea==ObjectArea::ROBOT) {
-            return "RobotOnly";
-        } else if(m_objectarea==ObjectArea::SHARED) {
-            return "Shared";
-        } else if(m_objectarea==ObjectArea::NOTREACHABLE) {
-            return "NotReachable";
-        } else {
-            yError() << "Something went wrong in objectAreaAsString()";
-            return "NULL";
-        }
+        return objectAreaAsString(m_objectarea);
     }
+
+    static std::string objectAreaAsString(wysiwyd::wrdac::ObjectArea o);
 };
 
 }} //namespaces

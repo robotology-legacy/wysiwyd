@@ -230,3 +230,18 @@ Vector Object::getSelfRelativePosition(const Vector &vInitialRoot)
     targetRelative[2] = targetAbsolute[2];
     return targetRelative;
 }
+
+std::string Object::objectAreaAsString(ObjectArea o) {
+    if(o==ObjectArea::HUMAN) {
+        return "HumanOnly";
+    } else if(o==ObjectArea::ROBOT) {
+        return "RobotOnly";
+    } else if(o==ObjectArea::SHARED) {
+        return "Shared";
+    } else if(o==ObjectArea::NOTREACHABLE) {
+        return "NotReachable";
+    } else {
+        yError() << "Something went wrong in objectAreaAsString()";
+        return "NULL";
+    }
+}

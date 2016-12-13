@@ -397,7 +397,10 @@ bool Planner::updateModule() {
                                     presence = true;
                                     preqFail.push_back(failState);
                                 }
-                                else if ( !((presence) && (keyword == "RobotOnly" || "Shared" || "HumanOnly")) )
+                                else if ( !((presence) &&
+                                            (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
+                                             keyword == Object::objectAreaAsString(ObjectArea::SHARED) ||
+                                             keyword == Object::objectAreaAsString(ObjectArea::HUMAN) )) )
                                 {
                                     preqFail.push_back(failState);
                                 }
