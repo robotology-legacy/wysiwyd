@@ -1389,7 +1389,7 @@ void narrativeHandler::initializeStories()
         osRelation << "SELECT instance, subject, verb, object FROM relation WHERE verb != 'isAtLoc' AND instance in (";
         osMain << "SELECT instance, activityname, activitytype, begin FROM main WHERE instance in (";
         osContentarg << "SELECT instance, argument, role, subtype FROM contentarg WHERE instance in (";
-        osObjects << "SELECT instance, argument, role, subtype FROM contentarg WHERE instance in (";
+        osObjects << "SELECT instance, name, presence, objectarea FROM contentarg WHERE (objectarea is not null and instance in (";
 
 
         bool bFirst = true;
@@ -1399,19 +1399,23 @@ void narrativeHandler::initializeStories()
                 osRelation << ", ";
                 osMain << ", ";
                 osContentarg << ", ";
+                osObjects << " , ";
             }
             osRelation << itInst;
             osMain << itInst;
             osContentarg << itInst;
+            osObjects << itInst;
             bFirst = false;
         }
         osRelation << ") ORDER BY instance";
         osMain << ") ORDER BY instance";
         osContentarg << ") ORDER BY instance";
+        osObjects << ")) ORDER BY instance";
 
         Bottle bAllRelation = iCub->getABMClient()->requestFromString(osRelation.str());
         Bottle bAllMain = iCub->getABMClient()->requestFromString(osMain.str());
         Bottle bAllContentA = iCub->getABMClient()->requestFromString(osContentarg.str());
+        Bottle bAllObjLoc = iCub->getABMClient()->requestFromString(osObjects.str());
 
         for (auto& itInst : itSt.viInstances){
 
@@ -1439,6 +1443,16 @@ void narrativeHandler::initializeStories()
                     if (atoi(bAllRelation.get(ll).asList()->get(0).toString().c_str()) == itInst){
                         // removing first element: instance
                         bTmpRel.addList() = (*bAllRelation.get(ll).asList()).tail();
+                    }
+                }
+            }
+
+            Bottle bTmpObj;
+            if (bAllRelation.toString() != "NULL"){
+                for (int ll = 0; ll < bAllRelation.size(); ll++){
+                    if (atoi(bAllObjLoc.get(ll).asList()->get(0).toString().c_str()) == itInst){
+                        // removing first element: instance
+                        bTmpObj.addList() = (*bAllObjLoc.get(ll).asList()).tail();
                     }
                 }
             }
@@ -1517,7 +1531,7 @@ void narrativeHandler::updateScoreStory(story &st){
 }
 
 
-vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
+vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations, Bottle _bObjects){
     evt.instance = _instance;
     evt.isNarration = false;
     evt.bRelations = _bRelations;
@@ -1548,6 +1562,8 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
     evt.begin = (bActivity.get(0).asList())->get(2).toString() == "t";
 
+
+    // FOR EVERY ARGUMENT
     for (int kk = 0; kk < bArguments.size(); kk++){
         if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
@@ -1573,6 +1589,8 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             else if (!isIn(vNoPAOR, bTemp.get(2).toString())) vOCW.push_back(bTemp.get(0).asString());
         }
     }
+    // END FOR EVERY ARGUMENT
+
 
     if (evt.activity_name == "production" || evt.activity_name == "comprehension" || evt.activity_name == "sentence"){
         evt.predicate = "say";
@@ -1636,6 +1654,20 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             vOCW.push_back(evt.predicate);
         }
     }
+
+    // RELATIONS
+
+    // CHECK IF AN OBJECT IS AT A LOCATION PRECISE  
+    if (!_bObjects.isNull()){   // CHECK IF ALL OBJECT NOT EMPT        
+        for (int kk = 0; kk < _bObjects.size(); kk++){ // FOR EVERY OBJECT
+            if (_bObjects.get(kk).isList()) {  // IF CURRENT OBJECT EXIST
+                Bottle bTemp = *_bObjects.get(kk).asList(); 
+
+            }
+        }   // END FOR EVERY OBJECT
+    } // END IF OBJECT NOT EMPTY
+
+
 
     evt.addUnderscore();
 

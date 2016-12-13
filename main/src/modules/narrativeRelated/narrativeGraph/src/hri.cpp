@@ -176,6 +176,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                     }
                     else if (bSemantic.get(0).asString() == "When"){
                         yInfo() << "Setting remember true !";
+                        iCub->say("hum hum?");
                         remember = true;
                     }
                     else{
