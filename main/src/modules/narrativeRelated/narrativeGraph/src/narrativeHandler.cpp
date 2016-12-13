@@ -1476,6 +1476,17 @@ void narrativeHandler::initializeStories()
         if (itSt.sentenceStory.size() < 2){
             toDelete.push_back(iSto);
         }
+        else
+        {
+            SituationModel tmp;
+            ofstream IGARFfile;
+            tmp.ABMtoSM(itSt, IGARFfile);
+            if (tmp.vIGARF.size() < 5){
+                toDelete.push_back(iSto);
+            }
+        }
+
+
         iSto++;
     }
     cout << endl;

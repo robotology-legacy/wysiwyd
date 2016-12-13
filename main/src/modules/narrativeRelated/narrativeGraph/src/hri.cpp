@@ -424,6 +424,12 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
 
     vResponses.erase(vResponses.begin() + toRemove - 1);
 
+    string X = "_X_";
+    string::size_type i = sReturn.find(X);
+
+    if (i != std::string::npos)
+        sReturn.erase(i, X.length());
+
     return sReturn;
 }
 
