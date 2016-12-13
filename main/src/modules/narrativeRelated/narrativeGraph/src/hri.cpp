@@ -98,6 +98,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
         bool getAnswer = false;
 
         while (!getAnswer && !exit){
+            iCub->lookAtPartner();
             cout << "Remember: " << remember << " | scenario: " << scenarioToRecall << endl;
             bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, true);
             if (bRecognized.get(0).asInt() == 0)

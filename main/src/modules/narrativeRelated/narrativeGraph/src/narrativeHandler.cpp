@@ -1389,7 +1389,7 @@ void narrativeHandler::initializeStories()
         osRelation << "SELECT instance, subject, verb, object FROM relation WHERE verb != 'isAtLoc' AND instance in (";
         osMain << "SELECT instance, activityname, activitytype, begin FROM main WHERE instance in (";
         osContentarg << "SELECT instance, argument, role, subtype FROM contentarg WHERE instance in (";
-        osObjects << "SELECT instance, name, presence, objectarea FROM contentarg WHERE (objectarea is not null and instance in (";
+        osObjects << "SELECT instance, name, presence, objectarea FROM object WHERE (objectarea is not null and instance in (";
 
 
         bool bFirst = true;
@@ -1450,15 +1450,17 @@ void narrativeHandler::initializeStories()
             Bottle bTmpObj;
             if (bAllRelation.toString() != "NULL"){
                 for (int ll = 0; ll < bAllRelation.size(); ll++){
-                    if (atoi(bAllObjLoc.get(ll).asList()->get(0).toString().c_str()) == itInst){
-                        // removing first element: instance
-                        bTmpObj.addList() = (*bAllObjLoc.get(ll).asList()).tail();
+                    if (!bAllObjLoc.get(ll).isNull()){
+                        if (atoi(bAllObjLoc.get(ll).asList()->get(0).toString().c_str()) == itInst){
+                            // removing first element: instance
+                            bTmpObj.addList() = (*bAllObjLoc.get(ll).asList()).tail();
+                        }
                     }
                 }
             }
 
             evtStory evtTemp;
-            vector<string> tempOCW = initializeEVT(evtTemp, itInst, bTmpMain, bTmpArg, bTmpRel);
+            vector<string> tempOCW = initializeEVT(evtTemp, itInst, bTmpMain, bTmpArg, bTmpRel, bTmpObj);
 
             if (evtTemp.predicate != "appear"
                 && evtTemp.predicate != "disappear"
@@ -1562,6 +1564,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
     evt.begin = (bActivity.get(0).asList())->get(2).toString() == "t";
 
+    string presentAgent = "partner";
 
     // FOR EVERY ARGUMENT
     for (int kk = 0; kk < bArguments.size(); kk++){
@@ -1603,7 +1606,6 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             }
         }
 
-        string presentAgent = "partner";
         ostringstream osRequest;
         osRequest << "SELECT name FROM agent WHERE instance = " << _instance << " AND presence = true";
         Bottle bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
@@ -1658,11 +1660,31 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
     // RELATIONS
 
     // CHECK IF AN OBJECT IS AT A LOCATION PRECISE  
-    if (!_bObjects.isNull()){   // CHECK IF ALL OBJECT NOT EMPT        
+
+    if (!_bObjects.isNull()){   // CHECK IF ALL OBJECT NOT EMPT      
         for (int kk = 0; kk < _bObjects.size(); kk++){ // FOR EVERY OBJECT
             if (_bObjects.get(kk).isList()) {  // IF CURRENT OBJECT EXIST
                 Bottle bTemp = *_bObjects.get(kk).asList(); 
-
+                // IF OBJECT IS PRESENT
+                if (bTemp.get(1).toString() == "t"){
+                    // IF OBJECT IS REACHEABLE BY HUMAN
+                    if (bTemp.get(2).toString() == "HumanOnly"){
+                        Bottle b;
+                        b.addString(presentAgent);
+                        b.addString("have");
+                        b.addString(bTemp.get(0).toString());
+                        yInfo() << "Adding relation: " << b.toString() << " FROM " << bTemp.toString();
+                        evt.bRelations.addList() = b;
+                    }
+                    else if (bTemp.get(2).toString() == "RobotOnly"){
+                        Bottle b;
+                        b.addString("icub");
+                        b.addString("have");
+                        b.addString(bTemp.get(0).toString());
+                        yInfo() << "Adding relation: " << b.toString() << " FROM " << bTemp.toString();
+                        evt.bRelations.addList() = b;
+                    }
+                }
             }
         }   // END FOR EVERY OBJECT
     } // END IF OBJECT NOT EMPTY
