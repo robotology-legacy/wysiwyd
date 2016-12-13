@@ -95,8 +95,6 @@ Bottle OpcSensation::handleEntities()
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
-    bool unknown_obj = false;
-    bool known_obj = false;
     bool agentPresent = false;
     Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities, temp_o_positions;
     Bottle objects;
@@ -116,13 +114,11 @@ Bottle OpcSensation::handleEntities()
                 Object* o = dynamic_cast<Object*>(entity);
                 
                 if(o && (o->m_present==1.0)) {
-                    unknown_obj = true;
                     addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
                 }
                 addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
             }
             else if(entity->entity_type() == "bodypart") {
-                unknown_obj = true;
                 addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
                 addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
@@ -130,7 +126,6 @@ Bottle OpcSensation::handleEntities()
         else if (entity->name() == "partner" && entity->entity_type() == "agent") {
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
-                unknown_obj = true;
                 addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
             addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
@@ -138,12 +133,10 @@ Bottle OpcSensation::handleEntities()
         else {
             if (entity->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(entity)->m_tactile_number == -1))
             {
-                unknown_obj = true;
                 addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
                 addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
             else if (entity->entity_type() == "object"){
-                known_obj = true;
                 Object* obj1 = dynamic_cast<Object*>(entity);
 
                 //Handle red balls
@@ -199,7 +192,6 @@ Bottle OpcSensation::handleEntities()
         if (entity->name() == iCub->getPartnerName(false) && entity->entity_type() == "agent") {
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
-                unknown_obj = true;
                 Bottle right_hand;
                 right_hand.addDouble(a->m_body.m_parts["handRight"][0]);          //X
                 right_hand.addDouble(a->m_body.m_parts["handRight"][1]);          //Y
@@ -224,9 +216,9 @@ Bottle OpcSensation::handleEntities()
     output.addList()=objects;
     outputPPSPort.write();
     Bottle out;
-    out.addInt(int(unknown_obj));
+    out.addInt(int(up_entities.size()!=0));
     out.addList()=up_entities;
-    out.addInt(int(known_obj));
+    out.addInt(int(kp_entities.size()!=0));
     out.addList()=kp_entities;
     out.addInt(int(agentPresent));
 
