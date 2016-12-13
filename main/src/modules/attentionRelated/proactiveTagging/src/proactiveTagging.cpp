@@ -604,12 +604,13 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
 
     yInfo() << sReply;
     iCub->say(sReply);
-    Time::delay(0.2);
 
     iCub->home();
 
     bOutput.addString("success");
     bOutput.addString(currentEntityType);
+
+    yInfo() << "End of exploreUnknownEntity";
 
     return bOutput;
 }
