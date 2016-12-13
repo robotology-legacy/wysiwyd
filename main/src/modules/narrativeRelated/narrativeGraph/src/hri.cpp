@@ -67,6 +67,15 @@ Bottle narrativeHandler::questionHRI_DFW(){
     yInfo("starting QUESTIONHRI_DFW");
     Bottle bReturn;
 
+    vector<string> vBegin;
+    vBegin.push_back("I'll be glad to talk about what we did!");
+    vBegin.push_back("Sure, what do you want to know?");
+    vBegin.push_back("Absolutely!");
+    vBegin.push_back("Yes?");
+
+    unsigned int randomIndex = rand() % vBegin.size();
+    iCub->say(vBegin[randomIndex]);
+
     vector < hriResponse > vResponses;
     vector < PAOR > vSaid;
     vector < tuple <Bottle, PAOR > >  vQuestions;
@@ -158,7 +167,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         if (bSemantic.get(0).asString() == "PAORsimple"
                             || bSemantic.get(0).asString() == "PAORdouble"){
                             // randomly pick a reaction.
-                            int randomIndex = rand() % vConfirmation.size();
+                            randomIndex = rand() % vConfirmation.size();
                             iCub->say(vConfirmation[randomIndex]);
                         }
                         else if (bSemantic.get(0).asString() == "stop"){
@@ -234,6 +243,7 @@ vector < hriResponse > narrativeHandler::what_DFW_Simple(Bottle bInput, int iSce
     vResponses = useDFW(iScenario, sdfw, paor, true);
 
     cout << "returning: " << endl << vResponses.size() << endl;
+    iCub->say("Hum, " + sdfw + " ?", false);
 
     return vResponses;
 }
@@ -291,6 +301,7 @@ vector < hriResponse > narrativeHandler::what_DFW_Double(Bottle bInput, PAOR &sP
     cout << "extracted DFW from recog: " << sdfw << endl;
     vResponses = useDFW(iScenario, sdfw, sPAOR, true);
     cout << "returning: " << vResponses.size() << endl;
+    iCub->say("Hum, " + sdfw + " ?", false);
 
     return vResponses;
 }
@@ -343,6 +354,8 @@ vector < hriResponse > narrativeHandler::whyPAOR(Bottle bInput, PAOR &sPAOR, int
     vResponses = useDFW(iScenario, sdfw, sPAOR, false);
 
     cout << "returning: " << endl << vResponses.size() << endl;
+    iCub->say("Hum, why ?", false);
+
     return vResponses;
 }
 
