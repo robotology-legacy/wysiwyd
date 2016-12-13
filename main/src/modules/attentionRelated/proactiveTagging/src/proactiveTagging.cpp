@@ -116,7 +116,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
-    iCub->say("proactive tagging is ready", false);
+    iCub->say("pro active tagging is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
     iCub->home();
