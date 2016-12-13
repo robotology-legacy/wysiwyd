@@ -42,6 +42,7 @@ numParts = len(mm[0].participantList)
 for k in range(numParts):
     mm[k].paramsDict['overallPerformance'] = overallPerformance
     mm[k].paramsDict['overallPerformanceLabels'] = overallPerformanceLabels
+    mm[k].paramsDict['labelComparisonDict'] = labelComparisonDict
     mm[k].paramsDict['ratioData'] = mm[0].ratioData
     mm[k].paramsDict['model_type'] = mm[k].model_type
     mm[k].paramsDict['model_mode'] = mm[0].model_mode
@@ -67,7 +68,6 @@ for k in range(numParts):
         mm[0].paramsDict['listOfModels'] = mm[0].listOfModels
         mm[0].paramsDict['avgClassTime'] = mm[0].avgClassTime
         mm[0].paramsDict['optimiseRecall'] = mm[0].optimiseRecall
-        mm[0].paramsDict['labelComparisonDict'] = labelComparisonDict
         if mm[0].calibrateUnknown:
             mm[0].paramsDict['classificationDict'] = mm[0].classificationDict
         mm[0].paramsDict['calibrateUnknown'] = mm[0].calibrateUnknown

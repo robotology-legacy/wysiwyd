@@ -181,7 +181,7 @@ class SAMDriver_interaction(SAMDriver):
         self.L = img_label_data
         return self.Y.shape[1]
 
-    def processLiveData(self, dataList, thisModel, verbose):
+    def processLiveData(self, dataList, thisModel, verbose, additionalData=dict()):
 
         print 'process live data'
         print len(dataList)

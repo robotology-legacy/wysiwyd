@@ -58,6 +58,8 @@ class interactionSAMModel(yarp.RFModule):
         self.verboseSetting = False
         self.exitFlag = False
         self.recordingFile = ''
+        self.additionalInfoDict = dict()
+        self.modelLoaded = False
 
     def configure(self, rf):
 
@@ -167,6 +169,7 @@ class interactionSAMModel(yarp.RFModule):
 
             self.mm = SAM_utils.initialiseModels([self.dataPath, self.modelPath, self.driverName], 'update',
                                                  'interaction')
+            self.modelLoaded = True
 
             if self.mm[0].model_mode != 'temporal':
                 self.bufferSize = proposedBuffer
@@ -198,49 +201,72 @@ class interactionSAMModel(yarp.RFModule):
         b = yarp.Bottle()
         reply.clear()
         action = command.get(0).asString()
-        if action != 'heartbeat':
-            print(action + ' received')
-            print 'responding to ' + action + ' request'
 
-        if action == "reload":
-            # send a message to the interaction model to check version of currently loaded model
-            # and compare it with that stored on disk. If model on disk is more recent reload model
-            # interaction model to return "model reloaded correctly" or "loaded model already up to date"
-            print "reloading model"
-            try:
-                self.mm = SAM_utils.initialiseModels([self.dataPath, self.modelPath, self.driverName],
-                                                     'update', 'interaction')
+        count = 0
+        while not self.modelLoaded:
+            count += 1
+            time.sleep(0.5)
+            if count == 10:
+                break
+
+        if self.modelLoaded:
+            if action != 'heartbeat' or action != 'information':
+                print(action + ' received')
+                print 'responding to ' + action + ' request'
+
+            if action == "reload":
+                # send a message to the interaction model to check version of currently loaded model
+                # and compare it with that stored on disk. If model on disk is more recent reload model
+                # interaction model to return "model reloaded correctly" or "loaded model already up to date"
+                print "reloading model"
+                try:
+                    self.mm = SAM_utils.initialiseModels([self.dataPath, self.modelPath, self.driverName],
+                                                         'update', 'interaction')
+                    reply.addString('ack')
+                except:
+                    reply.addString('nack')
+            # -------------------------------------------------
+            elif action == "heartbeat":
                 reply.addString('ack')
-            except:
-                reply.addString('nack')
-        # -------------------------------------------------
-        elif action == "heartbeat":
-            reply.addString('ack')
-        # -------------------------------------------------
-        elif action == "toggleVerbose":
-            self.verboseSetting = not self.verboseSetting
-            reply.addString('ack')
-        # -------------------------------------------------
-        elif action == "portNames":
-            reply.addString('ack')
-            reply.addString(self.labelPortName)
-            reply.addString(self.instancePortName)
-            if self.collectionMethod == 'continuous':
-                reply.addString(self.eventPortName)
-        # -------------------------------------------------
-        elif action == "EXIT":
-            reply.addString('ack')
-            self.close()
-        # -------------------------------------------------
-        elif action in self.callSignList:
-            if 'label' in action:
-                self.classifyInstance(reply)
-            elif 'instance' in action:
-                self.generateInstance(reply, command.get(1).asString())
-        # -------------------------------------------------
+            # -------------------------------------------------
+            elif action == "toggleVerbose":
+                self.verboseSetting = not self.verboseSetting
+                reply.addString('ack')
+            # -------------------------------------------------
+            elif action == "portNames":
+                reply.addString('ack')
+                reply.addString(self.labelPortName)
+                reply.addString(self.instancePortName)
+                if self.collectionMethod == 'continuous':
+                    reply.addString(self.eventPortName)
+            # -------------------------------------------------
+            elif action == "information":
+                if command.size() < 3:
+                    reply.addString('nack')
+                else:
+                    try:
+                        self.additionalInfoDict[command.get(1).asString()] = command.get(2).asString()
+                        reply.addString('ack')
+                    except:
+                        reply.addString('nack')
+                    print self.additionalInfoDict
+            # -------------------------------------------------
+            elif action == "EXIT":
+                reply.addString('ack')
+                self.close()
+            # -------------------------------------------------
+            elif action in self.callSignList:
+                if 'label' in action:
+                    self.classifyInstance(reply)
+                elif 'instance' in action:
+                    self.generateInstance(reply, command.get(1).asString())
+            # -------------------------------------------------
+            else:
+                reply.addString("nack")
+                reply.addString("Command not recognized")
         else:
             reply.addString("nack")
-            reply.addString("Command not recognized")
+            reply.addString("Model not loaded")
 
         return True
 
@@ -249,28 +275,32 @@ class interactionSAMModel(yarp.RFModule):
             if self.verboseSetting:
                 print '-------------------------------------'
             if self.collectionMethod == 'buffered':
-                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
+                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
+                                                       additionalData=self.additionalInfoDict)
                 if thisClass is None:
-                    reply.addString('None')
+                    reply.addString('nack')
                 else:
                     reply.addString(thisClass)
                     # reply.addDouble(likelihood)
             # -------------------------------------------------
             elif self.collectionMethod == 'continuous':
+                print self.classificationList
                 if len(self.classificationList) > 0:
+                    reply.addString('ack')
                     reply.addString(self.classificationList[-1])
                     self.classificationList.pop(-1)
                 else:
-                    reply.addString('None')
+                    reply.addString('nack')
             # -------------------------------------------------
             elif self.collectionMethod == 'future_buffered':
                 self.dataList = []
                 for j in range(self.bufferSize):
                     self.dataList.append(self.readFrame())
 
-                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
+                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
+                                                       additionalData=self.additionalInfoDict)
                 if thisClass is None:
-                    reply.addString('None')
+                    reply.addString('nack')
                 else:
                     reply.addString(thisClass[0])
                     # reply.addDouble(likelihood)
@@ -401,9 +431,9 @@ class interactionSAMModel(yarp.RFModule):
 
             self.dataList.append(frame)
             # process list of frames for a classification
-            thisClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting)
+            thisClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
+                                                             additionalData=self.additionalInfoDict)
             # if proper classification
-
             if thisClass is not None:
                 # empty dataList
                 self.dataList = dataList

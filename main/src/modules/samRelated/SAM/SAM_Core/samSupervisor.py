@@ -63,6 +63,8 @@ class SamSupervisorModule(yarp.RFModule):
         self.modelConnections = dict()
         self.connectionCheckCount = 0
         self.modelPriority = ['backup', 'exp', 'best']
+        self.opcPort = None
+        self.useOPC = None
 
     def configure(self, rf):
         yarp.Network.init()
@@ -91,6 +93,7 @@ class SamSupervisorModule(yarp.RFModule):
             self.rootPath = rf.find("root_path").asString()
             self.interactionConfPath = rf.find("config_path").asString()
             persistence = rf.check("persistence", yarp.Value("False")).asString()
+            useOPC = rf.check("useOPC", yarp.Value("False")).asString()
             windowed = rf.check("windowed", yarp.Value("True")).asString()
             verbose = rf.check("verbose", yarp.Value("True")).asString()
             startModels = rf.check("startModels", yarp.Value("True")).asString()
@@ -118,6 +121,7 @@ class SamSupervisorModule(yarp.RFModule):
             self.persistence = True if(persistence == "True") else False
             self.windowed = True if(windowed == "True") else False
             self.verbose = True if(verbose == "True") else False
+            self.useOPC = True if (useOPC == "True") else False
 
             print 'Root supervisor path:     \t', self.rootPath
             print 'Model configuration file: \t', self.interactionConfPath
@@ -157,6 +161,11 @@ class SamSupervisorModule(yarp.RFModule):
             self.supervisorPort = yarp.Port()
             self.supervisorPort.open('/sam/rpc:i')
             self.attach(self.supervisorPort)
+
+            if useOPC:
+                self.opcPort = yarp.RpcClient()
+                self.opcPort.open('/sam/opcRpc:o')
+                yarp.Network.connect('/sam/opcRpc:o', '/OPC/rpc')
 
             if len(nodesDict) > 0:
                 self.cluster = utils.ipyClusterManager(nodesDict, controllerIP, self.devnull, totalControl=True)
@@ -230,7 +239,12 @@ class SamSupervisorModule(yarp.RFModule):
             time.sleep(1)
             j[1].close()
 
+        self.supervisorPort.interrupt()
         self.supervisorPort.close()
+
+        if self.opcPort is not None:
+            self.opcPort.interrupt()
+            self.opcPort.close()
 
         for i, v in self.trainingListHandles.iteritems():
             v.send_signal(signal.SIGINT)
@@ -436,7 +450,9 @@ class SamSupervisorModule(yarp.RFModule):
         self.checkAvailabilities(b)
         reply.clear()
 
-        if command.get(0).asString() == "check_all":
+        if command.get(0).asString() == "askOPC":
+            self.askOPC(reply, command)
+        elif command.get(0).asString() == "check_all":
             self.checkAvailabilities(reply)
         elif command.get(0).asString() == "check":
             self.checkModel(reply, command)
@@ -507,6 +523,47 @@ class SamSupervisorModule(yarp.RFModule):
         raise Exception("Timed out!")
 
     def interruptModule(self):
+        return True
+
+    def askOPC(self, command, reply):
+        reply.clear()
+        actionsLoadedList = [t for t in self.rpcConnections if 'Actions' in t[0]]
+
+        if len(actionsLoadedList) > 0:
+            # ask for all objects with item entity
+            cmd = yarp.Bottle()
+            cmd.fromString('[ask] (("entity" "==" "agent"))')
+
+            rep = yarp.Bottle()
+            self.opcPort.write(cmd, rep)
+            # split items in the returned string
+            lID = rep.get(1).toString().split('(')[-1].replace(')', '').split(' ')
+
+            # iterate over items to get agent name
+            agentList = []
+            for j in lID:
+                cmd = yarp.Bottle()
+                cmd.fromString('[get] (("id" ' + str(j) + ') (propSet ("name")))')
+                rep = yarp.Bottle()
+                self.opcPort.write(cmd, rep)
+                agentList.append(rep.toString().split('name')[-1].split(')')[0].replace(' ', ''))
+
+            currAgent = [t for t in agentList if t != 'icub'][0]
+
+            for j in actionsLoadedList:
+                cmd = yarp.Bottle()
+                cmd.addString('information')
+                cmd.addString('partnerName')
+                cmd.addString(currAgent)
+                rep = yarp.Bottle()
+                j[1].write(cmd, rep)
+
+            reply.addString('ack')
+            reply.addString('Agent = ' + str(currAgent))
+        else:
+            reply.addString('ack')
+            reply.addString('No actions loaded')
+
         return True
 
     def closeModel(self, reply, command, external=False):
@@ -807,9 +864,6 @@ class SamSupervisorModule(yarp.RFModule):
                 if 'L' in modelToDelete[j].split('__')[-1]:
                     modelToDelete[j] = '__'.join(modelToDelete.split('__')[:-1])
 
-            print 'MODELS TO DELETE VALUES', modelToDelete.values()
-            print 'MODELS TO DELETE KEYS', modelToDelete.keys()
-
             filesToDelete = []
             if command.get(2).asString() != '':
                 modName = command.get(2).asString()
@@ -887,7 +941,7 @@ class SamSupervisorModule(yarp.RFModule):
                         modToLoad = modelToCheck[modType]
 
             if modToLoad != '':
-                modToLoad = join(self.dataPath, modToLoad) + '.pickle'
+                modToLoad = join(self.modelPath, modToLoad) + '.pickle'
                 print modToLoad
                 reply.addString('ack')
                 reply.addString(modToLoad)
@@ -1155,6 +1209,9 @@ class SamSupervisorModule(yarp.RFModule):
     def updateModule(self):
         if self.iter == 10:
             self.onlineModelCheck()
+            cmd = yarp.Bottle()
+            rep = yarp.Bottle()
+            self.askOPC(cmd, rep)
             self.iter = 0
         self.iter += 1
         time.sleep(0.05)

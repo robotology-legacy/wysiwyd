@@ -898,12 +898,12 @@ class SAMDriver_ARWin(SAMDriver):
         print self.Y.shape
         print len(self.L)
 
-    def listOfClassificationVectors(self, featureSequence, objectsList):
+    def listOfClassificationVectors(self, featureSequence, objectsList, partnerName='partner'):
         listOfVectorsToClassify = []
         for j in featureSequence:
             if j == 'object':
                 for k in objectsList:
-                    if k != 'partner':
+                    if k != partnerName:
                         listOfVectorsToClassify.append([k])
 
             elif 'hand' in j:
@@ -927,38 +927,43 @@ class SAMDriver_ARWin(SAMDriver):
 
     def messageChecker(self, dataMessage, mode):
         goAhead = True
-        if mode == 'testing':
-            dataMessage = dataMessage.replace('"'+dataMessage.partition('"')[-1].rpartition('"')[0]+'"', 'partner')
-            t = dataMessage.replace('(', '').replace(')', '').split(' ')[4:-1]
-        elif mode == 'live':
-            t = dataMessage.replace('(', '').replace(')', '').replace('"', '').split(' ')[2:-1]
-        else:
-            print 'Non-existing mode. Choose either live or read'
-            t = []
+        try:
+            dataMessage = dataMessage.replace('"' + dataMessage.partition('"')[-1].rpartition('"')[0] + '"', 'partner')
+            if mode == 'testing':
+                t = dataMessage.replace('(', '').replace(')', '').split(' ')[4:-1]
+            elif mode == 'live':
+                t = dataMessage.replace('(', '').replace(')', '').replace('"', '').split(' ')[2:-1]
+            else:
+                print 'Non-existing mode. Choose either live or read'
+                t = []
 
-        if len(t) > 45:
-            for i in range(self.numJoints):
-                    a = i*4
+            if len(t) > 45:
+                for i in range(self.numJoints):
+                        a = i*4
+                        goAhead = goAhead and type(t[a]) == str
+                        goAhead = goAhead and float(t[a+1]) is not None
+                        goAhead = goAhead and float(t[a+2]) is not None
+                        goAhead = goAhead and float(t[a+3]) is not None
+
+                currIdx = (self.numJoints*4 - 1)
+                numObjs = (len(t) - currIdx)/5
+
+                for i in range(numObjs):
+                    a = currIdx + 1 + (i*5)
                     goAhead = goAhead and type(t[a]) == str
                     goAhead = goAhead and float(t[a+1]) is not None
                     goAhead = goAhead and float(t[a+2]) is not None
                     goAhead = goAhead and float(t[a+3]) is not None
-
-            currIdx = (self.numJoints*4 - 1)
-            numObjs = (len(t) - currIdx)/5
-
-            for i in range(numObjs):
-                a = currIdx + 1 + (i*5)
-                goAhead = goAhead and type(t[a]) == str
-                goAhead = goAhead and float(t[a+1]) is not None
-                goAhead = goAhead and float(t[a+2]) is not None
-                goAhead = goAhead and float(t[a+3]) is not None
-        else:
+            else:
+                goAhead = False
+        except:
             goAhead = False
+            t = []
 
         return [t, goAhead]
 
-    def processLiveData(self, dataList, thisModel, verbose=False, returnUnknown=False, printClass=True):
+    def processLiveData(self, dataList, thisModel, verbose=False, returnUnknown=False, printClass=True,
+                        additionalData=dict()):
         # dataList is list of yarp bottles
         mode = 'live'
         sentence = []
@@ -973,8 +978,15 @@ class SAMDriver_ARWin(SAMDriver):
                     dataStrings.append(t)
 
             if len(dataStrings) == self.paramsDict['windowSize']:
+
                 data, jointsList, objectsList = self.convertToDict(dataStrings, mode=mode, verbose=False)
-                listOfVectorsToClassify = self.listOfClassificationVectors(self.featureSequence, objectsList)
+
+                if 'partnerName' in additionalData.keys():
+                    listOfVectorsToClassify = self.listOfClassificationVectors(self.featureSequence, objectsList,
+                                                                            partnerName=additionalData['partnerName'])
+                else:
+                    listOfVectorsToClassify = self.listOfClassificationVectors(self.featureSequence, objectsList,
+                                                                               partnerName='partner')
 
                 for j in listOfVectorsToClassify:
                     v = []
@@ -987,19 +999,18 @@ class SAMDriver_ARWin(SAMDriver):
                     classification = label.split('_')[0]
                     classifs.append(classification)
                     if self.paramsDict['flip'] and 'handLeft' in j:
-                        if label == 'push':
-                            label = 'pull'
-                        elif label == 'pull':
-                            label = 'push'
+                        if classification == 'push':
+                            classification = 'pull'
+                        elif classification == 'pull':
+                            classification = 'push'
 
                     if classification == 'unknown':
-                        sentence.append("You did an " + label + " action with " + str(j))
+                        sentence.append("You did an " + classification + " action on the " + str(j[0]))
                     else:
-                        sentence.append("You did a " + label + " with " + str(j))  # + " the " + j[0])
+                        sentence.append("You did a " + classification + " action on the " + str(j[0]))
 
                     # if len(j) > 1:
                     #     sentence[-1] += " with your " + j[1].replace('hand', '') + ' hand'
-
                     if classification == 'unknown' and not returnUnknown:
                         sentence.pop(-1)
                     elif printClass:
@@ -1008,8 +1019,7 @@ class SAMDriver_ARWin(SAMDriver):
                         print '------------------------------------------------------'
 
                 del dataList[:self.paramsDict['windowOffset']]
-
-                if len(sentence) > 1:
+                if len(sentence) > 0:
                     # return [str(sentence), data, classifs, vecList]
                     return str(sentence), dataList
                 else:

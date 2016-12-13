@@ -596,7 +596,7 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
                       retLabel.ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) + \
                       ' confidence: ' + str(result)
 
-            labelComparisonDict['original'].append(currLabel)
+            labelComparisonDict['original'].append(Lsample[i])
             labelComparisonDict['results'].append(retLabel)
             confMatrix[labelList.index(currLabel), labelList.index(retLabel)] += 1
         return labelList, confMatrix, labelComparisonDict
