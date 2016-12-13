@@ -37,8 +37,10 @@ class ReachableArea(yarp.RFModule):
     def respond(self, command, reply):
         reply.clear()
         if command.get(0).asString() == "get_area" and command.size() == 4:
+            reply.addString("ack")
             reply.addString(self.getAreaType( (command.get(1).asDouble(), command.get(2).asDouble(), command.get(3).asDouble()) ))
         else:
+            reply.addString("nack")
             reply.addString("Command is: get_area X Y Z")
 
         return True

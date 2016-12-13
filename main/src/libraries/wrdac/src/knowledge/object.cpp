@@ -245,3 +245,18 @@ std::string Object::objectAreaAsString(ObjectArea o) {
         return "NULL";
     }
 }
+
+ObjectArea Object::stringToObjectArea(std::string o) {
+    if(o=="HumanOnly") {
+        return ObjectArea::HUMAN;
+    } else if(o=="RobotOnly") {
+        return ObjectArea::ROBOT;
+    } else if(o=="Shared") {
+        return ObjectArea::SHARED;
+    } else if(o=="NotReachable") {
+        return ObjectArea::NOTREACHABLE;
+    } else {
+        yError() << "Something went wrong in stringToObjectArea()";
+        return ObjectArea::NOTREACHABLE;
+    }
+}

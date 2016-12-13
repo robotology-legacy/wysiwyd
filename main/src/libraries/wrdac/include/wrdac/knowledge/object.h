@@ -104,6 +104,7 @@ public:
     }
 
     static std::string objectAreaAsString(wysiwyd::wrdac::ObjectArea o);
+    static wysiwyd::wrdac::ObjectArea stringToObjectArea(std::string o);
 };
 
 }} //namespaces
