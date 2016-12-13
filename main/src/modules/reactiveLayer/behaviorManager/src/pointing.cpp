@@ -24,6 +24,7 @@ void Pointing::run(const Bottle &args) {
         no_objects=false;
     } else {
         if(sensation->size()==0) {
+            iCub->lookAtPartner();
             iCub->say("There are no objects I can point at.");
             return;
         }
@@ -46,11 +47,14 @@ void Pointing::run(const Bottle &args) {
     iCub->say(sentence + obj_name);
     bool succeeded = iCub->point(obj_name);
     if (no_objects){
+        bool look_success = iCub->lookAtPartner();
         if (succeeded) {
-            iCub->lookAtPartner();
             iCub->say("Do you know that this is a " + obj_name, false);
         } else {
             iCub->say("I couldn't find the " + obj_name, false);
+        }
+        if(look_success) {
+            yarp::os::Time::delay(0.5);
         }
     }
     iCub->home();

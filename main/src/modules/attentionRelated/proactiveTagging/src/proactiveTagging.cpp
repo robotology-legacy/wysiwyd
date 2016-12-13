@@ -441,7 +441,7 @@ Bottle proactiveTagging::getNameFromSAM(string sNameTarget, string currentEntity
         iCub->opc->commit(TARGET);
 
         iCub->say("Nice to see you " + sNameSAM);
-        yarp::os::Time::delay(1.0);
+        yarp::os::Time::delay(0.2);
         iCub->home();
 
         bOutput.addString("success");
@@ -487,7 +487,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     //Ask question for the human, or ask to pay attention (if action to focus attention after)
     string sQuestion;
     if (currentEntityType == "agent") {
-        iCub->look(sNameTarget);
+        iCub->lookAtPartner();
 
         if (!Network::connect(portToSAM.getName().c_str(), SAMRpc.c_str())) {
             yWarning() << " SAM NOT CONNECTED: face recognition will not work";
