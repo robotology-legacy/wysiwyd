@@ -118,7 +118,7 @@ void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level, bool displ
     else if (evt.tAction == IGARF_EVT) {
         if (display) cout << "[" << evt.iAction << "]" << endl;
         IGARFfile << endl;
-        showIGARF(evt.iAction, IGARFfile, level + 1);
+        showIGARF(evt.iAction, IGARFfile, level + 1, display);
     }
     else
         if (display) cout << endl;
@@ -134,7 +134,7 @@ void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level, bool displ
     else if (evt.tResult == IGARF_EVT) {
         if (display) cout << "[" << evt.iResult << "]" << endl;
         IGARFfile << endl;
-        showIGARF(evt.iResult, IGARFfile, level + 1);
+        showIGARF(evt.iResult, IGARFfile, level + 1, display);
     }
     else{
         if (display) cout << endl;
@@ -153,7 +153,7 @@ void SituationModel::showIGARF(int i, ofstream &IGARFfile, int level, bool displ
         if (display) cout << "[" << evt.iNext << "]" << endl;
         IGARFfile << endl;
         if (display) line(level);
-        showIGARF(evt.iNext, IGARFfile, level);
+        showIGARF(evt.iNext, IGARFfile, level, display);
     }
     else {
         if (display) cout << endl;
@@ -436,6 +436,16 @@ void SituationModel::ABMtoSM(const story &sto, ofstream &IGARFfile) {
             action.agent = currentEvt.agent;
             action.object = currentEvt.object;
             action.recipient = currentEvt.recipient;
+            if (action.predicate == "say"){
+                if (action.recipient == ""){
+                    if (action.agent != "iCub"){
+                        action.recipient = "iCub";
+                    }
+                }
+                else if (action.recipient == action.agent){
+                    action.recipient = "partner";
+                }
+            }
             newEvent.iAction = addNewActionEvt(action);
 
             // > Init State
@@ -563,15 +573,15 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
                 VocabularyHandler::sameMeaning(vActionEvts.at(currentIGARF.iResult).predicate, "fail")) && // Not a failure
                 !(isRelationsBInA(currentIGARF.vInitState, currentIGARF.vFinalState) &&
                 isRelationsBInA(currentIGARF.vFinalState, currentIGARF.vInitState))) { // Final and init state are differents
-                // if a final staéte should be set as goal, change have by "want"
-                for (auto fin : vIGARF.at(i).vFinalState){
-                    sRelation newR = vRelations[fin];
-                    if (vRelations[fin].verb == "have"){
-                        newR.verb = "want";
-                    }
-                    int kk = findRelation(newR, true);
-                    vIGARF.at(i).vGoal.push_back(kk);
-                }
+                // if a final state should be set as goal, change have by "want"
+                //for (auto fin : vIGARF.at(i).vFinalState){
+                //    sRelation newR = vRelations[fin];
+                //    if (vRelations[fin].verb == "have"){
+                //        newR.verb = "want";
+                //    }
+                //    int kk = findRelation(newR, true);
+                //    vIGARF.at(i).vGoal.push_back(kk);
+                //}
             }
             if (lastOfChain == -1){
                 rep.push_back(i);
@@ -694,7 +704,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     cout << "Story from instance: " << instanceBegin << "; Head is: " << head << endl << endl;
 
     vChronoIgarf.clear();
-    showIGARF(head, IGARFfile);
+    showIGARF(head, IGARFfile,0,true);
 
     cout << endl;
 

@@ -117,7 +117,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
             }
             else{
                 yInfo() << " confirmation: " << sSentence;
-                getAnswer = speechConfirmation();
+                getAnswer = true; // speechConfirmation();
                 if (getAnswer){
                     ///<
                     if (bSemantic.get(0).asString() == "stop" && !listening){
