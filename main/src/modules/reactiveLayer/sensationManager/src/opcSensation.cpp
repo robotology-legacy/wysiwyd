@@ -127,7 +127,7 @@ Bottle OpcSensation::handleEntities()
                 addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
         }
-        else if (entity->name() == iCub->getPartnerName(false) && entity->entity_type() == "agent") {
+        else if (entity->name() == "partner" && entity->entity_type() == "agent") {
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
                 unknown_obj = true;
