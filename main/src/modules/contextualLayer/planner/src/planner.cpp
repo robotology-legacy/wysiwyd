@@ -697,8 +697,6 @@ bool Planner::updateModule() {
                 {
                     Bottle bot;
                     Bottle rep;
-                    bot.clear();
-                    rep.clear();
 
                     Bottle* msg = objectives.get(Ob).asList()->get(1).asList();
                     for (int i = 0; i < msg->size(); i++)
@@ -740,8 +738,6 @@ bool Planner::updateModule() {
                 {
                     Bottle bot;
                     Bottle rep;
-                    bot.clear();
-                    rep.clear();
 
                     Bottle* msg = stateOI.get(k).asList()->get(1).asList();
                     for (int i = 0; i < msg->size(); i++)
