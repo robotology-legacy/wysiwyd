@@ -815,7 +815,7 @@ bool Planner::updateModule() {
                     if (iCub->getABMClient()->Connect())
                     {
                         std::list<std::pair<std::string, std::string> > lArgument;
-                        lArgument.push_back(std::pair<std::string, std::string>("keep_action", "predicate"));
+                        lArgument.push_back(std::pair<std::string, std::string>("reasoning", "predicate"));
                         lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                         lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
                         iCub->getABMClient()->sendActivity("reasoning",
