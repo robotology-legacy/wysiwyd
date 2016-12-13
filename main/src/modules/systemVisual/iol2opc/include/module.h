@@ -207,6 +207,7 @@ protected:
     Mutex mutexResourcesSFM;
 
     double period;
+    bool verbose;
     bool empty;
     bool object_persistence;
 
@@ -245,6 +246,7 @@ protected:
     friend class OpcUpdater;
     friend class ClassifierReporter;
 
+    void    yInfoGated(const char *msg, ...) const;
     string  findName(const Bottle &scores, const string &tag);
     Bottle  skimBlobs(const Bottle &blobs);
     bool    thresBBox(CvRect &bbox, const Image &img);

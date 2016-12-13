@@ -19,10 +19,27 @@
 #include <limits>
 #include <sstream>
 #include <cstdio>
+#include <cstdarg>
 #include <algorithm>
 #include <set>
 
 #include "module.h"
+
+
+/**********************************************************/
+void IOL2OPCBridge::yInfoGated(const char *msg, ...) const
+{
+    if (verbose)
+    {
+        va_list arg;
+        char buf[512];
+        va_start(arg,msg);        
+        vsnprintf(buf,sizeof(buf),msg,arg);
+        va_end(arg);
+
+        yInfo(buf);
+    }
+}
 
 
 /**********************************************************/
@@ -129,7 +146,7 @@ Bottle IOL2OPCBridge::getBlobs()
     {
         lastBlobsArrivalTime=Time::now();
         lastBlobs=skimBlobs(*pBlobs);
-        yInfo("Received blobs list: %s",lastBlobs.toString().c_str());
+        yInfoGated("Received blobs list: %s",lastBlobs.toString().c_str());
 
         if (lastBlobs.size()==1)
         {
@@ -180,7 +197,7 @@ bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
         {
             clickLocation.x=bPos->get(0).asInt();
             clickLocation.y=bPos->get(1).asInt();
-            yInfo("Received new click location: (%d,%d)",
+            yInfoGated("Received new click location: (%d,%d)",
                   clickLocation.x,clickLocation.y);
         }
         else
@@ -566,9 +583,9 @@ Bottle IOL2OPCBridge::classify(const Bottle &blobs)
         item.addString(tag.str().c_str());
         item.addList()=*blobs.get(i).asList();
     }
-    yInfo("Sending classification request: %s",cmd.toString().c_str());
+    yInfoGated("Sending classification request: %s",cmd.toString().c_str());
     rpcClassifier.write(cmd,reply);
-    yInfo("Received reply: %s",reply.toString().c_str());
+    yInfoGated("Received reply: %s",reply.toString().c_str());
 
     // release resources
     mutexResources.unlock();
@@ -602,9 +619,9 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
     else
         options.add(blobs.get(i));
 
-    yInfo("Sending training request: %s",cmd.toString().c_str());
+    yInfoGated("Sending training request: %s",cmd.toString().c_str());
     rpcClassifier.write(cmd,reply);
-    yInfo("Received reply: %s",reply.toString().c_str());
+    yInfoGated("Received reply: %s",reply.toString().c_str());
 
     // release resources
     mutexResources.unlock();
@@ -860,6 +877,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     string name=rf.check("name",Value("iol2opc")).asString().c_str();
     period=rf.check("period",Value(0.1)).asDouble();
+    verbose=rf.check("verbose");
     empty=rf.check("empty");
     object_persistence=(rf.check("object_persistence",Value("off")).asString()=="on");
 
@@ -1049,9 +1067,9 @@ bool IOL2OPCBridge::updateModule()
     {
         Bottle cmd,reply;
         cmd.addVocab(Vocab::encode("list"));
-        yInfo("Sending list request: %s",cmd.toString().c_str());
+        yInfoGated("Sending list request: %s",cmd.toString().c_str());
         rpcClassifier.write(cmd,reply);
-        yInfo("Received reply: %s",reply.toString().c_str());
+        yInfoGated("Received reply: %s",reply.toString().c_str());
 
         if (reply.get(0).asString()=="ack")
         {
@@ -1063,7 +1081,7 @@ bool IOL2OPCBridge::updateModule()
             if (empty)
                 remove_all();
 
-            yInfo("Turning localization on");
+            yInfoGated("Turning localization on");
             state=Bridge::localization;
             onlyKnownObjects=IOLObject(opcMedianFilterOrder,10.0);
         }
@@ -1204,9 +1222,9 @@ bool IOL2OPCBridge::remove_object(const string &name)
     Bottle cmdClassifier,replyClassifier;
     cmdClassifier.addVocab(Vocab::encode("forget"));
     cmdClassifier.addString(name.c_str());
-    yInfo("Sending clearing request: %s",cmdClassifier.toString().c_str());
+    yInfoGated("Sending clearing request: %s",cmdClassifier.toString().c_str());
     rpcClassifier.write(cmdClassifier,replyClassifier);
-    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+    yInfoGated("Received reply: %s",replyClassifier.toString().c_str());
 
     opc->checkout();
 
@@ -1236,9 +1254,9 @@ bool IOL2OPCBridge::remove_all()
     Bottle cmdClassifier,replyClassifier;
     cmdClassifier.addVocab(Vocab::encode("forget"));
     cmdClassifier.addString("all");
-    yInfo("Sending clearing request: %s",cmdClassifier.toString().c_str());
+    yInfoGated("Sending clearing request: %s",cmdClassifier.toString().c_str());
     rpcClassifier.write(cmdClassifier,replyClassifier);
-    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+    yInfoGated("Received reply: %s",replyClassifier.toString().c_str());
 
     opc->checkout();
 
@@ -1268,9 +1286,9 @@ bool IOL2OPCBridge::change_name(const string &old_name,
     cmdClassifier.addVocab(VOCAB4('c','h','n','a'));
     cmdClassifier.addString(old_name);
     cmdClassifier.addString(new_name);
-    yInfo("Sending change name request: %s",cmdClassifier.toString().c_str());
+    yInfoGated("Sending change name request: %s",cmdClassifier.toString().c_str());
     rpcClassifier.write(cmdClassifier,replyClassifier);
-    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+    yInfoGated("Received reply: %s",replyClassifier.toString().c_str());
 
     if (replyClassifier.get(0).asString()=="nack")
     {
@@ -1295,7 +1313,7 @@ bool IOL2OPCBridge::change_name(const string &old_name,
             opc->checkout();
             opc->removeEntity(it_old->first);
             db.erase(it_old);
-            yInfo("Name change successful: reloading local cache");
+            yInfoGated("Name change successful: reloading local cache");
         }
         else
         {
