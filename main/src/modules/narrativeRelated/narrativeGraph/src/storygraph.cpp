@@ -704,7 +704,7 @@ void SituationModel::makeStructure(ofstream &IGARFfile) {
     cout << "Story from instance: " << instanceBegin << "; Head is: " << head << endl << endl;
 
     vChronoIgarf.clear();
-    showIGARF(head, IGARFfile,0,true);
+    showIGARF(head, IGARFfile,0,false);
 
     cout << endl;
 

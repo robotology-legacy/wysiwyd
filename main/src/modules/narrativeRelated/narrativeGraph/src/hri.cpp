@@ -74,7 +74,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
     vBegin.push_back("Yes?");
 
     unsigned int randomIndex = rand() % vBegin.size();
-    iCub->say(vBegin[randomIndex]);
+    iCub->say(vBegin[randomIndex], false);
 
     vector < hriResponse > vResponses;
     vector < PAOR > vSaid;
@@ -98,6 +98,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
         bool getAnswer = false;
 
         while (!getAnswer && !exit){
+            iCub->opc->checkout();
             iCub->lookAtPartner();
             cout << "Remember: " << remember << " | scenario: " << scenarioToRecall << endl;
             bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, true);
@@ -123,6 +124,8 @@ Bottle narrativeHandler::questionHRI_DFW(){
             if (bAnswer.get(0).asString() == "stop")
             {
                 yInfo("stop called");
+                iCub->say("You're welcome!");
+                iCub->home();
                 exit = true;
             }
             else{
@@ -133,6 +136,8 @@ Bottle narrativeHandler::questionHRI_DFW(){
                     if (bSemantic.get(0).asString() == "stop" && !listening){
                         exit = true;
                         cout << "Okay, bye !" << endl;
+                        iCub->say("You're welcome!");
+                        iCub->home();
                     }
                     else if (bSemantic.get(0).asString() == "Else"){
                         remember = false;
