@@ -895,8 +895,10 @@ std::string ICubClient::getPartnerName(bool verbose)
             Agent* a = dynamic_cast<Agent*>(entity.get());
             //We assume kinect can only recognize one skeleton at a time
             if(a->m_present == 1.0 && a->name()!="icub") {
-                partnerName = a->name() ;
-                yInfo() << "Partner found: name = " << partnerName;
+                partnerName = a->name();
+                if(verbose) {
+                    yInfo() << "Partner found: name =" << partnerName;
+                }
                 return partnerName;
             }
         }
