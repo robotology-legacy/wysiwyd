@@ -734,6 +734,7 @@ bool Planner::updateModule() {
             // checking for post condition fulfillment if ultimate state is not met
             if (!stateCheck)
             {
+                stateCheck = true;
                 for (int k = 0; k < stateOI.size(); k++)
                 {
                     Bottle bot;
