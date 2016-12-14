@@ -244,7 +244,7 @@ bool ears::updateModule() {
             sObjectType = "end";
             sObject = "";
         } else {
-            yError() << "[ears] Unknown predicate";
+            yError() << "[ears] Unknown predicate: " << sQuestionKind;
             // return true;
         }
         //send rpc data to planner
