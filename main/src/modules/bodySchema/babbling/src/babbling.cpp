@@ -414,10 +414,17 @@ bool Babbling::doBabbling()
         babblingCommandsMatlab();
     }
 
+    yDebug() << "\n CHECKPOINT \n" ;
+    Time::delay(3);
+
     bool homeEnd = gotoStartPos();
     if(!homeEnd) {
         cout << "I got lost going home!" << endl;
     }
+
+
+    yDebug() << "\n CHECKPOINT 2 \n" ;
+    Time::delay(3);
 
     return true;
 }
@@ -571,7 +578,7 @@ int Babbling::babblingCommandsMatlab()
 
     yInfo() << "Connections ok..." ;
 
-    for(int i=0; i<=3; i++)
+    for(int i=0; i<=6; i++)
     {
         ictrlLeftArm->setControlMode(i,VOCAB_CM_VELOCITY);
         ictrlRightArm->setControlMode(i,VOCAB_CM_VELOCITY);
@@ -610,7 +617,7 @@ int Babbling::babblingCommandsMatlab()
 
         // get the commands from Matlab
         cmdMatlab = portReadMatlab.read(true) ;
-        for (int i=0; i<4; i++)
+        for (int i=0; i<7; i++)
             command[i] = cmdMatlab->get(i).asDouble();
 
         // Move
@@ -919,15 +926,17 @@ bool Babbling::gotoStartPos()
         if(part=="left_arm")
         {
             command = encodersLeftArm;
-            for(int i=0; i<16; i++)
+            for(int i=0; i<16; i++){
                 ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
+                command[i] = start_command[i];}
             posLeftArm->positionMove(command.data());
         }
         else
         {
             command = encodersRightArm;
-            for(int i=0; i<16; i++)
+            for(int i=0; i<16; i++){
                 ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
+                command[i] = start_command[i];}
             posRightArm->positionMove(command.data());
         }
 

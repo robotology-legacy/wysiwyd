@@ -249,7 +249,7 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
     //roi=selectROI("tracker",image);
 //    roi = Rect(180,130,50,50); //this for piano
 //    roi = Rect(165,100,50,50); //this for ELIMB
-    roi = Rect(x_roi,y_roi,50,50);
+    roi = Rect(x_roi-20,y_roi,50,50);
     tracker->init(image,roi);
 
     //tracking
