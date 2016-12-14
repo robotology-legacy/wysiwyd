@@ -60,6 +60,7 @@ class interactionSAMModel(yarp.RFModule):
         self.recordingFile = ''
         self.additionalInfoDict = dict()
         self.modelLoaded = False
+        self.attentionMode = 'continue'
 
     def configure(self, rf):
 
@@ -214,7 +215,14 @@ class interactionSAMModel(yarp.RFModule):
                 print(action + ' received')
                 print 'responding to ' + action + ' request'
 
-            if action == "reload":
+            if action == "portNames":
+                reply.addString('ack')
+                reply.addString(self.labelPortName)
+                reply.addString(self.instancePortName)
+                if self.collectionMethod == 'continuous':
+                    reply.addString(self.eventPortName)
+            # -------------------------------------------------
+            elif action == "reload":
                 # send a message to the interaction model to check version of currently loaded model
                 # and compare it with that stored on disk. If model on disk is more recent reload model
                 # interaction model to return "model reloaded correctly" or "loaded model already up to date"
@@ -233,12 +241,9 @@ class interactionSAMModel(yarp.RFModule):
                 self.verboseSetting = not self.verboseSetting
                 reply.addString('ack')
             # -------------------------------------------------
-            elif action == "portNames":
-                reply.addString('ack')
-                reply.addString(self.labelPortName)
-                reply.addString(self.instancePortName)
-                if self.collectionMethod == 'continuous':
-                    reply.addString(self.eventPortName)
+            # elif action == "attention":
+            #     self.attentionMode = command.get(1).asString()
+            #     reply.addString('ack')
             # -------------------------------------------------
             elif action == "information":
                 if command.size() < 3:
@@ -275,8 +280,12 @@ class interactionSAMModel(yarp.RFModule):
             if self.verboseSetting:
                 print '-------------------------------------'
             if self.collectionMethod == 'buffered':
-                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                       additionalData=self.additionalInfoDict)
+                if self.modelLoaded:
+                    thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
+                                                               additionalData=self.additionalInfoDict)
+                else:
+                    thisClass = None
+
                 if thisClass is None:
                     reply.addString('nack')
                 else:
@@ -296,9 +305,12 @@ class interactionSAMModel(yarp.RFModule):
                 self.dataList = []
                 for j in range(self.bufferSize):
                     self.dataList.append(self.readFrame())
+                if self.modelLoaded:
+                    thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
+                                                               additionalData=self.additionalInfoDict)
+                else:
+                    thisClass = None
 
-                thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                       additionalData=self.additionalInfoDict)
                 if thisClass is None:
                     reply.addString('nack')
                 else:
@@ -421,7 +433,7 @@ class interactionSAMModel(yarp.RFModule):
             else:
                 self.dataList.append(frame)
         # -------------------------------------------------
-        elif self.collectionMethod == 'continuous':
+        elif self.collectionMethod == 'continuous' and self.attentionMode == 'continue':
             # read frame of data
             frame = self.readFrame()
             # append frame to dataList
@@ -431,14 +443,18 @@ class interactionSAMModel(yarp.RFModule):
 
             self.dataList.append(frame)
             # process list of frames for a classification
-            thisClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                             additionalData=self.additionalInfoDict)
+            if self.modelLoaded:
+                thisClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
+                                                                     additionalData=self.additionalInfoDict)
+            else:
+                thisClass = None
             # if proper classification
             if thisClass is not None:
                 # empty dataList
                 self.dataList = dataList
                 if thisClass != 'None':
                     eventBottle = self.portsList[self.eventPort].prepare()
+                    eventBottle.clear()
                     eventBottle.addString('ack')
                     self.portsList[self.eventPort].write()
                     # add classification to classificationList to be retrieved during respond method

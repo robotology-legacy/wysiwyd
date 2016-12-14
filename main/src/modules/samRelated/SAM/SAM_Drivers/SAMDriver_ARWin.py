@@ -255,7 +255,8 @@ class SAMDriver_ARWin(SAMDriver):
                 else:
                     data[t[a]] = [None]
                     data[t[a]] = np.array([float(t[a + 1]), float(t[a + 2]), float(t[a + 3])])
-                    objectsList.append(t[a])
+                    if mode == 'testing' or (mode != 'testing' and t[a+4] == '1'):
+                        objectsList.append(t[a])
 
             firstPass = False
         if verbose:
@@ -969,6 +970,7 @@ class SAMDriver_ARWin(SAMDriver):
         sentence = []
         classifs = []
         vecList = []
+        errorFlag = False
 
         if len(dataList) == self.paramsDict['windowSize']:
             dataStrings = []
@@ -978,8 +980,11 @@ class SAMDriver_ARWin(SAMDriver):
                     dataStrings.append(t)
 
             if len(dataStrings) == self.paramsDict['windowSize']:
-
-                data, jointsList, objectsList = self.convertToDict(dataStrings, mode=mode, verbose=False)
+                try:
+                    data, jointsList, objectsList = self.convertToDict(dataStrings, mode=mode, verbose=False)
+                except:
+                    print 'Some incorrect messages received'
+                    return 'None', None
 
                 if 'partnerName' in additionalData.keys():
                     listOfVectorsToClassify = self.listOfClassificationVectors(self.featureSequence, objectsList,
