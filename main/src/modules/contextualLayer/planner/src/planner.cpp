@@ -801,6 +801,62 @@ bool Planner::updateModule() {
             {
                 attemptCnt += 1;
 
+                // check if precondition of failed action is still valid
+                bool state = true;
+                string currName = plan_list[0];
+                int currPos = actionPos_list[0];
+                Bottle preconds = *grpPlans.find(currName + "-" + to_string(currPos) + "pre").asList();
+                Bottle auxMsg;
+                if (preconds.size() > 0)
+                {
+                    yInfo() << "checking for preconditions again.";
+
+                    for (int k = 0; k < preconds.size(); k++)
+                    {
+                        Bottle* msg = preconds.get(k).asList()->get(1).asList();
+                        Bottle rep;
+                        if (msg->isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(k).asString(); }
+                        // format message to sensationsManager
+                        for (int i = 0; i < msg->size(); i++)
+                        {
+                            string aux = msg->get(i).asString();
+                            for (int j = 0; j < args.size(); j++)
+                            {
+                                // check and replace matches in pre/postrequisites and action (e.g. _obj in point)
+                                if (args.get(j).asString() == msg->get(i).asString())
+                                {
+                                    aux = object_list[0];
+                                }
+                            }
+                            auxMsg.addString(aux);
+                        }
+                        getState.write(auxMsg, rep);
+                        bool indiv;
+                        string attach = preconds.get(k).asList()->get(0).toString();
+                        if (attach == "not")
+                        {
+                            yDebug() << "not";
+                            indiv = !rep.get(1).asBool();
+                        }
+                        else
+                        {
+                            indiv = rep.get(1).asBool();
+                        }
+                        yDebug() << "reply from SM is " << indiv;
+                        state = state && indiv;
+                        yDebug() << "state is " << state;
+
+                        auxMsg.clear();
+                    }
+
+                    if (!state)
+                    {
+                        yDebug() << "The precondition for the action is no longer valid.";
+                        iCub->say("I cannot re-attempt the action because the preconditions are not met.");
+                    }
+                }
+                else { yDebug() << "there are no preconditions for this action"; }
+
                 if (useABM)
                 {
                     // log in ABM
@@ -820,10 +876,13 @@ bool Planner::updateModule() {
                     else { yInfo() << "ABMClient is not connected."; }
                 }
 
-                if (attemptCnt > 2)
-                {                    
-                    iCub->say("I have tried too many times and failed. Do it yourself or help me.");
-                    yDebug() << "iCub has said that attemptCnt reached.";
+                if ((attemptCnt > 2) || (!state))
+                {
+                    if (attemptCnt > 2)             
+                    {
+                        iCub->say("I have tried too many times and failed. Do it yourself or help me.");
+                        yDebug() << "iCub has said that attemptCnt reached.";
+                    }
 
                     // removing all actions related to the same plan
                     yDebug() << "removing actions";
