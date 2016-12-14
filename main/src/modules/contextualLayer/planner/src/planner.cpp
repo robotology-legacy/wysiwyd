@@ -418,7 +418,6 @@ bool Planner::updateModule() {
                     bool indiv;
                     bool negate;
                     string attach = preconds.get(k).asList()->get(0).toString();
-                    if (attach.empty()) { yError() << "attach is empty"; }
                     if (attach == "not")
                     {
                         yDebug() << "not";
