@@ -73,6 +73,12 @@ Bottle narrativeHandler::questionHRI_DFW(){
     vBegin.push_back("Absolutely!");
     vBegin.push_back("Yes?");
 
+
+    vector<string> vConfuse;
+    vConfuse.push_back("I don't know sorry...");
+    vConfuse.push_back("Though one, I give up...");
+    vConfuse.push_back("I have no idea");
+
     unsigned int randomIndex = rand() % vBegin.size();
     iCub->say(vBegin[randomIndex], false);
 
@@ -209,7 +215,13 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         vQuestions.push_back(tuple<Bottle, PAOR>(bSemantic, sPAOR));
 
                         string picked = pickResponse(vResponses, vSaid);
-                        iCub->say(picked, false);
+                        if (picked == "none"){
+                            int randomIndex = rand() % vConfuse.size();
+                            iCub->say(vConfuse[randomIndex], true);
+                        }
+                        else{
+                            iCub->say(picked, true);
+                        }
                         yInfo() << "---- next question ----";
                     }
                 }
@@ -400,7 +412,7 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
     yInfo() << "Choice btw: ";
     for (auto pa : vResponses){
         yInfo() << pa.toString();
-        sumProb += pa.score;
+        sumProb += pa.score*pa.score;
     }
 
     double p = Random::uniform() * sumProb;
@@ -410,7 +422,7 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
     bool found = false;
     int toRemove = 0;
     for (auto pa : vResponses){
-        bool threshold = (p -= pa.score) < 0;
+        bool threshold = (p -= pa.score*pa.score) < 0;
         if (!found) {
             toRemove++;
         }
@@ -425,10 +437,12 @@ string narrativeHandler::pickResponse(vector < hriResponse > &vResponses, vector
     vResponses.erase(vResponses.begin() + toRemove - 1);
 
     string X = "_X_";
+    
+    for (unsigned int loop = 0; loop < 4; loop++) {
     string::size_type i = sReturn.find(X);
-
-    if (i != std::string::npos)
+        if (i != std::string::npos)
         sReturn.erase(i, X.length());
+    }
 
     return sReturn;
 }
@@ -651,7 +665,7 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
                 iCub->say("Nothing else, sorry.");
             }
             else{
-                iCub->say(picked);
+                iCub->say(picked, true);
             }
         }
         else {
@@ -693,9 +707,20 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
                     yWarning("cannot use double as first question");
                 }
             }
+            else if (quest.get(0).asString() == "Why_is_that"){
+                if (vSaid.size() > doku && doku > 0){
+                    vInternalResponses = whyIsThat(vSaid[doku - 1], scenarioToRecall);
+                }
+
+            }
 
             string picked = pickResponse(vInternalResponses, vSaid);
-            iCub->say(picked, false);
+            if (picked == "none"){
+                iCub->say("I don't know, sorry.");
+            }
+            else{
+                iCub->say(picked, true);
+            }
         }
         doku++;
     }

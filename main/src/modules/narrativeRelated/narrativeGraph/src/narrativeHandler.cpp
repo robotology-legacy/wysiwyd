@@ -606,8 +606,8 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ok");
     }
     else if (command.get(0).asString() == "HRI") {
-        yInfo(" finding new stories");
-        findStories();
+        //yInfo(" finding new stories");
+        //findStories();
         yInfo(" launching HRI");
         reply = questionHRI_DFW();
     }
@@ -1082,7 +1082,7 @@ void narrativeHandler::findStories()
     // vector<int> vError;
     yInfo() << "\t" << "found " << numberInstances << " instance(s)";
     double mDiff;
-    int Id2 = 0;
+    int Id2 = instanceStart;
     for (int j = 1; j < (numberInstances); j++)
     {
 
@@ -1149,7 +1149,6 @@ void narrativeHandler::findStories()
 
     initializeStories();
     findNarration();
-
     instanceStart = Id2;
 
 
