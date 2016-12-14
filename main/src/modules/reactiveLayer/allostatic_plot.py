@@ -188,8 +188,6 @@ class AllostaticPlotModule(yarp.RFModule):
             plotitem[1].set_x(plotitem[1].get_x()-1)
             plotitem[2].set_x(plotitem[1].get_x()+5)
         if len(self.behaviors_to_plot)>0 and -(self.behaviors_to_plot[0][1].get_x()+self.behaviors_to_plot[0][1].get_width()) > self.win_size:
-            print -(self.behaviors_to_plot[0][1].get_x()+self.behaviors_to_plot[0][1].get_width())
-            print self.win_size
             self.behaviors_to_plot[0][2].remove()
             self.behaviors_to_plot.pop(0)
 
