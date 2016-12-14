@@ -250,6 +250,8 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     iCub->say(sAsking, false);
     portFromTouchDetector.read(false); // clear buffer from previous readings
 
+    yarp::os::Time::delay(1.0);
+
     //2.b Move also the bodypart to show it has been learnt.
     yInfo() << "Cast okay : name BP = " << BPentity->name();
     int joint = BPentity->m_joint_number;

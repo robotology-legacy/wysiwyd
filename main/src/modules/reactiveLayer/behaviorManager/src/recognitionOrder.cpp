@@ -57,7 +57,9 @@ void RecognitionOrder::run(const Bottle &args) {
     {
         toSay = "Sorry. I did not recognise that action";
     }
+    iCub->lookAtPartner();
     iCub->say(toSay);
+    iCub->home();
     yInfo() << "Recognising ends";
 
     if (!manual && Network::isConnected(port_to_homeo_name, homeoPort)){

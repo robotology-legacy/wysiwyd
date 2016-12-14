@@ -514,6 +514,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     else if (currentEntityType == "bodypart") {
         iCub->lookAtPartner();
         sQuestion = " Watch please, I will move a part of my body";
+        yarp::os::Time::delay(1.0);
     }
     else {
         yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed";
@@ -610,6 +611,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
 
     yInfo() << sReply;
     iCub->say(sReply, false);
+    yarp::os::Time::delay(1.5);
 
     iCub->home();
 
@@ -682,6 +684,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
             for (auto& entity : lEntities) {
                 Object *o = dynamic_cast<Object*>(entity.get());
                 if(o && o->name().find("unknown") != string::npos && o->entity_type() == sTypeTarget && o->m_present == 1.0) {
+                    iCub->lookAtPartner();
                     iCub->say("There was only one object which I didn't know");
                     iCub->changeName(o, sNameTarget);
                     yDebug() << "Changed name for" << sNameTarget;
