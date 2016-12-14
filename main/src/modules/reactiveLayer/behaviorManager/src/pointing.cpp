@@ -52,7 +52,7 @@ void Pointing::run(const Bottle &args) {
             iCub->say("I couldn't find the " + obj_name, false);
         }
         if(look_success) {
-            yarp::os::Time::delay(0.5);
+            yarp::os::Time::delay(1.5);
         }
     }
     iCub->home();
