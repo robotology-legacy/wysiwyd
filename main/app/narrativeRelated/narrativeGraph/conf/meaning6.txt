@@ -1,73 +1,73 @@
 #  story: 13/10/2016 14:10:2 (2240) to 13/10/2016 14:10:21 (2248)
-#  At the beginning, Carol have ball and iCub want ball
-#  iCub take the ball
+#  At the beginning, Carol have ball and icub want ball
+#  icub take the ball
 #  But it failed.
-#  iCub reason
+#  icub reason
 #  The goal was that: icub have the ball
-#  iCub reason
-#  iCub said to Carol: Give me the ball please
-#  Carol give the ball iCub
-#  And now, iCub have ball
-#  In the end, iCub have ball
+#  icub reason
+#  icub said to Carol: Give me the ball please
+#  Carol give the ball icub
+#  And now, icub have ball
+#  In the end, icub have ball
 
 # FIRST
 first, cover box ball, P1 P2 A2 O2
-first, want iCub ball, P1 P2 A2 O2
+first, want icub ball, P1 P2 A2 O2
 
 # SO
-so, take iCub ball, P1 P2 A2 O2
-so, say iCub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
+so, take icub ball, P1 P2 A2 O2
+so, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
 so, remove Carol box, P1 P2 A2 O2
-so, say iCub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
-so, give Jonny ball iCub, P1 P2 A2 O2 R2
-so, have iCub ball, P1 P2 A2 O2
+so, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
+so, give Jonny ball icub, P1 P2 A2 O2 R2
+so, have icub ball, P1 P2 A2 O2
 so, have Jonny ball, P1 P2 A2 O2
 
 # THEN
-then, take iCub ball, P1 P2 A2 O2
-then, give Jonny ball iCub, P1 P2 A2 O2 R2
-then, say iCub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
+then, take icub ball, P1 P2 A2 O2
+then, give Jonny ball icub, P1 P2 A2 O2 R2
+then, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
 then, remove Carol box, P1 P2 A2 O2
-then, say iCub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
-then, give Jonny ball iCub, P1 P2 A2 O2 R2
-then, have iCub ball, P1 P2 A2 O2
+then, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
+then, give Jonny ball icub, P1 P2 A2 O2 R2
+then, have icub ball, P1 P2 A2 O2
 
 # BUT
-but, want iCub ball, fail iCub take ball, P1 P2 A2 O2 P3 A3 O3 R3
-but, want iCub ball, have Carol ball, P1 P2 A2 O2 P3 A3 O3
-but, want iCub ball, cover box ball, P1 P2 A2 O2 P3 A3 O3
-but, want iCub ball, have Jonny ball, P1 P2 A2 O2 P3 A3 O3
-but, take iCub ball, cover box ball, P1 P2 A2 O2 P3 A3 O3
-but, take iCub ball, fail iCub take, P1 P2 A2 O2 P3 A3 O3
+but, want icub ball, fail icub take ball, P1 P2 A2 O2 P3 A3 O3 R3
+but, want icub ball, have Carol ball, P1 P2 A2 O2 P3 A3 O3
+but, want icub ball, cover box ball, P1 P2 A2 O2 P3 A3 O3
+but, want icub ball, have Jonny ball, P1 P2 A2 O2 P3 A3 O3
+but, take icub ball, cover box ball, P1 P2 A2 O2 P3 A3 O3
+but, take icub ball, fail icub take, P1 P2 A2 O2 P3 A3 O3
 
 # AND
-and, cover box ball, want iCub ball, P1 P2 A2 O2 P3 A3 O3
-and, say iCub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
-and, say iCub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
-and, say iCub can_you_remove_the_box_please? Carol, say iCub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2 P3 A3 O3 R3
-and, say iCub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-and, say iCub Give_me_the_ball_please Jonny, give Jonny ball iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, cover box ball, want icub ball, P1 P2 A2 O2 P3 A3 O3
+and, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
+and, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
+and, say icub can_you_remove_the_box_please? Carol, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, say icub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
+and, say icub Give_me_the_ball_please Jonny, give Jonny ball icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # AFTER
-after, say iCub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-after, say iCub Give_me_the_ball_please Jonny, give Jonny ball iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-after, remove Carol box, give Jonny ball iCub, P1 P2 A2 O2 P3 A3 O3 R3
+after, say icub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
+after, say icub Give_me_the_ball_please Jonny, give Jonny ball icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+after, remove Carol box, give Jonny ball icub, P1 P2 A2 O2 P3 A3 O3 R3
 after, remove Carol box, have Jonny ball, P1 P2 A2 O2 P3 A3 O3
-after, take iCub ball, give Jonny ball iCub, P1 P2 A2 O2 P3 A3 O3 R3
-after, take iCub ball, remove Carol box, P1 P2 A2 O2 P3 A3 O3
+after, take icub ball, give Jonny ball icub, P1 P2 A2 O2 P3 A3 O3 R3
+after, take icub ball, remove Carol box, P1 P2 A2 O2 P3 A3 O3
 
 # BEFORE
-before, remove Carol box, say iCub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 P3 A3 O3 R3
-before, give Jonny ball iCub, say iCub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2 P3 A3 O3 R3
-before, give Jonny ball iCub, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
+before, remove Carol box, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 P3 A3 O3 R3
+before, give Jonny ball icub, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2 P3 A3 O3 R3
+before, give Jonny ball icub, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
 before, have Jonny ball, remove Carol box, P1 P2 A2 O2 P3 A3 O3
-before, give Jonny ball iCub, take iCub ball, P1 P2 A2 O2 R2 P3 A3 O3
-before, remove Carol box, take iCub ball, P1 P2 A2 O2 P3 A3 O3
+before, give Jonny ball icub, take icub ball, P1 P2 A2 O2 R2 P3 A3 O3
+before, remove Carol box, take icub ball, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
-because, say iCub Give_me_the_ball_please Carol, give Carol iCub ball, P1 P2 A2 O2 R2 P3 A3 O3 R3
-because, want iCub ball, have iCub ball, P1 P2 A2 O2 P3 A3 O3
-because, give Carol ball iCub, have iCub ball, P1 P2 A2 O2 R2 P3 A3 O3
+because, say icub Give_me_the_ball_please Carol, give Carol icub ball, P1 P2 A2 O2 R2 P3 A3 O3 R3
+because, want icub ball, have icub ball, P1 P2 A2 O2 P3 A3 O3
+because, give Carol ball icub, have icub ball, P1 P2 A2 O2 R2 P3 A3 O3
 
 # FINALLY
-finally, have iCub ball, P1 P2 A2 O2
+finally, have icub ball, P1 P2 A2 O2

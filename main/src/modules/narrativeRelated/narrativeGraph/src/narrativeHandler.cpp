@@ -1623,7 +1623,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         if (bMessenger.toString() != "NULL"){
             if (bMessenger.size() != 0){
                 for (int ll = 0; ll < bMessenger.size(); ll++){
-                    if (bMessenger.get(ll).toString() != "partner"){
+                    if (bMessenger.get(ll).toString() != "partner" && bMessenger.get(ll).toString() != "icub"){
                         presentAgent = bMessenger.get(ll).toString();
                     }
                 }
@@ -1634,11 +1634,11 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             if (evt.agent == "" || evt.agent == "none" || evt.agent == "partner"){
                 evt.agent = presentAgent;
             }
-            evt.recipient = "iCub";
+            evt.recipient = "icub";
         }
         if (evt.activity_type == "say"){
-            evt.agent = "iCub";
-            if (evt.recipient == "" || evt.recipient == "none" || evt.recipient == "partner"){
+            evt.agent = "icub";
+            if (evt.recipient == "" || evt.recipient == "none" || evt.recipient == "partner" || evt.recipient == "icub"){
                 evt.recipient = presentAgent;
             }
         }
@@ -1648,7 +1648,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
     if (evt.activity_type == "drives"){
         evt.object = evt.agent;
-        evt.agent = "iCub";
+        evt.agent = "icub";
         evt.predicate = "want";
     }
 
@@ -1880,7 +1880,7 @@ void narrativeHandler::createNarration(story &sto)
 
                 // if the action begin
                 if (currentEvent.agent == "iCub" || currentEvent.agent == "icub"){
-                    currentEvent.agent = "iCub";
+                    currentEvent.agent = "icub";
                 }
 
                 if (currentEvent.begin){
@@ -1966,12 +1966,12 @@ void narrativeHandler::createNarration(story &sto)
                     else if (iarg.first == "sentence")    sentence = iarg.second;
                 }
                 if (speaker == "none" && currentEvent.activity_type == "say"){
-                    speaker = "iCub";
+                    speaker = "icub";
                 }
                 else{
                     if (speaker != "icub" && speaker != "iCub"){
                         if (addressee == "none"){
-                            addressee = "iCub";
+                            addressee = "icub";
                         }
                         //                        speaker = "You";
                         //                        addressee = "me";
@@ -2094,7 +2094,7 @@ void narrativeHandler::createNarration(story &sto)
                 //if (osCurrent.str() != "") osCurrent << endl;
                 // if the action begin
                 if (currentEvent.agent == "iCub" || currentEvent.agent == "icub"){
-                    currentEvent.agent = "iCub";
+                    currentEvent.agent = "icub";
                 }
 
                 if (currentEvent.begin){
