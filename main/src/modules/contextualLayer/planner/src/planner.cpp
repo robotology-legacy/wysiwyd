@@ -671,6 +671,9 @@ bool Planner::updateModule() {
 
             Bottle objectives = *grpPlans.find(planName + "-objectiveState").asList();
 
+            iCub->home();
+            Time::delay(1);
+
             // checking for ultimate state fulfillment.
             bool desiredState = false;
             bool stateCheck = true;
@@ -711,7 +714,9 @@ bool Planner::updateModule() {
                         indiv = rep.get(1).asBool();
                     }
 
+                    yDebug() << "response from SM: " << indiv;
                     desiredState = indiv && desiredState;
+                    yDebug() << "resulting desiredState: " << desiredState;
                 }
             }
 
