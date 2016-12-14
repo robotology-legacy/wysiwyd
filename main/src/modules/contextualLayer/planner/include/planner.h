@@ -62,6 +62,8 @@ public:
 
     bool triggerBehavior(Bottle cmd);
 
+    vector<Bottle> orderPlans(vector<Bottle>& cmdList, const Bottle& cmd);
+
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
 };
