@@ -977,6 +977,8 @@ bool autobiographicalMemory::updateModule() {
                 if (!imgStreamPortOut.second->isClosed()) {
                     yError() << "Error, port " << imgStreamPortOut.first << " could not be closed";
                 }
+                delete imgStreamPortOut.second;
+                imgStreamPortOut.second = nullptr;
             }
             for (auto const& dataStreamPortOut : mapDataStreamPortOut) {
                 dataStreamPortOut.second->waitForWrite();
@@ -985,6 +987,8 @@ bool autobiographicalMemory::updateModule() {
                 if (!dataStreamPortOut.second->isClosed()) {
                     yError() << "Error, port " << dataStreamPortOut.first << " could not be closed";
                 }
+                delete dataStreamPortOut.second;
+                dataStreamPortOut.second = nullptr;
             }
 
             mapImgStreamPortOut.clear();
@@ -1079,11 +1083,25 @@ bool autobiographicalMemory::close()
     }
 
     for(auto& outport : mapDataStreamPortOut) {
-        delete outport.second;
+        if(outport.second) {
+            outport.second->interrupt();
+            outport.second->close();
+            if (!outport.second->isClosed()) {
+                yError() << "Error, port " << outport.first << " could not be closed";
+            }
+            delete outport.second;
+        }
     }
 
     for(auto& outport : mapImgStreamPortOut) {
-        delete outport.second;
+        if(outport.second) {
+            outport.second->interrupt();
+            outport.second->close();
+            if (!outport.second->isClosed()) {
+                yError() << "Error, port " << outport.first << " could not be closed";
+            }
+            delete outport.second;
+        }
     }
 
     delete opcWorldReal;

@@ -129,25 +129,37 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
         concatenated_port.erase(end_pos, concatenated_port.end());
 
         if (!includeAugmented && augmented == "") {
-            mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
-            mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
-            yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort;
-            Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort);
+            if(mapImgStreamPortOut.find(concatenated_port) == mapImgStreamPortOut.end()) {
+                mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+                mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
+                yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort;
+                Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort);
+            } else {
+                yWarning() << concatenated_port << "Already existing, not opening again, this should not happen";
+            }
         }
         else if (includeAugmented) {
             if (augmented != "") {
                 size_t pos = std::find(desired_times_local[augmented].begin(), desired_times_local[augmented].end(), augmented_time) - desired_times_local[augmented].begin();
                 if (pos < desired_times_local.size()) {
-                    mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
-                    mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
-                    yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort + std::to_string(pos);
-                    Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + std::to_string(pos));
+                    if(mapImgStreamPortOut.find(concatenated_port) == mapImgStreamPortOut.end()) {
+                        mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+                        mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
+                        yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort + std::to_string(pos);
+                        Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + std::to_string(pos));
+                    } else {
+                        yWarning() << concatenated_port << "Already existing, not opening again, this should not happen";
+                    }
                 }
             } else {
-                mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
-                mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
-                yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort;
-                Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort);
+                if(mapImgStreamPortOut.find(concatenated_port) == mapImgStreamPortOut.end()) {
+                    mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+                    mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
+                    yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort;
+                    Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort);
+                } else {
+                    yWarning() << concatenated_port << "Already existing, not opening again, this should not happen";
+                }
             }
         }
     }
@@ -168,8 +180,12 @@ int autobiographicalMemory::openDataStreamPorts(int instance, string robotName) 
 
     for (int i = 0; i < bDistLabelPort.size() && bDistLabelPort.toString() != "NULL"; i++) {
         string dataStreamPortFrom = bDistLabelPort.get(i).asList()->get(0).asString();
-        mapDataStreamPortOut[dataStreamPortFrom] = new yarp::os::BufferedPort < Bottle > ;
-        mapDataStreamPortOut[dataStreamPortFrom]->open((portPrefixForStreaming + dataStreamPortFrom).c_str());
+        if(mapDataStreamPortOut.find(dataStreamPortFrom)==mapDataStreamPortOut.end()) {
+            mapDataStreamPortOut[dataStreamPortFrom] = new yarp::os::BufferedPort < Bottle > ;
+            mapDataStreamPortOut[dataStreamPortFrom]->open((portPrefixForStreaming + dataStreamPortFrom).c_str());
+        } else {
+            yWarning << dataStreamPortFrom << "Already existing, not opening again";
+        }
 
         // in case of position commands, replace state:o with rpc:i; otherwise do nothing
         string toReplace = "state:o";
