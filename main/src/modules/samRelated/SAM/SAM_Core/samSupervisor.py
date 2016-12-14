@@ -97,6 +97,7 @@ class SamSupervisorModule(yarp.RFModule):
             self.interactionConfPath = rf.find("config_path").asString()
             persistence = rf.check("persistence", yarp.Value("False")).asString()
             useOPC = rf.check("useOPC", yarp.Value("False")).asString()
+            acceptableDelay = rf.check("acceptableDelay", yarp.Value("5")).asString()
             windowed = rf.check("windowed", yarp.Value("True")).asString()
             verbose = rf.check("verbose", yarp.Value("True")).asString()
             startModels = rf.check("startModels", yarp.Value("True")).asString()
@@ -125,6 +126,10 @@ class SamSupervisorModule(yarp.RFModule):
             self.windowed = True if(windowed == "True") else False
             self.verbose = True if(verbose == "True") else False
             self.useOPC = True if (useOPC == "True") else False
+            try:
+                self.nonResponsiveThreshold = int(acceptableDelay)
+            except:
+                self.nonResponsiveThreshold = 5
 
             print 'Root supervisor path:     \t', self.rootPath
             print 'Model configuration file: \t', self.interactionConfPath
