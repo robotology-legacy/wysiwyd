@@ -1,63 +1,63 @@
 #  story: 13/10/2016 14:2:53 (2210) to 13/10/2016 14:3:30 (2222)
-#  At the beginning, Allan have croco and Allan have mouse and iCub want croco
-#  iCub take the croco
+#  At the beginning, Allan have croco and Allan have mouse and icub want croco
+#  icub take the croco
 #  But it failed.
-#  iCub reason
+#  icub reason
 #  The goal was that: icub have the croco
-#  iCub reason
-#  iCub said to Allan: Give me the croco please
-#  Allan give the mouse iCub
-#  And now, Allan have croco and iCub want croco and iCub have mouse
-#  iCub said to partner: This is not the croco
-#  iCub said to partner: Can you give me the croco
-#  Allan give the croco iCub
-#  And now, iCub have mouse and iCub have croco
-#  In the end, iCub have mouse and iCub have croco
+#  icub reason
+#  icub said to Allan: Give me the croco please
+#  Allan give the mouse icub
+#  And now, Allan have croco and icub want croco and icub have mouse
+#  icub said to partner: This is not the croco
+#  icub said to partner: Can you give me the croco
+#  Allan give the croco icub
+#  And now, icub have mouse and icub have croco
+#  In the end, icub have mouse and icub have croco
 
 # FIRST
 first, have Allan croco, P1 P2 A2 O2
 first, have Allan mouse, P1 P2 A2 O2
-first, want iCub croco, P1 P2 A2 O2
+first, want icub croco, P1 P2 A2 O2
 
 # AND
 and, have Allan croco, have Allan mouse, P1 P2 A2 O2 P3 A3 O3
-and, say iCub Give_me_the_croco_please Allan, give Allan croco iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-and, say iCub Give_me_the_croco_please Allan, give Allan mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, say icub Give_me_the_croco_please Allan, give Allan croco icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, say icub Give_me_the_croco_please Allan, give Allan mouse icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # SO
-so, take iCub croco, P1 P2 A2 O2
+so, take icub croco, P1 P2 A2 O2
 so, take reason, P1 P2 A2
-so, say iCub Give_me_the_croco_please Allan, P1 P2 A2 O2 R2
-so, give Allan croco iCub, P1 P2 A2 O2 R2
+so, say icub Give_me_the_croco_please Allan, P1 P2 A2 O2 R2
+so, give Allan croco icub, P1 P2 A2 O2 R2
 
 # THEN
 then, take reason, P1 P2 A2
-then, say iCub Give_me_the_croco_please Allan, P1 P2 A2 O2 R2
-then, give Allan croco iCub, P1 P2 A2 O2 R2
-then, give Allan mouse iCub, P1 P2 A2 O2 R2
+then, say icub Give_me_the_croco_please Allan, P1 P2 A2 O2 R2
+then, give Allan croco icub, P1 P2 A2 O2 R2
+then, give Allan mouse icub, P1 P2 A2 O2 R2
 
 #BUT
-but, want iCub croco, give Allan mouse iCub, P1 P2 A2 O2 P3 A3 O3 R3
-but, want iCub croco, have Allan croco, P1 P2 A2 O2 P3 A3 O3
-but, say iCub Give_me_the_croco_please Allan, give Allan mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+but, want icub croco, give Allan mouse icub, P1 P2 A2 O2 P3 A3 O3 R3
+but, want icub croco, have Allan croco, P1 P2 A2 O2 P3 A3 O3
+but, say icub Give_me_the_croco_please Allan, give Allan mouse icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # BEFORE
-before, have iCub mouse, have Allan mouse, P1 P2 A2 O2 P3 A3 O3
-before, have iCub croco, have Allan croco, P1 P2 A2 O2 P3 A3 O3
-before, give Allan croco iCub, have Allan croco, P1 P2 A2 O2 R2 P3 A3 O3
-before, give Allan croco iCub, give Allan mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+before, have icub mouse, have Allan mouse, P1 P2 A2 O2 P3 A3 O3
+before, have icub croco, have Allan croco, P1 P2 A2 O2 P3 A3 O3
+before, give Allan croco icub, have Allan croco, P1 P2 A2 O2 R2 P3 A3 O3
+before, give Allan croco icub, give Allan mouse icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # AFTER
-after, take iCub croco, reason iCub, P1 P2 A2 O2 P3 A3
-after, say iCub Give_me_the_croco_please Allan, give Allan croco iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-after, give Allan croco iCub, have iCub croco, P1 P2 A2 O2 R2 P3 A3 O3
-after, give Allan mouse iCub, have iCub mouse, P1 P2 A2 O2 P3 A3 O3 R3
+after, take icub croco, reason icub, P1 P2 A2 O2 P3 A3
+after, say icub Give_me_the_croco_please Allan, give Allan croco icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+after, give Allan croco icub, have icub croco, P1 P2 A2 O2 R2 P3 A3 O3
+after, give Allan mouse icub, have icub mouse, P1 P2 A2 O2 P3 A3 O3 R3
 
 # BECAUSE
-because, want iCub croco, have iCub croco, P1 P2 A2 O2 P3 A3 O3
-because, give Allan mouse iCub, have iCub mouse, P1 P2 A2 O2 R2 P3 A3 O3 
-because, say iCub Give_me_the_croco_please Allan, give Allan mouse iCub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+because, want icub croco, have icub croco, P1 P2 A2 O2 P3 A3 O3
+because, give Allan mouse icub, have icub mouse, P1 P2 A2 O2 R2 P3 A3 O3 
+because, say icub Give_me_the_croco_please Allan, give Allan mouse icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # FINALLY
-finally, have iCub croco, P1 P2 A2 O2
-#finally, have iCub mouse, P1 P2 A2 O2
+finally, have icub croco, P1 P2 A2 O2
+##finally, have icub mouse, P1 P2 A2 O2
