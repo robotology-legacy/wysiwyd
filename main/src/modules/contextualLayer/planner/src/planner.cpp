@@ -261,6 +261,15 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         }
         reply.addString("ack");
     }
+    else if (command.get(0).asString() == "newplan")
+    {
+        if (newPlan.size() == 0) { yInfo() << "newPlan list is empty."; }
+        for (auto& item : newPlan)
+        {
+            yInfo() << item.toString();
+        }
+        reply.addString("ack");
+    }
     else if (command.get(0).asString() == "freeze")
     {
         freeze_all();
@@ -298,27 +307,34 @@ bool Planner::updateModule() {
 
     if (ordering)
     {
-        for (unsigned int it = 0; it < newPlan.size(); it++)
+        if ((!newPlan.empty()) && (action_list.empty()))
         {
-            // iterating through each new goal
+            yDebug() << "newplan is not empty: " << !newPlan.empty();
+            yDebug() << "action list is empty: " << action_list.empty();
+            unsigned int it = 0;
+            bool knownPlan;
+            string planName;
+            string objectType;
+            string object;
+            // iterating through first new goal
             int priority;
             Bottle command = newPlan[it];
             if (command.isNull())
             {
                 yError() << "bottle command is empty, newPlan: ";
-                for (vector<bottle>::const_iterator i = newPlan.begin(); i != newPlan.end(); ++i)
+                for (auto& item : newPlan)
                 {
-                    cout << *i << '\n';
+                    yDebug() << item.toString();
                 }
                 knownPlan = false;
-                newPlan.erase(newPlan.begin());
             }
             else
             {
-                bool knownPlan = checkKnown(command, avaiPlansList);
-                string planName = command.get(1).asList()->get(0).asString();
-                string objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
-                string object = command.get(1).asList()->get(2).asList()->get(1).asString();
+                knownPlan = checkKnown(command, avaiPlansList);
+                planName = command.get(1).asList()->get(0).asString();
+                objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+                object = command.get(1).asList()->get(2).asList()->get(1).asString();
+                newPlan.erase(newPlan.begin());
             }
 
             if (knownPlan)
@@ -372,7 +388,7 @@ bool Planner::updateModule() {
                 {
                     // string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
                     Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(ii)).asList();
-                    if (fullAction.isNull()) { yError() << "fullAction is empty"; }
+                    if (fullAction->isNull()) { yError() << "fullAction is empty"; }
                     string actionName = fullAction->get(0).asString();
                     Bottle args = fullAction->tail();
 
@@ -388,7 +404,7 @@ bool Planner::updateModule() {
                         for (int k = 0; k < preconds.size(); k++)
                         {
                             Bottle* msg = preconds.get(k).asList()->get(1).asList();
-                            if (msg.isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(k).asString(); }
+                            if (msg->isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(k).asString(); }
                             // format message to sensationsManager
                             for (int i = 0; i < msg->size(); i++)
                             {
@@ -630,8 +646,8 @@ bool Planner::updateModule() {
             }
         }
 
-        newPlan.clear();
-        ordering = false;
+        // newPlan.clear();
+        // ordering = false;
     }
 
     //Check need to fulfill goals
@@ -706,16 +722,18 @@ bool Planner::updateModule() {
             Bottle objectives = *grpPlans.find(planName + "-objectiveState").asList();
 
             // checking for ultimate state fulfillment.
+            bool desiredState = false;
             bool stateCheck = true;
             if (objectives.size() != 0)
             {
+                desiredState = true;
                 for (int Ob = 0; Ob < objectives.size(); Ob++)
                 {
                     Bottle bot;
                     Bottle rep;
 
                     Bottle* msg = objectives.get(Ob).asList()->get(1).asList();
-                    if (msg.isNull()) { yError() << "bottle msg is empty, objectives was " << objectives.get(Ob).asString(); }
+                    if (msg->isNull()) { yError() << "bottle msg is empty, objectives was " << objectives.get(Ob).asString(); }
                     for (int i = 0; i < msg->size(); i++)
                     {
                         string aux = msg->get(i).asString();
@@ -743,22 +761,20 @@ bool Planner::updateModule() {
                         indiv = rep.get(1).asBool();
                     }
 
-                    stateCheck = indiv && stateCheck;
-                    yDebug() << "objective of the plan is already complete: " << stateCheck;
+                    desiredState = indiv && desiredState;
                 }
             }
 
             // checking for post condition fulfillment if ultimate state is not met
-            if (!stateCheck)
+            if (!desiredState)
             {
-                stateCheck = true;
                 for (int k = 0; k < stateOI.size(); k++)
                 {
                     Bottle bot;
                     Bottle rep;
 
                     Bottle* msg = stateOI.get(k).asList()->get(1).asList();
-                    if (msg.isNull()) { yError() << "bottle msg is empty, contents of stateOI is " << stateOI.get(k).asString(); }
+                    if (msg->isNull()) { yError() << "bottle msg is empty, contents of stateOI is " << stateOI.get(k).asString(); }
                     for (int i = 0; i < msg->size(); i++)
                     {
                         string aux = msg->get(i).asString();
@@ -771,7 +787,6 @@ bool Planner::updateModule() {
                         }
                         bot.addString(aux);
                     }
-
                     getState.write(bot, rep);
                     yDebug() << bot.toString();
                     bot.clear();
@@ -790,6 +805,7 @@ bool Planner::updateModule() {
                     stateCheck = indiv && stateCheck;
                     yDebug() << "State is" << stateCheck;
                 }
+                yDebug() << "final state is " << stateCheck;
             }
 
             if (actionCompleted && stateCheck)
@@ -806,20 +822,23 @@ bool Planner::updateModule() {
                 planNr_list.erase(planNr_list.begin());
                 attemptCnt = 0;
 
-                unsigned int length = planNr_list.size();
-                for (unsigned int extra = 0; extra < length; extra++)
+                if (desiredState)
                 {
-                    if (planNr_list[0] == currPlan)
+                    unsigned int length = planNr_list.size();
+                    for (unsigned int extra = 0; extra < length; extra++)
                     {
-                        action_list.erase(action_list.begin());
-                        priority_list.erase(priority_list.begin());
-                        plan_list.erase(plan_list.begin());
-                        object_list.erase(object_list.begin());
-                        type_list.erase(type_list.begin());
-                        actionPos_list.erase(actionPos_list.begin());
-                        planNr_list.erase(planNr_list.begin());
+                        if (planNr_list[0] == currPlan)
+                        {
+                            action_list.erase(action_list.begin());
+                            priority_list.erase(priority_list.begin());
+                            plan_list.erase(plan_list.begin());
+                            object_list.erase(object_list.begin());
+                            type_list.erase(type_list.begin());
+                            actionPos_list.erase(actionPos_list.begin());
+                            planNr_list.erase(planNr_list.begin());
+                        }
+                        else { break; }
                     }
-                    else { break; }
                 }
 
                 yInfo() << "action completed and removed from lists.";
