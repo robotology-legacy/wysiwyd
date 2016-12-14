@@ -36,8 +36,6 @@ void Pointing::run(const Bottle &args) {
 
     iCub->opc->checkout();
     yDebug() << "[pointing]: opc checkout";
-    iCub->lookAtPartner();
-    Time::delay(0.25);
     
     Bottle options;
     options.addString("fixate");
