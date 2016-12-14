@@ -1224,7 +1224,8 @@ class SamSupervisorModule(yarp.RFModule):
                     self.nonResponsiveDict[self.rpcConnections[j][0]] = 1
                 else:
                     self.nonResponsiveDict[self.rpcConnections[j][0]] += 1
-                print self.rpcConnections[j][0], 'not responding'
+                print self.rpcConnections[j][0], 'not responding', self.nonResponsiveDict[self.rpcConnections[j][0]], \
+                    '/', self.nonResponsiveThreshold
                 if self.nonResponsiveDict[self.rpcConnections[j][0]] > self.nonResponsiveThreshold:
                     print 'Restarting ', self.rpcConnections[j][0], 'model'
                     if not correctOp_check1:
