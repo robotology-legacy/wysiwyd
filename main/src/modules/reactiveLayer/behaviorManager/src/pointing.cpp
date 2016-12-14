@@ -26,6 +26,7 @@ void Pointing::run(const Bottle &args) {
         if(sensation->size()==0) {
             iCub->lookAtPartner();
             iCub->say("There are no objects I can point at.");
+            iCub->home();
             return;
         }
         int id = yarp::os::Random::uniform(0, sensation->size() - 1);
@@ -34,15 +35,15 @@ void Pointing::run(const Bottle &args) {
         sentence = "I could point to the ";
     }
 
-    iCub->opc->checkout();
     yDebug() << "[pointing]: opc checkout";
     
+    iCub->say(sentence + obj_name, false);
+
     Bottle options;
     options.addString("fixate");
     options.addString("wait");
     iCub->look(obj_name,options); // to have a better estimate of where to point
 
-    iCub->say(sentence + obj_name);
     bool succeeded = iCub->point(obj_name);
     if (no_objects){
         bool look_success = iCub->lookAtPartner();

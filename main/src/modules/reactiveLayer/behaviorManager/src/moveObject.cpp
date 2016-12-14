@@ -26,7 +26,7 @@ void MoveObject::run(const Bottle &args) {
     }
     yInfo() << "received context from planner:" << move_type << "and" << obj_name;
 
-    iCub->lookAtPartner();
+    //iCub->lookAtPartner();
 
     if(move_type == "front") {
         iCub->say("I will push the " + obj_name + " to the front");
@@ -42,10 +42,9 @@ void MoveObject::run(const Bottle &args) {
         return;
     }
 
-    iCub->home();
-    yarp::os::Time::delay(1.0);
-
-    iCub->opc->checkout();
+    //iCub->home();
+    //yarp::os::Time::delay(1.0);
+    //iCub->opc->checkout();
 
     Bottle options;
     options.addString("fixate");

@@ -1518,6 +1518,8 @@ bool opcPopulater::populateScenario1()
         lArgument,
         false);
 
+    iCub->opc->clear();
+
     return true;
 }
 
@@ -1711,7 +1713,7 @@ bool opcPopulater::populateScenario2(){
 
     Time::delay(2.);
 
-
+    iCub->opc->clear();
 
     return true;
 }
@@ -1893,6 +1895,9 @@ bool opcPopulater::populateScenario3(){
         iCub->getABMClient()->sendActivity("action", "take", "action", lArgument, false);
     }
 
+    iCub->opc->clear();
+
+
     return true;
 
 }
@@ -1992,6 +1997,9 @@ bool opcPopulater::populateScenario4(){
         lArgument.push_back(pair<string, string>("success", "status"));
         iCub->getABMClient()->sendActivity("action", "take", "action", lArgument, false);
     }
+
+    iCub->opc->clear();
+
 
     return true;
 }
@@ -2199,6 +2207,8 @@ bool opcPopulater::populateScenario5(){
 
 
     Time::delay(2.);
+
+    iCub->opc->clear();
 
     return true;
 }
@@ -2483,6 +2493,8 @@ bool opcPopulater::populateScenario6(){
     // Realisation of the iCub
 
     Time::delay(2.);
+
+    iCub->opc->clear();
 
     return true;
 }

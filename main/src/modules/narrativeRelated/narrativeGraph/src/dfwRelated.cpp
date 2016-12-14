@@ -596,10 +596,10 @@ string narrativeHandler::prepareMeaningForLRH(string dfw, PAOR M1){
         osOCW;
 
     // FOR BETTER HRI
-    if (M1.R == "iCub"){
+    if (M1.R == "iCub" || M1.R == "icub"){
         M1.R = "me";
     }
-    if (M1.A == "iCub"){
+    if (M1.A == "iCub" || M1.A == "icub"){
         M1.A = "I";
     }
 
