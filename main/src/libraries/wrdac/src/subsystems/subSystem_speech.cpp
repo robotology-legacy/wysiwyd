@@ -14,11 +14,22 @@ wysiwyd::wrdac::SubSystem_Speech::SubSystem_Speech(const std::string &masterName
 
 bool wysiwyd::wrdac::SubSystem_Speech::connect()
 {
-    yarp::os::Network::connect("/iSpeak/emotions:o", "/icub/face/emotions/in");
-    bool connected = yarp::os::Network::connect(tts.getName(), "/iSpeak");
-    connected &= yarp::os::Network::connect(ttsRpc.getName(), "/iSpeak/rpc");
-    connected &= yarp::os::Network::connect("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str());
-    connected &= yarp::os::Network::connect(sttRpc.getName().c_str(), "/speechRecognizer/rpc");
+    if(!yarp::os::Network::isConnected("/iSpeak/emotions:o", "/icub/face/emotions/in")) {
+        yarp::os::Network::connect("/iSpeak/emotions:o", "/icub/face/emotions/in");
+    }
+    bool connected = true;
+    if(!yarp::os::Network::isConnected(tts.getName(), "/iSpeak")) {
+        connected &= yarp::os::Network::connect(tts.getName(), "/iSpeak");
+    }
+    if(!yarp::os::Network::isConnected(ttsRpc.getName(), "/iSpeak/rpc")) {
+        connected &= yarp::os::Network::connect(ttsRpc.getName(), "/iSpeak/rpc");
+    }
+    if(!yarp::os::Network::isConnected("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str())) {
+        connected &= yarp::os::Network::connect("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str());
+    }
+    if(!yarp::os::Network::isConnected(sttRpc.getName().c_str(), "/speechRecognizer/rpc")) {
+        connected &= yarp::os::Network::connect(sttRpc.getName().c_str(), "/speechRecognizer/rpc");
+    }
 
     opc->connect("OPC");
 
@@ -164,6 +175,7 @@ void wysiwyd::wrdac::SubSystem_Speech::Close()
     sttRpc.interrupt();
     sttRpc.close();
     SubABM->Close();
+    opc->close();
 
     delete SubABM;
     delete opc;

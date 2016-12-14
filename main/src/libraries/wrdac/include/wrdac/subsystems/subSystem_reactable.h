@@ -45,7 +45,7 @@ public:
 
     SubSystem_Reactable(const std::string &masterName);
 
-    virtual void Close();;
+    virtual void Close();
     
     /**
     * Display a virtual object on the reactable

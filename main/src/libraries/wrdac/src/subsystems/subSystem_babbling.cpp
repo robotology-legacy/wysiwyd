@@ -2,7 +2,11 @@
 #include "wrdac/subsystems/subSystem_babbling.h"
 
 bool wysiwyd::wrdac::SubSystem_babbling::connect() {
-    return yarp::os::Network::connect(portRPC.getName(), "/babbling/rpc");
+    if(yarp::os::Network::isConnected(portRPC.getName(), "/babbling/rpc")) {
+        return true;
+    } else {
+        return yarp::os::Network::connect(portRPC.getName(), "/babbling/rpc");
+    }
 }
 
 wysiwyd::wrdac::SubSystem_babbling::SubSystem_babbling(const std::string &masterName) : SubSystem(masterName) {

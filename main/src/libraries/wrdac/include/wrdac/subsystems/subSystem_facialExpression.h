@@ -271,7 +271,11 @@ public:
     */
     bool connect(const std::string &targetPort = "/icub/face/emotions/in")
     {
-        return yarp::os::Network::connect(toEmotionInterface.getName(),targetPort.c_str());
+        if(yarp::os::Network::isConnected(toEmotionInterface.getName(),targetPort.c_str())) {
+            return true;
+        } else {
+            return yarp::os::Network::connect(toEmotionInterface.getName(),targetPort.c_str());
+        }
     }
 
     /**

@@ -20,10 +20,9 @@ bool wysiwyd::wrdac::SubSystem_LRH::ABMconnected() {
 }
 
 bool wysiwyd::wrdac::SubSystem_LRH::SAMconnected() {
-    if (yarp::os::Network::isConnected(portSAM.getName(), "/sam/rpc")){
+    if (yarp::os::Network::isConnected(portSAM.getName(), "/sam/rpc")) {
         return true;
-    }
-    else {
+    } else {
         return yarp::os::Network::connect(portSAM.getName(), "/sam/rpc");
     }
 }
@@ -36,16 +35,19 @@ wysiwyd::wrdac::SubSystem_LRH::SubSystem_LRH(const std::string &masterName) : Su
     narrator = "iCub";
     m_type = SUBSYSTEM_LRH;
     bForwardABM = true;
-    SubABM = new SubSystem_ABM(m_masterName + "/lrh");
+    SubABM = new SubSystem_ABM(m_masterName + "/from_lrh");
 
     ABMconnected() ? yInfo() << "LRH connected to ABM" : yWarning() << "LRH not connected to ABM";
 }
 
 void wysiwyd::wrdac::SubSystem_LRH::Close() {
+    portSAM.interrupt();
+    portSAM.close();
+
     portRPC.interrupt();
     portRPC.close();
-    SubABM->Close();
 
+    SubABM->Close();
     delete SubABM;
 }
 

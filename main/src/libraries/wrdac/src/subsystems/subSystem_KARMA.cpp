@@ -113,23 +113,33 @@ bool wysiwyd::wrdac::SubSystem_KARMA::connect()
         yWarning()<<"KARMA didn't connect to ARE";
 
     bool ret=true;
-    ret&=yarp::os::Network::connect(stopPort.getName(),"/karmaMotor/stop:i");
-    ret&=yarp::os::Network::connect(rpcPort.getName(),"/karmaMotor/rpc");
+    if(!yarp::os::Network::isConnected(stopPort.getName(),"/karmaMotor/stop:i")) {
+        ret&=yarp::os::Network::connect(stopPort.getName(),"/karmaMotor/stop:i");
+    }
+    if(!yarp::os::Network::isConnected(rpcPort.getName(),"/karmaMotor/rpc")) {
+        ret&=yarp::os::Network::connect(rpcPort.getName(),"/karmaMotor/rpc");
+    }
 
-    if (yarp::os::Network::connect(visionPort.getName(),"/karmaMotor/vision:i"))
-        yInfo()<<"KARMA connected to tool tip vision";
-    else
-        yWarning()<<"KARMA didn't connect to tool tip vision";
+    if(!yarp::os::Network::isConnected(visionPort.getName(),"/karmaMotor/vision:i")) {
+        if (yarp::os::Network::connect(visionPort.getName(),"/karmaMotor/vision:i"))
+            yInfo()<<"KARMA connected to tool tip vision";
+        else
+            yWarning()<<"KARMA didn't connect to tool tip vision";
+    }
 
-    if (yarp::os::Network::connect(finderPort.getName(),"/karmaMotor/finder:rpc"))
-        yInfo()<<"KARMA connected to tool dimensions solver";
-    else
-        yWarning()<<"KARMA didn't connect to tool dimensions solver";
+    if(!yarp::os::Network::isConnected(finderPort.getName(),"/karmaMotor/finder:rpc")) {
+        if (yarp::os::Network::connect(finderPort.getName(),"/karmaMotor/finder:rpc"))
+            yInfo()<<"KARMA connected to tool dimensions solver";
+        else
+            yWarning()<<"KARMA didn't connect to tool dimensions solver";
+    }
 
-    if (yarp::os::Network::connect(calibPort.getName(),"/iolReachingCalibration/rpc"))
-        yInfo()<<"KARMA connected to calibrator";
-    else
-        yWarning()<<"KARMA didn't connect to calibrator";
+    if(!yarp::os::Network::isConnected(calibPort.getName(),"/iolReachingCalibration/rpc")) {
+        if (yarp::os::Network::connect(calibPort.getName(),"/iolReachingCalibration/rpc"))
+            yInfo()<<"KARMA connected to calibrator";
+        else
+            yWarning()<<"KARMA didn't connect to calibrator";
+    }
 
     openCartesianClient();
 

@@ -101,27 +101,40 @@ bool wysiwyd::wrdac::SubSystem_ARE::sendCmdNoReply(yarp::os::Bottle &cmd)
 bool wysiwyd::wrdac::SubSystem_ARE::connect()
 {
     ABMconnected=SubABM->Connect();
-    if (ABMconnected)
+    if (ABMconnected) {
         yInfo()<<"ARE connected to ABM";
-    else
+    } else {
         yWarning()<<"ARE didn't connect to ABM";
+    }
 
     ATTconnected=SubATT->Connect();
-    if (ATTconnected)
+    if (ATTconnected) {
         yInfo()<<"ARE connected to Attention";
-    else
+    } else {
         yDebug()<<"ARE didn't connect to Attention";
+    }
+
+    if (!yarp::os::Network::isConnected(calibPort.getName(),"/iolReachingCalibration/rpc")) {
+        if (yarp::os::Network::connect(calibPort.getName(),"/iolReachingCalibration/rpc")) {
+            yInfo()<<"ARE connected to calibrator";
+        } else {
+            yWarning()<<"ARE didn't connect to calibrator";
+        }
+    }
 
     bool ret=true;
-    ret&=yarp::os::Network::connect(cmdPortNoReply.getName(),"/actionsRenderingEngine/cmd:io");
-    ret&=yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
-    ret&=yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
-    ret&=yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
-
-    if (yarp::os::Network::connect(calibPort.getName(),"/iolReachingCalibration/rpc"))
-        yInfo()<<"ARE connected to calibrator";
-    else
-        yWarning()<<"ARE didn't connect to calibrator";
+    if(!yarp::os::Network::isConnected(cmdPortNoReply.getName(),"/actionsRenderingEngine/cmd:io")) {
+        ret&=yarp::os::Network::connect(cmdPortNoReply.getName(),"/actionsRenderingEngine/cmd:io");
+    }
+    if(!yarp::os::Network::isConnected(cmdPort.getName(),"/actionsRenderingEngine/cmd:io")) {
+        ret&=yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
+    }
+    if(!yarp::os::Network::isConnected(rpcPort.getName(),"/actionsRenderingEngine/rpc")) {
+        ret&=yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
+    }
+    if(!yarp::os::Network::isConnected(getPort.getName(),"/actionsRenderingEngine/get:io")) {
+        ret&=yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
+    }
 
     return ret;
 }

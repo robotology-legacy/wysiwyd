@@ -12,7 +12,11 @@ wysiwyd::wrdac::SubSystem_Attention::~SubSystem_Attention() {}
 
 bool wysiwyd::wrdac::SubSystem_Attention::connect()
 {
-    return yarp::os::Network::connect(attentionSelector.getName(),"/attentionSelector/rpc");
+    if(yarp::os::Network::isConnected(attentionSelector.getName(),"/attentionSelector/rpc")) {
+        return true;
+    } else {
+        return yarp::os::Network::connect(attentionSelector.getName(),"/attentionSelector/rpc");
+    }
 }
 
 void wysiwyd::wrdac::SubSystem_Attention::Close()

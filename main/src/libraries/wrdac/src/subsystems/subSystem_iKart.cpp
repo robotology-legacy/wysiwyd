@@ -4,10 +4,18 @@
 bool wysiwyd::wrdac::SubSystem_iKart::connect()
 {
     bool success = true;
-    success &= yarp::os::Network::connect(portCmd.getName(), "/ikart/control:i");
-    success &= yarp::os::Network::connect("/ikart/odometry:o", portOdometry.getName());
-    success &= yarp::os::Network::connect("/ikart/laser:o", portLaser.getName());
-    success &= yarp::os::Network::connect(portRpc.getName(), "/ikart/rpc");
+    if(!yarp::os::Network::isConnected(portCmd.getName(), "/ikart/control:i")) {
+        success &= yarp::os::Network::connect(portCmd.getName(), "/ikart/control:i");
+    }
+    if(!yarp::os::Network::isConnected("/ikart/odometry:o", portOdometry.getName())) {
+        success &= yarp::os::Network::connect("/ikart/odometry:o", portOdometry.getName());
+    }
+    if(!yarp::os::Network::isConnected("/ikart/laser:o", portLaser.getName())) {
+        success &= yarp::os::Network::connect("/ikart/laser:o", portLaser.getName());
+    }
+    if(!yarp::os::Network::isConnected(portRpc.getName(), "/ikart/rpc")) {
+        success &= yarp::os::Network::connect(portRpc.getName(), "/ikart/rpc");
+    }
     return success;
 }
 
@@ -27,6 +35,7 @@ void wysiwyd::wrdac::SubSystem_iKart::Close()
     portCmd.interrupt(); portCmd.close();
     portRpc.interrupt(); portRpc.close();
     portOdometry.interrupt(); portOdometry.close();
+    portLaser.interrupt(); portLaser.close();
 }
 
 void wysiwyd::wrdac::SubSystem_iKart::resetOdometer()

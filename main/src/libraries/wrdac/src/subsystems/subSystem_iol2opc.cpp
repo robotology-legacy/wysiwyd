@@ -2,7 +2,11 @@
 #include "wrdac/subsystems/subSystem_iol2opc.h"
 
 bool wysiwyd::wrdac::SubSystem_IOL2OPC::connect() {
-    return yarp::os::Network::connect(portRPC.getName(), "/iol2opc/rpc");
+    if(yarp::os::Network::isConnected(portRPC.getName(), "/iol2opc/rpc")) {
+        return true;
+    } else {
+        return yarp::os::Network::connect(portRPC.getName(), "/iol2opc/rpc");
+    }
 }
 
 wysiwyd::wrdac::SubSystem_IOL2OPC::SubSystem_IOL2OPC(const std::string &masterName) : SubSystem(masterName) {

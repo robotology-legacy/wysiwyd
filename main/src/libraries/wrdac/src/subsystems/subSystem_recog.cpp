@@ -5,12 +5,16 @@ bool wysiwyd::wrdac::SubSystem_Recog::connect() {
     // paste master name of
     ABMconnected = (SubABM->Connect());
     yInfo() << ((ABMconnected) ? "Recog connected to ABM" : "Recog didn't connect to ABM");
-    if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
-        yInfo() << "Recog connected to ears";
+
+    if (!yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")) {
+        if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
+            yInfo() << "Recog connected to ears";
+        }
+        else {
+            yDebug() << "Recog didn't connect to ears at start";
+        }
     }
-    else {
-        yDebug() << "Recog didn't connect to ears at start";
-    }
+
     if (yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
         return true;
     }
