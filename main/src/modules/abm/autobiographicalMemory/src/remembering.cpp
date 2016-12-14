@@ -184,7 +184,7 @@ int autobiographicalMemory::openDataStreamPorts(int instance, string robotName) 
             mapDataStreamPortOut[dataStreamPortFrom] = new yarp::os::BufferedPort < Bottle > ;
             mapDataStreamPortOut[dataStreamPortFrom]->open((portPrefixForStreaming + dataStreamPortFrom).c_str());
         } else {
-            yWarning << dataStreamPortFrom << "Already existing, not opening again";
+            yWarning() << dataStreamPortFrom << "Already existing, not opening again";
         }
 
         // in case of position commands, replace state:o with rpc:i; otherwise do nothing

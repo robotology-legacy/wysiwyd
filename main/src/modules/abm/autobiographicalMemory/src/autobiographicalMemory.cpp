@@ -970,7 +970,7 @@ bool autobiographicalMemory::updateModule() {
         if (done) {
             //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
             yInfo() << "streamStatus = end, closing ports";
-            for (auto const& imgStreamPortOut : mapImgStreamPortOut) {
+            for (auto& imgStreamPortOut : mapImgStreamPortOut) {
                 imgStreamPortOut.second->waitForWrite();
                 imgStreamPortOut.second->interrupt();
                 imgStreamPortOut.second->close();
@@ -980,7 +980,7 @@ bool autobiographicalMemory::updateModule() {
                 delete imgStreamPortOut.second;
                 imgStreamPortOut.second = nullptr;
             }
-            for (auto const& dataStreamPortOut : mapDataStreamPortOut) {
+            for (auto& dataStreamPortOut : mapDataStreamPortOut) {
                 dataStreamPortOut.second->waitForWrite();
                 dataStreamPortOut.second->interrupt();
                 dataStreamPortOut.second->close();
