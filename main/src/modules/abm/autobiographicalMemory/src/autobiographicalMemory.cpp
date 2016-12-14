@@ -1071,9 +1071,6 @@ bool autobiographicalMemory::close()
     abm2augmented.interrupt();
     abm2augmented.close();
 
-    requestInsertProcessQueue();
-    storeImageOIDs();
-
     for(auto& input : mapDataStreamInput) {
         delete input.second;
     }
@@ -1106,6 +1103,10 @@ bool autobiographicalMemory::close()
 
     delete opcWorldReal;
     delete opcWorldMental;
+
+    requestInsertProcessQueue();
+    storeImageOIDs();
+
     delete ABMDataBase;
 
     yInfo() << "ABM Successfully finished!";
