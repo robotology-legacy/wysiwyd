@@ -202,10 +202,7 @@ class AllostaticPlotModule(yarp.RFModule):
                     self.behaviors_to_plot.append((name, new_rectangle, new_text))
                     print "Behavior " + name + " starts"
                 elif msg == "stop":
-                    plot_idx = None
-                    for idx, plotitem in enumerate(self.behaviors_to_plot):
-                        if plotitem[0] == name:
-                            plotitem[1].set_width(-plotitem[1].get_x())
+                    self.behaviors_to_plot[-1][1].set_width(-self.behaviors_to_plot[-1][1].get_x())
                     print "Behavior " + name + " stops"
 
         plt.draw()
