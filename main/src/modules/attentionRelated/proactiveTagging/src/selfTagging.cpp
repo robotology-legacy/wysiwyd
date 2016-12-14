@@ -297,7 +297,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     string sThank = " Thank you, now I know when I am touching object with my " + getBodyPartNameForSpeech(sName);
     yInfo() << " sThank: " << sThank;
     iCub->lookAtPartner();
-    iCub->say(sThank, false);
+    iCub->say(sThank);
     iCub->home();
 
     return bOutput;
