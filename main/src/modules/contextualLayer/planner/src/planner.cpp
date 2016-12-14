@@ -338,11 +338,13 @@ bool Planner::updateModule() {
 
     if ((!newPlan.empty()) && (action_list.empty()))
     {
+        yDebug() << "moving plan from newPlan to action_list";
         // organise actions for next plan to be executed
         unsigned int it = 0;
         string planName;
         string objectType;
         string object;
+
         // iterating through first new goal
         int priority;
         Bottle command = newPlan[it];
@@ -359,7 +361,54 @@ bool Planner::updateModule() {
             planName = command.get(1).asList()->get(0).asString();
             objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
             object = command.get(1).asList()->get(2).asList()->get(1).asString();
+
             newPlan.erase(newPlan.begin());
+        }
+
+        // check if plan is irrelevant as objectiveState is already met
+        Bottle objectives = *grpPlans.find(planName + "-objectiveState").asList();
+        bool desiredState = false;
+        if (objectives.size() != 0)
+        {
+            desiredState = true;
+            Bottle args = *grpPlans.find(planName + "-action1").asList();
+            for (int Ob = 0; Ob < objectives.size(); Ob++)
+            {
+                Bottle bot;
+                Bottle rep;
+
+                Bottle* msg = objectives.get(Ob).asList()->get(1).asList();
+                if (msg->isNull()) { yError() << "bottle msg is empty, objectives was " << objectives.get(Ob).asString(); }
+                for (int i = 0; i < msg->size(); i++)
+                {
+                    string aux = msg->get(i).asString();
+                    for (int j = 0; j < args.size(); j++)
+                    {
+                        if (args.get(j).asString() == aux)
+                        {
+                            aux = object;
+                        }
+                    }
+                    bot.addString(aux);
+                }
+                getState.write(bot, rep);
+                yDebug() << bot.toString();
+                bot.clear();
+                bool indiv;
+                string attach = objectives.get(Ob).asList()->get(0).toString();
+
+                if (attach == "not")
+                {
+                    indiv = !rep.get(1).asBool();
+                }
+                else
+                {
+                    indiv = rep.get(1).asBool();
+                }
+
+                desiredState = indiv && desiredState;
+                yDebug() << "ultimate goal is already met: " << desiredState;
+            }
         }
 
         // assumption is that the action plan is complete enough that at least one set of prerequisites is met
@@ -379,211 +428,220 @@ bool Planner::updateModule() {
         // holding the prerequisites that failed
         vector<string> preqFail;
 
-        for (int ii = grpPlans.find(planName + "-totactions").asInt(); ii > 0; ii--)
+        if (!desiredState)
         {
-            // string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
-            Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(ii)).asList();
-            if (fullAction->isNull()) { yError() << "fullAction is empty"; }
-            string actionName = fullAction->get(0).asString();
-            Bottle args = fullAction->tail();
-
-            // checking if preconditions are met starting from last action
-            state = true;
-            Bottle preconds = *grpPlans.find(planName + "-" + to_string(ii) + "pre").asList();
-            std::list<std::pair<std::string, std::string >> lArgument;
-            Bottle auxMsg;
-            if (preconds.size() > 0)
+            for (int ii = grpPlans.find(planName + "-totactions").asInt(); ii > 0; ii--)
             {
-                yInfo() << "there are preconditions to check for.";
+                // string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
+                Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(ii)).asList();
+                if (fullAction->isNull()) { yError() << "fullAction is empty"; }
+                string actionName = fullAction->get(0).asString();
+                Bottle args = fullAction->tail();
 
-                for (int k = 0; k < preconds.size(); k++)
+                // checking if preconditions are met starting from last action
+                state = true;
+                Bottle preconds = *grpPlans.find(planName + "-" + to_string(ii) + "pre").asList();
+                std::list<std::pair<std::string, std::string >> lArgument;
+                Bottle auxMsg;
+                if (preconds.size() > 0)
                 {
-                    Bottle* msg = preconds.get(k).asList()->get(1).asList();
-                    if (msg->isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(k).asString(); }
-                    // format message to sensationsManager
-                    for (int i = 0; i < msg->size(); i++)
+                    yInfo() << "there are preconditions to check for.";
+
+                    for (int k = 0; k < preconds.size(); k++)
                     {
-                        string aux = msg->get(i).asString();
-                        for (int j = 0; j < args.size(); j++)
+                        Bottle* msg = preconds.get(k).asList()->get(1).asList();
+                        if (msg->isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(k).asString(); }
+                        // format message to sensationsManager
+                        for (int i = 0; i < msg->size(); i++)
                         {
-                            // check and replace matches in pre/postrequisites and action (e.g. _obj in point)
-                            if (args.get(j).asString() == msg->get(i).asString())
+                            string aux = msg->get(i).asString();
+                            for (int j = 0; j < args.size(); j++)
                             {
-                                aux = object;
+                                // check and replace matches in pre/postrequisites and action (e.g. _obj in point)
+                                if (args.get(j).asString() == msg->get(i).asString())
+                                {
+                                    aux = object;
+                                }
+                            }
+                            auxMsg.addString(aux);
+                        }
+                        getState.write(auxMsg, rep);
+                        bool indiv;
+                        bool negate;
+                        string attach = preconds.get(k).asList()->get(0).toString();
+                        if (attach == "not")
+                        {
+                            yDebug() << "not";
+                            indiv = !rep.get(1).asBool();
+                            negate = true;
+                        }
+                        else
+                        {
+                            indiv = rep.get(1).asBool();
+                            negate = false;
+                        }
+                        yDebug() << "indiv from rep is " << indiv;
+                        state = state && indiv;
+
+                        // record a failed prerequisite
+                        string failState;
+                        if (!indiv)
+                        {
+                            // assumes priority implicit in order of prerequisites
+                            string keyword = auxMsg.get(2).asString();
+                            if (negate) { failState = keyword; }
+                            else { failState = "not " + keyword; }
+
+                            if ((keyword == "present") && !presence)
+                            {
+                                presence = true;
+                                preqFail.push_back(failState);
+                            }
+                            else if ( !((presence) &&
+                                (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
+                                   keyword == Object::objectAreaAsString(ObjectArea::SHARED) ||
+                                   keyword == Object::objectAreaAsString(ObjectArea::HUMAN) )) )
+                            {
+                                preqFail.push_back(failState);
                             }
                         }
-                        auxMsg.addString(aux);
-                    }
-                    getState.write(auxMsg, rep);
-                    bool indiv;
-                    bool negate;
-                    string attach = preconds.get(k).asList()->get(0).toString();
-                    if (attach == "not")
-                    {
-                        yDebug() << "not";
-                        indiv = !rep.get(1).asBool();
-                        negate = true;
-                    }
-                    else
-                    {
-                        indiv = rep.get(1).asBool();
-                        negate = false;
-                    }
-                    yDebug() << "indiv from rep is " << indiv;
-                    yDebug() << "state before && is " << state;
-                    state = state && indiv;
 
-                    // record a failed prerequisite
-                    string failState;
-                    if (!indiv)
-                    {
-                        // assumes priority implicit in order of prerequisites
-                        string keyword = auxMsg.get(2).asString();
-                        if (negate) { failState = keyword; }
-                        else { failState = "not " + keyword; }
+                        // formulate step for recording in ABM
+                        string recState;
+                        if (negate) { recState = "not " + auxMsg.get(2).asString(); }
+                        else { recState = auxMsg.get(2).asString(); }
+                        string strind;
+                        if (indiv == true) { strind = "true"; }
+                        else { strind = "false"; }
+                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(0).asString(), "predicate"+to_string(k)));
+                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(1).asString(), "agent"+to_string(k)));
+                        lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(k)));
+                        lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(k)));
+                        yDebug() << "lArgument formed for condition";
 
-                        if ((keyword == "present") && !presence)
-                        {
-                            presence = true;
-                            preqFail.push_back(failState);
-                        }
-                        else if ( !((presence) &&
-                            (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
-                               keyword == Object::objectAreaAsString(ObjectArea::SHARED) ||
-                               keyword == Object::objectAreaAsString(ObjectArea::HUMAN) )) )
-                        {
-                            preqFail.push_back(failState);
-                        }
+                        auxMsg.clear();
                     }
-
-                    // formulate step for recording in ABM
-                    string recState;
-                    if (negate) { recState = "not " + auxMsg.get(2).asString(); }
-                    else { recState = auxMsg.get(2).asString(); }
-                    string strind;
-                    if (indiv == true) { strind = "true"; }
-                    else { strind = "false"; }
-                    lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(0).asString(), "predicate"+to_string(k)));
-                    lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(1).asString(), "agent"+to_string(k)));
-                    lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(k)));
-                    lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(k)));
-                    yDebug() << "lArgument formed for condition";
-
+                }
+                else
+                {
+                    yInfo() << "the action has no preconditions.";
+                    lArgument.push_back(std::pair<std::string, std::string>("none", "predicate"));
                     auxMsg.clear();
+                }
+
+                if (useABM)
+                {
+                    // record action selection reasoning in ABM
+                    if (iCub->getABMClient()->Connect())
+                    {
+                        yDebug() << "ABM is connected, recording...";
+                        iCub->getABMClient()->sendActivity("reasoning",
+                            actionName,
+                            "planner",  // expl: "pasar", "drives"...
+                            lArgument,
+                            true);
+                        yInfo() << actionName + " reasoning has been recorded in the ABM";
+                    }
+                    else { yInfo() << "ABMClient is not connected, unable to record."; }
+                }
+
+                // change objectType to action type (pull or push) for ask behaviour
+                if ((actionName == "ask") || (actionName == "moveObject" ))
+                {
+                    yInfo() << "Action is ask/moveObject, objectType now describes if desired action.";
+                    yInfo() << "direction: " << args.get(0).toString();
+                    objectType = args.get(0).toString();
+                }
+                else if ( (actionName == "followingOrder"))
+                {
+                    yInfo() << "Action is ask/moveObject, objectType now describes if desired action.";
+                    yInfo() << "direction: " << args.get(0).toString();
+                    objectType = args.get(1).toString();
+                    object = args.get(0).toString();
+                }
+
+                // insert actions into the various holding lists (IN REVERSE ORDER)
+                action_store.push_back(actionName);
+                priority_store.push_back(priority);
+                plan_store.push_back(planName);
+                object_store.push_back(object);
+                type_store.push_back(objectType);
+                actionPos_store.push_back(ii);
+                planNr_store.push_back(planNr);
+
+                if (state)
+                {
+                    assumption = true;
+                    break;
+                }
+            }
+
+            if (assumption)
+            {
+                bool rankPriority = false;
+                    // insert actions into the various lists
+                if (!rankPriority)
+                {
+                    for (int a = (int)action_store.size() - 1; a >= 0; a--)
+                    {
+                        yInfo() << "adding action " << action_store[a];
+                        action_list.push_back(action_store[a]);
+                        priority_list.push_back(priority_store[a]);
+                        plan_list.push_back(plan_store[a]);
+                        object_list.push_back(object_store[a]);
+                        type_list.push_back(type_store[a]);
+                        actionPos_list.push_back(actionPos_store[a]);
+                        planNr_list.push_back(planNr_store[a]);
+
+                        if (useABM)
+                        {
+                            // log in ABM
+                            if (iCub->getABMClient()->Connect())
+                            {
+                                std::list<std::pair<std::string, std::string> > lArgument;
+                                lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
+                                lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
+                                lArgument.push_back(std::pair<std::string, std::string>(action_store[a], "object"));
+                                lArgument.push_back(std::pair<std::string, std::string>("bottom", "result"));
+                                iCub->getABMClient()->sendActivity("reasoning",
+                                    "priority",
+                                    "planner",  // expl: "pasar", "drives"...
+                                    lArgument,
+                                    true);
+                                yInfo() << "addition of " + action_store[a] + " to bottom of list has been recorded in the ABM";
+                            }
+                            else { yInfo() << "ABMClient is not connected."; }
+                        }
+                    }
                 }
             }
             else
             {
-                yInfo() << "the action has no preconditions.";
-                lArgument.push_back(std::pair<std::string, std::string>("none", "predicate"));
-                auxMsg.clear();
-            }
-
-            if (useABM)
-            {
-                // record action selection reasoning in ABM
-                if (iCub->getABMClient()->Connect())
+                yWarning() << "None of the sets of prerequisites are met, unable to handle plan.";
+                string errorMsg = "I could not execute the plan " + planName + " because the " + object + " is ";
+                for (unsigned int ii = 0; ii<preqFail.size(); ii++)
                 {
-                    yDebug() << "ABM is connected, recording...";
-                    iCub->getABMClient()->sendActivity("reasoning",
-                        actionName,
-                        "planner",  // expl: "pasar", "drives"...
-                        lArgument,
-                        true);
-                    yInfo() << actionName + " reasoning has been recorded in the ABM";
-                }
-                else { yInfo() << "ABMClient is not connected, unable to record."; }
-            }
-
-            // change objectType to action type (pull or push) for ask behaviour
-            if ((actionName == "ask") || (actionName == "moveObject" ))
-            {
-                yInfo() << "Action is ask/moveObject, objectType now describes if desired action.";
-                yInfo() << "direction: " << args.get(0).toString();
-                objectType = args.get(0).toString();
-            }
-            else if ( (actionName == "followingOrder"))
-            {
-                yInfo() << "Action is ask/moveObject, objectType now describes if desired action.";
-                yInfo() << "direction: " << args.get(0).toString();
-                objectType = args.get(1).toString();
-                object = args.get(0).toString();
-            }
-
-            // insert actions into the various holding lists (IN REVERSE ORDER)
-            action_store.push_back(actionName);
-            priority_store.push_back(priority);
-            plan_store.push_back(planName);
-            object_store.push_back(object);
-            type_store.push_back(objectType);
-            actionPos_store.push_back(ii);
-            planNr_store.push_back(planNr);
-
-            if (state)
-            {
-                assumption = true;
-                break;
-            }
-        }
-
-        if (assumption)
-        {
-            bool rankPriority = false;
-                // insert actions into the various lists
-            if (!rankPriority)
-            {
-                for (int a = (int)action_store.size() - 1; a >= 0; a--)
-                {
-                    yInfo() << "adding action " << action_store[a];
-                    action_list.push_back(action_store[a]);
-                    priority_list.push_back(priority_store[a]);
-                    plan_list.push_back(plan_store[a]);
-                    object_list.push_back(object_store[a]);
-                    type_list.push_back(type_store[a]);
-                    actionPos_list.push_back(actionPos_store[a]);
-                    planNr_list.push_back(planNr_store[a]);
-
-                    if (useABM)
+                    if (ii!=0)
                     {
-                        // log in ABM
-                        if (iCub->getABMClient()->Connect())
-                        {
-                            std::list<std::pair<std::string, std::string> > lArgument;
-                            lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
-                            lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
-                            lArgument.push_back(std::pair<std::string, std::string>(action_store[a], "object"));
-                            lArgument.push_back(std::pair<std::string, std::string>("bottom", "result"));
-                            iCub->getABMClient()->sendActivity("reasoning",
-                                "priority",
-                                "planner",  // expl: "pasar", "drives"...
-                                lArgument,
-                                true);
-                            yInfo() << "addition of " + action_store[a] + " to bottom of list has been recorded in the ABM";
-                        }
-                        else { yInfo() << "ABMClient is not connected."; }
+                        errorMsg += " and " + preqFail[ii];
+                    }
+                    else
+                    {
+                        errorMsg += preqFail[ii];
                     }
                 }
+                iCub->lookAtPartner();
+                yInfo() << errorMsg;
+                iCub->say(errorMsg);
+                iCub->home();
             }
         }
         else
         {
-            yWarning() << "None of the sets of prerequisites are met, unable to handle plan.";
-            string errorMsg = "I could not execute the plan " + planName + " because the " + object + " is ";
-            for (unsigned int ii = 0; ii<preqFail.size(); ii++)
-            {
-                if (ii!=0)
-                {
-                    errorMsg += " and " + preqFail[ii];
-                }
-                else
-                {
-                    errorMsg += preqFail[ii];
-                }
-            }
-            iCub->lookAtPartner();
-            yInfo() << errorMsg;
-            iCub->say(errorMsg);
-            iCub->home();
+            // final state of object is already met
+            yInfo() << "the final state of the object is already reached. No need for any plan.";
+            string sentence = "the " + object + " is already in the desired location, there is no need for the plan " + planName;
+            iCub->say(sentence);
         }
 
         // remove elements from holding lists to make way for new plan input
