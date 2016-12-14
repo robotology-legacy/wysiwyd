@@ -31,7 +31,10 @@ void Pointing::run(const Bottle &args) {
         int id = yarp::os::Random::uniform(0, sensation->size() - 1);
         obj_name = sensation->get(id).asList()->get(1).asString();
         yDebug() << "Randomly selected: " << id << " " << obj_name;
-        sentence = "I could point to the ";
+        if (sensation->get(id).asList()->get(0).asString() == "object")
+            sentence = "I could point to the ";
+        else if (sensation->get(id).asList()->get(0).asString() == "bodypart")
+            sentence = "There is your ";
     }
 
     iCub->opc->checkout();
