@@ -16,7 +16,7 @@
   <RULE  NAME="stop"  TOPLEVEL="ACTIVE"  EXPORT="1">
     <L>
       <P>stop</P>
-      <P>that's all</P>
+      <P>that is all</P>
       <P>thank you</P>
     </L>
   </RULE>
@@ -68,6 +68,13 @@
         <RULEREF NAME="recipient"/>
       </O>
     </O>
+  </RULE>
+  
+    <RULE  NAME="Why_is_that"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <L>
+		<P>Why is that</P>
+		<P>Why did this happened</P>
+	</L>
   </RULE>
 
 
@@ -133,6 +140,7 @@
     <L>
       <P>you</P>
       <P>Mary</P>
+      <P>Allan</P>
     </L>
   </RULE>
 
@@ -153,6 +161,7 @@
       <P>have</P>
       <P>has</P>
       <P>want</P>
+      <P>reason</P>
     </L>
   </RULE>
 
