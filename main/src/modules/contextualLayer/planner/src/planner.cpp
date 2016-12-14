@@ -197,7 +197,6 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if ((command.get(0).asString() == "new")&& (command.get(1).asList()->size() != 2)){
         // rpc command was of type "new (plan priority (objectType object))"
-        // newPlan.push_back(command);
         newPlan = orderPlans(newPlan, command);
         reply.addString("ack");
     }
