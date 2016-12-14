@@ -187,6 +187,11 @@ class AllostaticPlotModule(yarp.RFModule):
         for plotitem in self.behaviors_to_plot:
             plotitem[1].set_x(plotitem[1].get_x()-1)
             plotitem[2].set_x(plotitem[1].get_x()+5)
+        if len(self.behaviors_to_plot)>0 and -(self.behaviors_to_plot[0][1].get_x()+self.behaviors_to_plot[0][1].get_width()) > self.win_size:
+            print -(self.behaviors_to_plot[0][1].get_x()+self.behaviors_to_plot[0][1].get_width())
+            print self.win_size
+            self.behaviors_to_plot[0][2].remove()
+            self.behaviors_to_plot.pop(0)
 
         for name, port in zip(self.behaviors, self.behavior_ports):
             res = port.read(False)
@@ -195,15 +200,14 @@ class AllostaticPlotModule(yarp.RFModule):
                 if msg == "start":
                     new_rectangle = plt.Rectangle(xy=(0, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
                     plt.gca().add_patch(new_rectangle)
-                    new_text = plt.text(5, self.y_min+0.025, name, horizontalalignment='left', color="black")
+                    new_text = plt.text(5, self.y_min+0.025, name, horizontalalignment='left', color="white")
                     self.behaviors_to_plot.append((name, new_rectangle, new_text))
                     print "Behavior " + name + " starts"
                 elif msg == "stop":
                     plot_idx = None
                     for idx, plotitem in enumerate(self.behaviors_to_plot):
                         if plotitem[0] == name:
-                            plot_idx = idx
-                    self.behaviors_to_plot[idx][1].set_width(-self.behaviors_to_plot[idx][1].get_x())
+                            plotitem[1].set_width(-plotitem[1].get_x())
                     print "Behavior " + name + " stops"
 
         plt.draw()
