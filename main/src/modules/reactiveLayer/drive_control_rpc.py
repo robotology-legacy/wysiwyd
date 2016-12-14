@@ -82,6 +82,20 @@ def trigger_behavior(behavior):
     reset_all()
     freeze_all()
 
+
+def launch_behavior(behavior):
+    # Prepare command
+    cmd = yarp.Bottle()
+    cmd.clear()
+    cmd.addString(behavior)
+    # Send command
+    if not yarp.Network.isConnected(BMPortName,BMRPC):
+        print yarp.Network.connect(BMPortName,BMRPC)
+        yarp.Time.delay(0.1)
+    toHomeo.write(cmd)
+    yarp.Time.delay(2.)
+    reset_all()
+    freeze_all()
 def freeze_all():
     # Prepare command
     cmd = yarp.Bottle()
