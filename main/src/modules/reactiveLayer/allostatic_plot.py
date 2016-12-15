@@ -3,7 +3,7 @@
 from copy import copy
 from time import sleep
 import matplotlib.pyplot as plt
-
+from numpy import linspace
 import yarp
 
 def change_drive_names(drive_names):
@@ -101,10 +101,10 @@ class AllostaticPlotModule(yarp.RFModule):
         self.y_max = 1.1  # ((max_val - center_val) * 1.25) + center_val
         self.fig = plt.figure()
         self.ax = plt.axes(xlim=(0, self.win_size), ylim=(self.y_min, self.y_max))
-        self.colors = 'g', 'b', 'm', 'r', 'y', 'c', 'k'
-        self.value_lines = [self.ax.plot([], [], self.colors[i] + '-', lw=2, label=d) for i,d in enumerate(self.drives)]
-        self.homeo_min_lines = [self.ax.plot([], [], self.colors[i] + '--', lw=1) for i,d in enumerate(self.drives)]
-        self.homeo_max_lines = [self.ax.plot([], [], self.colors[i] + '--', lw=1) for i,d in enumerate(self.drives)]
+        self.colors = plt.cm.viridis(linspace(0,1,len(self.drives)+2))
+        self.value_lines = [self.ax.plot([], [], linestyle = '-', color=self.colors[i+1], lw=2, label=d) for i,d in enumerate(self.drives)]
+        self.homeo_min_lines = [self.ax.plot([], [], linestyle = '--', color=self.colors[i+1], lw=1) for i,d in enumerate(self.drives)]
+        self.homeo_max_lines = [self.ax.plot([], [], linestyle = '--', color=self.colors[i+1], lw=1) for i,d in enumerate(self.drives)]
         plt.legend(change_drive_names(self.drives))
         self.ax.set_xlim(0- self.win_size, 0)
 
