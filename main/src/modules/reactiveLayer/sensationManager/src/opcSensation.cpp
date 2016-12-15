@@ -211,9 +211,9 @@ Bottle OpcSensation::handleEntities()
     output.addList()=objects;
     outputPPSPort.write();
     Bottle out;
-    out.addInt(int(up_entities.size()!=0));
+    out.addInt(up_entities.size());
     out.addList()=up_entities;
-    out.addInt(int(kp_entities.size()!=0));
+    out.addInt(kp_entities.size());
     out.addList()=kp_entities;
     out.addInt(int(agentPresent));
 
