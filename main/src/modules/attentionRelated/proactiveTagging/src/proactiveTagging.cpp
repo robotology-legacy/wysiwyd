@@ -426,6 +426,7 @@ Bottle proactiveTagging::recogName(string entityType)
 }
 
 Bottle proactiveTagging::getNameFromSAM(string sNameTarget, string currentEntityType) {
+    iCub->say("Have we met before?", false);
     Bottle bOutput;
     Bottle bToSam, bReplySam;
     bToSam.addString("ask_face_label");
@@ -440,7 +441,7 @@ Bottle proactiveTagging::getNameFromSAM(string sNameTarget, string currentEntity
         iCub->changeName(TARGET,sNameSAM);
         iCub->opc->commit(TARGET);
 
-        iCub->say("Nice to see you " + sNameSAM);
+        iCub->say("Yes, I remember. Nice to see you, " + sNameSAM);
         yarp::os::Time::delay(0.2);
         iCub->home();
 
@@ -496,7 +497,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
            tryRecog = getNameFromSAM(sNameTarget, currentEntityType);
 
            if (tryRecog.get(0).toString() == "nack" ){
-              sQuestion = " Hello, I don't know you. Who are you?";
+              sQuestion = " No, I don't know you. What is your name?";
            }
            else{
               return tryRecog;
