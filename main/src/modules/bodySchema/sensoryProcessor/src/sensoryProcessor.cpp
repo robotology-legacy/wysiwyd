@@ -782,7 +782,7 @@ bool SensoryProcessor::init_iCub(string &part)
 //    option.put("remote", sC.c_str());
 
     Property option2("(device cartesiancontrollerclient)");
-    option2.put("remote","/icubSim/cartesianController/right_arm");
+    option2.put("remote","/" + robot + "/cartesianController/right_arm");
     option2.put("local","/cartesian_client/right_arm");
     icartClient = new yarp::dev::PolyDriver(option2);
 
