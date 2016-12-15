@@ -311,7 +311,7 @@ bool AllostaticController::updateModule()
         Bottle cmd, reply;
         reply.clear();
         cmd.addString("par");
-        cmd.addString(drive.name);
+        cmd.addString(drive.second.name);
         cmd.addString("decaymult");
         cmd.addDouble(sensationValue);
         to_homeo_rpc.write(cmd, reply);
