@@ -165,10 +165,14 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     "new (plan priority (objectType object)) \n" +
     "freeze \n" +
     "unfreeze \n" +
+    "priorities \n" +
     "actions \n" +
     "actionPos \n" +
     "listplans \n" +
+    "planid \n" +
+    "newplan \n" +
     "stopfollow \n" +
+    "clearplans <index/all> \n" +
     "manual \n"
     "exit \n";
 
@@ -213,7 +217,6 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         ncmd.addString("new");
         ncmd.addList()=deet;
         yDebug() << "adding to newPlan: " << ncmd.toString();
-        // newPlan.push_back(ncmd);
         newPlan = orderPlans(newPlan, ncmd);
         reply.addString("ack");
     }
@@ -229,6 +232,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         for (vector<int>::const_iterator i = priority_list.begin(); i != priority_list.end(); ++i)
         {
             cout << *i << '\n';
+            reply.addString(to_string(*i));
         }
         reply.addString("ack");
     }
@@ -238,6 +242,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         for (vector<string>::const_iterator i = action_list.begin(); i != action_list.end(); ++i)
         {
             cout << *i << '\n';
+            reply.addString(*i);
         }
         reply.addString("ack");
     }
@@ -247,6 +252,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         for (vector<int>::const_iterator i = actionPos_list.begin(); i != actionPos_list.end(); ++i)
         {
             cout << *i << '\n';
+            reply.addString(to_string(*i));
         }
         reply.addString("ack");
     }
@@ -256,6 +262,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         for (vector<int>::const_iterator i = planNr_list.begin(); i != planNr_list.end(); ++i)
         {
             cout << *i << '\n';
+            reply.addString(to_string(*i));
         }
         reply.addString("ack");
     }
@@ -265,6 +272,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         for (auto& item : newPlan)
         {
             yInfo() << item.toString();
+            reply.addString(item.toString()+'\n');
         }
         reply.addString("ack");
     }
@@ -292,9 +300,24 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         yDebug() << "Now manual mode is " << manual;
         reply.addString("ack");
     }
+    else if (command.get(0).asString() == "clearplans") {
+        if ((command.get(1).asString() == "all") || (command.size() == 1))
+        {
+            yInfo() << "All plans waiting to be executed have been removed.";
+            for (auto& item : newPlan) { yInfo() << "removing " << item.toString(); }
+            newPlan.clear();
+        }
+        else
+        {
+            int id = command.get(1).asInt();
+            yInfo() << "plan " << newPlan[id].toString() << "is being removed.";
+            newPlan.erase(newPlan.begin()+id);
+        }
+        reply.addString("ack");
+    }
     else {
         yInfo() << helpMessage;
-        reply.addString("wrong command");
+        reply.addString("wrong command, use 'help' for possible rpc commands");
     }
 
     return true;
