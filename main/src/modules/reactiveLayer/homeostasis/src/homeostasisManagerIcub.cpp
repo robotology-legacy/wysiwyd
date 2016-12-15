@@ -179,6 +179,10 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
                 {
                     manager->drives[d]->setDecay(cmd.get(3).asDouble());
                 }
+                else if (cmd.get(2).asString()=="decaymult")
+                {
+                    manager->drives[d]->setDecayMultiplier(cmd.get(3).asDouble());
+                }                
                 else if (cmd.get(2).asString()=="reset")
                 {
                     manager->drives[d]->reset();

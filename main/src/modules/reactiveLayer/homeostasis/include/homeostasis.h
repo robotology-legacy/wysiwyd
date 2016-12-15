@@ -12,7 +12,7 @@ class Drive
 public:
     std::string name;
     double period;
-    double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax, default_value;
+    double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax, default_value, decay_multiplier;
     bool gradient;
     time_t start_sleep;
     bool is_sleeping;
@@ -28,6 +28,7 @@ public:
         default_value = (d_homeo_max + d_homeo_min)/2.;
         decay = d_decay;
         gradient = d_gradient;
+        decay_multiplier = 1;
         is_sleeping = false;
         //todo : check the min/max
         double homeoRange =  homeostasisMax - homeostasisMin;
@@ -89,6 +90,11 @@ public:
         this->decay += d_decay;
     }
 
+    void setDecayMultiplier(double mult)
+    {
+        this->decay_multiplier = mult;
+    }
+
     // double sigDecay()
     // {
     //     double aux = (1/(1+exp(-this->value)))-0.5;
@@ -126,7 +132,7 @@ public:
             }
         }
         else if (! ((this->value > valueMax && this->decay<0) || (this->value < valueMin && this->decay>0))) {
-            this->value -= (this->decay * period);           
+            this->value -= (this->decay * this->decay_multiplier * period);           
         }
 
 
