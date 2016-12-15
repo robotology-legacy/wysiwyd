@@ -64,6 +64,8 @@ public:
 
     vector<Bottle> orderPlans(vector<Bottle>& cmdList, const Bottle& cmd);
 
+    std::tuple<bool, bool, Bottle> conditionCheck(const Port& getState, const Bottle& preconds, int loc, const string& object, const Bottle& args);
+
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
 };

@@ -323,9 +323,13 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         }
         else
         {
-            int id = command.get(1).asInt();
-            yInfo() << "plan " << newPlan[id].toString() << "is being removed.";
-            newPlan.erase(newPlan.begin()+id);
+            unsigned int id = command.get(1).asInt();
+            if (id < newPlan.size())
+            {
+                yInfo() << "plan " << newPlan[id].toString() << "is being removed.";
+                newPlan.erase(newPlan.begin()+id);
+            }
+            else { yDebug() << "index invalid, id: " << id; }
         }
         reply.addString("ack");
     }
@@ -367,6 +371,45 @@ vector<Bottle> Planner::orderPlans(vector<Bottle>& cmdList, const Bottle& cmd) {
     else { yInfo() << "Plan " + cmd.get(1).asList()->get(0).asString() + " is not known. Use listplans to see available plans."; }
 
     return cmdList;
+}
+
+std::tuple<bool, bool, Bottle> Planner::conditionCheck(const Port& getState, const Bottle& preconds, int loc, const string& object, const Bottle& args){
+    // checks one condition with the sensationManager and return the value plus the bottle it sent
+    Bottle* msg = preconds.get(loc).asList()->get(1).asList();
+    if (msg->isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(loc).asString(); }
+    Bottle rep;
+    Bottle auxMsg;
+    for (int i = 0; i < msg->size(); i++)
+    {
+        string aux = msg->get(i).asString();
+        for (int j = 0; j < args.size(); j++)
+        {
+            // check and replace matches in pre/postrequisites and action (e.g. _obj in point)
+            if (args.get(j).asString() == msg->get(i).asString())
+            {
+                aux = object;
+            }
+        }
+        auxMsg.addString(aux);
+    }
+    getState.write(auxMsg, rep);
+    bool indiv;
+    bool negate;
+    string attach = preconds.get(loc).asList()->get(0).toString();
+    if (attach == "not")
+    {
+        yDebug() << "not";
+        indiv = !rep.get(1).asBool();
+        negate = true;
+    }
+    else
+    {
+        indiv = rep.get(1).asBool();
+        negate = false;
+    }
+    yDebug() << "indiv from rep is " << indiv;
+
+    return std::make_tuple(indiv, negate, auxMsg);
 }
 
 
@@ -411,38 +454,10 @@ bool Planner::updateModule() {
             Bottle args = *grpPlans.find(planName + "-action1").asList();
             for (int Ob = 0; Ob < objectives.size(); Ob++)
             {
-                Bottle bot;
-                Bottle rep;
-
-                Bottle* msg = objectives.get(Ob).asList()->get(1).asList();
-                if (msg->isNull()) { yError() << "bottle msg is empty, objectives was " << objectives.get(Ob).asString(); }
-                for (int i = 0; i < msg->size(); i++)
-                {
-                    string aux = msg->get(i).asString();
-                    for (int j = 0; j < args.size(); j++)
-                    {
-                        if (args.get(j).asString() == aux)
-                        {
-                            aux = object;
-                        }
-                    }
-                    bot.addString(aux);
-                }
-                getState.write(bot, rep);
-                yDebug() << bot.toString();
-                bot.clear();
                 bool indiv;
-                string attach = objectives.get(Ob).asList()->get(0).toString();
-
-                if (attach == "not")
-                {
-                    indiv = !rep.get(1).asBool();
-                }
-                else
-                {
-                    indiv = rep.get(1).asBool();
-                }
-
+                bool negate;
+                Bottle auxMsg;
+                std::tie(indiv, negate, auxMsg) = conditionCheck(getState, objectives, Ob, object, args);
                 desiredState = indiv && desiredState;
                 yDebug() << "ultimate goal is already met: " << desiredState;
             }
@@ -450,7 +465,7 @@ bool Planner::updateModule() {
 
         // assumption is that the action plan is complete enough that at least one set of prerequisites is met
         bool assumption = false;
-        Bottle rep;
+        // Bottle rep;
         bool state;
         bool presence = false;
 
@@ -486,38 +501,10 @@ bool Planner::updateModule() {
 
                     for (int k = 0; k < preconds.size(); k++)
                     {
-                        Bottle* msg = preconds.get(k).asList()->get(1).asList();
-                        if (msg->isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(k).asString(); }
-                        // format message to sensationsManager
-                        for (int i = 0; i < msg->size(); i++)
-                        {
-                            string aux = msg->get(i).asString();
-                            for (int j = 0; j < args.size(); j++)
-                            {
-                                // check and replace matches in pre/postrequisites and action (e.g. _obj in point)
-                                if (args.get(j).asString() == msg->get(i).asString())
-                                {
-                                    aux = object;
-                                }
-                            }
-                            auxMsg.addString(aux);
-                        }
-                        getState.write(auxMsg, rep);
+                        // check per precondition
                         bool indiv;
                         bool negate;
-                        string attach = preconds.get(k).asList()->get(0).toString();
-                        if (attach == "not")
-                        {
-                            yDebug() << "not";
-                            indiv = !rep.get(1).asBool();
-                            negate = true;
-                        }
-                        else
-                        {
-                            indiv = rep.get(1).asBool();
-                            negate = false;
-                        }
-                        yDebug() << "indiv from rep is " << indiv;
+                        std::tie(indiv, negate, auxMsg) = conditionCheck(getState, preconds, k, object, args);
                         state = state && indiv;
 
                         // record a failed prerequisite
@@ -676,7 +663,7 @@ bool Planner::updateModule() {
         else
         {
             // final state of object is already met
-            yInfo() << "the final state of the object is already reached. No need for any plan.";
+            yInfo() << "the final state of the object is already reached. No need for plan " + planName;
             string sentence = "the " + object + " is already in the desired location, there is no need for the plan " + planName;
             iCub->say(sentence);
         }
@@ -770,48 +757,24 @@ bool Planner::updateModule() {
             Time::delay(1);
 
             // checking for ultimate state fulfillment.
-            bool desiredState = false;
             bool stateCheck = true;
-            if (objectives.size() != 0)
+            bool desiredState = false;
+            int total = grpPlans.find(planName + "-totactions").asInt();
+            if (actionPos_list[0] != total)
             {
-                desiredState = true;
-                for (int Ob = 0; Ob < objectives.size(); Ob++)
+                if (objectives.size() != 0)
                 {
-                    Bottle bot;
-                    Bottle rep;
-
-                    Bottle* msg = objectives.get(Ob).asList()->get(1).asList();
-                    if (msg->isNull()) { yError() << "bottle msg is empty, objectives was " << objectives.get(Ob).asString(); }
-                    for (int i = 0; i < msg->size(); i++)
+                    desiredState = true;
+                    for (int Ob = 0; Ob < objectives.size(); Ob++)
                     {
-                        string aux = msg->get(i).asString();
-                        for (int j = 0; j < args.size(); j++)
-                        {
-                            if (args.get(j).asString() == msg->get(i).asString())
-                            {
-                                aux = object_list[0];
-                            }
-                        }
-                        bot.addString(aux);
-                    }
-                    getState.write(bot, rep);
-                    yDebug() << bot.toString();
-                    bot.clear();
-                    bool indiv;
-                    string attach = objectives.get(Ob).asList()->get(0).toString();
+                        bool indiv;
+                        bool negate;
+                        Bottle auxMsg;
+                        std::tie(indiv, negate, auxMsg) = conditionCheck(getState, objectives, Ob, object_list[0], args);
 
-                    if (attach == "not")
-                    {
-                        indiv = !rep.get(1).asBool();
+                        desiredState = indiv && desiredState;
+                        yDebug() << "resulting desiredState: " << desiredState;
                     }
-                    else
-                    {
-                        indiv = rep.get(1).asBool();
-                    }
-
-                    yDebug() << "response from SM: " << indiv;
-                    desiredState = indiv && desiredState;
-                    yDebug() << "resulting desiredState: " << desiredState;
                 }
             }
 
@@ -820,38 +783,10 @@ bool Planner::updateModule() {
             {
                 for (int k = 0; k < stateOI.size(); k++)
                 {
-                    Bottle bot;
-                    Bottle rep;
-
-                    Bottle* msg = stateOI.get(k).asList()->get(1).asList();
-                    if (msg->isNull()) { yError() << "bottle msg is empty, contents of stateOI is " << stateOI.get(k).asString(); }
-                    for (int i = 0; i < msg->size(); i++)
-                    {
-                        string aux = msg->get(i).asString();
-                        for (int j = 0; j < args.size(); j++)
-                        {
-                            if (args.get(j).asString() == msg->get(i).asString())
-                            {
-                                aux = object_list[0];
-                            }
-                        }
-                        bot.addString(aux);
-                    }
-                    getState.write(bot, rep);
-                    yDebug() << bot.toString();
-                    bot.clear();
                     bool indiv;
-                    string attach = stateOI.get(k).asList()->get(0).toString();
-
-                    if (attach == "not")
-                    {
-                        indiv = !rep.get(1).asBool();
-                    }
-                    else
-                    {
-                        indiv = rep.get(1).asBool();
-                    }
-
+                    bool negate;
+                    Bottle auxMsg;
+                    std::tie(indiv, negate, auxMsg) = conditionCheck(getState, stateOI, k, object_list[0], args);
                     stateCheck = indiv && stateCheck;
                     yDebug() << "State is" << stateCheck;
                 }
@@ -908,36 +843,9 @@ bool Planner::updateModule() {
 
                     for (int k = 0; k < preconds.size(); k++)
                     {
-                        Bottle* msg = preconds.get(k).asList()->get(1).asList();
-                        Bottle rep;
-                        if (msg->isNull()) { yError() << "msg is empty, preconds is :" << preconds.get(k).asString(); }
-                        // format message to sensationsManager
-                        for (int i = 0; i < msg->size(); i++)
-                        {
-                            string aux = msg->get(i).asString();
-                            for (int j = 0; j < args.size(); j++)
-                            {
-                                // check and replace matches in pre/postrequisites and action (e.g. _obj in point)
-                                if (args.get(j).asString() == msg->get(i).asString())
-                                {
-                                    aux = object_list[0];
-                                }
-                            }
-                            auxMsg.addString(aux);
-                        }
-                        getState.write(auxMsg, rep);
                         bool indiv;
-                        string attach = preconds.get(k).asList()->get(0).toString();
-                        if (attach == "not")
-                        {
-                            yDebug() << "not";
-                            indiv = !rep.get(1).asBool();
-                        }
-                        else
-                        {
-                            indiv = rep.get(1).asBool();
-                        }
-                        yDebug() << "reply from SM is " << indiv;
+                        bool negate;
+                        std::tie(indiv, negate, auxMsg) = conditionCheck(getState, preconds, k, object_list[0], args);
                         state = state && indiv;
                         yDebug() << "state is " << state;
 
@@ -947,7 +855,7 @@ bool Planner::updateModule() {
                     if (!state)
                     {
                         yDebug() << "The precondition for the action is no longer valid.";
-                        iCub->say("I cannot re-attempt the action because the preconditions are not met.");
+                        iCub->say("I cannot re-attempt the action because the preconditions are not met. I will not carry out the plan " + plan_list[0]);
                     }
                 }
                 else { yDebug() << "there are no preconditions for this action"; }
