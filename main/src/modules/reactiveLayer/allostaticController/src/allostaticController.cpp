@@ -305,13 +305,22 @@ bool AllostaticController::Normalize(vector<double>& vec) {
 
 bool AllostaticController::updateModule()
 {
-    for(std::map<string, AllostaticDrive>::iterator it=allostaticDrives.begin(); it!=allostaticDrives.end(); ++it) {
-        if (bool(it->second.inputSensationPort->read()->get(0).asInt())) {
+    double sensationValue;
+    for(auto& drive : allostaticDrives) {
+        sensationValue = drive.second.inputSensationPort->read()->get(0).asDouble();
+        Bottle cmd, reply;
+        reply.clear();
+        cmd.addString("par");
+        cmd.addString(drive.name);
+        cmd.addString("decaymult");
+        cmd.addDouble(sensationValue);
+        to_homeo_rpc.write(cmd, reply);
+        if (sensationValue) {
             yDebug() << "Sensation ON";
-            it->second.update(SENSATION_ON);
+            drive.second.update(SENSATION_ON);
         } else {
             yDebug() << "Sensation OFF";
-            it->second.update(SENSATION_OFF);
+            drive.second.update(SENSATION_OFF);
         }
     }
 
