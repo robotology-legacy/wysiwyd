@@ -925,7 +925,7 @@ bool autobiographicalMemory::updateModule() {
                     // for skeleton joints, subtype 0->n , value "hand x y z"
                     if (dataStreamPortOut.first.find("skeleton:o") != std::string::npos) {
                         bJoints.addString(bListContData.get(i).asList()->get(3).asString());
-                    } else if ((dataStreamPortOut.first.find("objects2DProj:o") != std::string::npos) || (dataStreamPortOut.first.find("agentLoc:o") != std::string::npos)) {
+                    } else if ((dataStreamPortOut.first.find("objects2DProj:o") != std::string::npos) || (dataStreamPortOut.first.find("agentLoc:o") != std::string::npos) || (dataStreamPortOut.first.find("objLoc:o") != std::string::npos)) {
                         // for objProj or agentLoc, subtype = object/joint name, value = "x y"
                         Bottle bSubtype;
                         bSubtype.addString(bListContData.get(i).asList()->get(0).asString()); //element 0 is the subtype
