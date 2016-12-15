@@ -172,6 +172,7 @@ def manual_mode():
     yarp.Time.delay(0.1)
     reset_all()
 
+
 def automatic_mode():
     # Prepare command
     cmd = yarp.Bottle()
@@ -184,8 +185,17 @@ def automatic_mode():
         yarp.Time.delay(0.1)
     toAllo.write(cmd)
 
+    # Send command to planner
+    cmd_planner = yarp.Bottle()
+    cmd_planner.clear()
+    cmd_planner.addString('manual')
+    cmd_planner.addString('off')
+    if not yarp.Network.isConnected(plannerPortName,plannerRPC):
+        print yarp.Network.connect(plannerPortName,plannerRPC)
+        yarp.Time.delay(0.1)
+    toPlanner.write(cmd_planner)
+
     yarp.Time.delay(0.1)
     reset_all()
     yarp.Time.delay(0.1)
     unfreeze_all()
-

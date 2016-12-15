@@ -10,7 +10,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
-    
+
     grpPlans = rf.findGroup("PLANS");
     avaiPlansList = *grpPlans.find("plans").asList();
 
@@ -118,7 +118,14 @@ bool Planner::freeze_all()
         cmd.addString("freeze");
         cmd.addString("all");
 
-        // Send command
+        // Send commandfreeze_all
+        if (!Network::isConnected(toHomeo.getName(), "/homeostasis/rpc")) {
+
+            if (!Network::connect(toHomeo.getName(), "/homeostasis/rpc")){
+                yWarning() << "homeostasisManager is unreachable.";
+                yarp::os::Time::delay(0.8);
+            }
+        }
         toHomeo.write(cmd);
     }
 
@@ -134,6 +141,13 @@ bool Planner::unfreeze_all()
         cmd.addString("unfreeze");
         cmd.addString("all");
         // Send command
+        if (!Network::isConnected(toHomeo.getName(), "/homeostasis/rpc")) {
+
+            if (!Network::connect(toHomeo.getName(), "/homeostasis/rpc")){
+                yWarning() << "homeostasisManager is unreachable.";
+                yarp::os::Time::delay(0.8);
+            }
+        }
         toHomeo.write(cmd);
     }
 
