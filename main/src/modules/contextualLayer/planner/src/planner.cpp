@@ -21,6 +21,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     useABM = rf.check("ABM",Value("true")).asBool();
     bool SM = 1;
     bool BM = 1;
+    bufferPlans = rf.check("bufferPlans", Value("false")).asBool();
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
@@ -924,6 +925,12 @@ bool Planner::updateModule() {
             {
                 yInfo() << "resuming homeostatic dynamics.";
                 unfreeze_all();
+            }
+
+            if ((!bufferPlans) && (!newPlan.empty()))
+            {
+                yInfo() << "removing extra plans as bufferPlans is " << bufferPlans;
+                newPlan.clear();
             }
         }
     }

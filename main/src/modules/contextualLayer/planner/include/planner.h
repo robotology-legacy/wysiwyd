@@ -36,6 +36,7 @@ private:
     bool fulfill;
     bool useABM;
     bool manual;
+    bool bufferPlans;
     void run(Bottle args=Bottle());
 
 
