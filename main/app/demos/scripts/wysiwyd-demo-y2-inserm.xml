@@ -24,7 +24,7 @@
 
     <module>
         <name>actionsRenderingEngine</name>
-        <parameters>--motor::block_eyes 5.0 --motor::impedance off</parameters>
+        <parameters>--motor::block_eyes 5.0 --motor::impedance on</parameters>
         <node>icub-b1</node>
     </module>
 
