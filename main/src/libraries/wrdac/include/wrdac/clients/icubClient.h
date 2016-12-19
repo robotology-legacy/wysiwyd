@@ -219,7 +219,7 @@ namespace wysiwyd{
             *         otherwise (Entity non existing, impossible to reach,
             *         not grasped, etc.).
             */
-            bool grasp(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target");
+            bool grasp(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
 
             /**
             * Release the hand-held object on a given location.
@@ -266,7 +266,7 @@ namespace wysiwyd{
             * @return true in case of success release, false otherwise
             *         (Entity non existing, impossible to reach, etc.).
             */
-            bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),std::string sName="target");
+            bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
 
             /**
             * Push at a specified location.
@@ -290,7 +290,7 @@ namespace wysiwyd{
             * @return true in case of success release, false otherwise
             *         (Entity non existing, impossible to reach, etc.).
             */
-            bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),std::string sName="target");
+            bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
 
 
             /**
@@ -302,8 +302,8 @@ namespace wysiwyd{
              * @return true in case of success release, false otherwise
              */
             bool pushKarmaLeft(const std::string &objName, const double &targetPosYLeft,
-                               const std::string &armType = "selectable",
-                               const yarp::os::Bottle &options = yarp::os::Bottle());
+                const std::string &armType = "selectable",
+                const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
              * @brief pushKarmaRight: push an object by name to right side
@@ -314,8 +314,8 @@ namespace wysiwyd{
              * @return true in case of success release, false otherwise
              */
             bool pushKarmaRight(const std::string &objName, const double &targetPosYRight,
-                                const std::string &armType = "selectable",
-                                const yarp::os::Bottle &options = yarp::os::Bottle());
+                const std::string &armType = "selectable",
+                const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
              * @brief pushKarmaFront: push an object by name to front
@@ -326,8 +326,8 @@ namespace wysiwyd{
              * @return true in case of success release, false otherwise
              */
             bool pushKarmaFront(const std::string &objName, const double &targetPosXFront,
-                                const std::string &armType = "selectable",
-                                const yarp::os::Bottle &options = yarp::os::Bottle());
+                const std::string &armType = "selectable",
+                const yarp::os::Bottle &options = yarp::os::Bottle());
             /**
              * @brief pullKarmaBack: pull an object by name back
              * @param objName: name of object, which will be looked for in OPC
@@ -337,8 +337,8 @@ namespace wysiwyd{
              * @return true in case of success release, false otherwise
              */
             bool pullKarmaBack(const std::string &objName, const double &targetPosXBack,
-                               const std::string &armType = "selectable",
-                               const yarp::os::Bottle &options = yarp::os::Bottle());
+                const std::string &armType = "selectable",
+                const yarp::os::Bottle &options = yarp::os::Bottle());
             /**
              * @brief pushKarmaLeft: push an object to left side, this wrapper simplify pure push action of KARMA
              * @param objCenter: coordinate of object's center
@@ -349,8 +349,8 @@ namespace wysiwyd{
              * @return true in case of success release, false otherwise
              */
             bool pushKarmaLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
-                               const std::string &armType = "selectable",
-                               const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
+                const std::string &armType = "selectable",
+                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName = "target");
 
             /**
              * @brief pushKarmaRight: push an object to right side, this wrapper simplify pure push action of KARMA
@@ -362,8 +362,8 @@ namespace wysiwyd{
              * @return true in case of success release, false otherwise
              */
             bool pushKarmaRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
-                                const std::string &armType = "selectable",
-                                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
+                const std::string &armType = "selectable",
+                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName = "target");
             /**
              * @brief pushKarmaFront: push an object to front, this wrapper simplify pure push action of KARMA
              * @param objCenter: coordinate of object's center
@@ -374,8 +374,8 @@ namespace wysiwyd{
              * @return true in case of success release, false otherwise
              */
             bool pushKarmaFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
-                                const std::string &armType = "selectable",
-                                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName="target");
+                const std::string &armType = "selectable",
+                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName = "target");
             /**
              * @brief pullKarmaBack: pull an object back, this wrapper simplify pure draw action of KARMA
              * @param objCenter: coordinate of object's center
@@ -386,8 +386,8 @@ namespace wysiwyd{
              * @return true in case of success release, false otherwise
              */
             bool pullKarmaBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
-                               const std::string &armType = "selectable",
-                               const yarp::os::Bottle &options  = yarp::os::Bottle(), const std::string &sName="target");
+                const std::string &armType = "selectable",
+                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName = "target");
             /**
             * Take at a specified location.
             * @param oName is the name of the entity in the OPC where the
@@ -410,7 +410,7 @@ namespace wysiwyd{
             * @return true in case of success grasp, false otherwise
             *         (Entity non existing, impossible to reach, etc.).
             */
-            bool take(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),std::string sName="target");
+            bool take(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
 
             /**
             * @brief pushKarma (KARMA): push to certain position, along a direction
@@ -422,7 +422,7 @@ namespace wysiwyd{
             * @return true in case of success release, false otherwise
             */
             bool pushKarma(const yarp::sig::Vector &targetCenter, const double &theta, const double &radius,
-                           const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target");
+                const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
 
             /**
             * @brief drawKarma (KARMA): draw action, along the positive direction of the x-axis (in robot FoR)
@@ -435,8 +435,8 @@ namespace wysiwyd{
             * @return true in case of success release, false otherwise
             */
             bool drawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
-                           const double &radius, const double &dist,
-                           const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target");
+                const double &radius, const double &dist,
+                const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
 
             /**
             * @brief vdrawKarma (KARMA): draw action, along the positive direction of the x-axis (in robot FoR)
@@ -449,14 +449,14 @@ namespace wysiwyd{
             * @return true in case of success release, false otherwise
             */
             bool vdrawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
-                            const double &radius, const double &dist,
-                            const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target");
+                const double &radius, const double &dist,
+                const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
 
 
             /**
             * Start tracking a given entity
-            * @param target is the name of the entity in the OPC where the robot should look. 
-            * @param options contains options to be passed on the gaze 
+            * @param target is the name of the entity in the OPC where the robot should look.
+            * @param options contains options to be passed on the gaze
             *                controller.
             */
             bool look(const std::string &target, const yarp::os::Bottle &options = yarp::os::Bottle());
@@ -545,7 +545,7 @@ namespace wysiwyd{
             * @param text to be said.
             */
             bool say(const std::string &text, bool shouldWait = true, bool emotionalIfPossible = false,
-                const std::string &overrideVoice = "default", bool recordABM = true);
+                const std::string &overrideVoice = "default", bool recordABM = true, std::string addressee = "none");
 
             bool changeName(Entity *e, const std::string &newName);
 

@@ -1638,13 +1638,13 @@ bool opcPopulater::populateScenario2(){
     sentence = sRobert + " can you remove the box please?";
 
     Time::delay(1.);
-    iCub->say(sentence);
+    iCub->say(sentence, true, false, "default", true, sRobert);
 
     lArgument.clear();
     sentence = "Then " + sLarry + " can you give me the " + sObject + " please";
 
     Time::delay(1.);
-    iCub->say(sentence);
+    iCub->say(sentence, true, false, "default", true, sLarry);
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" Interlocutor gives the ObjError");
@@ -2326,7 +2326,7 @@ bool opcPopulater::populateScenario6(){
     list<pair<string, string> > lArgument;
     string sentence;
     sentence = "Can you remove the box please " + sRobert + " ?";
-    iCub->say(sentence);
+    iCub->say(sentence, true, false, "default", true, sRobert);
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" Interlocutor gives the ObjError");
@@ -2453,7 +2453,7 @@ bool opcPopulater::populateScenario6(){
 
     lArgument.clear();
     sentence = "Give me the " + sObject + " please " + sLarry;
-    iCub->say(sentence);
+    iCub->say(sentence, true, false, "default", true, sLarry);
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" Interlocutor gives the ObjError");
