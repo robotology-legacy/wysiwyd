@@ -96,6 +96,8 @@ Bottle narrativeHandler::questionHRI_DFW(){
     bool listening = false; // is asked to the robot to listen to the human
     bool exit = false;
 
+    iCub->getRecogClient()->listen(false);
+
     while (!exit){
         yInfo() << "exit: " << exit;
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
@@ -229,6 +231,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
         }
     }
     yInfo("leaving HRI");
+    iCub->getRecogClient()->listen(true);
     bReturn.addString("exited HRI nicely");
     return bReturn;
 }
