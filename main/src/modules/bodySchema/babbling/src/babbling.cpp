@@ -126,6 +126,14 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     }
 
 
+    if (!portToMatlab.open("/portToMatlab:o")) {
+        cout << ": Unable to open port " << "/portToMatlab:o" << endl;
+    }
+    if (!portReadMatlab.open("/portReadMatlab:i")) {
+        cout << ": Unable to open port " << "/portReadMatlab:i" << endl;
+    }
+
+
     // Initialize iCub and Vision
     cout << "Going to initialise iCub ..." << endl;
     while (!init_iCub(part)) {
@@ -149,6 +157,8 @@ bool Babbling::interruptModule() {
     portVelocityOut.interrupt();
     handlerPort.interrupt();
     portToABM.interrupt();
+    portToMatlab.interrupt();
+    portReadMatlab.interrupt();
 
     yInfo() << "Bye!";
 
@@ -165,6 +175,14 @@ bool Babbling::close() {
 
     portVelocityOut.interrupt();
     portVelocityOut.close();
+
+
+    portToMatlab.interrupt();
+    portToMatlab.close();
+
+    portReadMatlab.interrupt();
+    portReadMatlab.close();
+
 
     handlerPort.interrupt();
     handlerPort.close();
@@ -557,12 +575,6 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
 int Babbling::babblingCommandsMatlab()
 {
 
-    if (!portToMatlab.open("/portToMatlab:o")) {
-        cout << ": Unable to open port " << "/portToMatlab:o" << endl;
-    }
-    if (!portReadMatlab.open("/portReadMatlab:i")) {
-        cout << ": Unable to open port " << "/portReadMatlab:i" << endl;
-    }
 
     while(!Network::isConnected(portToMatlab.getName(), "/matlab/read")) {
         Network::connect(portToMatlab.getName(), "/matlab/read");
@@ -615,10 +627,18 @@ int Babbling::babblingCommandsMatlab()
         for (unsigned int l=0; l<command.size(); l++)
             command[l]=0;
 
+        //yDebug() << command.toString();
+
         // get the commands from Matlab
-        cmdMatlab = portReadMatlab.read(true) ;
+        cmdMatlab = portReadMatlab.read(true);
+        if(cmdMatlab == nullptr) {
+            yDebug() << "Bottle is null";
+            continue;
+        }
+
         for (int i=0; i<7; i++)
             command[i] = cmdMatlab->get(i).asDouble();
+
 
         // Move
         int j=5;
@@ -642,16 +662,16 @@ int Babbling::babblingCommandsMatlab()
 
             Time::delay(0.025);// use this with iCub
         }
-        for (unsigned int l=0; l<command.size(); l++)
-            command[l]=0;
-        if(part=="right_arm"){
-            velRightArm->velocityMove(command.data());
-        }
-        else if(part=="left_arm"){
-            velLeftArm->velocityMove(command.data());
-        }
-        else
-            yError() << "Don't know which part to move to do babbling." ;
+//        for (unsigned int l=0; l<command.size(); l++)
+//            command[l]=0;
+//        if(part=="right_arm"){
+//            velRightArm->velocityMove(command.data());
+//        }
+//        else if(part=="left_arm"){
+//            velLeftArm->velocityMove(command.data());
+//        }
+//        else
+//            yError() << "Don't know which part to move to do babbling." ;
 
         // Tell Matlab that motion is done
         bToMatlab.clear();replyFromMatlab.clear();
@@ -670,10 +690,6 @@ int Babbling::babblingCommandsMatlab()
     bToMatlab.addInt(1);
     portToMatlab.write(bToMatlab,replyFromMatlab);
 
-    portToMatlab.interrupt();
-    portToMatlab.close();
-    portReadMatlab.interrupt();
-    portReadMatlab.close();
 
     yInfo() << "Finished and ports to/from Matlab closed.";
     yDebug() << "============> babbling is FINISHED";
