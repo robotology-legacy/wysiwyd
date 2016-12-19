@@ -65,36 +65,28 @@ void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldW
         std::list<std::pair<std::string, std::string> > lArgument;
         // get agent name
         opc->checkout();
-        yarp::os::Bottle isAgent, condition, isPresent, noIcub;
-        isAgent.addString(EFAA_OPC_ENTITY_TAG);
-        isAgent.addString("==");
-        isAgent.addString(EFAA_OPC_ENTITY_AGENT);
 
-        isPresent.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
-        isPresent.addString("==");
-        isPresent.addInt(1);
-
-        noIcub.addString(EFAA_OPC_OBJECT_NAME_TAG);
-        noIcub.addString("!=");
-        noIcub.addString("icub");
-
-
-        condition.addList() = isAgent;
-        condition.addString("&&");
-        condition.addList() = isPresent;
-        condition.addString("&&");
-        condition.addList() = noIcub;
-
-        std::list<Entity*> Ent = opc->Entities(condition);
         if (addressee != "none"){
+            yDebug() << "addressee is not null: "<< addressee;
             lArgument.push_back(std::pair<std::string, std::string>(addressee, "addressee"));
         }
-        else if (Ent.size()!=0){
-            lArgument.push_back(std::pair<std::string, std::string>( (*Ent.begin())->name(), "addressee"));
-        }
-        for (std::list<Entity*>::iterator it_E = Ent.begin(); it_E != Ent.end(); it_E++)
-        {
-            delete *it_E;
+        else {
+            yDebug() << "addressee is null, getting present agent. ";
+
+            std::string partnerName = "partner";
+            std::list<std::shared_ptr<wysiwyd::wrdac::Entity> > lEntities = opc->EntitiesCacheCopy();
+            for (auto& entity : lEntities) {
+                if (entity->entity_type() == "agent") {
+                    wysiwyd::wrdac::Agent* a = dynamic_cast<wysiwyd::wrdac::Agent*>(entity.get());
+                    //We assume kinect can only recognize one skeleton at a time
+                    if (a->m_present == 1.0 && a->name() != "icub") {
+                        partnerName = a->name();
+                    }
+                }
+            }
+
+
+            lArgument.push_back(std::pair<std::string, std::string>( partnerName, "addressee"));
         }
 
         lArgument.push_back(std::pair<std::string, std::string>(text, "sentence"));
