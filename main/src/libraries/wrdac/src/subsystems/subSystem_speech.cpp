@@ -45,7 +45,7 @@ unsigned int wysiwyd::wrdac::SubSystem_Speech::countWordsInString(const std::str
     return std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
 }
 
-void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldWait, bool recordABM) {
+void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldWait, bool recordABM, std::string addressee) {
     //Clean the input of underscores.
     std::string tmpText = text;
     replace_all(tmpText, "_", " ");
@@ -68,7 +68,7 @@ void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldW
         yarp::os::Bottle isAgent, condition, isPresent, noIcub;
         isAgent.addString(EFAA_OPC_ENTITY_TAG);
         isAgent.addString("==");
-        isAgent.addString(EFAA_OPC_ENTITY_RTOBJECT);
+        isAgent.addString(EFAA_OPC_ENTITY_AGENT);
 
         isPresent.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
         isPresent.addString("==");
@@ -86,7 +86,10 @@ void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldW
         condition.addList() = noIcub;
 
         std::list<Entity*> Ent = opc->Entities(condition);
-        if (Ent.size()!=0){
+        if (addressee != "none"){
+            lArgument.push_back(std::pair<std::string, std::string>(addressee, "addressee"));
+        }
+        else if (Ent.size()!=0){
             lArgument.push_back(std::pair<std::string, std::string>( (*Ent.begin())->name(), "addressee"));
         }
         for (std::list<Entity*>::iterator it_E = Ent.begin(); it_E != Ent.end(); it_E++)

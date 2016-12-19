@@ -63,7 +63,7 @@ namespace wysiwyd{
             * @param text The text to be said.
             * @param shouldWait Is the function blocking until the end of the sentence or not.
             */
-            virtual void TTS(const std::string &text, bool shouldWait = true, bool recordABM = true);
+            virtual void TTS(const std::string &text, bool shouldWait = true, bool recordABM = true, std::string addressee = "none");
 
             /**
             * (todo) Recognize a specific sentence or a grammar through a blocking call
