@@ -217,18 +217,24 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         Bottle *bNaives = rf.find("listNaives").asList();
         initializeNaives(*bNaives, rf);
         NaiveToPAOR();
+        int iLost = 0;
 
         yInfo("linking Naive scenarios 2 2");
-        yInfo(linkNaiveScenario(1, 0));
+        iLost += (linkNaiveScenario(1, 0));
         yInfo("linking scenarios 3 3");
-        yInfo(linkNaiveScenario(2, 1));
+        iLost += (linkNaiveScenario(2, 1));
         yInfo("linking scenarios 4 4");
-        yInfo(linkNaiveScenario(3, 2));
+        iLost += (linkNaiveScenario(3, 2));
         yInfo("linking scenarios 5 5");
-        yInfo(linkNaiveScenario(4, 3));
+        iLost += (linkNaiveScenario(4, 3));
         yInfo("linking scenarios 6 6");
-        yInfo(linkNaiveScenario(5, 4));
+        iLost += (linkNaiveScenario(5, 4));
         yInfo(exportDFW());
+
+        if (iLost != 0){
+            cout << endl << endl;
+            yWarning() << iLost << " sentences lost in naives subjects.";
+        }
 
     }
 

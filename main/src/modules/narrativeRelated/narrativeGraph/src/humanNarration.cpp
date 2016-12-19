@@ -937,16 +937,16 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
 * Try to link the naives sentences of a narration to a SM
 *
 */
-string narrativeHandler::linkNaiveScenario(int iNaive, int iScenario){
+int narrativeHandler::linkNaiveScenario(int iNaive, int iScenario){
     cout << "in linkNaiveScenario: meaning " << iNaive << " - scenario " << iScenario << endl;
 
     // check sizes:
     if (iNaive > (int)listAutoNaives.size() || iScenario > (int)listStories.size()){
         yWarning(" in narrativeHandler::linkNaiveScenario - index out or range.");
-        return " in narrativeHandler::linkNaiveScenario - index out or range.";
+        return 1;
     }
 
-    bool display = true;
+    bool display = false;
 
 
     listStories.at(iScenario).displayNarration();
@@ -1181,7 +1181,11 @@ string narrativeHandler::linkNaiveScenario(int iNaive, int iScenario){
     iLost += (listAutoNaives[iNaive].size() - MD.meanings.vDiscourse.size());
 
     sReturn += to_string(iLost) + " sentences lost.";
-    return sReturn;
+    yInfo(sReturn);
+    if (iLost > 0){
+        yWarning() << "in narrativeGraph::humanNarration::linkNaiveScenario ; " << iLost << " sentences lost for scenario: " << iScenario;
+    }
+    return iLost;
 
 }
 
