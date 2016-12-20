@@ -810,6 +810,7 @@ bool Planner::updateModule() {
 
                 if (desiredState)
                 {
+                    iCub->say("the plan " + plan_list[0] + " is complete");
                     unsigned int length = planNr_list.size();
                     for (unsigned int extra = 0; extra < length; extra++)
                     {
