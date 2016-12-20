@@ -46,6 +46,10 @@ unsigned int wysiwyd::wrdac::SubSystem_Speech::countWordsInString(const std::str
 }
 
 void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldWait, bool recordABM, std::string addressee) {
+    if(text=="") {
+        yWarning() << "[SubSystem_Speech] Text is empty, not going to say anything";
+        return;
+    }
     //Clean the input of underscores.
     std::string tmpText = text;
     replace_all(tmpText, "_", " ");
@@ -71,7 +75,7 @@ void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldW
             lArgument.push_back(std::pair<std::string, std::string>(addressee, "addressee"));
         }
         else {
-            yDebug() << "addressee is null, getting present agent. ";
+            yDebug() << "addressee is null, getting present agent.";
 
             std::string partnerName = "partner";
             std::list<std::shared_ptr<wysiwyd::wrdac::Entity> > lEntities = opc->EntitiesCacheCopy();
@@ -84,7 +88,7 @@ void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldW
                     }
                 }
             }
-
+            yDebug() << "addressee is now" << partnerName;
 
             lArgument.push_back(std::pair<std::string, std::string>( partnerName, "addressee"));
         }

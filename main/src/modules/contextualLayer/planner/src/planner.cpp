@@ -750,7 +750,7 @@ bool Planner::updateModule() {
                 else
                     success_sentence = success_sentence + sent.get(i).asString();
             }
-            yDebug() << "sentence_success constructed";
+            yDebug() << "sentence_success constructed: " << success_sentence;
 
             Bottle objectives = *grpPlans.find(planName + "-objectiveState").asList();
 
@@ -794,9 +794,14 @@ bool Planner::updateModule() {
                 yDebug() << "final state is " << stateCheck;
             }
 
+            yDebug() << "actionCompleted: " << actionCompleted;
+            yDebug() << "stateCheck: " << stateCheck;
+
             if (actionCompleted && stateCheck)
             {
-                iCub->say(success_sentence);
+                if(success_sentence!="") {
+                    iCub->say(success_sentence);
+                }
                 yDebug() << "removing action " << action_list[0];
                 int currPlan = planNr_list[0];
                 action_list.erase(action_list.begin());
