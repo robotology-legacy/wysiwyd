@@ -1,66 +1,49 @@
 ﻿<GRAMMAR	LANGID="809">
 
   <DEFINE>
-    <ID	NAME="predicateObject"	VAL="2"/>
-    <ID	NAME="object"	VAL="3"/>
-    <ID	NAME="predicateBodypart"	VAL="4"/>
-    <ID	NAME="bodypart"	VAL="5"/>
-    <ID NAME="questionMark" VAL="6"/>
+    <ID NAME="predicateObject"  VAL="2"/>
+    <ID NAME="object" VAL="3"/>
+    <ID NAME="predicateBodypart"  VAL="4"/>
+    <ID NAME="bodypart" VAL="5"/>
   </DEFINE>
 
   <RULE NAME="SENTENCENARRATIVE" TOPLEVEL="ACTIVE" EXPORT="1">
-    <RULEREF  NAME="questionMark"/>
-      <L>
-        <P>have you done the other day</P>
-        <P>did you just do</P>
-        <P>did we do</P>
-        <P>did you say</P>
-      </L>
+    <P>what have you done the other day</P>
   </RULE>
 
-  <RULE NAME="questionMark" DYNAMIC="TRUE">
-    <L>
-      <P>what</P>
-    </L>
-  </RULE>
-
-  <RULE	NAME="SENTENCEBODYPART"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <RULEREF	NAME="predicateBodypart"/>
+  <RULE NAME="SENTENCEBODYPART" TOPLEVEL="ACTIVE" EXPORT="1">
+    <RULEREF  NAME="predicateBodypart"/>
     <O>
       <L>
         <P>the</P>
         <P>your</P>
       </L>
     </O>
-    <RULEREF	NAME="bodypart"/>
+    <RULEREF  NAME="bodypart"/>
   </RULE>
 
-  <RULE	NAME="SENTENCEKS"	TOPLEVEL="ACTIVE"	EXPORT="1">
+  <RULE NAME="SENTENCEKS" TOPLEVEL="ACTIVE" EXPORT="1">
      <P>What have you learned from your arm babbling?</P>
   </RULE>
 
-  <RULE	NAME="SENTENCEKSC"	TOPLEVEL="ACTIVE"	EXPORT="1">
+  <RULE NAME="SENTENCEKSC"  TOPLEVEL="ACTIVE" EXPORT="1">
      <P>Can you find similar parts from my body?</P>
   </RULE>
 
   <RULE NAME="SENTENCERECOGNISE"  TOPLEVEL="ACTIVE" EXPORT="1">
-     <P>How do call this action?</P>
+     <P>How do you call this action?</P>
   </RULE>
 
   <RULE NAME="SENTENCEDONE"  TOPLEVEL="ACTIVE" EXPORT="1">
      <P>Thank you for the nice demonstration. It is now time to sleep.</P>
   </RULE>
 
-  <RULE NAME="SENTENCEGAMESTART"  TOPLEVEL="ACTIVE" EXPORT="1">
-     <P>Do you want to play the game with the red ball?</P>
-  </RULE>
-
   <RULE NAME="SENTENCEGAMEEND"  TOPLEVEL="ACTIVE" EXPORT="1">
      <P>The game is finished.</P>
   </RULE>
 
-  <RULE	NAME="SENTENCEOBJECT"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <RULEREF	NAME="predicateObject"/>
+  <RULE NAME="SENTENCEOBJECT" TOPLEVEL="ACTIVE" EXPORT="1">
+    <RULEREF  NAME="predicateObject"/>
     <O>
       <L>
         <P>the</P>
@@ -68,16 +51,15 @@
         <P>my</P>
       </L>
     </O>
-    <RULEREF	NAME="object"/>
+    <RULEREF  NAME="object"/>
   </RULE>
 
   <RULE NAME="predicateObject" DYNAMIC="TRUE">
     <L>
       <P>point</P>
-      <P>take</P>
-      <P>give</P>
+      <P>please take</P>
+      <P>give me</P>
       <P>look at</P>
-      <P>this is</P>
     </L>
   </RULE>
 
@@ -89,10 +71,9 @@
   
   <RULE NAME="object" DYNAMIC="TRUE">
     <L>
-      <P>brain</P>
-      <P>crocodile</P>
-      <P>mouse</P>
-      <P>rabbit</P>
+      <P>octopus</P>
+      <P>duck</P>
+      <P>blue cube</P>
     </L>
   </RULE>
 

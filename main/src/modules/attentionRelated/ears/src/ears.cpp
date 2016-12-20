@@ -200,6 +200,10 @@ bool ears::updateModule() {
         string sObjectType, sCommand;
         if(sQuestionKind == "SENTENCEOBJECT") {
             sAction = bSemantic.check("predicateObject", Value("none")).asString();
+            if (sAction == "please take")
+                sAction = "take";
+            else if (sAction == "give me")
+                sAction = "give";
             sObjectType = "object";
             sObject = bSemantic.check("object", Value("none")).asString();
             sCommand = "followingOrder";
