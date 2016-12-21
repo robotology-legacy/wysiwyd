@@ -645,6 +645,10 @@ bool narrativeHandler::doYouRemember(string sInput){
 bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions, int iScenario, vector < PAOR > vResponsesSaid){
 
     yInfo("Starting to create narration.");
+    if (vQuestions.size() == 0){
+        yWarning("narrativeGraph cannot create narration, no question in memory.");
+        return true;
+    }
     bool canUsePreviousResponses = vQuestions.size() == vResponsesSaid.size();
     if (!canUsePreviousResponses){
         yWarning("in narrativeGraph::hri.cpp narrativeHandler::crerateNarration - vQuestions.size != vResponses.size");
