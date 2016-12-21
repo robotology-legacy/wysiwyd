@@ -10,9 +10,9 @@ def change_drive_names(drive_names):
     new_names = []
     for name in drive_names:
         if name == "exploration":
-            new_names.append("Knowledge exploration")
+            new_names.append("Knowledge acquisition")
         elif name == "demonstration":
-            new_names.append("Knowledge exploitation")
+            new_names.append("Knowledge expression")
         elif name == "narration":
             new_names.append("History narration")
         elif name == "dummy":
