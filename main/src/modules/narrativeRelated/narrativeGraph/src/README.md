@@ -69,9 +69,12 @@ Questionning: What happened:
 Each input/ouput is sent to the module `lrh` for analysis.
 to be compiled and run, `lrh` requires: python, and the librairy Oger installed. Information about how to install Oger can be found at: http://reservoir-computing.org/installing_oger
 lrh can be tested with the following command:
-yarp rpc /lrh/rpc:
->  <UNDEFINED> meaning "first I have the brain" ; response: "first, have I brain, P1 P2 A2 O2""
->  <UNDEFINED> production "first, have I brain <o>[P-_-_-_][_-A-P-O]<o>" ; response: "first I have the brain"
+
+> `yarp rpc /lrh/rpc`
+
+>  meaning "first I have the brain" ; response: "first, have I brain, P1 P2 A2 O2""
+
+>  production "first, have I brain <o>[P-_-_-_][_-A-P-O]<o>" ; response: "first I have the brain"
 
 
 ### Train the NFW system
@@ -80,16 +83,23 @@ In order to know how to use NFW the system needs to be trained. To do so, we cre
 Populating the ABM:
 launch `opcPopulater`
 >  <UNDEFINED>  `yarp rpc /opcPopulater/rpc`
+
 >  <UNDEFINED>  populateScenario 1          ;       response: "populating scenario 1 done !"
+
 >  <UNDEFINED>  populateScenario 2          ;       response: "populating scenario 2 done !"
+
 >  <UNDEFINED>  populateScenario 3          ;       response: "populating scenario 3 done !"
+
 >  <UNDEFINED>  populateScenario 4          ;       response: "populating scenario 4 done !"
+
 >  <UNDEFINED>  populateScenario 5          ;       response: "populating scenario 5 done !"
+
 >  <UNDEFINED>  populateScenario 6          ;       response: "populating scenario 6 done !"
 
 get the first instance of the scenario 1
 
-launch narrativeGraph with options: `initialize 1` and be set the research windows to `1`, instanceStart at the first instance of the scenario 1, and be sure that all instances of the 6 scenarios are included in the window (with the parameter instanceStop)
+launch narrativeGraph with options: `initialize 1` and be set the research windows to `1`, instanceStart at the first instance of the scenario 1, and be sure that all instances of the 6 scenarios are included in the window (with the parameter instanceStop).
+
 narrativeGraph should display a warning message it the training is not complete: "n sentences losts"
 
 if not the system should display: 
