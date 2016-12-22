@@ -67,8 +67,9 @@ Questionning: What happened:
 
 ### lrh
 Each input/ouput is sent to the module `lrh` for analysis.
-to be compiled and run, `lrh` requires: python, and the librairy Oger installed. Information about how to install Oger can be found at: http://reservoir-computing.org/installing_oger
-lrh can be tested with the following command:
+To be compiled and run, `lrh` requires: python, and the librairy Oger installed. Information about how to install Oger can be found at: http://reservoir-computing.org/installing_oger
+
+`lrh` can be tested with the following command:
 
 > `yarp rpc /lrh/rpc`
 
@@ -100,7 +101,7 @@ get the first instance of the scenario 1
 
 launch narrativeGraph with options: `initialize 1` and be set the research windows to `1`, instanceStart at the first instance of the scenario 1, and be sure that all instances of the 6 scenarios are included in the window (with the parameter instanceStop).
 
-narrativeGraph should display a warning message it the training is not complete: "n sentences losts"
+narrativeGraph should display a warning message it the training is not complete: "n sentences lost"
 
 if not the system should display: 
 > [INFO] 0 sentences lost.  
