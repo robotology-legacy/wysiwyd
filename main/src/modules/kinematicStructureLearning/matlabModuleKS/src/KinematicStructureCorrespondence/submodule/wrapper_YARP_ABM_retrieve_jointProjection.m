@@ -180,7 +180,28 @@ save('data/KS/ImageMeta.mat','bImageMeta_buf');
 
 
 %%
-command = ['triggerStreaming ', num2str(instance_num), ' ("includeAugmented" 0) ("realtime" 0) ("speedMultiplier" 0.1)'];
+% command = ['triggerStreaming ', num2str(instance_num), ' ("includeAugmented" 0) ("realtime" 0) ("speedMultiplier" 0.1)'];
+% b_write.fromString(command);
+% disp(b_write);
+% port2ABM_read.write(b_write,b_response);
+% 
+% disp(b_response.toString);
+% 
+% b_provide = b_response.get(3).asList().get(1).asList();
+% disp(b_provide.toString);
+% 
+% str_buf = b_provide.get(0).asString();
+% char_buf = char(str_buf);
+% 
+% % if strcmp(char_buf(1:end), '/autobiographicalMemory/jointsAwareness/left_arm/toleftCam/joints2DProj:o')
+% if strcmp(char_buf(1:end), '/autobiographicalMemory/jointsAwareness/left_arm/joints2DProj:o')
+%     num_data = b_provide.get(1).asInt();
+%     final_portname_data = char_buf;
+% end
+% 
+% Network.connect(final_portname_data, '/matlab/kinematicStructure/data_in');
+
+command = ['triggerStreaming ', num2str(instance_num), ' ("includeAugmented" 0) ("realtime" 1) ("speedMultiplier" 0.1)'];
 b_write.fromString(command);
 disp(b_write);
 port2ABM_read.write(b_write,b_response);
@@ -190,14 +211,21 @@ disp(b_response.toString);
 b_provide = b_response.get(3).asList().get(1).asList();
 disp(b_provide.toString);
 
-str_buf = b_provide.get(0).asString();
-char_buf = char(str_buf);
-
-if strcmp(char_buf(1:end), '/autobiographicalMemory/jointsAwareness/left_arm/toleftCam/joints2DProj:o')
-    num_data = b_provide.get(1).asInt();
-    final_portname_data = char_buf;
+% for i=0:b_provide.size()-1
+for i=0:b_response.get(3).asList().size()-1
+%     str_buf = b_provide.get(i).asList().get(0).asString();
+    str_buf = b_response.get(3).asList().get(i).asList().get(0).asString();
+    char_buf = char(str_buf);
+    
+    disp(char_buf)
+    
+%     if strcmp(char_buf(1:end-18), ['/autobiographicalMemory/icub/camcalib/',camera_selection,'/out'])
+    if strcmp(char_buf(1:end), '/autobiographicalMemory/jointsAwareness/left_arm/toleftCam/joints2DProj:o')
+        num_data = b_response.get(3).asList().get(i).asList().get(1).asInt();
+        final_portname_data = char_buf;
+    end
 end
-
+disp(['OUT: ',final_portname_data]);
 Network.connect(final_portname_data, '/matlab/kinematicStructure/data_in');
 
 %%

@@ -20,28 +20,31 @@ dist_obj_Q = zeros(nP2, nF2);
 
 for id_P1 = 1:nP1
     for fidx_P1 = 1:nF1
-        dist_obj_P(id_P1, fidx_P1) = sqrt(sum((KineStruct_P.object(:,id_P1,fidx_P1)-KineStruct_P.seg_center(:,id_P1,fidx_P1)).^2));
+%         dist_obj_P(id_P1, fidx_P1) = sqrt(sum((KineStruct_P.object(:,id_P1,fidx_P1)-KineStruct_P.seg_center(:,id_P1,fidx_P1)).^2));
+        dist_obj_P(id_P1, fidx_P1) = sqrt(sum((KineStruct_P.object'-KineStruct_P.seg_center(:,id_P1,fidx_P1)).^2));
     end
 end
 dist_obj_P = mean(dist_obj_P,2);
 
 for id_P2 = 1:nP2
     for fidx_P2 = 1:nF2
-        dist_obj_Q(id_P2, fidx_P2) = sqrt(sum((KineStruct_Q.object(:,id_P2,fidx_P2)-KineStruct_Q.seg_center(:,id_P2,fidx_P2)).^2));
+%         dist_obj_Q(id_P2, fidx_P2) = sqrt(sum((KineStruct_Q.object(:,id_P2,fidx_P2)-KineStruct_Q.seg_center(:,id_P2,fidx_P2)).^2));
+        dist_obj_Q(id_P2, fidx_P2) = sqrt(sum((KineStruct_Q.object'-KineStruct_Q.seg_center(:,id_P2,fidx_P2)).^2));
     end
 end
 dist_obj_Q = mean(dist_obj_Q,2);
 nodeSimilarity_object = dist_obj_P * dist_obj_Q';
 
-nodeSimilarity_object = reshape(nodeSimilarity_object, [nP1,nP2])';
-nodeSimilarity_object = nodeSimilarity_object';
+% nodeSimilarity_object = reshape(nodeSimilarity_object, [nP1,nP2])';
+% nodeSimilarity_object = nodeSimilarity_object';
 nodeSimilarity_object = nodeSimilarity_object / max(max(nodeSimilarity_object));
+nodeSimilarity_object = 1 - nodeSimilarity_object;
 
-for id_i1 = 1:nP1
-    for id_i2 = 1:nP2
-        nodeSimilarity_object(id_i1,id_i2) = nodeSimilarity_object(id_i1,id_i2);
-    end
-end
+% for id_i1 = 1:nP1
+%     for id_i2 = 1:nP2
+%         nodeSimilarity_object(id_i1,id_i2) = nodeSimilarity_object(id_i1,id_i2);
+%     end
+% end
 
 % nodeSimilarity = nodeSimilarity + nodeSimilarity_buf;
 
@@ -51,7 +54,7 @@ for id_i1 = 1:nP1
         id_1 = (id_i1-1)*nP2 + (id_i2-1);
         
         indH1_object(temp_idx,1) = id_1;
-        valH1_object(temp_idx,1) = nodeSimilarity_object(id_i1,id_i2);
+        valH1_object(temp_idx,1) = exp(-nodeSimilarity_object(id_i1,id_i2));
         temp_idx = temp_idx + 1;
     end
 end
@@ -130,7 +133,7 @@ valH1_topology(temp_idx:end,:) = [];
 % valH1 = valH1 / max(valH1) / w1;
 
 
-indH1 = indH1_object + indH1_topology;
+indH1 = (indH1_object + indH1_topology) / 2;
 valH1 = (valH1_object / max(valH1_object) + valH1_topology / max(valH1_topology)) / 2;
 
 %% 2nd Order Similarity

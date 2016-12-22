@@ -39,7 +39,8 @@ jointsAwareness_points_selected = cell(num_jointsAwareness_joints+1,1);
 
 for frm_idx = 1:KineStruct.num_frames
     
-    curFrame = read(videoObj,frm_idx);
+%     curFrame = read(videoObj,frm_idx);
+    curFrame = zeros(240,320,3);
     
     clf
     imshow(curFrame,'Border','tight');
@@ -106,19 +107,59 @@ for frm_idx = 1:KineStruct.num_frames
         x_buf = jointsAwareness_points((jntAware_sampling_idx-1)*7 + jntAware_idx+1, 3);
         y_buf = jointsAwareness_points((jntAware_sampling_idx-1)*7 + jntAware_idx+1, 4);
         
-        if (x_buf < 320 && x_buf > 0)
-            if (y_buf < 240 && y_buf > 0)
+%         if (x_buf < 320 && x_buf > 0)
+%             if (y_buf < 240 && y_buf > 0)
                 jointsAwareness_points_selected{jntAware_idx+1} = [jointsAwareness_points_selected{jntAware_idx+1};[x_buf,y_buf]];
                 plot(x_buf, y_buf, 'y*');
-                text(x_buf+3+jntAware_idx, y_buf+3+jntAware_idx, num2str(jntAware_idx), 'Color',[0.9,0.7,0.9]);
-            end
-        end
+                text(x_buf+3+jntAware_idx, y_buf+2+jntAware_idx, num2str(jntAware_idx), 'Color',[0.9,0.9,0.9]);
+%             end
+%         end
         
     end
     
     pause(0.003)
     
 end
+
+%%
+% % matching seg centres to motor joints
+% num_jointProjected = 0;
+% idx_jointProjected = [];
+% for jntAware_idx = 0:num_jointsAwareness_joints
+%     if ~isempty(jointsAwareness_points_selected{jntAware_idx+1})
+%         num_jointProjected = num_jointProjected+1;
+%         idx_jointProjected = [idx_jointProjected,jntAware_idx];
+%     end
+% end
+% 
+% dist_jntProj2jntSeg = zeros(num_jointProjected, KineStruct.num_seg);
+% 
+% for frm_idx = 1:KineStruct.num_frames
+%     for idx_jntSeg = 1:KineStruct.num_seg
+%         for idx_jntProj = 1:num_jointProjected
+%             x_jntSeg = KineStruct.seg_center(1,idx_jntSeg,frm_idx);
+%             y_jntSeg = KineStruct.seg_center(2,idx_jntSeg,frm_idx);
+%             
+%             x_jntProj = jointsAwareness_points_selected{idx_jointProjected(idx_jntProj)+1}(frm_idx,1);
+%             y_jntProj = jointsAwareness_points_selected{idx_jointProjected(idx_jntProj)+1}(frm_idx,2);
+%             
+%             %             [frm_idx, idx_jntSeg, idx_jntProj, x_jntSeg, y_jntSeg, x_jntProj, y_jntProj]
+%             dist_buf = sqrt((x_jntSeg-x_jntProj)^2 + (y_jntSeg-y_jntProj)^2);
+%             dist_jntProj2jntSeg(idx_jntProj,idx_jntSeg) = dist_jntProj2jntSeg(idx_jntProj,idx_jntSeg) + dist_buf;
+%         end
+%     end
+% end
+% 
+% dist_jntProj2jntSeg = dist_jntProj2jntSeg / KineStruct.num_frames;
+% 
+% %%
+% matching_out = closest_jnt_finding(dist_jntProj2jntSeg);
+% 
+% seg2jnt = zeros(size(matching_out,2),1);
+% for i=1:size(matching_out,2)
+%     seg2jnt(i) = find(matching_out(:,i));
+% end
+% KineStruct.seg2jnt = idx_jointProjected(seg2jnt);
 
 %%
 % matching seg centres to motor joints
@@ -152,11 +193,39 @@ end
 dist_jntProj2jntSeg = dist_jntProj2jntSeg / KineStruct.num_frames;
 
 %%
-matching_out = closest_jnt_finding(dist_jntProj2jntSeg);
+seg2jnt = cell(3,1);
 
-seg2jnt = zeros(size(matching_out,2),1);
-for i=1:size(matching_out,2)
-    seg2jnt(i) = find(matching_out(:,i));
+num_jnt_max = 3;
+num_jnt_record = zeros(KineStruct.num_seg,1);
+
+for i=1:num_jointProjected
+    dist_buf = dist_jntProj2jntSeg(i,:);
+    [min_val, min_idx] = min(dist_buf, [], 2);
+    
+    [i, min_idx]
+    
+    if num_jnt_record(min_idx) < num_jnt_max
+        seg2jnt{min_idx} = [seg2jnt{min_idx}, i-1];
+        num_jnt_record(min_idx) = num_jnt_record(min_idx) + 1       
+        
+        if num_jnt_record(min_idx) == num_jnt_max
+            dist_jntProj2jntSeg(:,min_idx) = inf;            
+        end
+    else
+
+    end
 end
+
+%%
+
+% matching_out = closest_jnt_finding(dist_jntProj2jntSeg);
+% 
+% seg2jnt = zeros(size(matching_out,2),1);
+% for i=1:size(matching_out,2)
+%     seg2jnt(i) = find(matching_out(:,i));
+% end
+% KineStruct.seg2jnt = idx_jointProjected(seg2jnt);
+
 KineStruct.seg2jnt = seg2jnt;
+
 end

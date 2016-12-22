@@ -12,5 +12,5 @@ handLeft
 footRight
 footLeft
 elbowRight
-15, elbowLeft
-16,CoM
+elbowLeft
+CoM
