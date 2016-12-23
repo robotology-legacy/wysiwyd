@@ -1,4 +1,4 @@
-#!/usr/bin/env ipython
+#!/usr/bin/env python
 # """"""""""""""""""""""""""""""""""""""""""""""
 # The University of Sheffield
 # WYSIWYD Project

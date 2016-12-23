@@ -1,4 +1,4 @@
-#!/usr/bin/env ipython
+#!/usr/bin/env python
 # """"""""""""""""""""""""""""""""""""""""""""""
 # The University of Sheffield
 # WYSIWYD Project
@@ -18,12 +18,34 @@ import numpy as np
 from SAM.SAM_Core import SAMCore
 from SAM.SAM_Core import SAMTesting
 from SAM.SAM_Core.SAM_utils import initialiseModels
+import logging
+import os
+from os.path import join
 np.set_printoptions(threshold=numpy.nan, precision=2)
 warnings.simplefilter("ignore")
+
+
+def exception_hook(exc_type, exc_value, exc_traceback):
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = exception_hook
 
 dataPath = sys.argv[1]
 modelPath = sys.argv[2]
 driverName = sys.argv[3]
+baseLogFileName = 'trainErrorLog_' + driverName
+
+file_i = 0
+loggerFName = join(dataPath, baseLogFileName + '_' + str(file_i) + '.log')
+
+# check if file exists
+while os.path.isfile(loggerFName) and os.path.getsize(loggerFName) > 0:
+    loggerFName = join(dataPath, baseLogFileName + '_' + str(file_i) + '.log')
+    file_i += 1
+print loggerFName
+
+logging.basicConfig(filename=loggerFName, level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler())
 
 mm = initialiseModels(sys.argv[1:4], sys.argv[4])
 # mm[0].SAMObject.visualise()

@@ -1,4 +1,4 @@
-#!/usr/bin/env ipython
+#!/usr/bin/env python
 import matplotlib.pyplot as plt
 import sys
 import time
@@ -9,6 +9,9 @@ import readline
 import warnings
 import numpy as np
 import yarp
+import logging
+from os.path import join
+import os
 warnings.simplefilter("ignore")
 np.set_printoptions(precision=2)
 
@@ -61,6 +64,7 @@ class interactionSAMModel(yarp.RFModule):
         self.additionalInfoDict = dict()
         self.modelLoaded = False
         self.attentionMode = 'continue'
+        self.baseLogFileName = 'interactionErrorLog'
 
     def configure(self, rf):
 
@@ -75,6 +79,18 @@ class interactionSAMModel(yarp.RFModule):
         self.driverName = sys.argv[4]
         self.configPath = sys.argv[3]
         self.modelRoot = self.dataPath.split('/')[-1]
+
+        file_i = 0
+        loggerFName = join(self.dataPath, self.baseLogFileName + '_' + str(file_i) + '.log')
+
+        # check if file exists
+        while os.path.isfile(loggerFName) and os.path.getsize(loggerFName) > 0:
+            loggerFName = join(self.dataPath, self.baseLogFileName + '_' + str(file_i) + '.log')
+            file_i += 1
+        print loggerFName
+
+        logging.basicConfig(filename=loggerFName, level=logging.INFO)
+        logging.getLogger().addHandler(logging.StreamHandler())
 
         off = 17
         print '-------------------'
@@ -504,6 +520,12 @@ class interactionSAMModel(yarp.RFModule):
                 #     print thisClass, ' ', likelihood
 
             time.sleep(0.05)
+
+
+def exception_hook(exc_type, exc_value, exc_traceback):
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = exception_hook
 
 if __name__ == '__main__':
     plt.ion()

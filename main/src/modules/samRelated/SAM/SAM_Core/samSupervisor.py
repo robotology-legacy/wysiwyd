@@ -1,4 +1,4 @@
-#!/usr/bin/env ipython
+#!/usr/bin/env python
 import matplotlib.pyplot as plt
 import SAM
 import sys
@@ -16,6 +16,8 @@ import readline
 import yarp
 from ConfigParser import SafeConfigParser
 import SAM.SAM_Core.SAM_utils as utils
+import logging
+import copy
 # np.set_printoptions(precision=2)
 # from time import sleep
 
@@ -68,6 +70,7 @@ class SamSupervisorModule(yarp.RFModule):
         self.attentionModes = ['continue', 'stop']
         self.opcPortName = None
         self.opcRPCName = None
+        self.baseLogFileName = 'samSupervisorErrorLog'
 
     def configure(self, rf):
         yarp.Network.init()
@@ -130,6 +133,18 @@ class SamSupervisorModule(yarp.RFModule):
                 self.nonResponsiveThreshold = int(acceptableDelay)
             except:
                 self.nonResponsiveThreshold = 5
+
+            file_i = 0
+            loggerFName = join(self.rootPath, self.baseLogFileName + '_' + str(file_i) + '.log')
+
+            # check if file exists
+            while os.path.isfile(loggerFName) and os.path.getsize(loggerFName) > 0:
+                loggerFName = join(self.rootPath, self.baseLogFileName + '_' + str(file_i) + '.log')
+                file_i += 1
+            print loggerFName
+
+            logging.basicConfig(filename=loggerFName, level=logging.INFO)
+            logging.getLogger().addHandler(logging.StreamHandler())
 
             print 'Root supervisor path:     \t', self.rootPath
             print 'Model configuration file: \t', self.interactionConfPath
@@ -506,6 +521,9 @@ class SamSupervisorModule(yarp.RFModule):
             else:
                 try:
                     self.forwardCommand(command, reply)
+                    if reply.size() == 0:
+                        reply.addString('nack')
+                        reply.addString('No response')
                 except utils.TimeoutError:
                     reply.addString('nack')
                     reply.addString('Failed to respond within timeout')
@@ -539,6 +557,7 @@ class SamSupervisorModule(yarp.RFModule):
         return True
 
     def attentionModulation(self, reply, command):
+        # raise Exception('BOOM')
         reply.clear()
         print command.toString()
         if command.size() < 2:
@@ -585,18 +604,24 @@ class SamSupervisorModule(yarp.RFModule):
                     self.opcPort.write(cmd, rep)
                     agentList.append(rep.toString().split('name')[-1].split(')')[0].replace(' ', ''))
 
-                currAgent = [t for t in agentList if t != 'icub'][0]
-                if len(currAgent) > 0:
-                    for j in actionsLoadedList:
-                        cmd = yarp.Bottle()
-                        cmd.addString('information')
-                        cmd.addString('partnerName')
-                        cmd.addString(currAgent)
-                        rep = yarp.Bottle()
-                        j[1].write(cmd, rep)
+                currAgent = [t for t in agentList if t != 'icub']
 
-                    reply.addString('ack')
-                    reply.addString('Agent = ' + str(currAgent))
+                if len(currAgent) != 0:
+                    currAgent = currAgent[0]
+                    if len(currAgent) > 0:
+                        for j in actionsLoadedList:
+                            cmd = yarp.Bottle()
+                            cmd.addString('information')
+                            cmd.addString('partnerName')
+                            cmd.addString(currAgent)
+                            rep = yarp.Bottle()
+                            j[1].write(cmd, rep)
+
+                        reply.addString('ack')
+                        reply.addString('Agent = ' + str(currAgent))
+                    else:
+                        reply.addString('nack')
+                        reply.addString('No agent apart from icub present')
                 else:
                     reply.addString('nack')
                     reply.addString('No agent apart from icub present')
@@ -723,7 +748,12 @@ class SamSupervisorModule(yarp.RFModule):
 
                         if not alreadyOpen:
                             interfacePort = yarp.RpcClient()
-                            interfacePort.open(interfacePortName)
+                            successfulOpen = interfacePort.open(interfacePortName)
+
+                            if not successfulOpen:
+                                print 'CRAP'
+                                for jk in self.rpcConnections:
+                                    print jk[0]
                             
                             # OLD
                             # args = ' '.join([join(self.dataPath,j[0]), join(self.modelPath, j[4]),
@@ -743,7 +773,7 @@ class SamSupervisorModule(yarp.RFModule):
 
                             args = ' '.join([join(self.dataPath, j[0]), join(self.modelPath, modToLoad),
                                              self.interactionConfFile, interactionFunction[0]])
-                            cmd = 'interactionSAMModel.py' + ' -- ' + args
+                            cmd = 'interactionSAMModel.py ' + args
 
                             if self.verbose:
                                 print
@@ -759,7 +789,7 @@ class SamSupervisorModule(yarp.RFModule):
                             else:
                                 c = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                            self.rpcConnections.append([j[0], interfacePort, interfacePortName[:-1], callSignList, c])
+                            self.rpcConnections.append([j[0], interfacePort, interfacePortName[:-1], callSignList, c, 'loading'])
                             # pause here
 
                             noConn = True
@@ -777,7 +807,7 @@ class SamSupervisorModule(yarp.RFModule):
                                 noConn = not noConn
                                 time.sleep(1)
                                 iters += 1
-                                if iters >= 20:
+                                if iters >= 10:
                                     break
 
                             if noConn:
@@ -800,6 +830,7 @@ class SamSupervisorModule(yarp.RFModule):
                                 if self.rpcConnections[-1][0] not in self.modelConnections.keys():
                                     self.modelConnections[self.rpcConnections[-1][0]] = dict()
                                 if rep.size() > 1 and rep.get(0).asString() == 'ack':
+                                    self.rpcConnections[-1][-1] = 'ready'
                                     for p in range(rep.size()):
                                         if rep.get(p).asString() != 'ack':
                                             if rep.get(p).asString() not in self.modelConnections[self.rpcConnections[-1][0]].keys():
@@ -1115,7 +1146,7 @@ class SamSupervisorModule(yarp.RFModule):
         # OLD
         # cmd = 'ipython ' + trainPath + ' -- ' + args
         # NEW
-        cmd = trainPath + ' -- ' + args
+        cmd = trainPath + ' ' + args
         if self.persistence:
             command = "bash -c \"" + cmd + "; exec bash\""
         else:
@@ -1216,9 +1247,10 @@ class SamSupervisorModule(yarp.RFModule):
             del self.trainingListHandles[i]
 
         for j in range(len(self.rpcConnections)):
+            currModelName = copy.deepcopy(self.rpcConnections[j][0])
             correctOp_check1, correctOp_check2 = self.checkOperation(self.rpcConnections[j])
             correctOperation = correctOp_check1 and correctOp_check2
-            if not correctOperation:
+            if not correctOperation and self.rpcConnections[j][-1] != 'loading':
                 self.connectionCheckCount = 0
                 if self.rpcConnections[j][0] not in self.nonResponsiveDict.keys():
                     self.nonResponsiveDict[self.rpcConnections[j][0]] = 1
@@ -1226,13 +1258,13 @@ class SamSupervisorModule(yarp.RFModule):
                     self.nonResponsiveDict[self.rpcConnections[j][0]] += 1
                 print self.rpcConnections[j][0], 'not responding', self.nonResponsiveDict[self.rpcConnections[j][0]], \
                     '/', self.nonResponsiveThreshold
-                if self.nonResponsiveDict[self.rpcConnections[j][0]] > self.nonResponsiveThreshold:
+                if self.nonResponsiveDict[self.rpcConnections[j][0]] >= self.nonResponsiveThreshold:
                     print 'Restarting ', self.rpcConnections[j][0], 'model'
-                    if not correctOp_check1:
+                    if not correctOp_check1 or currModelName in self.nonResponsiveDict.keys():
                         rep = yarp.Bottle()
                         cmd = yarp.Bottle()
                         cmd.addString("load")
-                        cmd.addString(self.rpcConnections[j][0])
+                        cmd.addString(currModelName)
                         self.loadModel(rep, cmd)
                     else:
                         rep = yarp.Bottle()
@@ -1240,6 +1272,12 @@ class SamSupervisorModule(yarp.RFModule):
                         cmd.addString("close")
                         cmd.addString(self.rpcConnections[j][0])
                         self.closeModel(rep, cmd)
+                    # try:
+                    print currModelName
+                    print
+                    self.nonResponsiveDict[self.rpcConnections[j][0]] = 0
+                    # except:
+                    #     pass
             else:
                 self.nonResponsiveDict[self.rpcConnections[j][0]] = 0
                 self.connectionCheckCount += 1
@@ -1249,7 +1287,7 @@ class SamSupervisorModule(yarp.RFModule):
                         if self.rpcConnections[n][0] in self.modelConnections.keys():
                             print self.rpcConnections[n][0]
                             if len(self.modelConnections[self.rpcConnections[n][0]].keys()) == 0:
-                                print 'pinging portNames to', self.rpcConnections[n][0], 'YO'
+                                print 'pinging portNames to', self.rpcConnections[n][0]
                                 rep = yarp.Bottle()
                                 cmd = yarp.Bottle()
                                 cmd.addString("portNames")
@@ -1257,6 +1295,7 @@ class SamSupervisorModule(yarp.RFModule):
                                 print 'ping received', rep.toString()
 
                                 if rep.size() > 1 and rep.get(0).asString() == 'ack':
+                                    self.rpcConnections[n][-1] = 'ready'
                                     for p in range(rep.size()):
                                         if rep.get(p).asString() != 'ack':
                                             if rep.get(p).asString() not in self.modelConnections[self.rpcConnections[n][0]].keys():
@@ -1313,6 +1352,12 @@ class SamSupervisorModule(yarp.RFModule):
         self.iter += 1
         time.sleep(0.05)
         return True
+
+
+def exception_hook(exc_type, exc_value, exc_traceback):
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = exception_hook
 
 if __name__ == '__main__':
 
