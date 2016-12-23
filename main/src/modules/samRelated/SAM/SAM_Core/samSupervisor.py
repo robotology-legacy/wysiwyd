@@ -130,9 +130,15 @@ class SamSupervisorModule(yarp.RFModule):
             self.verbose = True if(verbose == "True") else False
             self.useOPC = True if (useOPC == "True") else False
             try:
-                self.nonResponsiveThreshold = int(acceptableDelay)
+                if int(acceptableDelay) > 5:
+                    self.nonResponsiveThreshold = int(acceptableDelay)
+                else:
+                    print 'Requested responsive delay =',  int(acceptableDelay), 'Minimum allowed = 5'
+
+                    self.nonResponsiveThreshold = 5
             except:
                 self.nonResponsiveThreshold = 5
+            print 'Responsive Delay = ', self.nonResponsiveThreshold
 
             file_i = 0
             loggerFName = join(self.rootPath, self.baseLogFileName + '_' + str(file_i) + '.log')
@@ -655,6 +661,7 @@ class SamSupervisorModule(yarp.RFModule):
                 if external:
                     if command.get(1).asString() in self.modelConnections.keys():
                         self.modelConnections[command.get(1).asString()] = dict()
+                self.rpcConnections[conn][-1] = 'loading' # this will make it ignored by the non responsive countdown
                 self.rpcConnections[conn][1].write(yarp.Bottle('EXIT'), self.inputBottle)
                 self.rpcConnections[conn][1].interrupt()
                 time.sleep(1)
@@ -825,12 +832,12 @@ class SamSupervisorModule(yarp.RFModule):
                                 cmd = yarp.Bottle()
                                 cmd.addString("portNames")
                                 self.rpcConnections[-1][1].write(cmd, rep)
+                                self.rpcConnections[-1][-1] = 'ready'
                                 print 'ping received', rep.toString()
 
                                 if self.rpcConnections[-1][0] not in self.modelConnections.keys():
                                     self.modelConnections[self.rpcConnections[-1][0]] = dict()
                                 if rep.size() > 1 and rep.get(0).asString() == 'ack':
-                                    self.rpcConnections[-1][-1] = 'ready'
                                     for p in range(rep.size()):
                                         if rep.get(p).asString() != 'ack':
                                             if rep.get(p).asString() not in self.modelConnections[self.rpcConnections[-1][0]].keys():
@@ -1292,10 +1299,10 @@ class SamSupervisorModule(yarp.RFModule):
                                 cmd = yarp.Bottle()
                                 cmd.addString("portNames")
                                 self.rpcConnections[n][1].write(cmd, rep)
+                                self.rpcConnections[n][-1] = 'ready'
                                 print 'ping received', rep.toString()
 
                                 if rep.size() > 1 and rep.get(0).asString() == 'ack':
-                                    self.rpcConnections[n][-1] = 'ready'
                                     for p in range(rep.size()):
                                         if rep.get(p).asString() != 'ack':
                                             if rep.get(p).asString() not in self.modelConnections[self.rpcConnections[n][0]].keys():
