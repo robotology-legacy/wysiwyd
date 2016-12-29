@@ -715,7 +715,7 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
                 }
             }
             else if (quest.get(0).asString() == "Why_is_that"){
-                if (vSaid.size() > doku && doku > 0){
+                if ((int) vSaid.size() > doku && doku > 0){
                     vInternalResponses = whyIsThat(vSaid[doku - 1], scenarioToRecall);
                 }
 
