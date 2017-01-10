@@ -1,13 +1,12 @@
 # Copyright (c) 2015, Andreas Damianou
 
-import matplotlib as mp
-# Use this backend for when the server updates plots through the X 
-#mp.use('TkAgg')
+import matplotlib
+matplotlib.use('TkAgg')
 import numpy as np
-import pylab as pb
+import matplotlib.pyplot as plt
 from . import SAM_Core
 from . import SAM_Drivers
 
-pb.ion()
+# plt.ion()
 
 default_seed = 123344

@@ -9,6 +9,8 @@
 # @authors: Andreas Damianou, Daniel Camilleri
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
+import matplotlib
+matplotlib.use("TkAgg")
 import numpy as np
 from ConfigParser import SafeConfigParser
 import pickle
@@ -22,6 +24,7 @@ import os
 import subprocess
 import time
 import ipyparallel as ipp
+
 np.set_printoptions(precision=2)
 
 def initialiseModels(argv, update, initMode='training'):
@@ -460,6 +463,20 @@ def bhattacharyya_distance(mu1, mu2, var1, var2):
     t3 = float(mu1-mu2)*float(mu1-mu2)
     t4 = t3/float(var1+var2)
     return 0.25*t2 + 0.25*t4
+
+
+def plot_confusion_matrix(cm, targetNames, title='Confusion matrix', cmap=plt.cm.inferno):
+    plt.figure()
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(targetNames))
+    plt.xticks(tick_marks, targetNames, rotation=45)
+    plt.yticks(tick_marks, targetNames)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.show(block=True)
 
 
 def plotGaussFromList(mlist, vlist, rlist, colour, label, width, factor, axlist, plotRange=False):

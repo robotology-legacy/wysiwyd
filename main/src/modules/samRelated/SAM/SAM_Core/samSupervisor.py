@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import SAM
 import sys
@@ -18,6 +20,7 @@ from ConfigParser import SafeConfigParser
 import SAM.SAM_Core.SAM_utils as utils
 import logging
 import copy
+
 # np.set_printoptions(precision=2)
 # from time import sleep
 
@@ -1070,11 +1073,15 @@ class SamSupervisorModule(yarp.RFModule):
     def reportModel(self, reply, command):
         reply.clear()
 
-        if command.size() != 2:
+        if command.size() < 2:
             reply.addString('nack')
             reply.addString("Model name required. e.g. report Actions")
         elif command.get(1).asString() in self.updateModelsNames or \
              command.get(1).asString() in self.uptodateModelsNames:
+
+            plotFlag = False
+            if command.size() == 3 and command.get(2).asString() == 'plot':
+                plotFlag = True
 
             modelToCheck = [s for s in self.updateModels + self.uptodateModels
                              if s[0] == command.get(1).asString()][0][4]
@@ -1094,10 +1101,17 @@ class SamSupervisorModule(yarp.RFModule):
                             reply.addString('ack')
                             reply.addString(modelToCheck[j]+":")
                             try:
-                                reply.addString(str(modelPickle['overallPerformanceLabels']))
+                                perfLabels = modelPickle['overallPerformanceLabels']
                             except:
-                                pass
-                            reply.addString(str(modelPickle['overallPerformance']))
+                                perfLabels = None
+                            perfCM = modelPickle['overallPerformance']
+
+                            if plotFlag:
+                                utils.plot_confusion_matrix(perfCM, perfLabels, title=modelToCheck[j])
+
+                            if perfLabels is not None:
+                                reply.addString(str(perfLabels))
+                            reply.addString(str(perfCM))
                             reply.addString("\t"+"  ")
         else:
             reply.addString('nack')

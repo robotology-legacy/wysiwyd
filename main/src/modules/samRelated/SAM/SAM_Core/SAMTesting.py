@@ -398,19 +398,6 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimis
     return [label, classif_tmp[bestConfidence][0]]
 
 
-def plot_confusion_matrix(cm, targetNames, title='Confusion matrix', cmap=plt.cm.inferno):
-    plt.figure()
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
-    tick_marks = np.arange(len(targetNames))
-    plt.xticks(tick_marks, targetNames, rotation=45)
-    plt.yticks(tick_marks, targetNames)
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-
-
 def wait_watching_stdout(ar, dt=1, truncate=1000):
     while not ar.ready():
         stdouts = ar.stdout

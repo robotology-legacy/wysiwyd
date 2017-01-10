@@ -631,15 +631,15 @@ class SAMDriver_AR(SAMDriver):
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
         yTrainingData = SAMTesting.formatDataFunc(Yall)
-        [self.segTrainConf, self.segTrainPerc, _] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose, 'Training')
+        [self.segTrainConf, self.segTrainPerc, _, _] = SAMTesting.testSegments(testModel, yTrainingData, Lall, verbose, 'Training')
 
         yTrainingData = SAMTesting.formatDataFunc(YtestAll)
-        [self.segTestConf, self.segTestPerc, _] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose, 'Testing')
+        [self.segTestConf, self.segTestPerc, labelsSegTest, labelComparisonDict] = SAMTesting.testSegments(testModel, yTrainingData, LtestAll, verbose, 'Testing')
 
         # self.sequenceConfig()
         # [self.seqConf, self.seqPerc, _] = self.testSequence(testModel)
 
-        return self.segTestConf
+        return self.segTestConf, labelsSegTest, labelComparisonDict
 
     @staticmethod
     def distEuc(a, b):
