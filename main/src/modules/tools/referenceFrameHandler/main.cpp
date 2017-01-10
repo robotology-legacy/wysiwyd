@@ -89,11 +89,14 @@ public:
         frames["icub"].SInv = frames["icub"].S;
 
         //Load matrices
-        string matricesFileName = rf.findFile( rf.check("matricesFile",Value("frames.ini")).asString().c_str()).c_str();
-        matricesFilePath = matricesFileName.c_str();
-        Property matricesProp; matricesProp.fromConfigFile(matricesFileName.c_str());
+        string matricesFileName = rf.check("matricesFile",Value("frames.ini")).asString();
+        matricesFilePath = rf.findFile(matricesFileName);
+        Property matricesProp; matricesProp.fromConfigFile(matricesFilePath);
         if (!isEmpty)
             LoadMatrices(matricesProp);
+
+        // we store new matrices in the home context path instead
+        matricesFilePath=rf.getHomeContextPath()+"/"+matricesFileName;
 
         //Create OPC
         string opcName = "/";
