@@ -53,8 +53,10 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     }
     else
     {
-        for(int i=0; i<b_start_commandHead->size(); i++)
+        for(int i=0; i<b_start_commandHead->size(); i++){
             start_commandHead[i] = b_start_commandHead->get(i).asDouble();
+            yDebug() << start_commandHead[i] ;
+        }
     }
 
     if ((b_start_command->isNull()) || (b_start_command->size()<16))
@@ -660,7 +662,7 @@ int Babbling::babblingCommandsMatlab()
             else
                 yError() << "Don't know which part to move to do babbling." ;
 
-            Time::delay(0.025);// use this with iCub
+            Time::delay(0.0025);// use this with iCub: 0.025
         }
 //        for (unsigned int l=0; l<command.size(); l++)
 //            command[l]=0;
@@ -683,6 +685,17 @@ int Babbling::babblingCommandsMatlab()
 
         nPr = nPr +1;
     }
+
+    for (unsigned int l=0; l<command.size(); l++)
+        command[l]=0;
+    if(part=="right_arm"){
+        velRightArm->velocityMove(command.data());
+    }
+    else if(part=="left_arm"){
+        velLeftArm->velocityMove(command.data());
+    }
+    else
+        yError() << "Don't know which part to move to do babbling." ;
 
     yInfo() << "Going to tell Matlab that ports will be closed here.";
     // Tell Matlab that ports will be closed here
