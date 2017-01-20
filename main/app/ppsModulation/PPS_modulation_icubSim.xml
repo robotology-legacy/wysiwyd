@@ -1,0 +1,281 @@
+<application>
+<name>PPS Modulation Simulation</name>
+
+    <dependencies>
+    <port>/icubSim/left_arm/state:o</port>
+    <!--<port>/icubSim/right_arm/state:o</port>-->
+    </dependencies>
+
+    <module>
+        <name>iCub_SIM</name>
+        <node>localhost</node>
+        <tag>icubSim</tag>
+    </module>
+
+    <module>
+        <name>iCubGui</name>
+        <node>localhost</node>
+        <tag>iCubGui</tag>
+    </module>
+
+    <module>
+        <name>yarpmotorgui</name>
+        <node>localhost</node>
+        <tag>motorgui</tag>
+    </module>
+
+    <!--Controller modules-->
+    <module>
+        <name>iKinGazeCtrl</name>   <!--For visuoTactileWrapper-->
+        <parameters>--from configSim.ini</parameters>
+        <node>localhost</node>
+    </module>
+
+    <!--OPC and related modules-->
+    <module>
+        <name>objectsPropertiesCollector</name>
+        <parameters>--name OPC --no-load-db --no-save-db</parameters>
+        <node>localhost</node>
+    </module>
+
+    <module>
+        <name>opcPopulater</name>
+        <node>localhost</node>
+    </module>
+
+    <!--PPS modules-->
+    <module>
+        <name>skinEventsAggregator</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>skinEventsAggreg</tag>
+    </module>
+
+    <module>
+        <name>ppsAggregEventsForiCubGui</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>aggregEvForiCubGui</tag>
+    </module>
+
+    <module>
+        <name>visuoTactileWrapper</name>
+        <parameters>--robot icubSim --noDoubleTouch</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module>
+
+    <module>
+        <name>visuoTactileRF</name>
+        <parameters>--robot icubSim --taxelsFile taxels1D_45cmRF_skinV2_learned.ini --rate 20</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module>
+
+    <!--GUI modules-->
+    <module>
+        <name>guiUpdater</name>
+        <parameters>--displaySkeletons 1</parameters>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+        <node>localhost</node>
+    </module>
+
+    <!--skinGui modules-->
+    <module>
+        <name>iCubSkinGui</name>
+        <!-- Remember to use the proper configuration files (i.e. "_V2.ini" for V2 robots) -->
+        <parameters>--from left_forearm.ini --useCalibration --xpos 0 --ypos 0 --width 300 --height 300</parameters>
+        <node>localhost</node>
+        <tag>skinGuiLF</tag>
+    </module>
+    <module>
+        <name>iCubSkinGui</name>
+        <!-- Remember to use the proper configuration files (i.e. "_V2.ini" for V2 robots) -->
+        <parameters>--from left_hand_V2_1.ini --useCalibration --xpos 320 --ypos 0 --width 300 --height 300</parameters>
+        <node>localhost</node>
+        <tag>skinGuiLH</tag>
+    </module>
+    <module>
+        <name>iCubSkinGui</name>
+        <!-- Remember to use the proper configuration files (i.e. "_V2.ini" for V2 robots) -->
+        <parameters>--from right_forearm.ini --useCalibration --xpos 640 --ypos 0 --width 300 --height 300</parameters>
+        <node>localhost</node>
+        <tag>skinGuiRF</tag>
+    </module>
+    <module>
+        <name>iCubSkinGui</name>
+        <!-- Remember to use the proper configuration files (i.e. "_V2.ini" for V2 robots) -->
+        <parameters>--from right_hand_V2_1.ini --useCalibration --xpos 960 --ypos 0 --width 300 --height 300</parameters>
+        <node>localhost</node>
+        <tag>skinGuiRH</tag>
+    </module>
+
+    <!--sensationManager and behaviorManager modules-->
+    <module>
+        <name>sensationManager</name>
+        <parameters>--from pps.ini</parameters>
+        <node>localhost</node>
+        <tag>sensationManager</tag>
+    </module>
+    <module>
+        <name>homeostasis</name>
+        <parameters>--from pps.ini</parameters>
+        <node>localhost</node>
+        <tag>homeostasis</tag>
+    </module>
+    <module>
+        <name>allostaticController</name>
+        <parameters>--from pps.ini</parameters>
+        <node>localhost</node>
+        <tag>allostaticController</tag>
+    </module>
+    <module>
+        <name>behaviorManager</name>
+        <parameters>--from pps.ini</parameters>
+        <node>localhost</node>
+        <tag>behaviorManager</tag>
+    </module>
+
+	<ensure>
+		<wait>5.0</wait>
+	</ensure>
+
+    <!--PPS connections-->
+    <connection>
+        <from>/skinEventsAggregator/skin_events_aggreg:o</from>
+        <to>/reactController/skin_events_aggreg:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/skinEventsAggregator/skin_events_aggreg:o</from>
+        <to>/ppsAggregEventsForiCubGui/skin_events_aggreg:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/visuoTactileWrapper/events:o</from>
+        <to>/visuoTactileRF/events:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/visuoTactileWrapper/gui:o</from>
+        <to>/iCubGui/objects</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/visuoTactileRF/pps_events_aggreg:o</from>
+        <to>/ppsAggregEventsForiCubGui/pps_events_aggreg:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+       <from>/visuoTactileRF/pps_events_aggreg:o</from>
+       <to>/reactController/pps_events_aggreg:i</to>
+       <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/ppsAggregEventsForiCubGui/contacts:o</from>
+        <to>/iCubGui/forces</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!--GUI connections-->
+    <connection>
+        <from>/guiUpdater/gui:o</from>
+        <to>/iCubGui/objects</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/guiUpdater/guiBase:o</from>
+        <to>/iCubGui/base:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/icubSim/head/state:o</from>
+        <to>/iCubGui/head:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/icubSim/inertial</from>
+        <to>/iCubGui/inertial:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/icubSim/left_arm/state:o</from>
+        <to>/iCubGui/left_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/icubSim/right_arm/state:o</from>
+        <to>/iCubGui/right_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/icubSim/torso/state:o</from>
+        <to>/iCubGui/torso:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!--skinGui connections-->
+    <connection>
+        <from>/skinManager/skin_events:o</from>
+        <to>/visuoTactileRF/skin_events:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/visuoTactileRF/skinGuiForearmL:o</from>
+        <to>/skinGui/left_forearm_virtual:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/visuoTactileRF/skinGuiForearmR:o</from>
+        <to>/skinGui/right_forearm_virtual:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/visuoTactileRF/skinGuiHandL:o</from>
+        <to>/skinGui/left_hand_virtual:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/visuoTactileRF/skinGuiHandR:o</from>
+        <to>/skinGui/right_hand_virtual:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!--sensation and behaviorManager connections-->
+    <connection>
+        <from>/opcSensation/objects:o</from>
+        <to>/visuoTactileWrapper/sensManager:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/homeostasis/stress:o</from>
+        <to>/visuoTactileRF/stress:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+
+
+</application>
+
+
