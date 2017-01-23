@@ -133,6 +133,18 @@ namespace wysiwyd {
 
             /**
             * Point at the specified [target] with the index finger.
+            * The target can be far away from the iCub, e.g. a body part of the human
+            * @param target Target to grasp in cartesian coordinates
+            * @param options Options of ARE commands ("no_head", "no_gaze",
+            *             "no_sacc", "still", "left", "right").
+            * @return true in case of successfull motor command, false
+            *         otherwise.
+            */
+            bool pointfar(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
+                       const std::string &sName="target");
+
+            /**
+            * Point at the specified [target] with the index finger.
             * @param target Target to grasp in cartesian coordinates
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
