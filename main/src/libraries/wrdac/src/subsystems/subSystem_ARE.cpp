@@ -345,7 +345,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::pointfar(const yarp::sig::Vector &targetUnsa
 
     yarp::sig::Vector target=applySafetyMargins(target);
     appendCartesianTarget(bCmd,target);
-    bCmd.append(opt);
+    bCmd.append(options);
 
     bool bReturn = sendCmd(bCmd,true);
     std::string status;
