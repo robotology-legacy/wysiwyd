@@ -84,27 +84,30 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     return true;
 }
 
+bool Planner::interruptModule() {
+    portToBehavior.interrupt();
+    toHomeo.interrupt();
+    getState.interrupt();
+    rpc.interrupt();
+    return true;
+}
 
-bool Planner::exit() {
+bool Planner::close() {
     if(iCub) {
         iCub->close();
         delete iCub;
     }
 
-    portToBehavior.interrupt();
     portToBehavior.close();
-
-    toHomeo.interrupt();
+ 
     toHomeo.close();
-
-    getState.interrupt();
+   
     getState.close();
 
     // currently not in use, will be implemented when BM receives context for actions as well
     // port_behavior_context.interrupt();
     // port_behavior_context.close();
-
-    rpc.interrupt();
+    
     rpc.close();
 
     return true;
@@ -188,8 +191,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     "newplan \n" +
     "stopfollow \n" +
     "clearplans <index/all> \n" +
-    "manual \n"
-    "exit \n";
+    "manual \n";
 
     reply.clear();
 
@@ -236,11 +238,6 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ack");
     }
     // (To-Do) Check goal not in list
-    else if (command.get(0).asString() == "exit"){
-        yInfo() << "closing module planner...";
-        reply.addString("ack");
-        exit();
-    }
     else if (command.get(0).asString() == "priorities")
     {
         if (priority_list.size() == 0) { yInfo() << "priority list is empty."; }
