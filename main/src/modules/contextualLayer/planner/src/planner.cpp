@@ -482,6 +482,7 @@ bool Planner::updateModule() {
         {
             for (int ii = grpPlans.find(planName + "-totactions").asInt(); ii > 0; ii--)
             {
+                yDebug() << "Action " << ii << " is being checked";
                 // string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
                 Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(ii)).asList();
                 if (fullAction->isNull()) { yError() << "fullAction is empty"; }
@@ -546,6 +547,7 @@ bool Planner::updateModule() {
                 }
                 else
                 {
+                    state = (ii == 1);
                     yInfo() << "the action has no preconditions.";
                     lArgument.push_back(std::pair<std::string, std::string>("none", "predicate"));
                     auxMsg.clear();
