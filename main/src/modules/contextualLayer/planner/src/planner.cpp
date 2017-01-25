@@ -796,6 +796,8 @@ bool Planner::updateModule() {
             yDebug() << "actionCompleted: " << actionCompleted;
             yDebug() << "stateCheck: " << stateCheck;
 
+            bool BM_busy = false;
+
             if (actionCompleted && stateCheck)
             {
                 if(success_sentence!="") {
@@ -833,56 +835,88 @@ bool Planner::updateModule() {
                     }
                 }
             }
+            else if (!actionCompleted)
+            {
+                // received "nack" from BM, cancelling plan
+                BM_busy = true;
+                yInfo() << "BM is occupied";
+                iCub->say("wait a second");
+
+                int currPlan = planNr_list[0];
+                attemptCnt = 0;
+
+                yInfo() << "clearing all plans related to plan " << currPlan;
+                unsigned int length = planNr_list.size();
+                for (unsigned int extra = 0; extra < length; extra++)
+                {
+                    if (planNr_list[0] == currPlan)
+                    {
+                        yDebug() << "removing subsequent action " << action_list[0];
+                        action_list.erase(action_list.begin());
+                        priority_list.erase(priority_list.begin());
+                        plan_list.erase(plan_list.begin());
+                        object_list.erase(object_list.begin());
+                        type_list.erase(type_list.begin());
+                        actionPos_list.erase(actionPos_list.begin());
+                        planNr_list.erase(planNr_list.begin());
+                    }
+                    else { break; }
+                }
+            }
             else
             {
                 attemptCnt += 1;
+                yDebug() << "attemptCnt is " << attemptCnt;
 
                 // check if precondition of failed action is still valid
                 bool state = true;
-                string currName = plan_list[0];
-                int currPos = actionPos_list[0];
-                Bottle preconds = *grpPlans.find(currName + "-" + to_string(currPos) + "pre").asList();
-                Bottle auxMsg;
-                if (preconds.size() > 0)
+                if (attemptCnt <= 2)
                 {
-                    yInfo() << "checking for preconditions again.";
-
-                    for (int k = 0; k < preconds.size(); k++)
+                    string currName = plan_list[0];
+                    int currPos = actionPos_list[0];
+                    Bottle preconds = *grpPlans.find(currName + "-" + to_string(currPos) + "pre").asList();
+                    Bottle auxMsg;
+                    if (preconds.size() > 0)
                     {
-                        bool indiv;
-                        bool negate;
-                        std::tie(indiv, negate, auxMsg) = conditionCheck(getState, preconds, k, object_list[0], args);
-                        state = state && indiv;
-                        yDebug() << "state is " << state;
+                        yInfo() << "checking for preconditions again.";
 
-                        auxMsg.clear();
+                        for (int k = 0; k < preconds.size(); k++)
+                        {
+                            bool indiv;
+                            bool negate;
+                            std::tie(indiv, negate, auxMsg) = conditionCheck(getState, preconds, k, object_list[0], args);
+                            state = state && indiv;
+                            yDebug() << "state is " << state;
+
+                            auxMsg.clear();
+                        }
+
+                        if (!state)
+                        {
+                            yDebug() << "The precondition for the action is no longer valid.";
+                            iCub->say("I cannot re-attempt the action because the preconditions are not met. I will not carry out the plan " + plan_list[0]);
+                        }
                     }
+                    else { yDebug() << "there are no preconditions for this action"; }
 
-                    if (!state)
+                    if (useABM)
                     {
-                        yDebug() << "The precondition for the action is no longer valid.";
-                        iCub->say("I cannot re-attempt the action because the preconditions are not met. I will not carry out the plan " + plan_list[0]);
+                        // log in ABM
+                        if (iCub->getABMClient()->Connect())
+                        {
+                            std::list<std::pair<std::string, std::string> > lArgument;
+                            lArgument.push_back(std::pair<std::string, std::string>("reasoning", "predicate"));
+                            lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+                            lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
+                            iCub->getABMClient()->sendActivity("reasoning",
+                                "iCub",
+                            "planner",  // expl: "pasar", "drives"...
+                            lArgument,
+                            true);
+                            yInfo() << action_list[0] + " failure and reattempt has been recorded in the ABM";
+                        }
+                        else { yInfo() << "ABMClient is not connected."; }
                     }
-                }
-                else { yDebug() << "there are no preconditions for this action"; }
-
-                if (useABM)
-                {
-                    // log in ABM
-                    if (iCub->getABMClient()->Connect())
-                    {
-                        std::list<std::pair<std::string, std::string> > lArgument;
-                        lArgument.push_back(std::pair<std::string, std::string>("reasoning", "predicate"));
-                        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-                        lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
-                        iCub->getABMClient()->sendActivity("reasoning",
-                            "iCub",
-                        "planner",  // expl: "pasar", "drives"...
-                        lArgument,
-                        true);
-                        yInfo() << action_list[0] + " failure and reattempt has been recorded in the ABM";
-                    }
-                    else { yInfo() << "ABMClient is not connected."; }
                 }
 
                 if ((attemptCnt > 2) || (!state))
@@ -926,7 +960,7 @@ bool Planner::updateModule() {
             }
 
             // check again if all actions in the list have been completed
-            if(action_list.size() == 0)
+            if ((action_list.size() == 0) && (!BM_busy))
             {
                 yInfo() << "resuming homeostatic dynamics.";
                 unfreeze_all();
