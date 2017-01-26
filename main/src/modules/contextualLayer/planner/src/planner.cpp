@@ -465,7 +465,6 @@ bool Planner::updateModule() {
         bool assumption = false;
         // Bottle rep;
         bool state;
-        bool presence = false;
 
         // holding bottles that will be reversed and appended if assumption is met
         vector<string> plan_store;
@@ -515,18 +514,21 @@ bool Planner::updateModule() {
                             if (negate) { failState = keyword; }
                             else { failState = "not " + keyword; }
 
-                            if ((keyword == "present") && !presence)
+                            bool repeat = false;
+                            yInfo() << preqFail;
+                            for (unsigned int word=0; word < preqFail.size(); word++)
                             {
-                                presence = true;
-                                preqFail.push_back(failState);
-                            }
-                            else if ( !((presence) &&
-                                (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
+                                if (preqFail[word] == failState) { repeat = true; }
+                                else if ((preqFail[word] == "not present") &&
+                                    (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
                                    keyword == Object::objectAreaAsString(ObjectArea::SHARED) ||
-                                   keyword == Object::objectAreaAsString(ObjectArea::HUMAN) )) )
-                            {
-                                preqFail.push_back(failState);
+                                   keyword == Object::objectAreaAsString(ObjectArea::HUMAN) ) )
+                                {
+                                    repeat = true;
+                                }
                             }
+
+                            if (!repeat) { yInfo() << keyword << ": new failed condition!!!!!!!"; preqFail.push_back(failState); }
                         }
 
                         // formulate step for recording in ABM
@@ -642,6 +644,13 @@ bool Planner::updateModule() {
             else
             {
                 yWarning() << "None of the sets of prerequisites are met, unable to handle plan.";
+                for (unsigned int word=0; word < preqFail.size(); word++)
+                {
+                    if (preqFail[word] == "not known")
+                    {
+                        preqFail.erase(std::remove(preqFail.begin(), preqFail.end(), "not present"), preqFail.end());
+                    }
+                }
                 string errorMsg = "I could not execute the plan " + planName + " because the " + object + " is ";
                 for (unsigned int ii = 0; ii<preqFail.size(); ii++)
                 {

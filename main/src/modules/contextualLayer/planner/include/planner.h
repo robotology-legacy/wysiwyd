@@ -1,4 +1,5 @@
 #include "wrdac/clients/icubClient.h"
+#include <algorithm>
 
 using namespace std;
 using namespace yarp::os;
