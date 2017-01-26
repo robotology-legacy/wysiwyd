@@ -704,7 +704,7 @@ bool Planner::updateModule() {
         }
         else
         {
-            Time::delay(1.0);
+            //Time::delay(1.0);
             skip = 1;
         }
         
@@ -983,6 +983,7 @@ bool Planner::updateModule() {
         }
     }
     else{
+        yDebug() << "fulfill is false (for debugging)";
         Time::delay(1);
     }
 
