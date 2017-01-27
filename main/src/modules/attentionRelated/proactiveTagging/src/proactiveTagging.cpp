@@ -540,7 +540,8 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         int joint = BPtemp->m_joint_number;
         //send rpc command to bodySchema to move the corresponding part
         yInfo() << "Start bodySchema";
-        iCub->babbling(joint, babblingArm);
+        double babbling_duration=3.0;
+        iCub->babbling(joint, babblingArm, babbling_duration);
 
         //add name of the partner in the question if defined
         string partnerName = iCub->getPartnerName();
