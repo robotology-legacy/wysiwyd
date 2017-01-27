@@ -228,6 +228,15 @@ bool FollowingOrder::handleActionKS(string action, string type) {
     yarp::os::Time::delay(0.5);
     iCub->getABMClient()->triggerStreaming(ks, true, true, 1.0, "icubSim", true);
     iCub->home();
+    if(type=="kinematic structure correspondence") {
+        yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
+        if(lHandVec.size()==0) {
+            iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
+        } else {
+            iCub->say("Look, because our hands look the same I know this is your left hand.");
+            iCub->pointfar(lHandVec);
+        }
+    }
 
     return true;
 }
