@@ -325,6 +325,49 @@ bool wysiwyd::wrdac::SubSystem_ARE::push(const yarp::sig::Vector &targetUnsafe, 
 
 }
 
+bool wysiwyd::wrdac::SubSystem_ARE::pointfar(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
+{
+    if (ABMconnected)
+    {
+        std::list<std::pair<std::string, std::string> > lArgument;
+        lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+        lArgument.push_back(std::pair<std::string, std::string>("pointfar", "predicate"));
+        lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+        lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+        lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+        SubABM->sendActivity("action", "pointfar", "action", lArgument, true);
+    }
+
+    yarp::os::Bottle bCmd;
+    bCmd.addVocab(yarp::os::Vocab::encode("pfar"));
+
+    yarp::sig::Vector target=applySafetyMargins(targetUnsafe);
+    appendCartesianTarget(bCmd,target);
+    bCmd.append(options);
+
+    bool bReturn = sendCmd(bCmd,true);
+    std::string status;
+    bReturn ? status = "success" : status = "failed";
+
+    if (ABMconnected)
+    {
+        std::list<std::pair<std::string, std::string> > lArgument;
+        lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+        lArgument.push_back(std::pair<std::string, std::string>("pointfar", "predicate"));
+        lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+        lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+        lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
+        lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+        SubABM->sendActivity("action", "pointfar", "action", lArgument, false);
+    }
+    return bReturn;
+}
+
+
 bool wysiwyd::wrdac::SubSystem_ARE::point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
 {
     if (ABMconnected)
