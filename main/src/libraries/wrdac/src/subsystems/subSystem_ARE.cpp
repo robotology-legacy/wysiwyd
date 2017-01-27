@@ -343,7 +343,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::pointfar(const yarp::sig::Vector &targetUnsa
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("pfar"));
 
-    yarp::sig::Vector target=applySafetyMargins(target);
+    yarp::sig::Vector target=applySafetyMargins(targetUnsafe);
     appendCartesianTarget(bCmd,target);
     bCmd.append(options);
 
