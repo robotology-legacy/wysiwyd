@@ -221,9 +221,20 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         freeze_all();
         yInfo() << "homeostasis is frozen";
 
-        
+        Bottle availability;
+        Bottle rep;
+        availability.addString("is_available");
+        portToBehavior.write(availability,rep);
 
-        newPlan = orderPlans(newPlan, command);
+        if (rep.get(0).asBool())
+        {
+            newPlan = orderPlans(newPlan, command);
+        }
+        else
+        {
+            iCub->say("I am busy");
+        }
+        
         reply.addString("ack");
     }
     else if ((command.get(0).asString() == "new") && (command.get(1).asList()->size() == 2)){
