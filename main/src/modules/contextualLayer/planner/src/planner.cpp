@@ -218,6 +218,11 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if ((command.get(0).asString() == "new")&& (command.get(1).asList()->size() != 2)){
         // rpc command was of type "new (plan priority (objectType object))"
+        freeze_all();
+        yInfo() << "homeostasis is frozen";
+
+        
+
         newPlan = orderPlans(newPlan, command);
         reply.addString("ack");
     }
@@ -699,8 +704,9 @@ bool Planner::updateModule() {
         if (action_list.size() != 0)
         {
             // yInfo() << "executing "<<action_list<<"...";
-            yInfo() << "putting homeostasis on hold.";
-            freeze_all();
+            // yInfo() << "putting homeostasis on hold.";
+            // freeze_all();
+            ;
         }
         else
         {
