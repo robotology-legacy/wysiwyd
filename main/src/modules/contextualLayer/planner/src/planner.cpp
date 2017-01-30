@@ -229,6 +229,10 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         if (rep.get(0).asBool())
         {
             newPlan = orderPlans(newPlan, command);
+            if (newPlan.size() == 0)
+            {
+                unfreeze_all();
+            }
         }
         else
         {
@@ -382,7 +386,12 @@ vector<Bottle> Planner::orderPlans(vector<Bottle>& cmdList, const Bottle& cmd) {
             }
         }
     }
-    else { yInfo() << "Plan " + cmd.get(1).asList()->get(0).asString() + " is not known. Use listplans to see available plans."; }
+    else
+    {
+        string nm = cmd.get(1).asList()->get(0).asString();
+        yInfo() << "Plan " + nm + " is not known. Use listplans to see available plans.";
+        iCub->say("I don't know the plan " + nm);
+    }
 
     return cmdList;
 }
