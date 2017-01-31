@@ -84,27 +84,30 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     return true;
 }
 
+bool Planner::interruptModule() {
+    portToBehavior.interrupt();
+    toHomeo.interrupt();
+    getState.interrupt();
+    rpc.interrupt();
+    return true;
+}
 
-bool Planner::exit() {
+bool Planner::close() {
     if(iCub) {
         iCub->close();
         delete iCub;
     }
 
-    portToBehavior.interrupt();
     portToBehavior.close();
-
-    toHomeo.interrupt();
+ 
     toHomeo.close();
-
-    getState.interrupt();
+   
     getState.close();
 
     // currently not in use, will be implemented when BM receives context for actions as well
     // port_behavior_context.interrupt();
     // port_behavior_context.close();
-
-    rpc.interrupt();
+    
     rpc.close();
 
     return true;
@@ -188,8 +191,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     "newplan \n" +
     "stopfollow \n" +
     "clearplans <index/all> \n" +
-    "manual \n"
-    "exit \n";
+    "manual \n";
 
     reply.clear();
 
@@ -216,7 +218,27 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }
     else if ((command.get(0).asString() == "new")&& (command.get(1).asList()->size() != 2)){
         // rpc command was of type "new (plan priority (objectType object))"
-        newPlan = orderPlans(newPlan, command);
+        freeze_all();
+        yInfo() << "homeostasis is frozen";
+
+        Bottle availability;
+        Bottle rep;
+        availability.addString("is_available");
+        portToBehavior.write(availability,rep);
+
+        if (rep.get(0).asBool())
+        {
+            newPlan = orderPlans(newPlan, command);
+            if (newPlan.size() == 0)
+            {
+                unfreeze_all();
+            }
+        }
+        else
+        {
+            iCub->say("I am busy");
+        }
+        
         reply.addString("ack");
     }
     else if ((command.get(0).asString() == "new") && (command.get(1).asList()->size() == 2)){
@@ -236,11 +258,6 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ack");
     }
     // (To-Do) Check goal not in list
-    else if (command.get(0).asString() == "exit"){
-        yInfo() << "closing module planner...";
-        reply.addString("ack");
-        exit();
-    }
     else if (command.get(0).asString() == "priorities")
     {
         if (priority_list.size() == 0) { yInfo() << "priority list is empty."; }
@@ -369,7 +386,12 @@ vector<Bottle> Planner::orderPlans(vector<Bottle>& cmdList, const Bottle& cmd) {
             }
         }
     }
-    else { yInfo() << "Plan " + cmd.get(1).asList()->get(0).asString() + " is not known. Use listplans to see available plans."; }
+    else
+    {
+        string nm = cmd.get(1).asList()->get(0).asString();
+        yInfo() << "Plan " + nm + " is not known. Use listplans to see available plans.";
+        iCub->say("I don't know the plan " + nm);
+    }
 
     return cmdList;
 }
@@ -468,7 +490,6 @@ bool Planner::updateModule() {
         bool assumption = false;
         // Bottle rep;
         bool state;
-        bool presence = false;
 
         // holding bottles that will be reversed and appended if assumption is met
         vector<string> plan_store;
@@ -485,6 +506,7 @@ bool Planner::updateModule() {
         {
             for (int ii = grpPlans.find(planName + "-totactions").asInt(); ii > 0; ii--)
             {
+                yDebug() << "Action " << ii << " is being checked";
                 // string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
                 Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(ii)).asList();
                 if (fullAction->isNull()) { yError() << "fullAction is empty"; }
@@ -517,18 +539,21 @@ bool Planner::updateModule() {
                             if (negate) { failState = keyword; }
                             else { failState = "not " + keyword; }
 
-                            if ((keyword == "present") && !presence)
+                            bool repeat = false;
+                            yInfo() << preqFail;
+                            for (unsigned int word=0; word < preqFail.size(); word++)
                             {
-                                presence = true;
-                                preqFail.push_back(failState);
-                            }
-                            else if ( !((presence) &&
-                                (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
+                                if (preqFail[word] == failState) { repeat = true; }
+                                else if ((preqFail[word] == "not present") &&
+                                    (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
                                    keyword == Object::objectAreaAsString(ObjectArea::SHARED) ||
-                                   keyword == Object::objectAreaAsString(ObjectArea::HUMAN) )) )
-                            {
-                                preqFail.push_back(failState);
+                                   keyword == Object::objectAreaAsString(ObjectArea::HUMAN) ) )
+                                {
+                                    repeat = true;
+                                }
                             }
+
+                            if (!repeat) { yInfo() << keyword << ": new failed condition!!!!!!!"; preqFail.push_back(failState); }
                         }
 
                         // formulate step for recording in ABM
@@ -549,6 +574,7 @@ bool Planner::updateModule() {
                 }
                 else
                 {
+                    state = (ii == 1);
                     yInfo() << "the action has no preconditions.";
                     lArgument.push_back(std::pair<std::string, std::string>("none", "predicate"));
                     auxMsg.clear();
@@ -643,6 +669,13 @@ bool Planner::updateModule() {
             else
             {
                 yWarning() << "None of the sets of prerequisites are met, unable to handle plan.";
+                for (unsigned int word=0; word < preqFail.size(); word++)
+                {
+                    if (preqFail[word] == "not known")
+                    {
+                        preqFail.erase(std::remove(preqFail.begin(), preqFail.end(), "not present"), preqFail.end());
+                    }
+                }
                 string errorMsg = "I could not execute the plan " + planName + " because the " + object + " is ";
                 for (unsigned int ii = 0; ii<preqFail.size(); ii++)
                 {
@@ -691,12 +724,13 @@ bool Planner::updateModule() {
         if (action_list.size() != 0)
         {
             // yInfo() << "executing "<<action_list<<"...";
-            yInfo() << "putting homeostasis on hold.";
-            freeze_all();
+            // yInfo() << "putting homeostasis on hold.";
+            // freeze_all();
+            ;
         }
         else
         {
-            Time::delay(1.0);
+            //Time::delay(1.0);
             skip = 1;
         }
         
@@ -797,6 +831,8 @@ bool Planner::updateModule() {
             yDebug() << "actionCompleted: " << actionCompleted;
             yDebug() << "stateCheck: " << stateCheck;
 
+            bool BM_busy = false;
+
             if (actionCompleted && stateCheck)
             {
                 if(success_sentence!="") {
@@ -834,56 +870,88 @@ bool Planner::updateModule() {
                     }
                 }
             }
+            else if (!actionCompleted)
+            {
+                // received "nack" from BM, cancelling plan
+                BM_busy = true;
+                yInfo() << "BM is occupied";
+                iCub->say("wait a second");
+
+                int currPlan = planNr_list[0];
+                attemptCnt = 0;
+
+                yInfo() << "clearing all plans related to plan " << currPlan;
+                unsigned int length = planNr_list.size();
+                for (unsigned int extra = 0; extra < length; extra++)
+                {
+                    if (planNr_list[0] == currPlan)
+                    {
+                        yDebug() << "removing subsequent action " << action_list[0];
+                        action_list.erase(action_list.begin());
+                        priority_list.erase(priority_list.begin());
+                        plan_list.erase(plan_list.begin());
+                        object_list.erase(object_list.begin());
+                        type_list.erase(type_list.begin());
+                        actionPos_list.erase(actionPos_list.begin());
+                        planNr_list.erase(planNr_list.begin());
+                    }
+                    else { break; }
+                }
+            }
             else
             {
                 attemptCnt += 1;
+                yDebug() << "attemptCnt is " << attemptCnt;
 
                 // check if precondition of failed action is still valid
                 bool state = true;
-                string currName = plan_list[0];
-                int currPos = actionPos_list[0];
-                Bottle preconds = *grpPlans.find(currName + "-" + to_string(currPos) + "pre").asList();
-                Bottle auxMsg;
-                if (preconds.size() > 0)
+                if (attemptCnt <= 2)
                 {
-                    yInfo() << "checking for preconditions again.";
-
-                    for (int k = 0; k < preconds.size(); k++)
+                    string currName = plan_list[0];
+                    int currPos = actionPos_list[0];
+                    Bottle preconds = *grpPlans.find(currName + "-" + to_string(currPos) + "pre").asList();
+                    Bottle auxMsg;
+                    if (preconds.size() > 0)
                     {
-                        bool indiv;
-                        bool negate;
-                        std::tie(indiv, negate, auxMsg) = conditionCheck(getState, preconds, k, object_list[0], args);
-                        state = state && indiv;
-                        yDebug() << "state is " << state;
+                        yInfo() << "checking for preconditions again.";
 
-                        auxMsg.clear();
+                        for (int k = 0; k < preconds.size(); k++)
+                        {
+                            bool indiv;
+                            bool negate;
+                            std::tie(indiv, negate, auxMsg) = conditionCheck(getState, preconds, k, object_list[0], args);
+                            state = state && indiv;
+                            yDebug() << "state is " << state;
+
+                            auxMsg.clear();
+                        }
+
+                        if (!state)
+                        {
+                            yDebug() << "The precondition for the action is no longer valid.";
+                            iCub->say("I cannot re-attempt the action because the preconditions are not met. I will not carry out the plan " + plan_list[0]);
+                        }
                     }
+                    else { yDebug() << "there are no preconditions for this action"; }
 
-                    if (!state)
+                    if (useABM)
                     {
-                        yDebug() << "The precondition for the action is no longer valid.";
-                        iCub->say("I cannot re-attempt the action because the preconditions are not met. I will not carry out the plan " + plan_list[0]);
+                        // log in ABM
+                        if (iCub->getABMClient()->Connect())
+                        {
+                            std::list<std::pair<std::string, std::string> > lArgument;
+                            lArgument.push_back(std::pair<std::string, std::string>("reasoning", "predicate"));
+                            lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+                            lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
+                            iCub->getABMClient()->sendActivity("reasoning",
+                                "iCub",
+                            "planner",  // expl: "pasar", "drives"...
+                            lArgument,
+                            true);
+                            yInfo() << action_list[0] + " failure and reattempt has been recorded in the ABM";
+                        }
+                        else { yInfo() << "ABMClient is not connected."; }
                     }
-                }
-                else { yDebug() << "there are no preconditions for this action"; }
-
-                if (useABM)
-                {
-                    // log in ABM
-                    if (iCub->getABMClient()->Connect())
-                    {
-                        std::list<std::pair<std::string, std::string> > lArgument;
-                        lArgument.push_back(std::pair<std::string, std::string>("reasoning", "predicate"));
-                        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
-                        lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
-                        iCub->getABMClient()->sendActivity("reasoning",
-                            "iCub",
-                        "planner",  // expl: "pasar", "drives"...
-                        lArgument,
-                        true);
-                        yInfo() << action_list[0] + " failure and reattempt has been recorded in the ABM";
-                    }
-                    else { yInfo() << "ABMClient is not connected."; }
                 }
 
                 if ((attemptCnt > 2) || (!state))
@@ -927,7 +995,7 @@ bool Planner::updateModule() {
             }
 
             // check again if all actions in the list have been completed
-            if(action_list.size() == 0)
+            if ((action_list.size() == 0) && (!BM_busy))
             {
                 yInfo() << "resuming homeostatic dynamics.";
                 unfreeze_all();
@@ -941,6 +1009,7 @@ bool Planner::updateModule() {
         }
     }
     else{
+        yDebug() << "fulfill is false (for debugging)";
         Time::delay(1);
     }
 

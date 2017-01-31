@@ -1,4 +1,5 @@
 #include "wrdac/clients/icubClient.h"
+#include <algorithm>
 
 using namespace std;
 using namespace yarp::os;
@@ -51,7 +52,8 @@ public:
 
     bool checkKnown(const Bottle& command, Bottle& avaiPlansList);
     
-    bool exit();
+    bool close();
+    bool interruptModule();
 
     double getPeriod()
     {

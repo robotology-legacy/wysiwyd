@@ -185,7 +185,14 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
             names.addString(beh->behaviorName);
         }
         reply.addList() = names;
-    }
+    } else if (cmd.get(0).asString() == "is_available" ) {
+        if (mut.tryLock()) {
+            mut.unlock();
+            reply.addInt(1);
+        } else {
+            reply.addInt(0);
+        }
+    }    
     else
     {
         bool behavior_triggered = false;
