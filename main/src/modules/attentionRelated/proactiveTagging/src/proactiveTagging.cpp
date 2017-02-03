@@ -408,13 +408,13 @@ Bottle proactiveTagging::recogName(string entityType)
 
     string sName;
     if (entityType == "agent") {
-        sName = bSemantic.check("agent", Value("unknown")).asString();
+        sName = bSemantic.check("agent", Value("error")).asString();
     }
     else if (entityType == "object" || entityType == "rtobject") {
-        sName = bSemantic.check("object", Value("unknown")).asString();
+        sName = bSemantic.check("object", Value("error")).asString();
     }
     else if (entityType == "bodypart") {
-        sName = bSemantic.check("fingerName", Value("unknown")).asString();
+        sName = bSemantic.check("fingerName", Value("error")).asString();
     }
     else {
         yError("recogName ERROR entitytype not known!");
