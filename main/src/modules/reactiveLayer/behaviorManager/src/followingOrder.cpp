@@ -220,13 +220,15 @@ bool FollowingOrder::handleActionKS(string action, string type) {
 
     yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks = " << ks;
     iCub->lookAtPartner();
+    double speedMultiplier=1.0;
     if(type == "kinematic structure") {
         iCub->say("Please look at the screen. See how my arms look the same.", false);
     } else if(type == "kinematic structure correspondence") {
         iCub->say("I think our body parts are similar. I show you what I mean on the screen.", false);
+        speedMultiplier=0.5;
     }
     yarp::os::Time::delay(0.5);
-    iCub->getABMClient()->triggerStreaming(ks, true, true, 1.0, "icubSim", true);
+    iCub->getABMClient()->triggerStreaming(ks, true, true, speedMultiplier, "icubSim", true);
     iCub->home();
     if(type=="kinematic structure correspondence") {
         yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
