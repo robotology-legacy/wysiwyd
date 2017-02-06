@@ -229,7 +229,7 @@ bool FollowingOrder::handleActionKS(string action, string type) {
     }
     yarp::os::Time::delay(0.5);
     iCub->getABMClient()->triggerStreaming(ks, true, true, speedMultiplier, "icubSim", true);
-    iCub->home();
+
     if(type=="kinematic structure correspondence") {
         yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
         if(lHandVec.size()==0) {
@@ -239,6 +239,7 @@ bool FollowingOrder::handleActionKS(string action, string type) {
             iCub->pointfar(lHandVec);
         }
     }
+    iCub->home();
 
     return true;
 }
