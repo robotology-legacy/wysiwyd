@@ -462,10 +462,6 @@ bool Planner::updateModule() {
         }
         else
         {
-            planName = command.get(1).asList()->get(0).asString();
-            objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
-            object = command.get(1).asList()->get(2).asList()->get(1).asString();
-
             newPlan.erase(newPlan.begin());
         }
 
@@ -508,6 +504,9 @@ bool Planner::updateModule() {
             for (int ii = grpPlans.find(planName + "-totactions").asInt(); ii > 0; ii--)
             {
                 yDebug() << "Action " << ii << " is being checked";
+                planName = command.get(1).asList()->get(0).asString();
+                objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+                object = command.get(1).asList()->get(2).asList()->get(1).asString();
                 // string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
                 Bottle *fullAction = grpPlans.find(planName + "-action" + to_string(ii)).asList();
                 if (fullAction->isNull()) { yError() << "fullAction is empty"; }
@@ -554,7 +553,7 @@ bool Planner::updateModule() {
                                 }
                             }
 
-                            if (!repeat) { yInfo() << keyword << ": new failed condition!!!!!!!"; preqFail.push_back(failState); }
+                            if (!repeat) { preqFail.push_back(failState); }
                         }
 
                         // formulate step for recording in ABM
