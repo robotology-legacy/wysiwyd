@@ -1266,9 +1266,9 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
 bool opcPopulater::populateScenario1()
 {
 
-    string sAgent = "Allan";
-    string sObject = "croco";
-    string sObjError = "mouse";
+    string sAgent = "Tobi";
+    string sObject = "blue cube";
+    string sObjError = "octopus";
 
     Time::delay(4.);
     // first the ObjStory is close to larry (from left to right)
@@ -1528,9 +1528,9 @@ bool opcPopulater::populateScenario1()
 *  2 Agents + iCub + 1 step
 */
 bool opcPopulater::populateScenario2(){
-    string sLarry = "Peter";
-    string sRobert = "Carol";
-    string sObject = "mug";
+    string sLarry = "Sock";
+    string sRobert = "Jordi";
+    string sObject = "duck";
     string sBox = "box";
 
     Time::delay(4.);
@@ -1725,10 +1725,9 @@ bool opcPopulater::populateScenario2(){
 */
 bool opcPopulater::populateScenario3(){
 
-    string sAgent = "Sam";
-    string sObject = "rabbit";
+    string sAgent = "Daniel";
+    string sObject = "blue cube";
     string sBox = "box";
-    string sObjError = "mouse";
 
     Time::delay(4.);
     // first the ObjStory is close to larry (from left to right)
@@ -1743,7 +1742,6 @@ bool opcPopulater::populateScenario3(){
     Action* Cover = iCub->opc->addOrRetrieveEntity<Action>("cover");
     iCub->opc->commit();
 
-    Relation InterlocutorHasCroco(Interlocutor, Have, Croco);
     Relation iCubWantsCroco(icub, Want, Croco);
     Relation iCubHasCroco(icub, Have, Croco);
     Relation BoxCoverCroco(Box, Cover, Croco);
@@ -1907,8 +1905,7 @@ bool opcPopulater::populateScenario3(){
 * Nao just grasp the croco
 */
 bool opcPopulater::populateScenario4(){
-
-    string sObject = "bottle";
+    string sObject = "duck";
 
     Time::delay(4.);
 
@@ -1958,7 +1955,6 @@ bool opcPopulater::populateScenario4(){
 
     iCub->opc->addRelation(iCubWantsCroco);
     yInfo() << " delay...";
-    Bottle bOption;
 
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
 
@@ -2010,8 +2006,8 @@ bool opcPopulater::populateScenario4(){
 */
 bool opcPopulater::populateScenario5(){
 
-    string sAgent = "Mary";
-    string sObject = "brain";
+    string sAgent = "Sock";
+    string sObject = "octopus";
 
     Time::delay(4.);
     // first the ObjStory is close to larry (from left to right)
@@ -2218,11 +2214,10 @@ bool opcPopulater::populateScenario5(){
 * 2 agents + iCub + box + 2 steps
 */
 bool opcPopulater::populateScenario6(){
-    string sLarry = "Jonny";
-    string sRobert = "Carol";
-    string sObject = "ball";
+    string sLarry = "Sock";
+    string sRobert = "Jordi";
+    string sObject = "blue cube";
     string sBox = "box";
-    string sObjError = "mouse";
 
     Time::delay(4.);
     // first the ObjStory is close to larry (from left to right)
