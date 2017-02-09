@@ -41,7 +41,7 @@ public:
     bool handleGame(std::string type);
     bool handleEnd();
 
-    int randKS(yarp::os::Bottle bKS);
+    static int randKS(yarp::os::Bottle bKS);
 
     void close_extra_ports() {
         port_to_narrate.interrupt();

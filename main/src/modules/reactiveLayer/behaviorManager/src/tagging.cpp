@@ -1,3 +1,4 @@
+#include "wrdac/subsystems/subSystem_ABM.h"
 #include "tagging.h"
 
 using namespace std;
@@ -9,12 +10,18 @@ void Tagging::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "/proactiveTagging/rpc";
     from_sensation_port_name = "/opcSensation/unknown_entities:o";
+
+    Bottle bFollowingOrder = rf.findGroup("followingOrder");
+    bKS1.clear();
+    bKS2.clear();
+    bKS1 = *bFollowingOrder.find("ks1").asList();
+    bKS2 = *bFollowingOrder.find("ks2").asList();
 }
 
 void Tagging::run(const Bottle &args) {
     yInfo() << "Tagging::run";
     yDebug() << "send rpc to proactiveTagging";
-    string type, target, sentence;
+    string type, target;
     //bool no_objects = true;
     Bottle cmd;
     Bottle rply;
@@ -80,6 +87,24 @@ void Tagging::run(const Bottle &args) {
         cmd.addString(target);
         cmd.addString(type);
         yInfo() << "Proactively tagging:" << cmd.toString();
+
+        if(type=="bodypart") {
+            int ks = FollowingOrder::randKS(bKS2);
+            if(ks<0) {
+                yError() << "No kinematic structure instances defined in config file";
+            } else {
+                iCub->lookAtPartner();
+                iCub->say("Actually, I found similar parts of your body. Let me show you on the screen.");
+            }
+            iCub->getABMClient()->triggerStreaming(ks, true, true, 0.5, "icubSim", true);
+            yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
+            if(lHandVec.size()==0) {
+                iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
+            } else {
+                iCub->say("Look, because our hands look the same I know this is your hand.");
+                iCub->pointfar(lHandVec);
+            }
+        }
     }
     
     
