@@ -345,42 +345,49 @@ Bottle proactiveTagging::recogName(string entityType)
     //Load the Speech Recognition with grammar according to entityType
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
     if (entityType == "agent"){
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
-        bAnswer = *bRecognized.get(1).asList();
-        if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEAGENT") {
-            iCub->say("I asked you something else");
-            yError() << "Wrong sentence type returned (not SENTENCEAGENT)";
-            bOutput.addString("error");
-            bOutput.addString("Wrong sentence type returned (not SENTENCEAGENT)");
-            return bOutput;
+        bool recognizedCorrectGrammar=false;
+        while(!recognizedCorrectGrammar) {
+            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
+            bAnswer = *bRecognized.get(1).asList();
+            if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEAGENT") {
+                iCub->say("I did not understand you. Can you please repeat?");
+                yError() << "Wrong sentence type returned (not SENTENCEAGENT)";
+            } else {
+                recognizedCorrectGrammar = true;
+            }
         }
     }
     else if (entityType == "object" || entityType == "rtobject"){
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
-        bAnswer = *bRecognized.get(1).asList();
-        if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEOBJECT") {
-            iCub->say("I asked you something else");
-            yError() << "Wrong sentence type returned (not SENTENCEOBJECT)";
-            bOutput.addString("error");
-            bOutput.addString("Wrong sentence type returned (not SENTENCEOBJECT)");
-            return bOutput;
+        bool recognizedCorrectGrammar=false;
+        while(!recognizedCorrectGrammar) {
+            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
+            bAnswer = *bRecognized.get(1).asList();
+            if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEOBJECT") {
+                iCub->say("I did not understand you. Can you please repeat?");
+                yError() << "Wrong sentence type returned (not SENTENCEOBJECT)";
+            } else {
+                recognizedCorrectGrammar = true;
+            }
         }
     }
     else if (entityType == "bodypart"){
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameBodypart), 20);
-        bAnswer = *bRecognized.get(1).asList();
-        if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEBODYPART") {
-            iCub->say("I asked you something else");
-            yError() << "Wrong sentence type returned (not SENTENCEBODYPART)";
-            bOutput.addString("error");
-            bOutput.addString("Wrong sentence type returned (not SENTENCEBODYPART)");
-            return bOutput;
+        bool recognizedCorrectGrammar=false;
+        while(!recognizedCorrectGrammar) {
+            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameBodypart), 20);
+            bAnswer = *bRecognized.get(1).asList();
+            if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEBODYPART") {
+                iCub->say("I did not understand you. Can you please repeat?");
+                yError() << "Wrong sentence type returned (not SENTENCEBODYPART)";
+            } else {
+                recognizedCorrectGrammar = true;
+            }
         }
     }
     else {
         yError() << " error in proactiveTagging::recogName | for " << entityType << " | Entity Type not managed";
         bOutput.addString("error");
         bOutput.addString("Entity Type not managed");
+        iCub->say("I do not know what you want from me. Can you please ask me something else?");
         return bOutput;
     }
     yDebug() << "Response from recogClient: " << bRecognized.toString();
