@@ -187,14 +187,22 @@ Bottle OpcSensation::handleEntities()
             Agent* a = dynamic_cast<Agent*>(entity);
             agentPresent = true;
             if(a && (a->m_present==1.0)) {
+                double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
                 Bottle right_hand;
                 right_hand.addDouble(a->m_body.m_parts["handRight"][0]);          //X
                 right_hand.addDouble(a->m_body.m_parts["handRight"][1]);          //Y
                 right_hand.addDouble(a->m_body.m_parts["handRight"][2]);          //Z
-                double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
                 right_hand.addDouble(dimensions);                       //RADIUS
                 right_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
                 objects.addList()=right_hand;
+                
+                Bottle left_hand;
+                left_hand.addDouble(a->m_body.m_parts["handLeft"][0]);          //X
+                left_hand.addDouble(a->m_body.m_parts["handLeft"][1]);          //Y
+                left_hand.addDouble(a->m_body.m_parts["handLeft"][2]);          //Z
+                left_hand.addDouble(dimensions);                       //RADIUS
+                left_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
+                objects.addList()=left_hand;
             }
         }
     }
