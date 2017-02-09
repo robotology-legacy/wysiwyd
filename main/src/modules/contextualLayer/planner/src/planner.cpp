@@ -462,6 +462,9 @@ bool Planner::updateModule() {
         }
         else
         {
+            planName = command.get(1).asList()->get(0).asString();
+            objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+            object = command.get(1).asList()->get(2).asList()->get(1).asString();
             newPlan.erase(newPlan.begin());
         }
 
@@ -551,6 +554,7 @@ bool Planner::updateModule() {
                                 {
                                     repeat = true;
                                 }
+                                else if ((preqFail[word] == "not present") && (failState == "known")) { repeat = true; }
                             }
 
                             if (!repeat) { preqFail.push_back(failState); }
