@@ -70,14 +70,12 @@ Bottle narrativeHandler::questionHRI_DFW(){
     vector<string> vBegin;
     vBegin.push_back("I'll be glad to talk about what we did!");
     vBegin.push_back("Sure, what do you want to know?");
-    vBegin.push_back("Absolutely!");
-    vBegin.push_back("Yes?");
 
 
     vector<string> vConfuse;
-    vConfuse.push_back("I don't know sorry...");
-    vConfuse.push_back("Though one, I give up...");
-    vConfuse.push_back("I have no idea");
+    vConfuse.push_back("I don't know, sorry...");
+    vConfuse.push_back("That's hard, I give up...");
+    vConfuse.push_back("I have no idea, sorry");
 
     unsigned int randomIndex = rand() % vBegin.size();
     iCub->say(vBegin[randomIndex], false);
