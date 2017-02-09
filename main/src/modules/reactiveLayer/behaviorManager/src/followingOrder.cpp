@@ -29,7 +29,7 @@ void FollowingOrder::configure() {
     port_to_avoidance_name = "/"+behaviorName+"/avoidance:o";
     port_to_avoidance.open(port_to_avoidance_name);
 
-    manual = false;
+    manual = true;
 }
 
 void FollowingOrder::run(const Bottle &args) {

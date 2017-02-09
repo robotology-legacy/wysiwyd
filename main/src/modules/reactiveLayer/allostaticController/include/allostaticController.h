@@ -37,7 +37,7 @@ public:
     Bottle sensationOnCmd, sensationOffCmd, beforeTriggerCmd, afterTriggerCmd;
     
     AllostaticDrive() {
-        manualMode = false;
+        manualMode = true;
         behaviorUnderPort = nullptr;
         behaviorOverPort = nullptr;
         homeoPort = nullptr;

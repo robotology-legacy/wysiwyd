@@ -6,7 +6,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("planner")).asString().c_str();
     setName(moduleName.c_str());
 
-    manual = false;
+    manual = true;
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();

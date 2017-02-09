@@ -29,7 +29,8 @@ public:
         decay = d_decay;
         gradient = d_gradient;
         decay_multiplier = 1;
-        is_sleeping = false;
+        is_sleeping = true;
+        time_to_sleep = 1e10;
         //todo : check the min/max
         double homeoRange =  homeostasisMax - homeostasisMin;
         if (d_value_min == numeric_limits<double>::min() && d_value_max == numeric_limits<double>::max()){
