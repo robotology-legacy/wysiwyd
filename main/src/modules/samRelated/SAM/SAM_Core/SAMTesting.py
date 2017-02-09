@@ -656,10 +656,6 @@ def calculateData(textLabels, confMatrix, numItems=None):
 
     print normConf
 
-    # if plotting
-    # confMatLabels = copy.deepcopy(textLabels)
-    # plot_confusion_matrix(normConf, confMatLabels)
-
     # percCorect = 100 * np.diag(h.astype(np.float)).sum() / numItems
     percCorect = 100 * np.diag(normConf.astype(np.float)).sum() / np.sum(normConf)
 

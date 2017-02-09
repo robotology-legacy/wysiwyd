@@ -349,17 +349,20 @@ class interactionSAMModel(yarp.RFModule):
                         img = self.portsList[self.instancePort].prepare()
                         img.copy(formattedData)
                         self.portsList[self.instancePort].write()
-
+                        reply.addString('ack')
                         reply.addString('Generated instance of ' + instanceName + ' as ' +
                                         str(type(formattedData)))
                     except:
+                        reply.addString('nack')
                         reply.addString('Failed to write ' + instanceName + ' as ' +
                                         str(type(self.portsList[self.instancePort])))
                 else:
+                    reply.addString('nack')
                     reply.addString('Output of ' + self.driverName + '.formatGeneratedData is of type: ' +
                                     str(type(formattedData)) + '. Should be type: ' +
                                     str(type(self.portsList[self.instancePort])))
             else:
+                reply.addString('nack')
                 reply.addString('Instance name not found. Available instance names are: ' + str(self.mm[0].textLabels))
         else:
             reply.addString('nack')

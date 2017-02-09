@@ -30,7 +30,7 @@ class SamSupervisorModule(yarp.RFModule):
     def __init__(self):
         yarp.RFModule.__init__(self)
         self.SIGNALS_TO_NAMES_DICT = None
-        self.terminal = None
+        self.terminal = 'x-terminal-emulator'
         self.rootPath = None
         self.interactionConfPath = None
         self.startModels = None
@@ -76,6 +76,9 @@ class SamSupervisorModule(yarp.RFModule):
         self.baseLogFileName = 'samSupervisorErrorLog'
 
     def configure(self, rf):
+        yarpAvailable = yarp.Network.checkNetwork()
+        if not yarpAvailable:
+            return False
         yarp.Network.init()
         self.SIGNALS_TO_NAMES_DICT = dict(
             (getattr(signal, n), n) for n in dir(signal) if n.startswith('SIG') and '_' not in n)
@@ -89,8 +92,6 @@ class SamSupervisorModule(yarp.RFModule):
         if output != '':
             print 'samSupervisor already running. /sam/rpc:i port present'
             return False
-        
-        self.terminal = 'xterm'
 
         rootPath = rf.check("root_path")
         interactionConfPath = rf.check("config_path")
@@ -213,7 +214,7 @@ class SamSupervisorModule(yarp.RFModule):
                     if self.windowed:
                         c = subprocess.Popen([self.terminal, '-e', command], shell=False)
                     else:
-                        c = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        c = subprocess.Popen([cmd], shell=True)
 
                     self.trainingListHandles['Cluster'] = c
 
@@ -795,9 +796,9 @@ class SamSupervisorModule(yarp.RFModule):
                                 command = "bash -c \"" + cmd + "\""
 
                             if self.windowed:
-                                c = subprocess.Popen(['xterm', '-e', command], shell=False)
+                                c = subprocess.Popen([self.terminal, '-e', command], shell=False)
                             else:
-                                c = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                c = subprocess.Popen([cmd], shell=True)
 
                             self.rpcConnections.append([j[0], interfacePort, interfacePortName[:-1], callSignList, c, 'loading'])
                             # pause here
@@ -1179,7 +1180,8 @@ class SamSupervisorModule(yarp.RFModule):
         if self.windowed:
             c = subprocess.Popen([self.terminal, '-e', command], shell=False)
         else:
-            c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
+            # c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
+            c = subprocess.Popen([cmd], shell=True)
         
         self.trainingListHandles[mod[0]] = c
 
@@ -1237,7 +1239,11 @@ class SamSupervisorModule(yarp.RFModule):
         if self.verbose:
             print 'cmd: ', cmd
 
-        c = subprocess.Popen([self.terminal, '-e', command], shell=False)
+        if self.windowed:
+            c = subprocess.Popen([self.terminal, '-e', command], shell=False)
+        else:
+            c = subprocess.Popen([cmd], shell=True)
+
         self.trainingListHandles[mod[0]] = c
 
         return True
