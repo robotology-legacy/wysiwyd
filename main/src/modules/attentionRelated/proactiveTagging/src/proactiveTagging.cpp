@@ -522,7 +522,6 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     else if (currentEntityType == "bodypart") {
         iCub->lookAtPartner();
         sQuestion = " Watch please, I will move a part of my body";
-        yarp::os::Time::delay(1.0);
     }
     else {
         yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed";

@@ -236,6 +236,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         }
         else
         {
+            yWarning() << "I am busy";
             iCub->say("I am busy");
         }
         

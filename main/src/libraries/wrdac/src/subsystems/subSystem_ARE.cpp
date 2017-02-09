@@ -68,6 +68,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::sendCmd(const yarp::os::Bottle &cmd, const b
             SubATT->stop();
     }
 
+    yDebug() << "Send to ARE: " << cmd.toString();
     yarp::os::Bottle bReply;
     if (cmdPort.write(const_cast<yarp::os::Bottle&>(cmd),bReply))
         ret=(bReply.get(0).asVocab()==yarp::os::Vocab::encode("ack"));
@@ -79,6 +80,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::sendCmd(const yarp::os::Bottle &cmd, const b
         else if (status!="quiet")
             SubATT->track(status);
     }
+    yDebug() << "Reply from ARE: " << bReply.toString();
 
     return ret;
 }
