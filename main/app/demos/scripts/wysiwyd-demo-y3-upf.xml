@@ -1,0 +1,701 @@
+<application>
+    <name>WYSIWYD DEMO Y3 @UPF</name>
+    <dependencies>
+        <port>/icub/camcalib/right/out</port>
+        <port>/icub/camcalib/left/out</port>
+        <port>/icub/cartesianController/right_arm/state:o</port>
+        <port>/icub/cartesianController/left_arm/state:o</port>
+        <port>/iKinGazeCtrl/rpc</port>
+        <port>/wholeBodyDynamics/rpc:i</port>
+    </dependencies>
+
+    <module>
+      <name>yarpdev</name>
+      <parameters>--name /icub/face/raw --device serial --subdevice serialport --context faceExpressions --from serialport.ini</parameters>
+	  <node>pc104</node>
+	<tag>face_device</tag>
+   </module>
+   <module>
+      <name>emotionInterface</name>
+      <parameters>--name /icub/face/emotions --context faceExpressions --from emotions.ini</parameters>
+      <node>pc104</node>
+	<tag>emotions_interface</tag>
+   </module>
+
+    <module>
+        <name>actionsRenderingEngine</name>
+        <parameters>--motor::block_eyes 5.0 --motor::impedance on</parameters>
+        <node>icububuntu</node>
+	    <ensure>	   
+	       <wait when="stop">21</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>karmaMotor</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+	    <ensure>	   
+	       <wait when="stop">18</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>touchDetector</name>
+        <parameters></parameters>
+        <node>icub-debian1</node>
+	    <ensure>	   
+	       <wait when="stop">3</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>kinectServer</name>
+        <node>ikart</node>
+	    <ensure>	   
+	       <wait when="stop">13</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>objectsPropertiesCollector</name>
+        <parameters>--name OPC --no-load-db --no-save-db</parameters>
+        <node>icubAlien</node>
+	    <ensure>	   
+	       <wait when="stop">17</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>autobiographicalMemory</name>
+        <parameters></parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">15</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>referenceFrameHandler</name>
+        <parameters></parameters>
+        <node>icububuntu</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">13</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>agentDetector</name>
+        <parameters>--showImages false</parameters>
+        <node>icub-debian1</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/kinectServer/rpc</port>
+            <port timeout="10">/referenceFrameHandler/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">11</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out/KSC0 --x 750 --y 0 --h 480 --w 480 --compact</parameters>
+        <node>icubAlien</node>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /viewer/iol/track --x 620 --y 680 --p 50 --compact</parameters>
+        <node>icubAlien</node>
+    </module>
+
+    <module>
+        <name>guiUpdater</name>
+        <parameters>--displaySkeletons 1</parameters>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+        <node>icub-debian1</node>
+	    <ensure>	   
+	       <wait when="stop">5</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>babbling</name>
+        <parameters></parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">7</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>himrepClassifier</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+	    <ensure>	   
+	       <wait when="stop">12</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>iolReachingCalibration</name>
+        <parameters></parameters>
+        <node>icububuntu</node>
+	    <ensure>	   
+	       <wait when="stop">10</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>iol2opc</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/himrepClassifier/rpc</port>
+            <port timeout="10">/SFM/rpc</port>
+            <port timeout="10">/iolReachingCalibration/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">8</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>SFM</name>
+        <parameters></parameters>
+        <node>icububuntu</node>
+	    <ensure>	   
+	       <wait when="stop">13</wait>
+	    </ensure>
+    </module>
+    <module>
+        <name>caffeCoder</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+	    <ensure>	   
+	       <wait when="stop">13</wait>
+	    </ensure>
+    </module>
+    <module>
+        <name>linearClassifierModule</name>
+        <parameters>--BufferSize 1 --CSVM 1.0 --databaseFolder IOL2OPCDatabase
+            --WeightedSVM 1</parameters>
+        <node>icubVulcan</node>
+	    <ensure>	   
+	       <wait when="stop">14</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>lbpExtract</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+	    <ensure>	   
+	       <wait when="stop">13</wait>
+	    </ensure>
+    </module>
+
+    <!--
+    <module>
+        <name>attentionSelector</name>
+        <parameters></parameters>
+        <node>icub-b3</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/actionsRenderingEngine/cmd:io</port>
+        </dependencies>
+    </module>
+    -->
+ 
+    <module>
+        <name>pasar</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/agentDetector/skeleton:o</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">9</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>lrh</name>
+        <parameters></parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">13</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>narrativeGraph</name>
+        <parameters></parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/actionsRenderingEngine/cmd:io</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/iSpeak</port>
+            <port timeout="10">/speechRecognizer/rpc</port>
+            <port timeout="10">/lrh/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">11</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>skinManager</name>
+        <parameters>--from skinManAll.ini --context skinGui</parameters>
+        <node>icububuntu</node>
+	    <ensure>	   
+	       <wait when="stop">11</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /viewer/iol/lbpSegmented --x 620 --y -30 --p 50 --compact</parameters>
+        <node>icubAlien</node>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /viewer/iol/localizer --x 1305 --y 0 --out /viewer/iol/localizer:o --p 50 --compact</parameters>
+        <node>icubAlien</node>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /viewer/iol/histogram --x 930 --y 350 --w 300 --h 315 --p 50 --compact</parameters>
+        <node>icubAlien</node>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /viewer/iol/track --x 620 --y 680 --p 50 --compact</parameters>
+        <node>icubAlien</node>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /viewer/skeleton --compact --x 2340 --y 0 --w 320 --h 260</parameters>
+        <node>icubAlien</node>
+    </module>
+    <module>
+        <name>iCubGui</name>
+        <parameters>--xpos 2010 --ypos 520 --width 650 --height 550</parameters>
+        <node>icubAlien</node>
+	    <ensure>	   
+	       <wait when="stop">9</wait>
+	    </ensure>
+    </module>
+
+  <module>
+    <name>iCubSkinGui</name>
+    <!-- Remember to use the proper configuration files (i.e. "_V2.ini" for V2 robots) --> 
+    <parameters>--from right_hand_V2_1.ini --useCalibration --xpos 1305 --ypos 850 --width 300 --height 230</parameters>
+    <node>icubAlien</node>
+    <tag>skinGuiRH</tag>
+	    <ensure>	   
+	       <wait when="stop">9</wait>
+	    </ensure>
+  </module>
+
+   <module>
+       <name>samSupervisor.py</name>
+       <parameters></parameters>
+       <node>icubAlien</node>
+	    <ensure>	   
+	       <wait when="stop">11</wait>
+	    </ensure>
+  </module>
+
+    <module>
+        <name>actionRecogDataDumper</name>
+        <parameters></parameters>
+        <node>icub-debian1</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">9</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>CLMYarp</name>
+        <parameters>--from /home/icub/robotology/human-sensing-SAM/build/bin/</parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">9</wait>
+	    </ensure>
+    </module>
+
+   <module>
+        <name>sensationManager</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">8</wait>
+	    </ensure>
+    </module>
+    <module>
+        <name>homeostasis</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+	    <ensure>	   
+	       <wait when="stop">8</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>ears</name>
+        <parameters>--from ears.ini</parameters>
+        <node>icubVulcan</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+	        <port timeout="10">/speechRecognizer/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">8</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>proactiveTagging</name>
+        <parameters>--from proactiveTagging.ini</parameters>
+        <node>icubVulcan</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/iSpeak</port>
+            <port timeout="10">/speechRecognizer/rpc</port>
+            <port timeout="10">/actionsRenderingEngine/cmd:io</port>
+            <!-- <port timeout="10">/babbling/rpc</port> -->
+            <port timeout="10">/agentDetector/rpc</port>
+            <port timeout="10">/iol2opc/rpc</port>
+            <port timeout="10">/sam/rpc:i</port>
+            <port timeout="10">/sam/faces/imageData:i</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">6</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>behaviorManager</name>
+        <parameters>--from default.ini</parameters>
+        <node>icubVulcan</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/iSpeak</port>
+            <port timeout="10">/actionsRenderingEngine/cmd:io</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="20">/opcSensation/unknown_entities:o</port>
+            <port timeout="20">/opcSensation/known_entities:o</port>
+            <port timeout="20">/proactiveTagging/rpc</port>
+            <port timeout="10">/narrativeGraph/rpc</port>
+            <port timeout="10">/sam/rpc:i</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">4</wait>
+	    </ensure>
+    </module>
+
+
+    <module>
+        <name>allostaticController</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+        <dependencies>
+            <port timeout="10">/opcSensation/opc_has_unknown:o</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/homeostasis/rpc</port>
+            <port timeout="35">/BehaviorManager/trigger:i</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">2</wait>
+	    </ensure>
+    </module>
+
+
+    <module>
+        <name>planner</name>
+        <parameters></parameters>
+        <node>icubVulcan</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/homeostasis/rpc</port>
+            <port timeout="35">/BehaviorManager/trigger:i</port>
+            <port timeout="35">/ears/target:o</port>
+            <port timeout="35">/SensationManager/rpc</port>
+        </dependencies>
+	    <ensure>	   
+	       <wait when="stop">2</wait>
+	    </ensure>
+    </module>
+
+    <module>
+        <name>allostatic_plot.py</name>
+        <parameters>--x 940</parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="30">/AllostaticController/rpc</port>
+        </dependencies>
+    </module>
+    <module>
+        <name>drive_control_gui.py</name>
+        <parameters>--x940 --y600</parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="30">/AllostaticController/rpc</port>
+        </dependencies>
+    </module>
+
+
+  <connection>
+  <from>/icub/face/emotions/out</from>
+  <to>/icub/face/raw/in</to>
+  <protocol>tcp</protocol>
+</connection> 
+
+    <connection>
+        <from>/icub/camcalib/right/out</from>
+        <to>/SFM/right:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/camcalib/left/out</from>
+        <to>/SFM/left:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/camcalib/left/out</from>
+        <to>/lbpExtract/image:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/lbpExtract/segmentedlbp:o</from>
+        <to>/viewer/iol/lbpSegmented</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/himrepClassifier/classify:rpc</from>
+        <to>/linearClassifier/rpc</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/himrepClassifier/img:o</from>
+        <to>/caffeCoder/img:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/caffeCoder/code:o</from>
+        <to>/himrepClassifier/features:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/himrepClassifier/features:o</from>
+        <to>/linearClassifier/features:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/linearClassifier/scores:o</from>
+        <to>/himrepClassifier/scores:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/caffeCoder/img:o</from>
+        <to>/himrepClassifier/SIFTimg:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/iol2opc/imgLoc:o</from>
+        <to>/viewer/iol/localizer</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/iol2opc/imgHistogram:o</from>
+        <to>/viewer/iol/histogram</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/viewer/iol/localizer:o</from>
+        <to>/iol2opc/histObjLocation:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/iol2opc/imgTrack:o</from>
+        <to>/viewer/iol/track</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/iol2opc/get3d:rpc</from>
+        <to>/SFM/rpc</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/iol2opc/imgClassifier:o</from>
+        <to>/himrepClassifier/img:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/lbpExtract/blobs:o</from>
+        <to>/iol2opc/blobs:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/iol2opc/classify:rpc</from>
+        <to>/himrepClassifier/rpc</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/camcalib/left/out</from>
+        <to>/iol2opc/img:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/iolReachingCalibration/are</from>
+        <to>/actionsRenderingEngine/cmd:io</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/iolReachingCalibration/opc</from>
+        <to>/OPC/rpc</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/actionsRenderingEngine/wbd:rpc</from>
+        <to>/wholeBodyDynamics/rpc:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/agentDetector/kinect/skeletonPort:o</from>
+        <to>/viewer/skeleton</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/skin/torso_comp</from>
+        <to>/touchDetector/torso:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/skin/left_arm_comp</from>
+        <to>/touchDetector/left_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/skin/right_arm_comp</from>
+        <to>/touchDetector/right_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/skin/left_forearm_comp</from>
+        <to>/touchDetector/left_forearm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/skin/right_forearm_comp</from>
+        <to>/touchDetector/right_forearm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/skin/left_hand_comp</from>
+        <to>/touchDetector/left_hand:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/skin/right_hand_comp</from>
+        <to>/touchDetector/right_hand:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/guiUpdater/gui:o</from>
+        <to>/iCubGui/objects</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/guiUpdater/guiBase:o</from>
+        <to>/iCubGui/base:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/head/state:o</from>
+        <to>/iCubGui/head:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/inertial</from>
+        <to>/iCubGui/inertial:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/left_arm/state:o</from>
+        <to>/iCubGui/left_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/right_arm/state:o</from>
+        <to>/iCubGui/right_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/torso/state:o</from>
+        <to>/iCubGui/torso:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/skinManager/skin_events:o</from>
+        <to>/iCubGui/forces</to>
+        <protocol>udp</protocol>
+    </connection>
+  <connection>
+    <from>/icub/skin/right_hand_comp</from>
+    <to>/skinGui/right_hand:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+      <from>/sam/opcRpc:o</from>
+      <to>/OPC/rpc</to>
+      <protocol>tcp</protocol>
+  </connection>
+  <connection>
+      <from>/actionRecogDataDumper/data/dump:o</from>
+      <to>/sam/actions/actionData:i</to>
+      <protocol>udp</protocol>
+  </connection>
+  <connection>
+      <from>/CLM/imageSeg/out</from>
+      <to>/sam/faces/imageData:i</to>
+      <protocol>udp</protocol>
+  </connection>
+  <connection>
+      <from>/kinectServer/image:o</from>
+      <to>/CLM/image/in</to>
+      <protocol>udp</protocol>
+  </connection>
+</application>
