@@ -13,9 +13,10 @@
 # @authors: Andreas Damianou, Uriel Martinez, Luke Boorman, Daniel Camilleri
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
-
+from __future__ import print_function
 from SAM.SAM_Core import SAMCore
 from SAM.SAM_Core import SAMTesting
+from SAM.SAM_Core.SAM_utils import printPrefix
 import GPy
 import numpy
 import os
@@ -85,6 +86,7 @@ class SAMDriver:
         self.model_init_iterations = 0
 
         self.additionalParametersList = []
+        self.context = ['True', '']
 
     # """"""""""""""""
     # Method to load parameters from file loaded in parser from within section trainName
@@ -106,7 +108,7 @@ class SAMDriver:
         for j in self.additionalParametersList:
             commandString = 'self.paramsDict[\'' + j + '\'] = self.' + j
             try:
-                print commandString
+                printPrefix(self.context, commandString)
                 exec commandString
             except:
                 pass
@@ -148,7 +150,7 @@ class SAMDriver:
     
         if not os.path.isfile(fname + '.pickle') or economy_save:
             if not os.path.isfile(fname + '.pickle'):
-                print("Training for " + str(modelInitIterations) + "|" + str(modelNumIterations) + " iterations...")
+                printPrefix(self.context, "Training for " + str(modelInitIterations) + "|" + str(modelNumIterations) + " iterations...")
             try:
                 self.Quser is None
             except:
@@ -168,7 +170,7 @@ class SAMDriver:
                 else:
                     stringKernel = 'kernel = GPy.kern.RBF(Q, ARD=False) + GPy.kern.Bias(Q) + GPy.kern.White(Q)'
                 exec stringKernel
-                print 'stringKernel: ', stringKernel
+                printPrefix(self.context,  'stringKernel: ', stringKernel)
                 self.SAMObject.kernelString = kernelStr
             else:
                 self.SAMObject.kernelString = ''
@@ -187,11 +189,11 @@ class SAMDriver:
             
             if economy_save and os.path.isfile(fname + '.pickle') and keepIfPresent:
                 try:
-                    print("Try loading economy size SAMObject: " + fname)
+                    printPrefix(self.context, "Try loading economy size SAMObject: " + fname)
                     # Load the model from the economy storage
                     SAMCore.load_pruned_model(fname, economy_save, self.SAMObject.model)
                 except ValueError:
-                    print("Loading " + fname + " failed.\nParameters not valid. Training new model")
+                    printPrefix(self.context, "Loading " + fname + " failed.\nParameters not valid. Training new model")
                     if self.model_mode != 'temporal':
                         self.SAMObject.learn(optimizer='bfgs', max_iters=self.model_num_iterations,
                                              init_iters=self.model_init_iterations, verbose=True)
@@ -203,7 +205,7 @@ class SAMDriver:
                         self.SAMObject.namesList = None
                         self.SAMObject.kernelString = None
                     if save_model:
-                        print("Saving SAMObject: " + fname)
+                        printPrefix(self.context, "Saving SAMObject: " + fname)
                         SAMCore.save_pruned_model(self.SAMObject, fname, economy_save)
             elif not os.path.isfile(fname + '.pickle') or not keepIfPresent: 
                 # Simulate the function of learning from stored memories, e.g. while sleeping (consolidation).
@@ -219,10 +221,10 @@ class SAMDriver:
                     self.SAMObject.namesList = None
                     self.SAMObject.kernelString = None
                 if save_model:
-                    print("Saving SAMObject: " + fname)
+                    printPrefix(self.context, "Saving SAMObject: " + fname)
                     SAMCore.save_pruned_model(self.SAMObject, fname, economy_save)
         else:
-            print("Loading SAMObject: " + fname)
+            printPrefix(self.context, "Loading SAMObject: " + fname)
             self.SAMObject = SAMCore.load_pruned_model(fname)
 
     # def load(self, fname,save_model, economy_save):
@@ -256,7 +258,7 @@ class SAMDriver:
         self.L = self.L[indTr]
 
         if normalise:
-            print 'Normalising data'
+            printPrefix(self.context, 'Normalising data')
             # Center data to zero mean and 1 std
             self.Ymean = self.Y.mean()
             self.Yn = self.Y - self.Ymean
@@ -287,7 +289,7 @@ class SAMDriver:
                 self.Y = {'Y': self.Yn}
                 self.data_labels = self.L.copy()
         else:
-            print 'Not normalising data'
+            printPrefix(self.context, 'Not normalising data')
             if model == 'mrd':
                 self.X = None
                 self.Y = {'Y': self.Y, 'L': self.L}

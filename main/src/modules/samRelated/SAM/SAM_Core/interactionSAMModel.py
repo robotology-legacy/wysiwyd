@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+
+from __future__ import print_function
 import matplotlib.pyplot as plt
 import sys
 import time
 from ConfigParser import SafeConfigParser
 from SAM.SAM_Core import SAMDriver as Driver
-from SAM.SAM_Core import SAM_utils
+from SAM.SAM_Core.SAM_utils import printPrefix, initialiseModels, timeout
 import readline
 import warnings
 import numpy as np
@@ -24,7 +26,7 @@ class interactionSAMModel(yarp.RFModule):
         self.dataPath = None
         self.configPath = None
         self.modelPath = None
-        self.driverName = None
+        self.driverName = ''
         self.model_type = None
         self.model_mode = None
         self.textLabels = None
@@ -65,12 +67,18 @@ class interactionSAMModel(yarp.RFModule):
         self.modelLoaded = False
         self.attentionMode = 'continue'
         self.baseLogFileName = 'interactionErrorLog'
+        self.windowedMode = True
+        self.prefix = '\x1b[31minteraction\x1b[0m'
+        self.modelRoot = None
+        self.eventPort = None
+        self.eventPortName = None
+        self.context = [self.windowedMode, self.prefix]
 
     def configure(self, rf):
 
-        print sys.argv
+        printPrefix(self.context, sys.argv)
         stringCommand = 'from SAM.SAM_Drivers import ' + sys.argv[4] + ' as Driver'
-        print stringCommand
+        printPrefix(self.context, stringCommand)
         exec stringCommand
 
         self.mm = [Driver()]
@@ -78,7 +86,11 @@ class interactionSAMModel(yarp.RFModule):
         self.modelPath = sys.argv[2]
         self.driverName = sys.argv[4]
         self.configPath = sys.argv[3]
+        self.windowedMode = sys.argv[5] == 'True'
         self.modelRoot = self.dataPath.split('/')[-1]
+        self.prefix = '\x1b[31minteraction ' + self.driverName + '\x1b[0m'
+        self.context = [self.windowedMode, self.prefix]
+        self.mm[0].context = self.context
 
         file_i = 0
         loggerFName = join(self.dataPath, self.baseLogFileName + '_' + str(file_i) + '.log')
@@ -87,30 +99,31 @@ class interactionSAMModel(yarp.RFModule):
         while os.path.isfile(loggerFName) and os.path.getsize(loggerFName) > 0:
             loggerFName = join(self.dataPath, self.baseLogFileName + '_' + str(file_i) + '.log')
             file_i += 1
-        print loggerFName
+        printPrefix(self.context, loggerFName)
 
-        logging.basicConfig(filename=loggerFName, level=logging.INFO)
+        logging.basicConfig(filename=loggerFName, level=logging.ERROR)
         logging.getLogger().addHandler(logging.StreamHandler())
 
         off = 17
-        print '-------------------'
-        print 'Interaction Settings:'
-        print
-        print 'Data Path: '.ljust(off), self.dataPath
-        print 'Model Path: '.ljust(off), self.modelPath
-        print 'Model Root: '.ljust(off),
-        print 'Config Path: '.ljust(off), self.configPath
-        print 'Driver:'.ljust(off), self.driverName
-        print '-------------------'
-        print 'Configuring Interaction...'
-        print
+        printPrefix(self.context, '-------------------')
+        printPrefix(self.context, 'Interaction Settings:')
+        printPrefix(self.context, '\n')
+        printPrefix(self.context, 'Data Path: '.ljust(off), self.dataPath)
+        printPrefix(self.context, 'Model Path: '.ljust(off), self.modelPath)
+        printPrefix(self.context, 'Model Root: '.ljust(off),)
+        printPrefix(self.context, 'Config Path: '.ljust(off), self.configPath)
+        printPrefix(self.context, 'Driver:'.ljust(off), self.driverName)
+        printPrefix(self.context, '-------------------')
+        printPrefix(self.context, 'Configuring Interaction...')
+        printPrefix(self.context, '\n')
 
         # parse settings from config file
         parser2 = SafeConfigParser()
         parser2.read(self.configPath)
+        proposedBuffer = 5
         if self.modelRoot in parser2.sections():
             self.portNameList = parser2.items(self.dataPath.split('/')[-1])
-            print self.portNameList
+            printPrefix(self.context, self.portNameList)
             self.portsList = []
             for j in range(len(self.portNameList)):
                 if self.portNameList[j][0] == 'rpcbase':
@@ -126,16 +139,17 @@ class interactionSAMModel(yarp.RFModule):
                     try:
                         proposedBuffer = int(self.portNameList[j][1].split(' ')[1])
                     except ValueError:
-                        print 'collectionMethod bufferSize is not an integer'
-                        print 'Should be e.g: collectionMethod = buffered 3'
+                        printPrefix(self.context, 'collectionMethod bufferSize is not an integer')
+                        printPrefix(self.context, 'Should be e.g: collectionMethod = buffered 3')
                         return False
 
                     if self.collectionMethod not in ['buffered', 'continuous', 'future_buffered']:
-                        print 'collectionMethod should be set to buffered / continuous / future_buffered'
+                        printPrefix(self.context, 'collectionMethod should be set to buffered / '
+                                    'continuous / future_buffered')
                         return False
                 else:
                     parts = self.portNameList[j][1].split(' ')
-                    print parts
+                    printPrefix(self.context, parts)
 
                     if parts[1].lower() == 'imagergb':
                         self.portsList.append(yarp.BufferedPortImageRgb())
@@ -150,7 +164,8 @@ class interactionSAMModel(yarp.RFModule):
                         self.portsList[j].open(parts[0])
 
                     else:
-                        print 'Data type ', parts[1], 'for ', self.portNameList[j][0], ' unsupported'
+                        printPrefix(self.context, 'Data type ', parts[1], 'for ',
+                                    self.portNameList[j][0], ' unsupported')
                         return False
                     # mrd models with label/instance training will always have:
                     # 1 an input data line which is used when a label is requested
@@ -169,13 +184,13 @@ class interactionSAMModel(yarp.RFModule):
                 self.portsList[self.eventPort].open(self.eventPortName)
 
             if self.svPort is None or self.labelPort is None or self.instancePort is None:
-                print 'Config file properties incorrect. Should look like this:'
-                print '[Actions]'
-                print 'dataIn = /sam/actions/actionData:i Bottle'
-                print 'dataOut = /sam/actions/actionData:o Bottle'
-                print 'rpcBase = /sam/actions/rpc'
-                print 'callSign = ask_action_label, ask_action_instance'
-                print 'collectionMethod = buffered 3'
+                printPrefix(self.context, 'Config file properties incorrect. Should look like this:')
+                printPrefix(self.context, '[Actions]')
+                printPrefix(self.context, 'dataIn = /sam/actions/actionData:i Bottle')
+                printPrefix(self.context, 'dataOut = /sam/actions/actionData:o Bottle')
+                printPrefix(self.context, 'rpcBase = /sam/actions/rpc')
+                printPrefix(self.context, 'callSign = ask_action_label, ask_action_instance')
+                printPrefix(self.context, 'collectionMethod = buffered 3')
 
             # self.mm[0].configInteraction(self)
             self.inputType = self.portNameList[self.labelPort][1].split(' ')[1].lower()
@@ -184,8 +199,8 @@ class interactionSAMModel(yarp.RFModule):
             self.classificationList = []
             yarp.Network.init()
 
-            self.mm = SAM_utils.initialiseModels([self.dataPath, self.modelPath, self.driverName], 'update',
-                                                 'interaction')
+            self.mm = initialiseModels([self.dataPath, self.modelPath, self.driverName], 'update',
+                                                 'interaction', context=self.context)
             self.modelLoaded = True
 
             if self.mm[0].model_mode != 'temporal':
@@ -197,17 +212,17 @@ class interactionSAMModel(yarp.RFModule):
 
             return True
         else:
-            print 'Section ' + self.modelRoot + ' not found in ' + self.configPath
+            printPrefix(self.context, 'Section ' + self.modelRoot + ' not found in ' + self.configPath)
             return False
 
     def close(self):
         # close ports of loaded models
-        print 'Exiting ...'
+        printPrefix(self.context, 'Exiting ...')
         for j in self.portsList:
             self.closePort(j)
         return False
 
-    @SAM_utils.timeout(3)
+    @timeout(3)
     def closePort(self, j):
         j.interrupt()
         time.sleep(1)
@@ -215,7 +230,6 @@ class interactionSAMModel(yarp.RFModule):
 
     def respond(self, command, reply):
         # this method responds to samSupervisor commands
-        b = yarp.Bottle()
         reply.clear()
         action = command.get(0).asString()
 
@@ -228,8 +242,8 @@ class interactionSAMModel(yarp.RFModule):
 
         if self.modelLoaded:
             if action != 'heartbeat' or action != 'information':
-                print(action + ' received')
-                print 'responding to ' + action + ' request'
+                printPrefix(self.context, action + ' received')
+                printPrefix(self.context, 'responding to ' + action + ' request')
 
             if action == "portNames":
                 reply.addString('ack')
@@ -242,10 +256,10 @@ class interactionSAMModel(yarp.RFModule):
                 # send a message to the interaction model to check version of currently loaded model
                 # and compare it with that stored on disk. If model on disk is more recent reload model
                 # interaction model to return "model reloaded correctly" or "loaded model already up to date"
-                print "reloading model"
+                printPrefix(self.context, "reloading model")
                 try:
-                    self.mm = SAM_utils.initialiseModels([self.dataPath, self.modelPath, self.driverName],
-                                                         'update', 'interaction')
+                    self.mm = initialiseModels([self.dataPath, self.modelPath, self.driverName],
+                                                         'update', 'interaction', context=self.context)
                     reply.addString('ack')
                 except:
                     reply.addString('nack')
@@ -270,7 +284,7 @@ class interactionSAMModel(yarp.RFModule):
                         reply.addString('ack')
                     except:
                         reply.addString('nack')
-                    print self.additionalInfoDict
+                    printPrefix(self.context, self.additionalInfoDict)
             # -------------------------------------------------
             elif action == "EXIT":
                 reply.addString('ack')
@@ -294,11 +308,11 @@ class interactionSAMModel(yarp.RFModule):
     def classifyInstance(self, reply):
         if self.portsList[self.labelPort].getInputCount() > 0:
             if self.verboseSetting:
-                print '-------------------------------------'
+                printPrefix(self.context, '-------------------------------------')
             if self.collectionMethod == 'buffered':
                 if self.modelLoaded:
                     thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                               additionalData=self.additionalInfoDict)
+                                                           additionalData=self.additionalInfoDict)
                 else:
                     thisClass = None
 
@@ -309,7 +323,7 @@ class interactionSAMModel(yarp.RFModule):
                     # reply.addDouble(likelihood)
             # -------------------------------------------------
             elif self.collectionMethod == 'continuous':
-                print self.classificationList
+                printPrefix(self.context, self.classificationList)
                 if len(self.classificationList) > 0:
                     reply.addString('ack')
                     reply.addString(self.classificationList[-1])
@@ -323,7 +337,7 @@ class interactionSAMModel(yarp.RFModule):
                     self.dataList.append(self.readFrame())
                 if self.modelLoaded:
                     thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                               additionalData=self.additionalInfoDict)
+                                                           additionalData=self.additionalInfoDict)
                 else:
                     thisClass = None
 
@@ -335,7 +349,7 @@ class interactionSAMModel(yarp.RFModule):
         else:
             reply.addString('nack')
             reply.addString('No input connections to ' + str(self.portsList[self.labelPort].getName()))
-        print '--------------------------------------'
+        printPrefix(self.context, '--------------------------------------')
 
     def generateInstance(self, reply, instanceName):
         if self.portsList[self.instancePort].getOutputCount() != 0:
@@ -344,7 +358,8 @@ class interactionSAMModel(yarp.RFModule):
                 # send generated instance to driver where it is converted into the proper format
                 formattedData = self.mm[0].formatGeneratedData(instance)
                 # check formattedData is of correct data type
-                if str(type(self.portsList[self.instancePort])).split('\'')[1].split('Port')[1] in str(type(formattedData)):
+                if str(type(self.portsList[self.instancePort])).split('\'')[1].split('Port')[1] \
+                        in str(type(formattedData)):
                     try:
                         img = self.portsList[self.instancePort].prepare()
                         img.copy(formattedData)
@@ -371,7 +386,6 @@ class interactionSAMModel(yarp.RFModule):
     def recallFromLabel(self, label):
 
         ind = self.mm[0].textLabels.index(label)
-        yrecall = None
         if len(self.mm) > 1:
             indsToChooseFrom = self.mm[ind + 1].SAMObject.model.textLabelPts[ind]
             chosenInd = np.random.choice(indsToChooseFrom, 1)
@@ -396,9 +410,9 @@ class interactionSAMModel(yarp.RFModule):
         out = self.portsList[self.svPort].getOutputCount() + self.portsList[self.svPort].getInputCount()
         if out != 0:
             if not self.rpcConnected:
-                print "Connection received"
-                print
-                print '-------------------------------------'
+                printPrefix(self.context, "Connection received")
+                printPrefix(self.context, '\n')
+                printPrefix(self.context, '-------------------------------------')
                 self.rpcConnected = True
                 self.falseCount = 0
             else:
@@ -409,14 +423,15 @@ class interactionSAMModel(yarp.RFModule):
                     self.noDataCount += 1
                     if self.noDataCount == self.errorRate:
                         self.noDataCount = 0
-                        print 'No data in connection. Waiting for ' + self.portNameList[self.labelPort][1] + \
-                              ' to receive a connection'
+                        printPrefix(self.context, 'No data in connection. Waiting for ' +
+                                    self.portNameList[self.labelPort][1] + ' to receive a connection')
         else:
             self.rpcConnected = False
             self.falseCount += 1
             if self.falseCount == self.errorRate:
                 self.falseCount = 0
-                print 'Waiting for ' + self.portNameList[self.svPort][1] + ' to receive a connection'
+                printPrefix(self.context, 'Waiting for ' + self.portNameList[self.svPort][1] +
+                            ' to receive a connection')
 
         time.sleep(0.05)
         return True
@@ -428,6 +443,8 @@ class interactionSAMModel(yarp.RFModule):
             frame = yarp.ImageMono()
         elif self.inputType == 'bottle':
             frame = yarp.Bottle()
+        else:
+            return None
 
         frameRead = self.portsList[self.labelPort].read(True)
 
@@ -462,9 +479,10 @@ class interactionSAMModel(yarp.RFModule):
 
             self.dataList.append(frame)
             # process list of frames for a classification
+            dataList = []
             if self.modelLoaded:
                 thisClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                                     additionalData=self.additionalInfoDict)
+                                                                 additionalData=self.additionalInfoDict)
             else:
                 thisClass = None
             # if proper classification
@@ -477,7 +495,7 @@ class interactionSAMModel(yarp.RFModule):
                     eventBottle.addString('ack')
                     self.portsList[self.eventPort].write()
                     # add classification to classificationList to be retrieved during respond method
-                    print 'classList len:', len(self.classificationList)
+                    printPrefix(self.context, 'classList len:', len(self.classificationList))
                     if len(self.classificationList) == self.bufferSize:
                         # FIFO buffer first item in list is oldest
                         self.classificationList.pop(0)
@@ -494,6 +512,8 @@ class interactionSAMModel(yarp.RFModule):
             classifyBlock = 10
         elif self.collectionMethod == 'buffered':
             classifyBlock = self.bufferSize
+        else:
+            classifyBlock = 10
 
         while True:
             out = (self.portsList[self.svPort].getOutputCount() + self.portsList[self.svPort].getInputCount()) > 0
@@ -503,7 +523,7 @@ class interactionSAMModel(yarp.RFModule):
                 if self.collectionMethod == 'future_buffered':
                     reply = yarp.Bottle()
                     self.classifyInstance(reply)
-                    print reply.toString()
+                    printPrefix(self.context, reply.toString())
                 elif self.collectionMethod == 'continuous':
                     self.collectData()
                     count += 1
@@ -511,16 +531,16 @@ class interactionSAMModel(yarp.RFModule):
                         count = 0
                         reply = yarp.Bottle()
                         self.classifyInstance(reply)
-                        print 'CLASSIFICATION', reply.toString()
+                        printPrefix(self.context, 'CLASSIFICATION', reply.toString())
 
                 # self.dataList = []
                 # for j in range(self.bufferSize):
                 #     self.dataList.append(self.readFrame())
 
                 # if thisClass is None:
-                #     print 'None'
+                #     printPrefix(self.context, 'None')
                 # else:
-                #     print thisClass, ' ', likelihood
+                #     printPrefix(self.context, thisClass, ' ', likelihood)
 
             time.sleep(0.05)
 

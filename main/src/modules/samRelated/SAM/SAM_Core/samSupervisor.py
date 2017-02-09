@@ -74,6 +74,7 @@ class SamSupervisorModule(yarp.RFModule):
         self.opcPortName = None
         self.opcRPCName = None
         self.baseLogFileName = 'samSupervisorErrorLog'
+        print 'test'
 
     def configure(self, rf):
         yarpAvailable = yarp.Network.checkNetwork()
@@ -783,7 +784,7 @@ class SamSupervisorModule(yarp.RFModule):
                             print modType, modToLoad
 
                             args = ' '.join([join(self.dataPath, j[0]), join(self.modelPath, modToLoad),
-                                             self.interactionConfFile, interactionFunction[0]])
+                                             self.interactionConfFile, interactionFunction[0], str(self.windowed)])
                             cmd = 'interactionSAMModel.py ' + args
 
                             if self.verbose:
@@ -1158,9 +1159,9 @@ class SamSupervisorModule(yarp.RFModule):
         #      args = ' '.join([dPath, mPath, mod[1], 'new'])
         # NEW
         if mod[0] in self.updateModelsNames:
-            args = ' '.join([dPath, mPath, mod[1], 'update', mod[0]])
+            args = ' '.join([dPath, mPath, mod[1], 'update', mod[0], str(self.windowed)])
         else:
-            args = ' '.join([dPath, mPath, mod[1], 'new', mod[0]])
+            args = ' '.join([dPath, mPath, mod[1], 'new', mod[0], str(self.windowed)])
 
         if self.verbose:
             print 'args: ', args

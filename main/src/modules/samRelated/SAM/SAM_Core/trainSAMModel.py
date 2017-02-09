@@ -11,6 +11,7 @@
 # @author: Daniel Camilleri
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
+from __future__ import print_function
 import warnings
 import sys
 import numpy
@@ -18,6 +19,7 @@ import numpy as np
 from SAM.SAM_Core import SAMCore
 from SAM.SAM_Core import SAMTesting
 from SAM.SAM_Core.SAM_utils import initialiseModels
+from SAM.SAM_Core.SAM_utils import printPrefix
 import logging
 import os
 from os.path import join
@@ -33,6 +35,9 @@ sys.excepthook = exception_hook
 dataPath = sys.argv[1]
 modelPath = sys.argv[2]
 driverName = sys.argv[3]
+windowedMode = sys.argv[6] == 'True'
+prefix = '\033[34mtrain ' + driverName + '\x1b[0m'
+context = [windowedMode, prefix]
 baseLogFileName = 'trainErrorLog_' + driverName
 
 file_i = 0
@@ -42,12 +47,12 @@ loggerFName = join(dataPath, baseLogFileName + '_' + str(file_i) + '.log')
 while os.path.isfile(loggerFName) and os.path.getsize(loggerFName) > 0:
     loggerFName = join(dataPath, baseLogFileName + '_' + str(file_i) + '.log')
     file_i += 1
-print loggerFName
+printPrefix(context,  loggerFName)
 
-logging.basicConfig(filename=loggerFName, level=logging.INFO)
+logging.basicConfig(filename=loggerFName, level=logging.ERROR)
 logging.getLogger().addHandler(logging.StreamHandler())
 
-mm = initialiseModels(sys.argv[1:4], sys.argv[4])
+mm = initialiseModels(sys.argv[1:4], sys.argv[4], context=context)
 # mm[0].SAMObject.visualise()
 
 if mm[0].calibrateUnknown or len(mm) > 1:
@@ -83,8 +88,8 @@ for k in range(numParts):
         mm[k].paramsDict['temporalModelWindowSize'] = mm[0].temporalModelWindowSize
 
     if mm[k].model_type == 'mrd' and mm[k].model_mode != 'temporal':
-        print mm[k].Y['L'].shape
-        print mm[k].Y['Y'].shape
+        printPrefix(context,  mm[k].Y['L'].shape)
+        printPrefix(context,  mm[k].Y['Y'].shape)
 
     if k == 0:
         mm[0].paramsDict['listOfModels'] = mm[0].listOfModels
@@ -116,11 +121,11 @@ for k in range(numParts):
     #     pass
         # fname = fnameProto
 
-    print
+    printPrefix(context, )
     # save model with custom .pickle dictionary by iterating through all nested models
-    print '-------------------'
-    print 'Saving: ' + mm[k].fname
+    printPrefix(context,  '-------------------')
+    printPrefix(context,  'Saving: ' + mm[k].fname)
     mm[k].saveParameters()
-    print 'Keys:'
-    print mm[k].paramsDict.keys()
+    printPrefix(context,  'Keys:')
+    printPrefix(context,  mm[k].paramsDict.keys())
     SAMCore.save_pruned_model(mm[k].SAMObject, mm[k].fname, mm[0].economy_save, extraDict=mm[k].paramsDict)

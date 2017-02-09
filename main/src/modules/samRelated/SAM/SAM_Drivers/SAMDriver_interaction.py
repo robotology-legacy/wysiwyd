@@ -11,7 +11,7 @@
 # @authors: Uriel Martinez, Luke Boorman, Andreas Damianou
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
-
+from __future__ import print_function
 import sys
 import numpy
 import os
@@ -20,6 +20,7 @@ import readline
 import yarp
 from SAM.SAM_Core import SAMDriver
 from SAM.SAM_Core import SAMTesting
+from SAM.SAM_Core.SAM_utils import printPrefix
 
 
 # """"""""""""""""
@@ -85,9 +86,9 @@ class SAMDriver_interaction(SAMDriver):
     def readData(self, root_data_dir, participant_index, *args, **kw):
 
         if not os.path.exists(root_data_dir):
-            print "CANNOT FIND:" + root_data_dir
+            printPrefix(self.context,  "CANNOT FIND:" + root_data_dir)
         else:
-            print "PATH FOUND"
+            printPrefix(self.context,  "PATH FOUND")
 
         # Find and build index of available images.......
         data_file_count = numpy.zeros([len(participant_index), len(self.paramsDict['pose_index'])])
@@ -128,9 +129,9 @@ class SAMDriver_interaction(SAMDriver):
                              self.paramsDict['pose_index'][0]][0][2]))[:, :, (2, 1, 0)]  # Convert BGR to RGB
 
         # Data size
-        print "Found minimum number of images:" + str(min_no_images)
-        print "Image count:", data_file_count
-        print "Found image with dimensions" + str(data_image.shape)
+        printPrefix(self.context,  "Found minimum number of images:" + str(min_no_images))
+        printPrefix(self.context,  "Image count:", data_file_count)
+        printPrefix(self.context,  "Found image with dimensions" + str(data_image.shape))
         #    imgplot = plt.imshow(data_image)#[:,:,(2,1,0)]) # convert BGR to RGB
 
         # Load all images....
@@ -162,12 +163,12 @@ class SAMDriver_interaction(SAMDriver):
                     data_image = cv2.imread(current_image_path)
                     # Check image is the same size if not... cut or reject
                     if data_image.shape[0] < set_x or data_image.shape[1] < set_y:
-                        print "Image too small... EXITING:"
-                        print "Found image with dimensions" + str(data_image.shape)
+                        printPrefix(self.context,  "Image too small... EXITING:")
+                        printPrefix(self.context,  "Found image with dimensions" + str(data_image.shape))
                         sys.exit(0)
                     if data_image.shape[0] > set_x or data_image.shape[1] > set_y:
-                        print "Found image with dimensions" + str(data_image.shape)
-                        print "Image too big cutting to: x=" + str(set_x) + " y=" + str(set_y)
+                        printPrefix(self.context,  "Found image with dimensions" + str(data_image.shape))
+                        printPrefix(self.context,  "Image too big cutting to: x=" + str(set_x) + " y=" + str(set_y))
                         data_image = data_image[:set_x, :set_y]
                     data_image = cv2.resize(data_image, (self.paramsDict['imgWNew'], self.paramsDict['imgHNew']))  # New
                     data_image = cv2.cvtColor(data_image, cv2.COLOR_BGR2GRAY)
@@ -183,8 +184,8 @@ class SAMDriver_interaction(SAMDriver):
 
     def processLiveData(self, dataList, thisModel, verbose, additionalData=dict()):
 
-        print 'process live data'
-        print len(dataList)
+        printPrefix(self.context,  'process live data')
+        printPrefix(self.context,  len(dataList))
 
         imgH = thisModel[0].paramsDict['imgH']
         imgW = thisModel[0].paramsDict['imgW']
@@ -208,8 +209,8 @@ class SAMDriver_interaction(SAMDriver):
                 imageArrayOld = cv2.resize(imageArray, (imgHNew, imgWNew))
                 imageArrayGray = cv2.cvtColor(imageArrayOld, cv2.COLOR_BGR2GRAY)
                 instance = imageArrayGray.flatten()[None, :]
-                print instance.shape
-                print "Collected face: " + str(i)
+                printPrefix(self.context,  instance.shape)
+                printPrefix(self.context,  "Collected face: " + str(i))
                 [labels[i], likelihoods[i]] = SAMTesting.testSegment(thisModel, instance, verbose, None)
 
             return SAMTesting.combineClassifications(thisModel, labels, likelihoods)
