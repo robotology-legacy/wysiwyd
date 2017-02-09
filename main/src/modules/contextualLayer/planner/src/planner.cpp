@@ -7,6 +7,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     setName(moduleName.c_str());
 
     manual = true;
+    maxCheck = 2;
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
@@ -489,7 +490,7 @@ bool Planner::updateModule() {
         // assumption is that the action plan is complete enough that at least one set of prerequisites is met
         bool assumption = false;
         // Bottle rep;
-        bool state;
+        bool state = true;
 
         // holding bottles that will be reversed and appended if assumption is met
         vector<string> plan_store;
@@ -517,7 +518,6 @@ bool Planner::updateModule() {
                 Bottle args = fullAction->tail();
 
                 // checking if preconditions are met starting from last action
-                state = true;
                 Bottle preconds = *grpPlans.find(planName + "-" + to_string(ii) + "pre").asList();
                 std::list<std::pair<std::string, std::string >> lArgument;
                 Bottle auxMsg;
@@ -525,55 +525,76 @@ bool Planner::updateModule() {
                 {
                     yInfo() << "there are preconditions to check for.";
 
-                    for (int k = 0; k < preconds.size(); k++)
+                    yDebug() << "maxCheck" << maxCheck;
+                    for (int checkCount = 0; checkCount < maxCheck;)
                     {
-                        // check per precondition
-                        bool indiv;
-                        bool negate;
-                        std::tie(indiv, negate, auxMsg) = conditionCheck(getState, preconds, k, object, args);
-                        state = state && indiv;
-
-                        // record a failed prerequisite
-                        string failState;
-                        if (!indiv)
+                        state = true;
+                        yDebug() << "checkCount < 2, running through all preconditions.";
+                        for (int k = 0; k < preconds.size(); k++)
                         {
-                            // assumes priority implicit in order of prerequisites
-                            string keyword = auxMsg.get(2).asString();
-                            if (negate) { failState = keyword; }
-                            else { failState = "not " + keyword; }
+                            // check per precondition
+                            bool indiv;
+                            bool negate;
+                            std::tie(indiv, negate, auxMsg) = conditionCheck(getState, preconds, k, object, args);
+                            state = state && indiv;
 
-                            bool repeat = false;
-                            yInfo() << preqFail;
-                            for (unsigned int word=0; word < preqFail.size(); word++)
+                            // record a failed prerequisite
+                            string failState;
+                            if ((!indiv) && (checkCount == 1))
                             {
-                                if (preqFail[word] == failState) { repeat = true; }
-                                else if ((preqFail[word] == "not present") &&
-                                    (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
-                                   keyword == Object::objectAreaAsString(ObjectArea::SHARED) ||
-                                   keyword == Object::objectAreaAsString(ObjectArea::HUMAN) ) )
-                                {
-                                    repeat = true;
-                                }
-                                else if ((preqFail[word] == "not present") && (failState == "known")) { repeat = true; }
-                            }
+                                yDebug() << "checkcount is max and still preconds have failed.";
+                                // assumes priority implicit in order of prerequisites
+                                string keyword = auxMsg.get(2).asString();
+                                if (negate) { failState = keyword; }
+                                else { failState = "not " + keyword; }
 
-                            if (!repeat) { preqFail.push_back(failState); }
+                                bool repeat = false;
+                                yInfo() << preqFail;
+                                if (preqFail.size() > 0)
+                                {
+                                    for (unsigned int word=0; word < preqFail.size(); word++)
+                                    {
+                                        if (preqFail[word] == failState) { repeat = true; }
+                                        else if ((preqFail[word] == "not present") &&
+                                            (keyword == Object::objectAreaAsString(ObjectArea::ROBOT) ||
+                                           keyword == Object::objectAreaAsString(ObjectArea::SHARED) ||
+                                           keyword == Object::objectAreaAsString(ObjectArea::HUMAN) ) )
+                                        {
+                                            repeat = true;
+                                        }
+                                        else if ((preqFail[word] == "not present") && (failState == "known")) { repeat = true; }
+                                    }
+                                }
+
+                                if (!repeat) { preqFail.push_back(failState); }
+
+                                // formulate step for recording in ABM
+                                string recState;
+                                if (negate) { recState = "not " + auxMsg.get(2).asString(); }
+                                else { recState = auxMsg.get(2).asString(); }
+                                string strind;
+                                if (indiv == true) { strind = "true"; }
+                                else { strind = "false"; }
+                                lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(0).asString(), "predicate"+to_string(k)));
+                                lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(1).asString(), "agent"+to_string(k)));
+                                lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(k)));
+                                lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(k)));
+                                yDebug() << "lArgument formed for condition";
+
+                                auxMsg.clear();
+                            }
                         }
 
-                        // formulate step for recording in ABM
-                        string recState;
-                        if (negate) { recState = "not " + auxMsg.get(2).asString(); }
-                        else { recState = auxMsg.get(2).asString(); }
-                        string strind;
-                        if (indiv == true) { strind = "true"; }
-                        else { strind = "false"; }
-                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(0).asString(), "predicate"+to_string(k)));
-                        lArgument.push_back(std::pair<std::string, std::string>(auxMsg.get(1).asString(), "agent"+to_string(k)));
-                        lArgument.push_back(std::pair<std::string, std::string>(recState, "object"+to_string(k)));
-                        lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(k)));
-                        yDebug() << "lArgument formed for condition";
-
-                        auxMsg.clear();
+                        if (state)
+                        {
+                            checkCount = 42;
+                        }
+                        else
+                        {
+                            checkCount += 1;
+                            yInfo() << "Preconditions have not been met (" << checkCount << "), reattempting...";
+                            yarp::os::Time::delay(0.8);
+                        }
                     }
                 }
                 else
@@ -820,16 +841,31 @@ bool Planner::updateModule() {
             // checking for post condition fulfillment if ultimate state is not met
             if (!desiredState)
             {
-                for (int k = 0; k < stateOI.size(); k++)
+                for (int checkCount = 0; checkCount < maxCheck;)
                 {
-                    bool indiv;
-                    bool negate;
-                    Bottle auxMsg;
-                    std::tie(indiv, negate, auxMsg) = conditionCheck(getState, stateOI, k, object_list[0], args);
-                    stateCheck = indiv && stateCheck;
-                    yDebug() << "State is" << stateCheck;
+                    stateCheck = true;
+                    for (int k = 0; k < stateOI.size(); k++)
+                    {
+                        bool indiv;
+                        bool negate;
+                        Bottle auxMsg;
+                        std::tie(indiv, negate, auxMsg) = conditionCheck(getState, stateOI, k, object_list[0], args);
+                        stateCheck = indiv && stateCheck;
+                        yDebug() << "State is" << stateCheck;
+                    }
+                    yDebug() << "final state is " << stateCheck;
+
+                    if (!stateCheck)
+                    {
+                        yInfo() << "Post condition check has failed at attempt (" << checkCount << "), reattempting...";
+                        checkCount += 1;
+                        yarp::os::Time::delay(0.8);
+                    }
+                    else
+                    {
+                        checkCount = 42;
+                    }
                 }
-                yDebug() << "final state is " << stateCheck;
             }
 
             yDebug() << "actionCompleted: " << actionCompleted;

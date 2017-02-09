@@ -29,6 +29,7 @@ private:
     int id;
     int attemptCnt;
     int planNr;
+    int maxCheck;
 
     // bool bShouldListen;
 
