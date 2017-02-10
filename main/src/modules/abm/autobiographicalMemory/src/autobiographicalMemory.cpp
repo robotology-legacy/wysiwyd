@@ -38,6 +38,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
     processInsertDelayed = rf.check("processInsertDelayed", Value(1)).asInt() > 0;
+    storeData = rf.check("storeData", Value(1)).asInt() > 0;
 
     setName(moduleName.c_str());
 
@@ -757,14 +758,16 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
     }
 
 void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool forSingleInstance, string fullSentence) {
-    std::thread dataStreamThread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
-    std::thread imageThread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
-    imageThread.join();
-    dataStreamThread.join();
+    if(storeData) {
+        std::thread dataStreamThread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
+        std::thread imageThread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
+        imageThread.join();
+        dataStreamThread.join();
 
-    if (increaseFrameNb) {
-        frameNb++;
-        increaseFrameNb = false;
+        if (increaseFrameNb) {
+            frameNb++;
+            increaseFrameNb = false;
+        }
     }
 }
 
