@@ -3,8 +3,11 @@
 from copy import copy
 from time import sleep
 import matplotlib.pyplot as plt
+from matplotlib import get_backend
+from pylab import get_current_fig_manager
 from numpy import linspace
 import yarp
+import sys
 
 def change_drive_names(drive_names):
     new_names = []
@@ -23,7 +26,10 @@ def change_drive_names(drive_names):
 
 class AllostaticPlotModule(yarp.RFModule):
     def configure(self, rf):
-
+        self.xpos = rf.find("xpos").asInt();
+        self.ypos = rf.find("ypos").asInt();
+        self.width = rf.find("width").asInt();
+        self.height = rf.find("height").asInt();
         # time window size (= win_size * 0.1s)
         self.win_size = 600
 
@@ -93,6 +99,7 @@ class AllostaticPlotModule(yarp.RFModule):
             yarp.Network.connect("/homeostasis/" + d + "/max:o", self.drive_value_ports[i].getName())
 
 
+
         # Init matplotlib stuff
         min_val = min(self.homeo_mins)
         max_val = max(self.homeo_maxs)
@@ -100,6 +107,8 @@ class AllostaticPlotModule(yarp.RFModule):
         self.y_min = -0.1  # ((min_val - center_val) * 1.25) + center_val
         self.y_max = 1.1  # ((max_val - center_val) * 1.25) + center_val
         self.fig = plt.figure()
+        thismanager = get_current_fig_manager()
+        thismanager.window.setGeometry(self.xpos, self.ypos, self.width, self.height)
         self.ax = plt.axes(xlim=(0, self.win_size), ylim=(self.y_min, self.y_max))
         self.colors = plt.cm.viridis(linspace(0,1,len(self.drives)+2))
         self.value_lines = [self.ax.plot([], [], linestyle = '-', color=self.colors[i+1], lw=2, label=d) for i,d in enumerate(self.drives)]
@@ -198,10 +207,11 @@ class AllostaticPlotModule(yarp.RFModule):
                 if msg == "start":
                     new_rectangle = plt.Rectangle(xy=(0, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
                     plt.gca().add_patch(new_rectangle)
-                    new_text = plt.text(5, self.y_min+0.025, name, horizontalalignment='left', color="white")
+                    new_text = plt.text(5, self.y_min+0.025, name, horizontalalignment='left', color="gray")
                     self.behaviors_to_plot.append((name, new_rectangle, new_text))
                     print "Behavior " + name + " starts"
                 elif msg == "stop":
+                    # print "TEST ", self.behaviors_to_plot
                     self.behaviors_to_plot[-1][1].set_width(-self.behaviors_to_plot[-1][1].get_x())
                     print "Behavior " + name + " stops"
 
@@ -221,6 +231,7 @@ if __name__ == '__main__':
     yarp.Network.init() 
     mod = AllostaticPlotModule()
     rf = yarp.ResourceFinder()
+    rf.configure(sys.argv)
 #    mod.configure(rf)
 
     mod.runModule(rf)
