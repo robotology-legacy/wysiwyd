@@ -205,6 +205,7 @@ yarp::sig::Vector wysiwyd::wrdac::SubSystem_ARE::applySafetyMargins(const yarp::
 
 bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part, const bool wait)
 {
+    yDebug() << "ARE::home start";
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("home"));
     bCmd.addString(part.c_str());
@@ -232,12 +233,14 @@ bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part, const bool wai
         else
             SubABM->sendActivity("action","home","action-home",lArgument,false);
     }
+    yDebug() << "ARE::home stop";
 
     return bReturn;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
 {
+    yDebug() << "ARE::take start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -277,12 +280,14 @@ bool wysiwyd::wrdac::SubSystem_ARE::take(const yarp::sig::Vector &targetUnsafe, 
         lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
         SubABM->sendActivity("action", "take", "action", lArgument, false);
     }
+    yDebug() << "ARE::take stop";
 
     return bReturn;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
 {
+    yDebug() << "ARE::push start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -323,12 +328,14 @@ bool wysiwyd::wrdac::SubSystem_ARE::push(const yarp::sig::Vector &targetUnsafe, 
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "push", "action", lArgument, false);
     }
+    yDebug() << "ARE::push stop";
     return bReturn;
 
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::pointfar(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
 {
+    yDebug() << "ARE::pointfar start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -366,12 +373,14 @@ bool wysiwyd::wrdac::SubSystem_ARE::pointfar(const yarp::sig::Vector &targetUnsa
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "pointfar", "action", lArgument, false);
     }
+    yDebug() << "ARE::pointfar stop";
     return bReturn;
 }
 
 
 bool wysiwyd::wrdac::SubSystem_ARE::point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
 {
+    yDebug() << "ARE::point start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -412,11 +421,13 @@ bool wysiwyd::wrdac::SubSystem_ARE::point(const yarp::sig::Vector &targetUnsafe,
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "point", "action", lArgument, false);
     }
+    yDebug() << "ARE::point stop";
     return bReturn;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::drop(const yarp::os::Bottle &options)
 {
+    yDebug() << "ARE::drop start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -449,12 +460,13 @@ bool wysiwyd::wrdac::SubSystem_ARE::drop(const yarp::os::Bottle &options)
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "drop", "action", lArgument, true);
     }
+    yDebug() << "ARE::drop stop";
     return bReturn;
-
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::dropOn(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options)
 {
+    yDebug() << "ARE::dropOn start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -490,11 +502,13 @@ bool wysiwyd::wrdac::SubSystem_ARE::dropOn(const yarp::sig::Vector &targetUnsafe
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "dropOn", "action", lArgument, false);
     }
+    yDebug() << "ARE::dropOn stop";
     return bReturn;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::observe(const yarp::os::Bottle &options)
 {
+    yDebug() << "ARE::observe start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -520,12 +534,14 @@ bool wysiwyd::wrdac::SubSystem_ARE::observe(const yarp::os::Bottle &options)
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "observe", "action", lArgument, false);
     }
+    yDebug() << "ARE::observe stop";
 
     return bReturn;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::expect(const yarp::os::Bottle &options)
 {
+    yDebug() << "ARE::expect start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -551,12 +567,14 @@ bool wysiwyd::wrdac::SubSystem_ARE::expect(const yarp::os::Bottle &options)
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "expect", "action", lArgument, false);
     }
+    yDebug() << "ARE::expect stop";
 
     return bReturn;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::give(const yarp::os::Bottle &options)
 {
+    yDebug() << "ARE::give start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -582,11 +600,13 @@ bool wysiwyd::wrdac::SubSystem_ARE::give(const yarp::os::Bottle &options)
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "give", "action", lArgument, false);
     }
+    yDebug() << "ARE::give stop";
     return bReturn;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::waving(const bool sw)
 {
+    yDebug() << "ARE::waving start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -609,11 +629,13 @@ bool wysiwyd::wrdac::SubSystem_ARE::waving(const bool sw)
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "waving", "action", lArgument, false);
     }
+    yDebug() << "ARE::waving stop";
     return bReturn;
 }
 
 bool wysiwyd::wrdac::SubSystem_ARE::look(const yarp::sig::Vector &target, const yarp::os::Bottle &options, const std::string &sName)
 {
+    yDebug() << "ARE::look start";
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
@@ -650,6 +672,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::look(const yarp::sig::Vector &target, const 
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "look", "action", lArgument, false);
     }
+    yDebug() << "ARE::look stop";
     return bReturn;
 }
 
