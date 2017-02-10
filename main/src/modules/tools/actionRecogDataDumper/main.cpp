@@ -43,6 +43,7 @@ class Recorder : public RFModule
     string objectTag;
     double period;
     int gate;
+    int logcounter;
 
 public:
     /*******************************************************/
@@ -67,6 +68,7 @@ public:
         actionTag="none";
         objectTag="none";
         gate=0;
+        logcounter=0;
 
         return true;
     }
@@ -133,7 +135,12 @@ public:
         dumpPort.setEnvelope(dumpStamp);
         dumpPort.writeStrict();
 
-        yInfo()<<bDump.toString();
+        if(logcounter>20) { // only log every 20 iterations
+            yInfo()<<bDump.toString();
+            logcounter=0;
+        } else {
+            logcounter++;
+        }
 
         return true;
     }
