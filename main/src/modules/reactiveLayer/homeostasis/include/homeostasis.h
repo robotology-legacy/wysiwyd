@@ -46,7 +46,7 @@ public:
 
     Drive()
     {
-        cout << "Drive created using the default construtor, you should not do this" << endl;
+        cout << "Drive created using the default constructor, you should not do this" << endl;
         name = "defaultDrive";
         value = 0.5;
         homeostasisMin = 0.25;
@@ -113,6 +113,7 @@ public:
     }
 
     void freeze() {
+        start_sleep = time(NULL);
         is_sleeping = true;
         time_to_sleep = 1e10;
     }
