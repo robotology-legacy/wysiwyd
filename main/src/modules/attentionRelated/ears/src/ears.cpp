@@ -185,7 +185,7 @@ bool ears::updateModule() {
 
         if (bAnswer.get(0).asString() == "stop")
         {
-            yInfo() << " in abmHandler::node1 | stop called";
+            yInfo() << " in ears::updateModule | stop called";
             return true;
         }
         // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
@@ -249,7 +249,7 @@ bool ears::updateModule() {
             sObject = "";
         } else {
             yError() << "[ears] Unknown predicate: " << sQuestionKind;
-            // return true;
+            return true;
         }
         //send rpc data to planner
         if (onPlannerMode) {
@@ -287,7 +287,7 @@ bool ears::updateModule() {
             yDebug() << "Sending " + bCondition.toString();
         }
     } else {
-        yDebug() << "Not bListen";
+        yDebug() << "Not bShouldListen";
         yarp::os::Time::delay(0.5);
     }
 
