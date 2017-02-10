@@ -102,6 +102,7 @@ void Tagging::run(const Bottle &args) {
             iCub->say("Actually, I found similar parts of your body. Let me show you on the screen.");
             iCub->getABMClient()->triggerStreaming(ks, true, true, 0.5, "icubSim", true);
         }
+        iCub->opc->checkout();
         yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
         if(lHandVec.size()==0) {
             iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
