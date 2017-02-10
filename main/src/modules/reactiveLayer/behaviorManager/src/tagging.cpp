@@ -89,27 +89,28 @@ void Tagging::run(const Bottle &args) {
         cmd.addString(type);
         cmd.addString(target);
         yInfo() << "Proactively tagging:" << cmd.toString();
-
-        if(type=="bodypart") {
-            int ks = FollowingOrder::randKS(bKS2);
-            if(ks<0) {
-                yError() << "No kinematic structure instances defined in config file";
-            } else {
-                iCub->lookAtPartner();
-                iCub->say("Actually, I found similar parts of your body. Let me show you on the screen.");
-                iCub->getABMClient()->triggerStreaming(ks, true, true, 0.5, "icubSim", true);
-            }
-            yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
-            if(lHandVec.size()==0) {
-                iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
-            } else {
-                iCub->say("Look, because our hands look the same I know this is your hand.");
-                iCub->pointfar(lHandVec);
-            }
-        }
     }
     
     rpc_out_port.write(cmd, rply);
+
+    if(type=="bodypart" && target.find("unknown_self") == 0) {
+        int ks = FollowingOrder::randKS(bKS2);
+        if(ks<0) {
+            yError() << "No kinematic structure instances defined in config file";
+        } else {
+            iCub->lookAtPartner();
+            iCub->say("Actually, I found similar parts of your body. Let me show you on the screen.");
+            iCub->getABMClient()->triggerStreaming(ks, true, true, 0.5, "icubSim", true);
+        }
+        yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
+        if(lHandVec.size()==0) {
+            iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
+        } else {
+            iCub->say("Look, because our hands look the same I know this is your hand.");
+            iCub->pointfar(lHandVec);
+        }
+    }
+
     yInfo() << "Proactive tagging ends";
 
 }
