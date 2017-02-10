@@ -2,6 +2,29 @@
 
 from collections import OrderedDict
 from Tkinter import *
+import sys, getopt
+argv = sys.argv[1:]
+
+x = 40
+y = 40
+h = 200
+w = 400
+
+try:
+  opts, args = getopt.getopt(argv,"w:h:x:y:",["width=","height=","x=","y="])
+except getopt.GetoptError:
+  print 'drive_control_gui -w <width> -h <height> -x <x> -y <y>'
+  sys.exit(2)
+for opt, arg in opts:
+  if opt in ('-h', '--height'):
+    h=int(arg)
+  elif opt in ('-w', '--weight'):
+    w=int(arg)
+  elif opt in ('-x'):
+    x=int(arg)
+  elif opt in ('-y'):
+    y=int(arg)
+    
 
 from drive_control_rpc import pointing, tagging, reset_all, freeze_all, unfreeze_all, narrate, manual_mode, automatic_mode, close_ports, updateDriveList, trigger_behavior, updateBehaviorList
 
@@ -66,5 +89,6 @@ for i,b in enumerate(driveButtons.values()):
 for i,b in enumerate(behaviorButtons.values()):
     b.grid(row=i+3, column=2)
 
+window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 window.protocol("WM_DELETE_WINDOW", on_closing)
 window.mainloop()
