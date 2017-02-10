@@ -85,21 +85,6 @@ bool wysiwyd::wrdac::SubSystem_ARE::sendCmd(const yarp::os::Bottle &cmd, const b
     return ret;
 }
 
-bool wysiwyd::wrdac::SubSystem_ARE::sendCmdNoReply(yarp::os::Bottle &cmd)
-{
-    if (ATTconnected)
-    {
-        std::string status;
-        SubATT->getStatus(status);
-        if (status!="quiet")
-            SubATT->stop();
-    }
-
-    cmdPortNoReply.prepare()=cmd;
-    cmdPortNoReply.writeStrict();
-    return true;
-}
-
 bool wysiwyd::wrdac::SubSystem_ARE::connect()
 {
     ABMconnected=SubABM->Connect();
@@ -125,9 +110,6 @@ bool wysiwyd::wrdac::SubSystem_ARE::connect()
     }
 
     bool ret=true;
-    if(!yarp::os::Network::isConnected(cmdPortNoReply.getName(),"/actionsRenderingEngine/cmd:io")) {
-        ret&=yarp::os::Network::connect(cmdPortNoReply.getName(),"/actionsRenderingEngine/cmd:io");
-    }
     if(!yarp::os::Network::isConnected(cmdPort.getName(),"/actionsRenderingEngine/cmd:io")) {
         ret&=yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
     }
@@ -146,7 +128,6 @@ wysiwyd::wrdac::SubSystem_ARE::SubSystem_ARE(const std::string &masterName) : Su
     SubABM = new SubSystem_ABM(m_masterName+"/from_ARE");
     SubATT = new SubSystem_Attention(m_masterName+"/from_ARE");
 
-    cmdPortNoReply.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:o").c_str());
     cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
     rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/rpc").c_str());
     getPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/get:io").c_str());
@@ -157,7 +138,6 @@ wysiwyd::wrdac::SubSystem_ARE::SubSystem_ARE(const std::string &masterName) : Su
 
 void wysiwyd::wrdac::SubSystem_ARE::Close()
 {
-    cmdPortNoReply.interrupt();
     cmdPort.interrupt();
     rpcPort.interrupt();
     getPort.interrupt();
@@ -166,7 +146,6 @@ void wysiwyd::wrdac::SubSystem_ARE::Close()
     SubABM->Close();
     SubATT->Close();
 
-    cmdPortNoReply.close();
     cmdPort.close();
     rpcPort.close();
     getPort.close();
@@ -203,14 +182,14 @@ yarp::sig::Vector wysiwyd::wrdac::SubSystem_ARE::applySafetyMargins(const yarp::
     return out;
 }
 
-bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part, const bool wait)
+bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part)
 {
     yDebug() << "ARE::home start";
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("home"));
     bCmd.addString(part.c_str());
     // send the result of recognition to the ABM
-    if (wait && ABMconnected)
+    if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
         lArgument.push_back(std::pair<std::string, std::string>(part, "argument"));
@@ -218,7 +197,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part, const bool wai
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
         SubABM->sendActivity("action", "home", "action", lArgument, true);
     }
-    bool bReturn = (wait ? sendCmd(bCmd,true) : sendCmdNoReply(bCmd));
+    bool bReturn = sendCmd(bCmd,true);
     std::string status;
     bReturn ? status = "success" : status = "failed";
     if (ABMconnected)
@@ -228,10 +207,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part, const bool wai
         lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
         lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
         lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
-        if (wait)
-            SubABM->sendActivity("action","home","action",lArgument,false);
-        else
-            SubABM->sendActivity("action","home","action-home",lArgument,false);
+        SubABM->sendActivity("action","home","action",lArgument,false);
     }
     yDebug() << "ARE::home stop";
 

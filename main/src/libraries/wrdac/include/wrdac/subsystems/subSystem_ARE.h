@@ -51,7 +51,6 @@ namespace wysiwyd {
             SubSystem_Attention* SubATT;
             bool ATTconnected;
 
-            yarp::os::BufferedPort<yarp::os::Bottle> cmdPortNoReply;
             yarp::os::RpcClient cmdPort;            
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
@@ -97,11 +96,10 @@ namespace wysiwyd {
             * Put the specified part ih home position.
             * @param part the part to be homed ("gaze", "head", "arms",
             *             "fingers", "all"; "all" by default).
-            * @param wait if true it makes the call blocking.
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool home(const std::string &part = "all", const bool wait=false);
+            bool home(const std::string &part = "all");
 
             /**
             * Reach the specified [target] and grasp it. Optional parameter
