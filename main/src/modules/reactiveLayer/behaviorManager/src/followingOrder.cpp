@@ -235,7 +235,7 @@ bool FollowingOrder::handleActionKS(string action, string type) {
         if(lHandVec.size()==0) {
             iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
         } else {
-            iCub->say("Look, because our hands look the same I know this is your left hand.");
+            iCub->say("Look, because our hands look the same I know this is your hand.");
             iCub->pointfar(lHandVec);
         }
     }

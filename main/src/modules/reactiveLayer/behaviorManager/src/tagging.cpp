@@ -61,31 +61,33 @@ void Tagging::run(const Bottle &args) {
             cmd.addString(target);
             rpc_out_port.write(cmd,rply);
             yDebug() << rply.toString();
-        }else{yDebug()<<"ERRORRRR!!!!! Input not valid!!";}
-    }else{
+        } else {
+            yDebug()<<"ERRORRRR!!!!! Input not valid!!";
+        }
+    } else {
         Bottle *sensation = sensation_port_in.read();
         int id = yarp::os::Random::uniform(0, sensation->size()-1);
 
         // If there are unknown agents, prioritise tagging it.
-        for (int i = 0; i < sensation->size(); i++)
-        {
+        for (int i = 0; i < sensation->size(); i++) {
             string type = sensation->get(i).asList()->get(0).asString();
             string target = sensation->get(i).asList()->get(1).asString();
 
             if ((type == "agent") && (target == "partner"))
             {
                 id = i;
+                return;
             }
         }
-        target=sensation->get(id).asList()->get(0).asString();
-        type=sensation->get(id).asList()->get(1).asString();
+        type=sensation->get(id).asList()->get(0).asString();
+        target=sensation->get(id).asList()->get(1).asString();
         yDebug() << "Object selected: " << target << "Type: "<<type;
         //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
         
         cmd.clear();
         cmd.addString("exploreUnknownEntity");
-        cmd.addString(target);
         cmd.addString(type);
+        cmd.addString(target);
         yInfo() << "Proactively tagging:" << cmd.toString();
 
         if(type=="bodypart") {
@@ -95,8 +97,8 @@ void Tagging::run(const Bottle &args) {
             } else {
                 iCub->lookAtPartner();
                 iCub->say("Actually, I found similar parts of your body. Let me show you on the screen.");
+                iCub->getABMClient()->triggerStreaming(ks, true, true, 0.5, "icubSim", true);
             }
-            iCub->getABMClient()->triggerStreaming(ks, true, true, 0.5, "icubSim", true);
             yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
             if(lHandVec.size()==0) {
                 iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
@@ -106,7 +108,6 @@ void Tagging::run(const Bottle &args) {
             }
         }
     }
-    
     
     rpc_out_port.write(cmd, rply);
     yInfo() << "Proactive tagging ends";
