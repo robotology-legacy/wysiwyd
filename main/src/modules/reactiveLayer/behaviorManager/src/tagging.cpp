@@ -76,7 +76,7 @@ void Tagging::run(const Bottle &args) {
             if ((type == "agent") && (target == "partner"))
             {
                 id = i;
-                return;
+                break;
             }
         }
         type=sensation->get(id).asList()->get(0).asString();
