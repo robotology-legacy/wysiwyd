@@ -15,6 +15,8 @@ from sklearn.mixture import GMM
 from SAM.SAM_Core import SAM_utils as utils
 import ipyparallel as ipp
 import time
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import numpy.matlib
 import sys

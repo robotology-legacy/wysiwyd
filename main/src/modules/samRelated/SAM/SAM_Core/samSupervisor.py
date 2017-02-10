@@ -30,7 +30,7 @@ class SamSupervisorModule(yarp.RFModule):
     def __init__(self):
         yarp.RFModule.__init__(self)
         self.SIGNALS_TO_NAMES_DICT = None
-        self.terminal = 'x-terminal-emulator'
+        self.terminal = 'xterm'
         self.rootPath = None
         self.interactionConfPath = None
         self.startModels = None
