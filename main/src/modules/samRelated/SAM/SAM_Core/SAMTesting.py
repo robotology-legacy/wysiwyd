@@ -27,6 +27,7 @@ import numpy as np
 from collections import Mapping, Container
 from sys import getsizeof
 from operator import gt
+import logging
 
 np.set_printoptions(threshold=np.nan, precision=2)
 
@@ -54,7 +55,7 @@ def deep_getsizeof(o, ids):
     if 'SAM' in o.__class__.__name__:
         total = 0
         for attr, value in o.__dict__.iteritems():
-            # print attr
+            # logging.info(attr
             total += d(value, ids)
         return r + total
 
@@ -65,15 +66,15 @@ def calibrateModelRecall(thisModel):
     if len(thisModel) > 1:
         calibrateMultipleModelRecall(thisModel)
     elif hasattr(thisModel[0], 'allDataDict'):
-        print 'calibrating model'
+        logging.info('calibrating model')
         calibrateSingleModelRecall(thisModel)
     else:
-        print 'no calibration'
+        logging.warning('no calibration')
 
 
 def calibrateSingleModelRecall(thisModel):
     yCalib = formatDataFunc(thisModel[0].allDataDict['Y'])
-    print 'entering segment testing'
+    logging.info('entering segment testing')
     labelList, confMatrix, ret, variancesKnown, variancesUnknown = segmentTesting(thisModel, yCalib,
                                                                                   thisModel[0].allDataDict['L'],
                                                                                   thisModel[0].verbose, 'calib',
@@ -116,15 +117,15 @@ def calibrateSingleModelRecall(thisModel):
         thisModel[0].classificationDict['segIntersections'] = np.delete(intersection, delList)
         thisModel[0].classificationDict['bhattaDistances'] = distance
 
-        print 'Num Intersections: ', len(thisModel[0].classificationDict['segIntersections'])
+        logging.info('Num Intersections: ' + str(len(thisModel[0].classificationDict['segIntersections'])))
 
         [thisModel[0].classificationDict['varianceThreshold'],
          thisModel[0].classificationDict['varianceDirection']] = \
             calculateVarianceThreshold(thisModel[0].classificationDict['segIntersections'], mk[maxIdx], muk[maxIdx],
                                        vk[maxIdx], vuk[maxIdx])
 
-        print 'varianceThreshold', thisModel[0].classificationDict['varianceThreshold']
-        print 'varianceDirection', thisModel[0].classificationDict['varianceDirection']
+        logging.info('varianceThreshold ' + str(thisModel[0].classificationDict['varianceThreshold']))
+        logging.info('varianceDirection ' + str(thisModel[0].classificationDict['varianceDirection']))
     else:
         variancesKnownArray = np.asarray(variancesKnown)
         variancesUnknownArray = np.asarray(variancesUnknown)
@@ -178,10 +179,10 @@ def calibrateMultipleModelRecall(thisModel):
         if thisModel[i].SAMObject.model:
             # N_test x N_labels matrix.
             familiarities[i - 1] = np.zeros((Y_valid[i - 1].shape[0], (len(thisModel) - 1)))
-            print("## True label is " + thisModel[i].modelLabel)
+            logging.info("## True label is " + thisModel[i].modelLabel)
             for k in range(Y_valid[i - 1].shape[0]):
                 sstest = []
-                print('# k=' + str(k))
+                logging.info('# k= ' + str(k))
                 for j in range(len(thisModel)):
                     if thisModel[j].SAMObject.model:
                         yy_test = Y_valid[i - 1][k, :][None, :].copy()
@@ -190,12 +191,13 @@ def calibrateMultipleModelRecall(thisModel):
                         yy_test /= thisModel[j].Ystd
                         sstest.append(thisModel[j].SAMObject.familiarity(yy_test, optimise=thisModel[0].optimiseRecall))
                         familiarities[i - 1][k, j - 1] = sstest[-1]
+                msg = ''
                 for j in range(len(sstest)):
                     if j == np.argmax(sstest):
-                        print '   *',
+                        msg = '   *'
                     else:
-                        print '    ',
-                    print('      Familiarity of model ' + thisModel[j + 1].modelLabel + ' given label: ' +
+                        msg = '    '
+                    logging.info(msg + '      Familiarity of model ' + thisModel[j + 1].modelLabel + ' given label: ' +
                           thisModel[i].modelLabel + ' in valid: ' + str(sstest[j]))
 
                 confMatrix[i - 1, np.argmax(sstest)] += 1
@@ -252,7 +254,7 @@ def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimise=
     # Returns the predictive mean, the predictive variance and the axis (pp) of the latent space backwards mapping.
     # mm,vv,pp=self.SAMObject.pattern_completion(testFace, visualiseInfo=visualiseInfo)
     # if verbose:
-    # print 'single model recall'
+    # logging.info('single model recall'
     textStringOut = ''
     # normalize incoming data
     testValue = testInstance - thisModel.Ymean
@@ -325,12 +327,12 @@ def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimise=
     if verbose:
         if thisModel.calibrated:
             if textStringOut == 'unknown':
-                print "With ", probClass, "prob. error the new instance is", runnerUp
-                print 'But', details, 'than', probClass, 'so class as', textStringOut
+                logging.info("With " + str(probClass) + " prob. error the new instance is " + str(runnerUp))
+                logging.info('But ' + str(details) + ' than ' + str(probClass) + ' so class as ' + str(textStringOut))
             else:
-                print "With ", probClass, "prob. error the new instance is", textStringOut
+                logging.info("With " + str(probClass) + " prob. error the new instance is " + str(textStringOut))
         else:
-            print "With", vv, "prob. error the new instance is", textStringOut
+            logging.info("With " + str(vv) + " prob. error the new instance is " + str(textStringOut))
 
     return [textStringOut, vv]
 
@@ -339,7 +341,7 @@ def multipleRecall_noCalib(thisModel, testInstance, verbose, visualiseInfo=None,
     result = []
     if verbose:
         pass
-    # print 'multiple model recall'
+    # logging.info('multiple model recall'
 
     for j in thisModel:
         if j.SAMObject.model:
@@ -347,7 +349,7 @@ def multipleRecall_noCalib(thisModel, testInstance, verbose, visualiseInfo=None,
             tempTest /= j.Ystd
             yy_test = j.SAMObject.familiarity(tempTest, optimise=optimise)
             if verbose:
-                print('Familiarity with ' + j.modelLabel + ' given current instance is: ' + str(yy_test))
+                logging.info('Familiarity with ' + j.modelLabel + ' given current instance is: ' + str(yy_test))
             # yy_test -= thisModel[j].Ymean
             # yy_test /= thisModel[j].Ystd
             result.append(yy_test)
@@ -377,8 +379,8 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimis
         # yy_test += thisModel[j+1].Ymean
         cc = thisModel[0].classificationDict['classifiers'][j].predict_proba(yy_test)[:, j]
         if verbose:
-            print('Familiarity with ' + thisModel[j + 1].modelLabel + ' given current instance is: ' + str(yy_test) +
-                  ' ' + str(cc[0]))
+            logging.info('Familiarity with ' + thisModel[j + 1].modelLabel + ' given current instance is: ' +
+                         str(yy_test) + ' ' + str(cc[0]))
         familiarities_tmp.append(yy_test)
         classif_tmp.append(cc)
 
@@ -390,7 +392,7 @@ def multipleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimis
             bestConfidence = j
             label = thisModel[0].textLabels[j]
 
-            # print 'min, classifier, max = ' + str(thisModel[0].classif_thresh[j][0]) + \
+            # logging.info('min, classifier, max = ' + str(thisModel[0].classif_thresh[j][0]) + \
             #       ' ' + str(classif_tmp[j]) + ' ' + \
             #       str(thisModel[0].classif_thresh[j][1])
 
@@ -405,12 +407,12 @@ def wait_watching_stdout(ar, dt=1, truncate=1000):
         stdouts = ar.stdout
         if any(stdouts):
             clear_output()
-            print '-' * 30
-            print "%.3fs elapsed" % ar.elapsed
-            print ""
+            logging.info('-' * 30)
+            logging.info("%.3fs elapsed" % ar.elapsed)
+            logging.info("")
             for stdout in ar.stdout:
                 if stdout:
-                    print "\n%s" % (stdout[-truncate:])
+                    logging.info("\n%s" % (stdout[-truncate:]))
             sys.stdout.flush()
         time.sleep(dt)
 
@@ -431,11 +433,11 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
                 res = True
             else:
                 res = False
-            print 'Actual  ' + str(lab).ljust(11) + '  Classification:  ' + str(d[0]).ljust(11) + '  with ' + \
-                  str(d[1])[:6] + ' confidence: ' + str(res) + '\n'
+            logging.info('Actual  ' + str(lab).ljust(11) + '  Classification:  ' + str(d[0]).ljust(11) + '  with ' + \
+                  str(d[1])[:6] + ' confidence: ' + str(res) + '\n')
         return d
 
-    print
+    logging.info('')
 
     if type(Lnum).__module__ == np.__name__:
         useModelLabels = True
@@ -464,22 +466,22 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
     if numItems < 1500:
         serialMode = True
     c = None
-    print 'serialMode', serialMode
+    logging.info('serialMode: ' + str(serialMode))
     if not serialMode and thisModel[0].parallelOperation:
         try:
-            print 'Trying engines ...'
+            logging.info('Trying engines ...')
             c = ipp.Client()
             numWorkers = len(c._engines)
-            print 'Number of engines:', numWorkers
+            logging.info('Number of engines: ' + str(numWorkers))
         except:
-            print "Parallel workers not found"
+            logging.error("Parallel workers not found")
             thisModel[0].parallelOperation = False
             numWorkers = 1
     else:
-        print serialMode, '= True'
+        logging.info(str(serialMode) + '= True')
         thisModel[0].parallelOperation = False
         numWorkers = 1
-        print 'Number of engines:', numWorkers
+        logging.info('Number of engines: ' + str(numWorkers))
 
     # average 5 classifications before providing this time
     vTemp = copy.deepcopy(verbose)
@@ -495,29 +497,30 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
     t1 = time.time()
     verbose = vTemp
     thisModel[0].avgClassTime = (t1 - t0) / numTrials
-    print 'classification rate:', 1.0 / thisModel[0].avgClassTime, 'fps'
-    print 'estimated time: ' + str(thisModel[0].avgClassTime * numItems / (60*numWorkers)) + 'mins for ' + str(numItems) + ' items with ' + str(numWorkers) + 'workers' 
+    logging.info('classification rate:' + str(1.0 / thisModel[0].avgClassTime) + 'fps')
+    logging.info('estimated time: ' + str(thisModel[0].avgClassTime * numItems / (60*numWorkers)) + 'mins for ' +
+                 str(numItems) + ' items with ' + str(numWorkers) + 'workers')
     t0 = time.time()
-    print t0
+    logging.info(t0)
     # check size of model
     # modelSize is size in megabytes
     modelSize = deep_getsizeof(thisModel, set()) / 1024.0 / 1024.0
-    print "modelSize: ", modelSize
-    print "required testing size: ", (modelSize * numWorkers * 2) + 400, " MB"
+    logging.info("modelSize: " + str(modelSize))
+    logging.warning("required testing size: " + str((modelSize * numWorkers * 2) + 400) + " MB")
     # check available system memory in megabytes
     freeSystemMem = float(psutil.virtual_memory()[4]) / 1024.0 / 1024.0
-    print "free memory:", freeSystemMem, " MB"
+    logging.info("free memory:" + str(freeSystemMem) + " MB")
 
     if modelSize > 100 or not thisModel[0].parallelOperation or serialMode:
         # serial testing
-        print 'Testing serially'
+        logging.warning('Testing serially')
         ret = []
         for j in range(len(Lsample)):
-            print j, '/', len(Lsample)
+            logging.info(str(j) + '/' + str(len(Lsample)))
             ret.append(testFunc(Ysample[j], Lsample[j]))
     else:
         # parallel testing
-        print 'Testing in parallel'
+        logging.info('Testing in parallel')
         dview = c[:]  # not load balanced
         lb = c.load_balanced_view()  # load balanced
 
@@ -535,8 +538,8 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
         # dview.clear()
         # dview.purge_results('all')
     t1 = time.time()
-    print t1
-    print 'Actual time taken =', t1-t0
+    logging.info(t1)
+    logging.info('Actual time taken = ' + str(t1-t0))
     if calibrate:
         variancesKnown = []
         variancesUnknown = []
@@ -548,8 +551,9 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
                     result = True
                 else:
                     result = False
-                print str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: ' + ret[
-                    i][0].ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) + ' confidence: ' + str(result)
+                logging.info(str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: '
+                             + ret[i][0].ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) +
+                             ' confidence: ' + str(result))
 
             if currLabel in thisModel[0].textLabels:
                 knownLabel = True
@@ -581,9 +585,9 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
                     result = True
                 else:
                     result = False
-                print str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: ' + \
-                      retLabel.ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) + \
-                      ' confidence: ' + str(result)
+                logging.info(str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) +
+                             ' Model: ' + retLabel.ljust(off1) + ' with ' + str(ret[i][1])[:6].ljust(off2) +
+                             ' confidence: ' + str(result))
 
             labelComparisonDict['original'].append(Lsample[i])
             labelComparisonDict['results'].append(retLabel)
@@ -643,7 +647,7 @@ def calculateVarianceThreshold(segIntersections, mk, muk, vk, vuk):
 
 
 def calculateData(textLabels, confMatrix, numItems=None):
-    print confMatrix
+    logging.info(confMatrix)
     if not numItems:
         numItems = np.sum(confMatrix)
 
@@ -656,18 +660,18 @@ def calculateData(textLabels, confMatrix, numItems=None):
         if total[l] != 0:
             normConf[l, :] = normConf[l, :].astype(np.float) * 100 / total[l].astype(np.float)
 
-    print normConf
+    logging.info(normConf)
 
     # percCorect = 100 * np.diag(h.astype(np.float)).sum() / numItems
     percCorect = 100 * np.diag(normConf.astype(np.float)).sum() / np.sum(normConf)
 
-    print str(percCorect)[:5].ljust(7) + "% correct for training data"
-    print
+    logging.info(str(percCorect)[:5].ljust(7) + "% correct for training data")
+    logging.info('')
     for i in range(confMatrix.shape[0]):
         for j in range(confMatrix.shape[0]):
-            print str(normConf[i, j])[:5].ljust(7) + '% of ' + str(textLabels[i]) + \
-                  ' classified as ' + str(textLabels[j])
-        print
+            logging.info(str(normConf[i, j])[:5].ljust(7) + '% of ' + str(textLabels[i]) +
+                         ' classified as ' + str(textLabels[j]))
+        logging.info('')
     return [normConf, percCorect]
 
 

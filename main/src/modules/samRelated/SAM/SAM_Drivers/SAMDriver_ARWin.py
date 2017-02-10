@@ -9,7 +9,6 @@
 # @author: Daniel Camilleri, Andreas Damianou
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
-from __future__ import print_function
 from os import listdir
 from os.path import isfile, join
 import copy
@@ -18,7 +17,7 @@ import numpy as np
 from SAM.SAM_Core import SAMDriver
 from SAM.SAM_Core import SAMTesting
 from SAM.SAM_Core import SAM_utils as utils
-from SAM.SAM_Core.SAM_utils import printPrefix
+import logging
 np.set_printoptions(threshold=numpy.nan)
 
 
@@ -131,7 +130,7 @@ class SAMDriver_ARWin(SAMDriver):
         for j in self.additionalParametersList:
             commandString = 'self.paramsDict[\'' + j + '\'] = self.' + j
             try:
-                printPrefix(self.context, commandString)
+                logging.info(str(commandString))
                 exec commandString
             except:
                 pass
@@ -161,12 +160,12 @@ class SAMDriver_ARWin(SAMDriver):
         rawLabelList = []
         rawDataList = []
 
-        printPrefix(self.context, 'loading data from files')
+        logging.info('loading data from files')
         self.rawTextData = []
         for k in range(len(dataLogList)):
-            printPrefix(self.context, 'data file: ' + str(join(root_data_dir, dataLogList[k])))
-            printPrefix(self.context, 'model file: ' + str(join(root_data_dir, labelsLogList[k])))
-            printPrefix(self.context, '\n')
+            logging.info('data file: ' + str(join(root_data_dir, dataLogList[k])))
+            logging.info('model file: ' + str(join(root_data_dir, labelsLogList[k])))
+            logging.info('')
             dataFile = open(join(root_data_dir, dataLogList[k]), 'r')
             self.dataLogList.append(str(join(root_data_dir, dataLogList[k])))
             labelFile = open(join(root_data_dir, labelsLogList[k]), 'r')
@@ -185,8 +184,8 @@ class SAMDriver_ARWin(SAMDriver):
             labelFile.close()
 
             if lenLabelFile != lenDataFile:
-                printPrefix(self.context, str(dataLogList[k]) + ' will not be used because its length differs from ' +
-                            str(labelsLogList[k]))
+                logging.warning(str(dataLogList[k]) + ' will not be used because its length differs from ' +
+                                str(labelsLogList[k]))
             else:
                 dataFile = open(join(root_data_dir, dataLogList[k]), 'r')
                 labelFile = open(join(root_data_dir, labelsLogList[k]), 'r')
@@ -208,7 +207,7 @@ class SAMDriver_ARWin(SAMDriver):
                         rawDataList.append(t)
                         rawLabelList.append(v)
                     else:
-                        printPrefix(self.context, 'error')
+                        logging.error('messageChecker returned Fail')
 
                 dataFile.close()
                 labelFile.close()
@@ -221,10 +220,10 @@ class SAMDriver_ARWin(SAMDriver):
         jointsList = []
         objectsList = []
 
-        # printPrefix(self.context, '*******************')
+        # logging.info('*******************')
         # for j in self.paramsDict:
-        #     printPrefix(self.context, j, self.paramsDict[j]
-        # printPrefix(self.context, '*******************')
+        #     logging.info(j, self.paramsDict[j]
+        # logging.info('*******************')
 
         for t in rawData:
             # parse skeleton data which has 9 sections by (x,y,z)
@@ -263,13 +262,13 @@ class SAMDriver_ARWin(SAMDriver):
 
             firstPass = False
         if verbose:
-            printPrefix(self.context, 'data has length = ' + str(len(data)) + ' joints')
-            printPrefix(self.context, 'each joint has an array of shape ' + str(data['head'].shape))
+            logging.info('data has length = ' + str(len(data)) + ' joints')
+            logging.info('each joint has an array of shape ' + str(data['head'].shape))
 
         if self.paramsDict['filterData'] or 'vel' in self.paramsDict['components'] or \
                                             'acc' in self.paramsDict['components']:
             if verbose:
-                printPrefix(self.context, 'Filtering data with hamming window of size', self.paramsDict['filterWindow'])
+                logging.info('Filtering data with hamming window of size ' + str(self.paramsDict['filterWindow']))
             for j in data.keys():
                 t1 = utils.smooth1D(data[j][:, 0], self.paramsDict['filterWindow'])
                 t2 = utils.smooth1D(data[j][:, 1], self.paramsDict['filterWindow'])
@@ -277,13 +276,13 @@ class SAMDriver_ARWin(SAMDriver):
                 data[j] = np.hstack([t1[:, None], t2[:, None], t3[:, None]])
 
         if verbose:
-            printPrefix(self.context, 'data has length = ' + str(len(data)) + ' joints')
-            printPrefix(self.context, 'each joint has an array of shape ' + str(data['head'].shape))
+            logging.info('data has length = ' + str(len(data)) + ' joints')
+            logging.info('each joint has an array of shape ' + str(data['head'].shape))
         # convert data and number labels into windows.
         # data is still in the form of a dictionary with the joints/objects as keys of the dict
         # Text labels contained in labels
         if verbose:
-            printPrefix(self.context, '\n')
+            logging.info('')
         noY = mode != 'testing'
         if mode == 'testing':
             offset = self.paramsDict['windowOffset']
@@ -312,7 +311,7 @@ class SAMDriver_ARWin(SAMDriver):
 
                 if self.paramsDict['thresholdMovement']:
                     if printExplanation and verbose:
-                        printPrefix(self.context, 'thresholding movement <', self.paramsDict['moveThresh'])
+                        logging.info('thresholding movement <' + str(self.paramsDict['moveThresh']))
                     ranges = np.ptp(f, axis=1)
                     a = ranges < self.paramsDict['moveThresh']
                     b = ranges > -self.paramsDict['moveThresh']
@@ -325,14 +324,14 @@ class SAMDriver_ARWin(SAMDriver):
 
                 if 'vel' in self.paramsDict['components']:
                     if printExplanation and verbose:
-                        printPrefix(self.context, 'Adding velocity to the feature vector')
+                        logging.info('Adding velocity to the feature vector')
                     xxvel = np.diff(f)
                     xxvel = xxvel.reshape([xxshape1, xxshape2 - 3])
                     xx = np.hstack([xx, xxvel])
 
                 if 'acc' in self.paramsDict['components']:
                     if printExplanation and verbose:
-                        printPrefix(self.context, 'Adding acceleration to the feature vector')
+                        logging.info('Adding acceleration to the feature vector')
                     xxacc = np.diff(f, n=2)
                     xxacc = xxacc.reshape([xxshape1, xxshape2 - 6])
                     xx = np.hstack([xx, xxacc])
@@ -341,8 +340,8 @@ class SAMDriver_ARWin(SAMDriver):
             printExplanation = False
 
         if verbose:
-            printPrefix(self.context, 'data has length = ' + str(len(data2)) + ' joints')
-            printPrefix(self.context, 'each joint has an array of shape ' + str(data2['head'].shape))
+            logging.info('data has length = ' + str(len(data2)) + ' joints')
+            logging.info('each joint has an array of shape ' + str(data2['head'].shape))
 
         return data2, jointsList, objectsList
 
@@ -354,7 +353,7 @@ class SAMDriver_ARWin(SAMDriver):
         labels = list(set(labelsList))
         labels.sort()
 
-        printPrefix(self.context, '\n')
+        logging.info('')
         # convert text labels into numbers 
         labelNumsList = None
         for n, k in enumerate(labelsList):
@@ -363,12 +362,12 @@ class SAMDriver_ARWin(SAMDriver):
                 labelNumsList = np.array(res)
             else:
                 labelNumsList = np.vstack([labelNumsList, res])
-        printPrefix(self.context, 'shape of number labels:', labelNumsList.shape)
+        logging.info('shape of number labels:' + str(labelNumsList.shape))
 
         uu, tmp = utils.transformTimeSeriesToSeq(labelNumsList, self.paramsDict['windowSize'],
                                                  self.paramsDict['windowOffset'], False, False)
         data2NumLabels = uu
-        printPrefix(self.context, 'windowed number labels shape:', data2NumLabels.shape)
+        logging.info('windowed number labels shape:' + str(data2NumLabels.shape))
 
         # now that labels are in windowed form it is time to
         # assign them a text label again that describes them
@@ -386,9 +385,9 @@ class SAMDriver_ARWin(SAMDriver):
                 # which are currently dependant on windowSize
                 data2Labels.append('transition')
 
-        printPrefix(self.context, 'windowed data labels compressed:', len(data2Labels))
+        logging.info('windowed data labels compressed:' + str(len(data2Labels)))
 
-        printPrefix(self.context, '\n')
+        logging.info('')
         # create list of specific joints to be used
 
         jointsToUse = []
@@ -410,12 +409,12 @@ class SAMDriver_ARWin(SAMDriver):
 
         combineHands = len(handDict) > 1
 
-        printPrefix(self.context, jointsToUse)
-        printPrefix(self.context, objectDict)
-        printPrefix(self.context, handDict)
+        logging.info(jointsToUse)
+        logging.info(objectDict)
+        logging.info(handDict)
 
         # concatenate data for all joints in a single vector
-        printPrefix(self.context, '\n')
+        logging.info('')
         dataVecAll = None
         for j in jointsToUse:
             if dataVecAll is None:
@@ -423,20 +422,20 @@ class SAMDriver_ARWin(SAMDriver):
             else:
                 dataVecAll = np.hstack([dataVecAll, data2[j]])
         itemsPerJoint = dataVecAll.shape[1] / len(jointsToUse)
-        printPrefix(self.context, dataVecAll.shape)
-        printPrefix(self.context, itemsPerJoint)
+        logging.info(dataVecAll.shape)
+        logging.info(itemsPerJoint)
         self.itemsPerJoint = itemsPerJoint
-        printPrefix(self.context, '\n')
+        logging.info('')
 
         # it is now time to combine objects if multiple exist
         #
         self.featureSequence = ['object']
-        printPrefix(self.context, '\n')
+        logging.info('')
         combinedObjs = None
         if combineObjects:
-            printPrefix(self.context, 'Combining Objects')
+            logging.info('Combining Objects')
             for j in range(len(data2Labels)):
-                #         printPrefix(self.context, data2Labels[j])
+                #         logging.info(data2Labels[j])
                 if len(data2Labels[j].split('_')) > 2:
                     idxBase = objectDict[data2Labels[j].split('_')[2]] * itemsPerJoint
                 else:
@@ -446,15 +445,15 @@ class SAMDriver_ARWin(SAMDriver):
                     combinedObjs = dataVecAll[j, idxBase:idxBase + itemsPerJoint]
                 else:
                     combinedObjs = np.vstack([combinedObjs, dataVecAll[j, idxBase:idxBase + itemsPerJoint]])
-            printPrefix(self.context, combinedObjs.shape)
+            logging.info(combinedObjs.shape)
 
-        printPrefix(self.context, dataVecAll.shape)
+        logging.info(dataVecAll.shape)
 
-        printPrefix(self.context, '\n')
+        logging.info('')
         # it is now time to combine hands if multiple exist
         combinedHands = None
         if combineHands and self.paramsDict['combineHands']:
-            printPrefix(self.context, 'Combining hands')
+            logging.info('Combining hands')
             self.handsCombined = True
             self.featureSequence.append('hand')
             for j in range(len(data2Labels)):
@@ -468,8 +467,8 @@ class SAMDriver_ARWin(SAMDriver):
                     combinedHands = dataVecAll[j, idxBase:idxBase + itemsPerJoint]
                 else:
                     combinedHands = np.vstack([combinedHands, dataVecAll[j, idxBase:idxBase + itemsPerJoint]])
-            printPrefix(self.context, dataVecAll.shape)
-            printPrefix(self.context, combinedHands.shape)
+            logging.info(dataVecAll.shape)
+            logging.info(combinedHands.shape)
         else:
             self.handsCombined = False
 
@@ -484,7 +483,7 @@ class SAMDriver_ARWin(SAMDriver):
             else:
                 dataVecReq = np.hstack([dataVecReq, combinedObjs])
 
-        printPrefix(self.context, jointsToUse)
+        logging.info(jointsToUse)
         for j, item in enumerate(jointsToUse):
             if self.handsCombined:
                 if item not in handDict and item not in objectDict:
@@ -505,9 +504,9 @@ class SAMDriver_ARWin(SAMDriver):
                     else:
                         dataVecReq = np.hstack([dataVecReq, dataVecAll[:, idxBase:idxBase + itemsPerJoint]])
 
-        printPrefix(self.context, dataVecReq.shape)
-        printPrefix(self.context, len(data2Labels))
-        printPrefix(self.context, '\n')
+        logging.info(dataVecReq.shape)
+        logging.info(len(data2Labels))
+        logging.info('')
         self.dataVec = copy.deepcopy(dataVecReq)
 
         data2ShortLabels = []
@@ -559,9 +558,9 @@ class SAMDriver_ARWin(SAMDriver):
 
         self.Y = dataVecReq
         self.L = data2ShortLabels
-        # printPrefix(self.context, '\n'.join(data2Labels))
-        printPrefix(self.context, self.Y.shape)
-        printPrefix(self.context, len(self.L))
+        # logging.info('\n'.join(data2Labels))
+        logging.info(self.Y.shape)
+        logging.info(len(self.L))
 
         # now that all joints are in the form of a window, time to create
         # all possible vectors to classify
@@ -572,17 +571,17 @@ class SAMDriver_ARWin(SAMDriver):
 
         listOfVectorsToClassify = self.listOfClassificationVectors(self.featureSequence, objectsList)
         for j in listOfVectorsToClassify:
-            printPrefix(self.context, j)
+            logging.info(j)
 
     def readData(self, root_data_dir, participant_index, *args, **kw):
         self.rawData, labelsList = self.diskDataToLiveData(root_data_dir)
         data2, jointsList, objectsList = self.convertToDict(self.rawData, 'testing', verbose=self.verbose)
-        printPrefix(self.context, 'unique labels', set(labelsList))
+        logging.info('unique labels' + str(set(labelsList)))
         # extract a set of labels
         labels = list(set(labelsList))
         labels.sort()
 
-        printPrefix(self.context, '\n')
+        logging.info('')
         # convert text labels into numbers
         labelNumsList = None
         for n, k in enumerate(labelsList):
@@ -591,12 +590,12 @@ class SAMDriver_ARWin(SAMDriver):
                 labelNumsList = np.array(res)
             else:
                 labelNumsList = np.vstack([labelNumsList, res])
-        printPrefix(self.context, 'shape of number labels:', labelNumsList.shape)
+        logging.info('shape of number labels:' +str(labelNumsList.shape))
 
         uu, tmp = utils.transformTimeSeriesToSeq(labelNumsList, self.paramsDict['windowSize'],
                                                  self.paramsDict['windowOffset'], False, False)
         data2NumLabels = uu
-        printPrefix(self.context, 'windowed number labels shape:', data2NumLabels.shape)
+        logging.info('windowed number labels shape:' + str(data2NumLabels.shape))
 
         # now that labels are in windowed form it is time to
         # assign them a text label again that describes them
@@ -613,10 +612,10 @@ class SAMDriver_ARWin(SAMDriver):
                 # This would decrease the region size of the transition blocks
                 # which are currently dependant on windowSize
                 data2Labels.append('transition')
-        printPrefix(self.context, 'after transition unique set', set(data2Labels))
-        printPrefix(self.context, 'windowed data labels compressed:', len(data2Labels))
+        logging.info('after transition unique set ' + str(set(data2Labels)))
+        logging.info('windowed data labels compressed: ' + str(len(data2Labels)))
 
-        printPrefix(self.context, '\n')
+        logging.info('')
         # create list of specific joints to be used
 
         jointsToUse = []
@@ -638,12 +637,12 @@ class SAMDriver_ARWin(SAMDriver):
 
         combineHands = len(handDict) > 1
 
-        printPrefix(self.context, jointsToUse)
-        printPrefix(self.context, objectDict)
-        printPrefix(self.context, handDict)
+        logging.info(jointsToUse)
+        logging.info(objectDict)
+        logging.info(handDict)
 
         # concatenate data for all joints in a single vector
-        printPrefix(self.context, '\n')
+        logging.info('')
         dataVecAll = None
         for j in jointsToUse:
             if dataVecAll is None:
@@ -651,46 +650,46 @@ class SAMDriver_ARWin(SAMDriver):
             else:
                 dataVecAll = np.hstack([dataVecAll, data2[j]])
         itemsPerJoint = dataVecAll.shape[1] / len(jointsToUse)
-        printPrefix(self.context, dataVecAll.shape)
-        printPrefix(self.context, itemsPerJoint)
+        logging.info(dataVecAll.shape)
+        logging.info(itemsPerJoint)
         self.itemsPerJoint = itemsPerJoint
-        printPrefix(self.context, '\n')
+        logging.info('')
         # ------------------------------------------------------------------
         # it is now time to combine objects if multiple exist
         #
 
-        printPrefix(self.context, '\n')
+        logging.info('')
         self.featureSequence = []
         combinedObjs = dict()
         if combineObjects and 'object' in self.paramsDict['includeParts']:
             self.featureSequence.append('object')
-            printPrefix(self.context, 'Combining Objects')
+            logging.info('Combining Objects')
             for n in objectDict:
                 idxBase = objectDict[n] * itemsPerJoint
                 combinedObjs[n] = dataVecAll[:, idxBase:idxBase + itemsPerJoint]
 
-                printPrefix(self.context, combinedObjs[n].shape)
+                logging.info(combinedObjs[n].shape)
 
-        printPrefix(self.context, dataVecAll.shape)
+        logging.info(dataVecAll.shape)
 
-        printPrefix(self.context, '\n')
+        logging.info('')
         # it is now time to combine hands if multiple exist
         combinedHands = dict()
         if combineHands and self.paramsDict['combineHands'] and \
            len([s for s in self.paramsDict['includeParts'] if 'hand' in s]) > 0:
-            printPrefix(self.context, 'Combining hands')
+            logging.info('Combining hands')
             self.handsCombined = True
             self.featureSequence.append('hand')
             for n in handDict:
                 idxBase = handDict[n] * itemsPerJoint
                 combinedHands[n] = dataVecAll[:, idxBase:idxBase + itemsPerJoint]
 
-                printPrefix(self.context, combinedHands[n].shape)
-            printPrefix(self.context, dataVecAll.shape)
+                logging.info(combinedHands[n].shape)
+            logging.info(dataVecAll.shape)
         else:
             self.handsCombined = False
 
-        printPrefix(self.context, jointsToUse)
+        logging.info(jointsToUse)
         otherJoints = None
         for j, item in enumerate(jointsToUse):
             if self.handsCombined:
@@ -712,7 +711,7 @@ class SAMDriver_ARWin(SAMDriver):
                     else:
                         otherJoints = np.hstack([otherJoints, dataVecAll[:, idxBase:idxBase + itemsPerJoint]])
         if otherJoints is not None:
-            printPrefix(self.context, otherJoints.shape)
+            logging.info(otherJoints.shape)
 
         self.listOfVectorsToClassify = []
         for j in self.featureSequence:
@@ -741,22 +740,22 @@ class SAMDriver_ARWin(SAMDriver):
             else:
                 for l, m in enumerate(self.listOfVectorsToClassify):
                     self.listOfVectorsToClassify[l].append(j)
-        printPrefix(self.context, 'Vectors to Classify:')
+        logging.info('Vectors to Classify:')
         for j in self.listOfVectorsToClassify:
-            printPrefix(self.context, "\t", j)
+            logging.info("\t" + str(j))
 
         dataVecReq = None
         objSection = None
         if combinedObjs:
             objSection = None
             for j in self.listOfVectorsToClassify:
-                printPrefix(self.context, j[0])
+                logging.info(str(j[0]))
                 if objSection is None:
                     objSection = combinedObjs[j[0]]
                 else:
                     objSection = np.vstack([objSection, combinedObjs[j[0]]])
             dataVecReq = objSection
-            printPrefix(self.context, objSection.shape)
+            logging.info(str(objSection.shape))
 
         handsSection = None
         if combinedHands:
@@ -771,12 +770,12 @@ class SAMDriver_ARWin(SAMDriver):
                 dataVecReq = handsSection
             else:
                 dataVecReq = np.hstack([dataVecReq, handsSection])
-            printPrefix(self.context, handsSection.shape)
+            logging.info(str(handsSection.shape))
 
         othersSection = None
         if otherJoints is not None:
             for j in self.listOfVectorsToClassify:
-                printPrefix(self.context, j[:])
+                logging.info(str(j[:]))
                 if othersSection is None:
                     othersSection = otherJoints
                 else:
@@ -787,7 +786,7 @@ class SAMDriver_ARWin(SAMDriver):
             else:
                 dataVecReq = np.hstack([dataVecReq, othersSection])
 
-        printPrefix(self.context, dataVecReq.shape)
+        logging.info(str(dataVecReq.shape))
         del handsSection, othersSection, objSection, combinedHands, combinedObjs, otherJoints
 
         # Also augment the labels list
@@ -811,7 +810,7 @@ class SAMDriver_ARWin(SAMDriver):
                         vec = handSubList[0]
                 else:
                     vec = [f for f in self.listOfVectorsToClassify if obj in f][0]
-                # printPrefix(self.context, data2Labels.index(j), vec)
+                # logging.info(data2Labels.index(j), vec)
 
                 # printStr = ''
                 for n, k in enumerate(self.listOfVectorsToClassify):
@@ -821,7 +820,7 @@ class SAMDriver_ARWin(SAMDriver):
                     # else:
                         data2LabelsAugment[n].append('idle')
                 #         printStr += '\tidle'
-                #     printPrefix(self.context, data2LabelsAugment[n][-1],)
+                #     logging.info(data2LabelsAugment[n][-1],)
                 # print
             else:
                 obj = ''
@@ -830,17 +829,17 @@ class SAMDriver_ARWin(SAMDriver):
                 for n, k in enumerate(self.listOfVectorsToClassify):
                     # printStr += action + '\t'
                     data2LabelsAugment[n].append(action)
-        #             printPrefix(self.context, data2LabelsAugment[n][-1],)
+        #             logging.info(data2LabelsAugment[n][-1],)
         #         print
-        #     printPrefix(self.context, action, obj, hand)
-        #     printPrefix(self.context, '---------------------')
-        # printPrefix(self.context, 'before augment', set(data2Labels))
+        #     logging.info(action, obj, hand)
+        #     logging.info('---------------------')
+        # logging.info('before augment', set(data2Labels))
         data2Labels = []
         for j in data2LabelsAugment:
             data2Labels += j
-        # printPrefix(self.context, 'after augment', set(data2Labels)
-        printPrefix(self.context, 'labels', len(data2Labels))
-        printPrefix(self.context, 'data', dataVecReq.shape)
+        # logging.info('after augment', set(data2Labels)
+        logging.info('labels ' + str(len(data2Labels)))
+        logging.info('data ' + str(dataVecReq.shape))
         self.allDataDict = dict()
         self.allDataDict['Y'] = copy.deepcopy(dataVecReq)
         self.allDataDict['L'] = copy.deepcopy(data2Labels)
@@ -871,7 +870,7 @@ class SAMDriver_ARWin(SAMDriver):
             data2ShortLabels.append(slabel)
 
         self.data2Labels = copy.deepcopy(data2ShortLabels)
-        printPrefix(self.context, 'shortLabels len', set(self.data2Labels))
+        logging.info('shortLabels len ' + str(set(self.data2Labels)))
 
         if self.paramsDict['sepRL']:
             if 'pull_object' in self.paramsDict['actionsAllowedList']:
@@ -883,7 +882,7 @@ class SAMDriver_ARWin(SAMDriver):
                 self.paramsDict['actionsAllowedList'].append('push_object_left')
 
         # remove labels which will not be trained
-        printPrefix(self.context, 'actionsallowed', self.paramsDict['actionsAllowedList'])
+        logging.info('actions allowed: ' + str(self.paramsDict['actionsAllowedList']))
         listToDelete = []
         for n in reversed(range(len(data2Labels))):
             if len([j for j in self.paramsDict['actionsAllowedList'] if j in data2Labels[n]]) == 0 or \
@@ -898,9 +897,9 @@ class SAMDriver_ARWin(SAMDriver):
 
         self.Y = dataVecReq
         self.L = data2ShortLabels
-        # printPrefix(self.context, '\n'.join(data2Labels))
-        printPrefix(self.context, self.Y.shape)
-        printPrefix(self.context, len(self.L))
+        # logging.info('\n'.join(data2Labels))
+        logging.info(self.Y.shape)
+        logging.info(len(self.L))
 
     def listOfClassificationVectors(self, featureSequence, objectsList, partnerName='partner'):
         listOfVectorsToClassify = []
@@ -938,7 +937,7 @@ class SAMDriver_ARWin(SAMDriver):
             elif mode == 'live':
                 t = dataMessage.replace('(', '').replace(')', '').replace('"', '').split(' ')[2:-1]
             else:
-                printPrefix(self.context, 'Non-existing mode. Choose either live or read')
+                logging.error('Non-existing mode. Choose either live or read')
                 t = []
 
             if len(t) > 45:
@@ -986,7 +985,7 @@ class SAMDriver_ARWin(SAMDriver):
                 try:
                     data, jointsList, objectsList = self.convertToDict(dataStrings, mode=mode, verbose=False)
                 except:
-                    printPrefix(self.context, 'Some incorrect messages received')
+                    logging.error('Some incorrect messages received')
                     return 'None', None
 
                 if 'partnerName' in additionalData.keys():
@@ -1022,9 +1021,9 @@ class SAMDriver_ARWin(SAMDriver):
                     if classification == 'unknown' and not returnUnknown:
                         sentence.pop(-1)
                     elif printClass:
-                        printPrefix(self.context, sentence[-1])
+                        logging.info(sentence[-1])
                     if printClass:
-                        printPrefix(self.context, '------------------------------------------------------')
+                        logging.info('------------------------------------------------------')
 
                 del dataList[:self.paramsDict['windowOffset']]
                 if len(sentence) > 0:
@@ -1034,7 +1033,7 @@ class SAMDriver_ARWin(SAMDriver):
                     # return ['None', data, classifs, vecList]
                     return 'None', dataList
             else:
-                printPrefix(self.context, 'Some incorrect messages received')
+                logging.error('Some incorrect messages received')
                 return 'None', None
         else:
             return None, None

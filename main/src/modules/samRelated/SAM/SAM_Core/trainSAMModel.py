@@ -11,7 +11,6 @@
 # @author: Daniel Camilleri
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
-from __future__ import print_function
 import warnings
 import sys
 import numpy
@@ -19,7 +18,6 @@ import numpy as np
 from SAM.SAM_Core import SAMCore
 from SAM.SAM_Core import SAMTesting
 from SAM.SAM_Core.SAM_utils import initialiseModels
-from SAM.SAM_Core.SAM_utils import printPrefix
 import logging
 import os
 from os.path import join
@@ -36,8 +34,6 @@ dataPath = sys.argv[1]
 modelPath = sys.argv[2]
 driverName = sys.argv[3]
 windowedMode = sys.argv[6] == 'True'
-prefix = '\033[34mtrain ' + driverName + '\x1b[0m'
-context = [windowedMode, prefix]
 baseLogFileName = 'trainErrorLog_' + driverName
 
 file_i = 0
@@ -47,12 +43,27 @@ loggerFName = join(dataPath, baseLogFileName + '_' + str(file_i) + '.log')
 while os.path.isfile(loggerFName) and os.path.getsize(loggerFName) > 0:
     loggerFName = join(dataPath, baseLogFileName + '_' + str(file_i) + '.log')
     file_i += 1
-printPrefix(context,  loggerFName)
 
-logging.basicConfig(filename=loggerFName, level=logging.ERROR)
-logging.getLogger().addHandler(logging.StreamHandler())
+if windowedMode:
+    logFormatter = logging.Formatter("[%(levelname)s]  %(message)s")
+else:
+    logFormatter = logging.Formatter("\033[34m%(asctime)s [%(name)-33s] [%(levelname)8s]  %(message)s\033[0m")
 
-mm = initialiseModels(sys.argv[1:4], sys.argv[4], context=context)
+rootLogger = logging.getLogger('train ' + driverName)
+rootLogger.setLevel(logging.DEBUG)
+
+fileHandler = logging.FileHandler(loggerFName)
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
+logging.root = rootLogger
+
+logging.info(loggerFName)
+
+mm = initialiseModels(sys.argv[1:4], sys.argv[4])
 # mm[0].SAMObject.visualise()
 
 if mm[0].calibrateUnknown or len(mm) > 1:
@@ -88,8 +99,8 @@ for k in range(numParts):
         mm[k].paramsDict['temporalModelWindowSize'] = mm[0].temporalModelWindowSize
 
     if mm[k].model_type == 'mrd' and mm[k].model_mode != 'temporal':
-        printPrefix(context,  mm[k].Y['L'].shape)
-        printPrefix(context,  mm[k].Y['Y'].shape)
+        logging.info(mm[k].Y['L'].shape)
+        logging.info(mm[k].Y['Y'].shape)
 
     if k == 0:
         mm[0].paramsDict['listOfModels'] = mm[0].listOfModels
@@ -121,11 +132,10 @@ for k in range(numParts):
     #     pass
         # fname = fnameProto
 
-    printPrefix(context, )
     # save model with custom .pickle dictionary by iterating through all nested models
-    printPrefix(context,  '-------------------')
-    printPrefix(context,  'Saving: ' + mm[k].fname)
+    logging.info('-------------------')
+    logging.info('Saving: ' + mm[k].fname)
     mm[k].saveParameters()
-    printPrefix(context,  'Keys:')
-    printPrefix(context,  mm[k].paramsDict.keys())
+    logging.info('Keys:')
+    logging.info(mm[k].paramsDict.keys())
     SAMCore.save_pruned_model(mm[k].SAMObject, mm[k].fname, mm[0].economy_save, extraDict=mm[k].paramsDict)

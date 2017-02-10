@@ -9,8 +9,6 @@
 # @authors: Andreas Damianou, Daniel Camilleri
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
-from __future__ import print_function
-import __builtin__
 import matplotlib
 matplotlib.use("TkAgg")
 import numpy as np
@@ -26,21 +24,21 @@ import os
 import subprocess
 import time
 import ipyparallel as ipp
-
+import logging
 
 np.set_printoptions(precision=2)
 
+# def printPrefix(context, *args, **kwargs):
+#     # logging.info()
+#     if len(args) == 1 and args[0] == '\n':
+#         return __builtin__.print(*args, **kwargs)
+#     elif not context[0]:
+#         return __builtin__.print(context[1], *args, **kwargs)
+#     else:
+#         return __builtin__.print(*args, **kwargs)
 
-def printPrefix(context, *args, **kwargs):
-    if len(args) == 1 and args[0] == '\n':
-        return __builtin__.print(*args, **kwargs)
-    elif not context[0]:
-        return __builtin__.print(context[1], *args, **kwargs)
-    else:
-        return __builtin__.print(*args, **kwargs)
 
-
-def initialiseModels(argv, update, initMode='training', context=[True, '']):
+def initialiseModels(argv, update, initMode='training'):
     # argv[1] = dataPath
     # argv[2] = modelPath
     # argv[3] = driverName
@@ -51,13 +49,12 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
     modelPath = argv[1]
     driverName = argv[2]
 
-    printPrefix(context, argv)
+    logging.info(argv)
     stringCommand = 'from SAM.SAM_Drivers import ' + driverName + ' as Driver'
-    printPrefix(context, stringCommand)
+    logging.info(stringCommand)
     exec stringCommand
 
     mySAMpy = Driver()
-    mySAMpy.context = context
     mode = update
     trainName = dataPath.split('/')[-1]
 
@@ -65,19 +62,19 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
     participantList = [f for f in listdir(dataPath) if isdir(join(dataPath, f))]
 
     off = 17
-    printPrefix(context, '-------------------')
-    printPrefix(context, 'Training Settings:')
-    printPrefix(context, '\n')
-    printPrefix(context, 'Init mode: '.ljust(off), initMode)
-    printPrefix(context, 'Data Path: '.ljust(off), dataPath)
-    printPrefix(context, 'Model Path: '.ljust(off), modelPath)
-    printPrefix(context, 'Participants: '.ljust(off), participantList)
-    printPrefix(context, 'Model Root Name: '.ljust(off), trainName)
-    printPrefix(context, 'Training Mode:'.ljust(off), mode)
-    printPrefix(context, 'Driver:'.ljust(off), driverName)
-    printPrefix(context, '-------------------')
-    printPrefix(context, 'Loading Parameters...')
-    printPrefix(context, '\n')
+    logging.info('-------------------')
+    logging.info('Training Settings:')
+    logging.info('')
+    logging.info('Init mode: '.ljust(off) + str(initMode))
+    logging.info('Data Path: '.ljust(off) + str(dataPath))
+    logging.info('Model Path: '.ljust(off) + str(modelPath))
+    logging.info('Participants: '.ljust(off) + str(participantList))
+    logging.info('Model Root Name: '.ljust(off) + str(trainName))
+    logging.info('Training Mode:'.ljust(off) + str(mode))
+    logging.info('Driver:'.ljust(off) + str(driverName))
+    logging.info('-------------------')
+    logging.info('Loading Parameters...')
+    logging.info('')
     temporalFlag = False
     modeConfig = ''
     found = ''
@@ -89,7 +86,7 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
             modeConfig = parser.get(trainName, 'update_mode')
         else:
             modeConfig = 'update'
-        printPrefix(context, modeConfig)
+        logging.info(modeConfig)
     except IOError:
         pass
 
@@ -106,7 +103,7 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
     mySAMpy.ratioData = None
 
     if initMode == 'training' and (mode == 'new' or modeConfig == 'new' or 'exp' not in modelPath):
-        printPrefix(context, 'Loading training parameters from: \n ', '\t' + dataPath + "/config.ini")
+        logging.info('Loading training parameters from: \n \t' + str(dataPath) + "/config.ini")
         try:
             default = False
             parser = SafeConfigParser()
@@ -196,16 +193,16 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
                 mySAMpy.ratioData = 50
 
             if default:
-                printPrefix(context, 'Default settings applied')
+                logging.info('Default settings applied')
 
             mySAMpy.paramsDict = dict()
             mySAMpy.loadParameters(parser, trainName)
 
         except IOError:
-            printPrefix(context, 'IO Exception reading ', found)
+            logging.warning('IO Exception reading ', found)
             pass
     else:
-        printPrefix(context, 'Loading parameters from: \n ', '\t' + modelPath)
+        logging.info('Loading parameters from: \n \t' + str(modelPath))
         try:
             parser = SafeConfigParser()
             parser.optionxform = str
@@ -218,7 +215,7 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
             mySAMpy.paramsDict = dict()
             for j in parser.options(trainName):
                 if j not in defaultParamsList:
-                    printPrefix(context, j)
+                    logging.info(str(j))
                     mySAMpy.paramsDict[j] = modelPickle[j]
 
             mySAMpy.ratioData = modelPickle['ratioData']
@@ -240,7 +237,8 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
             try:
                 mySAMpy.useMaxDistance = modelPickle['useMaxDistance']
             except:
-                printPrefix(context, 'Failed to load useMaxDistace. Possible reasons: Not saved or multiple model implementation')
+                logging.warning('Failed to load useMaxDistace. Possible reasons: '
+                                'Not saved or multiple model implementation')
             mySAMpy.calibrateUnknown = modelPickle['calibrateUnknown']
             if mySAMpy.calibrateUnknown:
                 mySAMpy.classificationDict = modelPickle['classificationDict']
@@ -250,10 +248,10 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
             #     mySAMpy.classifiers = modelPickle['classifiers']
             #     mySAMpy.classif_thresh = modelPickle['classif_thresh']
             #     mulClassLoadFail = False
-            #     printPrefix(context, 'Successfully loaded multiple model classifiers')
+            #     logging.info('Successfully loaded multiple model classifiers')
             # except:
             #     mulClassLoadFail = True
-            #     printPrefix(context, 'Failed to load multiple model classifiers')
+            #     logging.info('Failed to load multiple model classifiers')
             #     pass
             #
             # # try loading classification parameters for single model implementation
@@ -261,18 +259,18 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
             #     mySAMpy.varianceDirection = modelPickle['varianceDirection']
             #     mySAMpy.varianceThreshold = modelPickle['varianceThreshold']
             #     mySAMpy.bestDistanceIDX = modelPickle['bestDistanceIDX']
-            #     printPrefix(context, 'Successfully loaded single model classifiers')
+            #     logging.info('Successfully loaded single model classifiers')
             #     singClassLoadFail = False
             # except:
             #     singClassLoadFail = True
-            #     printPrefix(context, 'Failed to load single model classifiers')
+            #     logging.info('Failed to load single model classifiers')
             #     pass
 
             # if mulClassLoadFail and singClassLoadFail:
             #     raise ValueError('Failed to load model classifiers')
 
         except IOError:
-            printPrefix(context, 'IO Exception reading ', found)
+            logging.warning('IO Exception reading ', found)
             pass
 
     if 'exp' in modelPath or 'best' in modelPath or 'backup' in modelPath:
@@ -282,9 +280,9 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
         fnameProto = modelPath + dataPath.split('/')[-1] + '__' + driverName + '__' + mySAMpy.model_type + \
                              '__' + str(mySAMpy.experiment_number)
 
-    printPrefix(context, 'Full model name: \n', '\t' + fnameProto)
-    printPrefix(context, '-------------------')
-    printPrefix(context, '\n')
+    logging.info('Full model name: ' + str(fnameProto))
+    logging.info('-------------------')
+    logging.info('')
 
     mySAMpy.save_model = False
     mySAMpy.economy_save = True
@@ -331,14 +329,13 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
         else:
             if k > 0:
                 mm.append(Driver())
-                mm[k].context = mm[0].context
                 # extract subset of data corresponding to this model
                 inds = [i for i in range(len(mm[0].Y['L'])) if mm[0].Y['L'][i] == k - 1]
                 mm[k].Y = mm[0].Y['Y'][inds]
                 mm[k].L = mm[0].Y['L'][inds]
                 mm[k].Quser = mm[0].Quser
                 mm[k].verbose = mm[0].verbose
-                printPrefix(context, 'Object class: ', mm[0].participantList[k])
+                logging.info('Object class: ' + str(mm[0].participantList[k]))
                 minData = len(inds)
                 mm[k].fname = fnameProto + '__L' + str(k - 1)
                 mm[0].listOfModels.append(mm[k].fname)
@@ -374,18 +371,18 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
             mm[k].YtestAll = YtestAll
             mm[k].LtestAll = LtestAll
 
-        printPrefix(context, 'minData = ' + str(minData))
-        printPrefix(context, 'ratioData = ' + str(mySAMpy.ratioData))
-    printPrefix(context, '-------------------------------------------------------------------------------------------------')
+        logging.info('minData = ' + str(minData))
+        logging.info('ratioData = ' + str(mySAMpy.ratioData))
+    logging.info('-------------------------------------------------------------------------------------------------')
     if initMode == 'training':
         samOptimiser.deleteModel(modelPath, 'exp')
         for k in range(len(mm[0].participantList)):
             # for k = 0 check if multiple model or not
             if mm[0].participantList[k] != 'root':
 
-                printPrefix(context, "Training with ", mm[0].model_num_inducing, 'inducing points for ', \
-                    mm[0].model_init_iterations, '|', mm[0].model_num_iterations)
-                printPrefix(context, "Fname:", mm[k].fname)
+                logging.info("Training with " + str(mm[0].model_num_inducing) + 'inducing points for ' +
+                             str(mm[0].model_init_iterations) + '|' + str(mm[0].model_num_iterations))
+                logging.info("Fname:" + str(mm[k].fname))
 
                 mm[k].training(mm[0].model_num_inducing, mm[0].model_num_iterations,
                                mm[0].model_init_iterations, mm[k].fname, mm[0].save_model,
@@ -401,8 +398,8 @@ def initialiseModels(argv, update, initMode='training', context=[True, '']):
         for k in range(len(mm[0].participantList)):
             # for k = 0 check if multiple model or not
             if mm[0].participantList[k] != 'root':
-                printPrefix(context, "Training with ", mm[0].model_num_inducing, 'inducing points for ', \
-                    mm[0].model_init_iterations, '|', mm[0].model_num_iterations)
+                logging.info("Training with " + str(mm[0].model_num_inducing) + 'inducing points for ' +
+                             str(mm[0].model_init_iterations) + '|' + str(mm[0].model_num_iterations))
 
                 mm[k].training(mm[0].model_num_inducing, mm[0].model_num_iterations,
                                mm[0].model_init_iterations, mm[k].fname, mm[0].save_model,
@@ -621,7 +618,7 @@ def smooth1D(x, window_len=11, window='hanning'):
         raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
     s = np.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
-    # print(len(s))
+    # logging.info((len(s))
     if window == 'flat':  # moving average
         w = np.ones(window_len, 'd')
     else:
@@ -718,13 +715,14 @@ def gp_narx(m, x_start, N, Uts, ws, Ydebug=None):
         Y[i, :] = Ypred
         varY[i, :] = varYpred
 
-        # print(i, ': ', Y[i,:] , ' | var: ', varYpred)  #####
+        # logging.info((i, ': ', Y[i,:] , ' | var: ', varYpred)  #####
 
         if Ydebug is not None:
             if Uts is not None:
-                print(i, ': X=', str(curX.flatten()), 'U=', str(Uts[i, :].flatten()), 'Y=', str(Ydebug[i, :]))
+                logging.info(i + ': X=' + str(curX.flatten()) + 'U=' + str(Uts[i, :].flatten()) +
+                             'Y=' + str(Ydebug[i, :]))
             else:
-                print(i, ': X=', str(curX.flatten()), 'U=None', 'Y=', str(Ydebug[i, :]))
+                logging.info(i + ': X=' + str(curX.flatten()) + 'U=None' + 'Y=' + str(Ydebug[i, :]))
 
         if i == N - 1:
             break
@@ -742,11 +740,11 @@ def random_data_split(Y, percentage=[0.5, 0.5]):
     perm = np.random.permutation(N)
     inds_1 = perm[0:N_1]
     inds_2 = perm[N_1:N_1+N_2]
-    return Y[inds_1,:], Y[inds_2,:], inds_1, inds_2
+    return Y[inds_1, :], Y[inds_2, :], inds_1, inds_2
 
 
 class SURFProcessor:
-    def __init__(self, imgHNew, imgWNew,n_clusters=20,SURFthresh=500,crop_thresholds=(40,160,40,160),magnify=1):
+    def __init__(self, imgHNew, imgWNew,n_clusters=20, SURFthresh=500, crop_thresholds=(40, 160, 40, 160), magnify=1):
         self.imgHNew = imgHNew
         self.imgWNew = imgWNew
         self.n_clusters = n_clusters
@@ -764,7 +762,7 @@ class SURFProcessor:
         if limits is None: limits = self.crop_thresholds
         if magnify is None: magnify = self.magnify
 
-        print('# Finding SURF features from ' + str(Y.shape[0]) + ' images...')
+        logging.info('# Finding SURF features from ' + str(Y.shape[0]) + ' images...')
         sys.stdout.flush()
         import cv2
         surf = cv2.SURF(thresh)
@@ -786,12 +784,12 @@ class SURFProcessor:
 
         descriptors = np.array(descriptors)
         desclabels = np.array(desclabels)
-        print(' Found ' + str(len(desclabels)) + ' features.')
+        logging.info(' Found ' + str(len(desclabels)) + ' features.')
         return descriptors, desclabels
 
     def _make_BoW(self,N, c_trainPredict, desclabels, n_clusters=None):
         if n_clusters is None: n_clusters = self.n_clusters
-        print('# Making BoW...')
+        logging.info('# Making BoW...')
         features = []
         for i in range(N):
             feature_counts = c_trainPredict[desclabels==i]
@@ -802,7 +800,7 @@ class SURFProcessor:
 
         return np.sqrt(np.array(features))
 
-    def make_SURF_BoW(self,Y,normalize=True,imgHNew=None, imgWNew=None,n_clusters=None,SURFthresh=None,crop_thresholds=None):
+    def make_SURF_BoW(self, Y, normalize=True,imgHNew=None, imgWNew=None, n_clusters=None, SURFthresh=None, crop_thresholds=None):
         if imgHNew is None: imgHNew = self.imgHNew;
         if imgWNew is None: imgWNew = self.imgWNew;
         if n_clusters is None: n_clusters = self.n_clusters
@@ -901,7 +899,7 @@ class ipyClusterManager:
                     time.sleep(5)
 
             for j in self.nodesDict.keys():
-                print(j)
+                logging.info(str(j))
                 if j != 'localhost':
                     if self.totalControl:
                         cmd = ['ssh', j, 'ipengine', '--file=~/ipcontroller-engine.json', '&']
@@ -915,14 +913,14 @@ class ipyClusterManager:
 
                 for n in range(self.nodesDict[j]):
                     self.expectedProcessors += 1
-                    print('\t' + ' '.join(cmd))
+                    logging.info('\t' + ' '.join(cmd))
                     if self.totalControl:
                         self.controllerProc.append(subprocess.Popen(cmd, stdout=self.devnull))
                     else:
                         os.system(cmd)
                     time.sleep(2)
 
-            print('Waiting for engines to start')
+            logging.info('Waiting for engines to start')
             time.sleep(max(self.expectedProcessors, 10))
             success = True
             try:
@@ -930,21 +928,21 @@ class ipyClusterManager:
                 self.actualProcessors = len(c._engines)
                 c.close()
                 del c
-                print('Controller started correctly')
+                logging.info('Controller started correctly')
             except:
                 success = False
                 self.terminateProcesses()
-                print('Controller failure')
+                logging.error('Controller failure')
 
             if self.actualProcessors == 0:
                 success = False
-                print('Complete engine failure')
+                logging.error('Complete engine failure')
             else:
-                print('Engines started correctly')
+                logging.info('Engines started correctly')
         except:
             success = False
             self.terminateProcesses()
-            print('Failed to initialise controller')
+            logging.error('Failed to initialise controller')
 
         return success
 

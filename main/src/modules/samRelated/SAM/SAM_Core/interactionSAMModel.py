@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -8,7 +7,7 @@ import sys
 import time
 from ConfigParser import SafeConfigParser
 from SAM.SAM_Core import SAMDriver as Driver
-from SAM.SAM_Core.SAM_utils import printPrefix, initialiseModels, timeout
+from SAM.SAM_Core.SAM_utils import initialiseModels, timeout
 import readline
 import warnings
 import numpy as np
@@ -70,17 +69,13 @@ class interactionSAMModel(yarp.RFModule):
         self.attentionMode = 'continue'
         self.baseLogFileName = 'interactionErrorLog'
         self.windowedMode = True
-        self.prefix = '\x1b[31minteraction\x1b[0m'
         self.modelRoot = None
         self.eventPort = None
         self.eventPortName = None
-        self.context = [self.windowedMode, self.prefix]
 
     def configure(self, rf):
 
-        printPrefix(self.context, sys.argv)
         stringCommand = 'from SAM.SAM_Drivers import ' + sys.argv[4] + ' as Driver'
-        printPrefix(self.context, stringCommand)
         exec stringCommand
 
         self.mm = [Driver()]
@@ -90,9 +85,6 @@ class interactionSAMModel(yarp.RFModule):
         self.configPath = sys.argv[3]
         self.windowedMode = sys.argv[5] == 'True'
         self.modelRoot = self.dataPath.split('/')[-1]
-        self.prefix = '\x1b[31minteraction ' + self.driverName + '\x1b[0m'
-        self.context = [self.windowedMode, self.prefix]
-        self.mm[0].context = self.context
 
         file_i = 0
         loggerFName = join(self.dataPath, self.baseLogFileName + '_' + str(file_i) + '.log')
@@ -101,23 +93,37 @@ class interactionSAMModel(yarp.RFModule):
         while os.path.isfile(loggerFName) and os.path.getsize(loggerFName) > 0:
             loggerFName = join(self.dataPath, self.baseLogFileName + '_' + str(file_i) + '.log')
             file_i += 1
-        printPrefix(self.context, loggerFName)
 
-        logging.basicConfig(filename=loggerFName, level=logging.ERROR)
-        logging.getLogger().addHandler(logging.StreamHandler())
+        if self.windowedMode:
+            logFormatter = logging.Formatter("[%(levelname)s]  %(message)s")
+        else:
+            logFormatter = logging.Formatter("\033[31m%(asctime)s [%(name)-33s] [%(levelname)8s]  %(message)s\033[0m")
+
+        rootLogger = logging.getLogger('interaction ' + self.driverName)
+        rootLogger.setLevel(logging.DEBUG)
+
+        fileHandler = logging.FileHandler(loggerFName)
+        fileHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(fileHandler)
+
+        consoleHandler = logging.StreamHandler()
+        consoleHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(consoleHandler)
+        logging.root = rootLogger
 
         off = 17
-        printPrefix(self.context, '-------------------')
-        printPrefix(self.context, 'Interaction Settings:')
-        printPrefix(self.context, '\n')
-        printPrefix(self.context, 'Data Path: '.ljust(off), self.dataPath)
-        printPrefix(self.context, 'Model Path: '.ljust(off), self.modelPath)
-        printPrefix(self.context, 'Model Root: '.ljust(off),)
-        printPrefix(self.context, 'Config Path: '.ljust(off), self.configPath)
-        printPrefix(self.context, 'Driver:'.ljust(off), self.driverName)
-        printPrefix(self.context, '-------------------')
-        printPrefix(self.context, 'Configuring Interaction...')
-        printPrefix(self.context, '\n')
+        logging.info('Arguments: ' + str(sys.argv))
+        logging.info(stringCommand)
+        logging.info('Using log' + str(loggerFName))
+        logging.info('-------------------')
+        logging.info('Interaction Settings:')
+        logging.info('Data Path: '.ljust(off) + str(self.dataPath))
+        logging.info('Model Path: '.ljust(off) + str(self.modelPath))
+        logging.info('Config Path: '.ljust(off) + str(self.configPath))
+        logging.info('Driver:'.ljust(off) + str(self.driverName))
+        logging.info('-------------------')
+        logging.info('Configuring Interaction...')
+        logging.info('')
 
         # parse settings from config file
         parser2 = SafeConfigParser()
@@ -125,7 +131,7 @@ class interactionSAMModel(yarp.RFModule):
         proposedBuffer = 5
         if self.modelRoot in parser2.sections():
             self.portNameList = parser2.items(self.dataPath.split('/')[-1])
-            printPrefix(self.context, self.portNameList)
+            logging.info(str(self.portNameList))
             self.portsList = []
             for j in range(len(self.portNameList)):
                 if self.portNameList[j][0] == 'rpcbase':
@@ -141,17 +147,16 @@ class interactionSAMModel(yarp.RFModule):
                     try:
                         proposedBuffer = int(self.portNameList[j][1].split(' ')[1])
                     except ValueError:
-                        printPrefix(self.context, 'collectionMethod bufferSize is not an integer')
-                        printPrefix(self.context, 'Should be e.g: collectionMethod = buffered 3')
+                        logging.error('collectionMethod bufferSize is not an integer')
+                        logging.error('Should be e.g: collectionMethod = buffered 3')
                         return False
 
                     if self.collectionMethod not in ['buffered', 'continuous', 'future_buffered']:
-                        printPrefix(self.context, 'collectionMethod should be set to buffered / '
-                                    'continuous / future_buffered')
+                        logging.error('collectionMethod should be set to buffered / continuous / future_buffered')
                         return False
                 else:
                     parts = self.portNameList[j][1].split(' ')
-                    printPrefix(self.context, parts)
+                    logging.info(parts)
 
                     if parts[1].lower() == 'imagergb':
                         self.portsList.append(yarp.BufferedPortImageRgb())
@@ -166,8 +171,8 @@ class interactionSAMModel(yarp.RFModule):
                         self.portsList[j].open(parts[0])
 
                     else:
-                        printPrefix(self.context, 'Data type ', parts[1], 'for ',
-                                    self.portNameList[j][0], ' unsupported')
+                        logging.error('Data type ' + str(parts[1]) + 'for ' +
+                                      str(self.portNameList[j][0]) + ' unsupported')
                         return False
                     # mrd models with label/instance training will always have:
                     # 1 an input data line which is used when a label is requested
@@ -186,13 +191,13 @@ class interactionSAMModel(yarp.RFModule):
                 self.portsList[self.eventPort].open(self.eventPortName)
 
             if self.svPort is None or self.labelPort is None or self.instancePort is None:
-                printPrefix(self.context, 'Config file properties incorrect. Should look like this:')
-                printPrefix(self.context, '[Actions]')
-                printPrefix(self.context, 'dataIn = /sam/actions/actionData:i Bottle')
-                printPrefix(self.context, 'dataOut = /sam/actions/actionData:o Bottle')
-                printPrefix(self.context, 'rpcBase = /sam/actions/rpc')
-                printPrefix(self.context, 'callSign = ask_action_label, ask_action_instance')
-                printPrefix(self.context, 'collectionMethod = buffered 3')
+                logging.warning('Config file properties incorrect. Should look like this:')
+                logging.warning('[Actions]')
+                logging.warning('dataIn = /sam/actions/actionData:i Bottle')
+                logging.warning('dataOut = /sam/actions/actionData:o Bottle')
+                logging.warning('rpcBase = /sam/actions/rpc')
+                logging.warning('callSign = ask_action_label, ask_action_instance')
+                logging.warning('collectionMethod = buffered 3')
 
             # self.mm[0].configInteraction(self)
             self.inputType = self.portNameList[self.labelPort][1].split(' ')[1].lower()
@@ -201,8 +206,7 @@ class interactionSAMModel(yarp.RFModule):
             self.classificationList = []
             yarp.Network.init()
 
-            self.mm = initialiseModels([self.dataPath, self.modelPath, self.driverName], 'update',
-                                                 'interaction', context=self.context)
+            self.mm = initialiseModels([self.dataPath, self.modelPath, self.driverName], 'update', 'interaction')
             self.modelLoaded = True
 
             if self.mm[0].model_mode != 'temporal':
@@ -214,7 +218,7 @@ class interactionSAMModel(yarp.RFModule):
 
             return True
         else:
-            printPrefix(self.context, 'Section ' + self.modelRoot + ' not found in ' + self.configPath)
+            logging.error('Section ' + str(self.modelRoot) + ' not found in ' + str(self.configPath))
             return False
 
     def close(self):
