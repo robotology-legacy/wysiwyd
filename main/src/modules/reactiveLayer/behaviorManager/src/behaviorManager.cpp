@@ -29,7 +29,6 @@ bool BehaviorManager::interruptModule()
 
 bool BehaviorManager::close()
 {
-    rpc_in_port.interrupt();
     rpc_in_port.close();
     iCub->close();
 
@@ -249,7 +248,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
             reply.addString("ack");
         } else {
             reply.addString("nack");
-            yDebug()<< "Behavior ' " << cmd.get(0).asString() << " ' not found. \nSend 'names' to see a list of available behaviors. ";
+            yDebug()<< "Behavior ' " << cmd.get(0).asString() << " ' cant be triggered. \nSend 'names' to see a list of available behaviors. ";
         }
     }
     yDebug() << "End of BehaviorManager::respond";
