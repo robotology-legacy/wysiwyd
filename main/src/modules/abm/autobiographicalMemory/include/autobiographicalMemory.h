@@ -145,6 +145,7 @@ public:
     // store image / data stream to ABM
     bool processInsertDelayed;
     bool storeData;
+    bool recordSound;
     void requestInsertPushToQueue(const std::string &sRequest);
     void requestInsertProcessQueue();
     std::vector<std::string> requests;

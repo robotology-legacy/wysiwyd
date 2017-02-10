@@ -39,6 +39,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     string moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
     processInsertDelayed = rf.check("processInsertDelayed", Value(1)).asInt() > 0;
     storeData = rf.check("storeData", Value(1)).asInt() > 0;
+    recordSound = rf.check("recordSound", Value(1)).asInt() > 0;
 
     setName(moduleName.c_str());
 
