@@ -120,7 +120,7 @@ class interactionSAMModel(yarp.RFModule):
         logging.info('Data Path: '.ljust(off) + str(self.dataPath))
         logging.info('Model Path: '.ljust(off) + str(self.modelPath))
         logging.info('Config Path: '.ljust(off) + str(self.configPath))
-        logging.info('Driver:'.ljust(off) + str(self.driverName))
+        logging.info('Driver: '.ljust(off) + str(self.driverName))
         logging.info('-------------------')
         logging.info('Configuring Interaction...')
         logging.info('')
@@ -171,7 +171,7 @@ class interactionSAMModel(yarp.RFModule):
                         self.portsList[j].open(parts[0])
 
                     else:
-                        logging.error('Data type ' + str(parts[1]) + 'for ' +
+                        logging.error('Data type ' + str(parts[1]) + ' for ' +
                                       str(self.portNameList[j][0]) + ' unsupported')
                         return False
                     # mrd models with label/instance training will always have:
@@ -223,7 +223,7 @@ class interactionSAMModel(yarp.RFModule):
 
     def close(self):
         # close ports of loaded models
-        printPrefix(self.context, 'Exiting ...')
+        logging.info('Exiting ...')
         for j in self.portsList:
             self.closePort(j)
         return False
@@ -248,8 +248,8 @@ class interactionSAMModel(yarp.RFModule):
 
         if self.modelLoaded:
             if action != 'heartbeat' or action != 'information':
-                printPrefix(self.context, action + ' received')
-                printPrefix(self.context, 'responding to ' + action + ' request')
+                logging.info(action + ' received')
+                logging.info('responding to ' + action + ' request')
 
             if action == "portNames":
                 reply.addString('ack')
@@ -262,7 +262,7 @@ class interactionSAMModel(yarp.RFModule):
                 # send a message to the interaction model to check version of currently loaded model
                 # and compare it with that stored on disk. If model on disk is more recent reload model
                 # interaction model to return "model reloaded correctly" or "loaded model already up to date"
-                printPrefix(self.context, "reloading model")
+                logging.info("reloading model")
                 try:
                     self.mm = initialiseModels([self.dataPath, self.modelPath, self.driverName],
                                                          'update', 'interaction', context=self.context)
@@ -290,7 +290,7 @@ class interactionSAMModel(yarp.RFModule):
                         reply.addString('ack')
                     except:
                         reply.addString('nack')
-                    printPrefix(self.context, self.additionalInfoDict)
+                    logging.info(self.additionalInfoDict)
             # -------------------------------------------------
             elif action == "EXIT":
                 reply.addString('ack')
@@ -314,7 +314,7 @@ class interactionSAMModel(yarp.RFModule):
     def classifyInstance(self, reply):
         if self.portsList[self.labelPort].getInputCount() > 0:
             if self.verboseSetting:
-                printPrefix(self.context, '-------------------------------------')
+                logging.info('-------------------------------------')
             if self.collectionMethod == 'buffered':
                 if self.modelLoaded:
                     thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
@@ -329,7 +329,7 @@ class interactionSAMModel(yarp.RFModule):
                     # reply.addDouble(likelihood)
             # -------------------------------------------------
             elif self.collectionMethod == 'continuous':
-                printPrefix(self.context, self.classificationList)
+                logging.info(self.classificationList)
                 if len(self.classificationList) > 0:
                     reply.addString('ack')
                     reply.addString(self.classificationList[-1])
@@ -355,7 +355,7 @@ class interactionSAMModel(yarp.RFModule):
         else:
             reply.addString('nack')
             reply.addString('No input connections to ' + str(self.portsList[self.labelPort].getName()))
-        printPrefix(self.context, '--------------------------------------')
+        logging.info('--------------------------------------')
 
     def generateInstance(self, reply, instanceName):
         if self.portsList[self.instancePort].getOutputCount() != 0:
@@ -416,9 +416,9 @@ class interactionSAMModel(yarp.RFModule):
         out = self.portsList[self.svPort].getOutputCount() + self.portsList[self.svPort].getInputCount()
         if out != 0:
             if not self.rpcConnected:
-                printPrefix(self.context, "Connection received")
-                printPrefix(self.context, '\n')
-                printPrefix(self.context, '-------------------------------------')
+                logging.info("Connection received")
+                logging.info('\n')
+                logging.info('-------------------------------------')
                 self.rpcConnected = True
                 self.falseCount = 0
             else:
@@ -429,15 +429,15 @@ class interactionSAMModel(yarp.RFModule):
                     self.noDataCount += 1
                     if self.noDataCount == self.errorRate:
                         self.noDataCount = 0
-                        printPrefix(self.context, 'No data in connection. Waiting for ' +
-                                    self.portNameList[self.labelPort][1] + ' to receive a connection')
+                        logging.info('No data in connection. Waiting for ' +
+                                     self.portNameList[self.labelPort][1] + ' to receive a connection')
         else:
             self.rpcConnected = False
             self.falseCount += 1
             if self.falseCount == self.errorRate:
                 self.falseCount = 0
-                printPrefix(self.context, 'Waiting for ' + self.portNameList[self.svPort][1] +
-                            ' to receive a connection')
+                logging.info('Waiting for ' + self.portNameList[self.svPort][1] +
+                             ' to receive a connection')
 
         time.sleep(0.05)
         return True
@@ -501,7 +501,7 @@ class interactionSAMModel(yarp.RFModule):
                     eventBottle.addString('ack')
                     self.portsList[self.eventPort].write()
                     # add classification to classificationList to be retrieved during respond method
-                    printPrefix(self.context, 'classList len:', len(self.classificationList))
+                    logging.info('classList len: ' + str(len(self.classificationList)))
                     if len(self.classificationList) == self.bufferSize:
                         # FIFO buffer first item in list is oldest
                         self.classificationList.pop(0)
@@ -529,7 +529,7 @@ class interactionSAMModel(yarp.RFModule):
                 if self.collectionMethod == 'future_buffered':
                     reply = yarp.Bottle()
                     self.classifyInstance(reply)
-                    printPrefix(self.context, reply.toString())
+                    logging.info(reply.toString())
                 elif self.collectionMethod == 'continuous':
                     self.collectData()
                     count += 1
@@ -537,16 +537,16 @@ class interactionSAMModel(yarp.RFModule):
                         count = 0
                         reply = yarp.Bottle()
                         self.classifyInstance(reply)
-                        printPrefix(self.context, 'CLASSIFICATION', reply.toString())
+                        logging.info('CLASSIFICATION: ' + reply.toString())
 
                 # self.dataList = []
                 # for j in range(self.bufferSize):
                 #     self.dataList.append(self.readFrame())
 
                 # if thisClass is None:
-                #     printPrefix(self.context, 'None')
+                #     logging.info('None')
                 # else:
-                #     printPrefix(self.context, thisClass, ' ', likelihood)
+                #     logging.info(thisClass, ' ', likelihood)
 
             time.sleep(0.05)
 

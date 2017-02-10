@@ -672,7 +672,7 @@ class SamSupervisorModule(yarp.RFModule):
                     alreadyOpen = True
                     conn = k
 
-            logging.info("Already open = ", alreadyOpen)
+            logging.info("Already open = " + str(alreadyOpen))
             if self.verbose:
                 logging.info(command.get(1).asString())
             if alreadyOpen:
@@ -794,7 +794,7 @@ class SamSupervisorModule(yarp.RFModule):
                                 for modType in self.modelPriority:
                                     if j[4][modType] != '':
                                         modToLoad = j[4][modType]
-                            logging.info(str(modType) + str(modToLoad))
+                            logging.info(str(modType) + ' ' + str(modToLoad))
 
                             args = ' '.join([join(self.dataPath, j[0]), join(self.modelPath, modToLoad),
                                              self.interactionConfFile, interactionFunction[0], str(self.windowed)])
@@ -820,7 +820,7 @@ class SamSupervisorModule(yarp.RFModule):
                             noConn = True
                             iters = 0
                             if self.verbose:
-                                logging.info('connecting ' + self.rpcConnections[-1][2]+'o' + \
+                                logging.info('connecting ' + self.rpcConnections[-1][2]+'o' +
                                              ' with ' + self.rpcConnections[-1][2]+'i')
                             while noConn:
                                 try:
@@ -845,7 +845,7 @@ class SamSupervisorModule(yarp.RFModule):
                                 self.closeModel(rep, cmd)
                             else:
                                 # then execute an interaction model check to verify correct startup
-                                logging.info('pinging portNames to' + str(self.rpcConnections[-1][0]))
+                                logging.info('pinging portNames to ' + str(self.rpcConnections[-1][0]))
                                 rep = yarp.Bottle()
                                 cmd = yarp.Bottle()
                                 cmd.addString("portNames")
@@ -860,7 +860,7 @@ class SamSupervisorModule(yarp.RFModule):
                                         if rep.get(p).asString() != 'ack':
                                             if rep.get(p).asString() not in self.modelConnections[self.rpcConnections[-1][0]].keys():
                                                 self.modelConnections[self.rpcConnections[-1][0]][rep.get(p).asString()] = []
-                                                logging.info('Monitoring' + rep.get(p).asString())
+                                                logging.info('Monitoring ' + rep.get(p).asString())
                                             else:
                                                 # reinstate previously present connections
                                                 for op in self.modelConnections[self.rpcConnections[-1][0]][rep.get(p).asString()]:
@@ -1274,12 +1274,12 @@ class SamSupervisorModule(yarp.RFModule):
                 if ret is not None:
                     if ret == 0:
                         readyList += [i]
-                        logging.info(str(i) + 'terminated successfully')
+                        logging.info(str(i) + ' terminated successfully')
                         b = yarp.Bottle()
                         self.checkAvailabilities(b)
                     else:
                         readyList += [i]
-                        logging.error(str(i) + 'terminated with ' + str(self.SIGNALS_TO_NAMES_DICT[abs(ret)]))
+                        logging.error(str(i) + ' terminated with ' + str(self.SIGNALS_TO_NAMES_DICT[abs(ret)]))
                 else:
                     # if(self.verbose): logging.info(i, "still training "
                     pass
@@ -1297,10 +1297,10 @@ class SamSupervisorModule(yarp.RFModule):
                     self.nonResponsiveDict[self.rpcConnections[j][0]] = 1
                 else:
                     self.nonResponsiveDict[self.rpcConnections[j][0]] += 1
-                logging.warning(str(self.rpcConnections[j][0]) + 'not responding' + str(self.nonResponsiveDict[self.rpcConnections[j][0]]) +
+                logging.warning(str(self.rpcConnections[j][0]) + ' not responding ' + str(self.nonResponsiveDict[self.rpcConnections[j][0]]) +
                     '/' + str(self.nonResponsiveThreshold))
                 if self.nonResponsiveDict[self.rpcConnections[j][0]] >= self.nonResponsiveThreshold:
-                    logging.error('Restarting ' + str(self.rpcConnections[j][0]) + 'model')
+                    logging.error('Restarting ' + str(self.rpcConnections[j][0]) + ' model')
                     if not correctOp_check1 or currModelName in self.nonResponsiveDict.keys():
                         rep = yarp.Bottle()
                         cmd = yarp.Bottle()
@@ -1341,10 +1341,10 @@ class SamSupervisorModule(yarp.RFModule):
                                         if rep.get(p).asString() != 'ack':
                                             if rep.get(p).asString() not in self.modelConnections[self.rpcConnections[n][0]].keys():
                                                 self.modelConnections[self.rpcConnections[n][0]][rep.get(p).asString()] = []
-                                                logging.info('Monitoring' + str(rep.get(p).asString()))
+                                                logging.info('Monitoring ' + str(rep.get(p).asString()))
                             else:
                                 for k in self.modelConnections[self.rpcConnections[n][0]].keys():
-                                    logging.info('ping' + str(k))
+                                    logging.info('ping ' + str(k))
                                     proc = subprocess.Popen(['yarp', 'ping', k], stdout=subprocess.PIPE)
                                     output = proc.stdout.read()
                                     proc.wait()

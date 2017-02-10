@@ -380,7 +380,7 @@ def initialiseModels(argv, update, initMode='training'):
             # for k = 0 check if multiple model or not
             if mm[0].participantList[k] != 'root':
 
-                logging.info("Training with " + str(mm[0].model_num_inducing) + 'inducing points for ' +
+                logging.info("Training with " + str(mm[0].model_num_inducing) + ' inducing points for ' +
                              str(mm[0].model_init_iterations) + '|' + str(mm[0].model_num_iterations))
                 logging.info("Fname:" + str(mm[k].fname))
 
@@ -398,7 +398,7 @@ def initialiseModels(argv, update, initMode='training'):
         for k in range(len(mm[0].participantList)):
             # for k = 0 check if multiple model or not
             if mm[0].participantList[k] != 'root':
-                logging.info("Training with " + str(mm[0].model_num_inducing) + 'inducing points for ' +
+                logging.info("Training with " + str(mm[0].model_num_inducing) + ' inducing points for ' +
                              str(mm[0].model_init_iterations) + '|' + str(mm[0].model_num_iterations))
 
                 mm[k].training(mm[0].model_num_inducing, mm[0].model_num_iterations,

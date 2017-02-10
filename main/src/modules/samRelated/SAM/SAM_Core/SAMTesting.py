@@ -497,9 +497,9 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
     t1 = time.time()
     verbose = vTemp
     thisModel[0].avgClassTime = (t1 - t0) / numTrials
-    logging.info('classification rate:' + str(1.0 / thisModel[0].avgClassTime) + 'fps')
+    logging.info('classification rate: ' + str(1.0 / thisModel[0].avgClassTime) + 'fps')
     logging.info('estimated time: ' + str(thisModel[0].avgClassTime * numItems / (60*numWorkers)) + 'mins for ' +
-                 str(numItems) + ' items with ' + str(numWorkers) + 'workers')
+                 str(numItems) + ' items with ' + str(numWorkers) + ' workers')
     t0 = time.time()
     logging.info(t0)
     # check size of model
@@ -509,7 +509,7 @@ def segmentTesting(thisModel, Ysample, Lnum, verbose, label, serialMode=False, o
     logging.warning("required testing size: " + str((modelSize * numWorkers * 2) + 400) + " MB")
     # check available system memory in megabytes
     freeSystemMem = float(psutil.virtual_memory()[4]) / 1024.0 / 1024.0
-    logging.info("free memory:" + str(freeSystemMem) + " MB")
+    logging.info("free memory: " + str(freeSystemMem) + " MB")
 
     if modelSize > 100 or not thisModel[0].parallelOperation or serialMode:
         # serial testing
