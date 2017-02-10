@@ -13,9 +13,9 @@ private:
     static int n_instances;
 
     void run(const yarp::os::Bottle &args) {
-        yDebug() << "Dummmy::run start " + behaviorName;
+        yDebug() << "Dummy::run start " + behaviorName;
         yarp::os::Time::delay(4);
-        yDebug() << "Dummmy::run stop " + behaviorName;
+        yDebug() << "Dummy::run stop " + behaviorName;
     }
     int id;
 
