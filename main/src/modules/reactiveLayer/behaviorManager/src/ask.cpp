@@ -17,18 +17,18 @@ void Ask::run(const Bottle &args) {
     string direction;
     if (action == "pull")
     {
-        direction = "away from";
+        direction = "towards you";
     }
     else if (action == "push")
     {
-        direction = "closer to";
+        direction = "closer to me";
     }
 
     yDebug() << args.toString();
 
     iCub->lookAtPartner();
 
-    string aux = "Can you please " + action + " the " + object + " " + direction + " the shared area?";
+    string aux = "Can you please " + action + " the " + object + " " + direction + "?";
     iCub->say(aux);
     yInfo() << "iCub has requested a " + action + " from the human.";
 
