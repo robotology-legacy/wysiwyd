@@ -1012,13 +1012,6 @@ Bottle qRM::executeSharedPlan(Bottle bInput)
         }
     }
 
-
-
-
-
-    //    iCub->getARE()->take();
-
-
     bOutput.addString("done");
     return bOutput;
 
@@ -1285,13 +1278,13 @@ Bottle qRM::executeAction(Bottle bInput)
                             lpArg,
                             true);
                         yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
-                        iCub->getARE()->take(coordToGrasp);
+                        iCub->take(coordToGrasp);
 
                         coordToGrasp[0] = bEffect.get(1).asDouble();
                         coordToGrasp[1] = bEffect.get(2).asDouble();
 
                         yInfo() << " trying to drop at location: " << coordToGrasp.toString();
-                        iCub->getARE()->dropOn(coordToGrasp);
+                        iCub->release(coordToGrasp);
                         iCub->getABMClient()->sendActivity("action",
                             sPredicate,
                             "qRM",
@@ -1313,13 +1306,13 @@ Bottle qRM::executeAction(Bottle bInput)
                             lpArg,
                             true);
                         yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
-                        iCub->getARE()->take(coordToGrasp);
+                        iCub->take(coordToGrasp);
 
                         coordToGrasp[0] = bEffect.get(1).asDouble();
                         coordToGrasp[1] = bEffect.get(2).asDouble();
 
                         yInfo() << " trying to drop at location: " << coordToGrasp.toString();
-                        iCub->getARE()->dropOn(coordToGrasp);
+                        iCub->release(coordToGrasp);
                         iCub->getABMClient()->sendActivity("action",
                             sPredicate,
                             "qRM",
@@ -1357,13 +1350,13 @@ Bottle qRM::executeAction(Bottle bInput)
                         lpArg,
                         true);
                     yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
-                    iCub->getARE()->take(coordToGrasp);
+                    iCub->take(coordToGrasp);
 
                     coordToGrasp[0] += bEffect.get(1).asDouble();
                     coordToGrasp[1] += bEffect.get(2).asDouble();
 
                     yInfo() << " trying to drop at location: " << coordToGrasp.toString();
-                    iCub->getARE()->dropOn(coordToGrasp);
+                    iCub->release(coordToGrasp);
                     iCub->getABMClient()->sendActivity("action",
                         sPredicate,
                         "qRM",
@@ -1382,13 +1375,13 @@ Bottle qRM::executeAction(Bottle bInput)
                         lpArg,
                         true);
                     yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
-                    iCub->getARE()->take(coordToGrasp);
+                    iCub->take(coordToGrasp);
 
                     coordToGrasp[0] += bEffect.get(1).asDouble();
                     coordToGrasp[1] += bEffect.get(2).asDouble();
 
                     yInfo() << " trying to drop at location: " << coordToGrasp.toString();
-                    iCub->getARE()->dropOn(coordToGrasp);
+                    iCub->release(coordToGrasp);
                     iCub->getABMClient()->sendActivity("action",
                         sPredicate,
                         "qRM",

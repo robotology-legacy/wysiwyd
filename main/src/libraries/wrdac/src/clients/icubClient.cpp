@@ -561,13 +561,23 @@ bool ICubClient::pointfar(const string &oLocation, const Bottle &options)
     }
 }
 
+bool ICubClient::waving(const bool sw) {
+    SubSystem_ARE *are = getARE();
+    if (are == NULL)
+    {
+        yError() << "[iCubClient] Called waving() but ARE subsystem is not available.";
+        return false;
+    }
+
+    return are->waving(sw);
+}
 
 bool ICubClient::pointfar(const Vector &target, const Bottle &options, std::string sName)
 {
     SubSystem_ARE *are = getARE();
     if (are == NULL)
     {
-        yError() << "[iCubClient] Called point() but ARE subsystem is not available.";
+        yError() << "[iCubClient] Called pointfar() but ARE subsystem is not available.";
         return false;
     }
 

@@ -281,6 +281,13 @@ namespace wysiwyd{
             bool point(const std::string &oLocation, const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
+            * Enable/disable arms waving.
+            * @param sw enable/disable if true/false.
+            * @return true in case of successfull request, false otherwise.
+            */
+            bool waving(const bool sw);
+
+            /**
             * Point at a specified location.
             * @param target contains spatial information about the location
             *               where pointing at.

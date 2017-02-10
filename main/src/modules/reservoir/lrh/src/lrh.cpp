@@ -448,7 +448,7 @@ bool LRH::AREactions(vector<string> seq)
             if (sLocation != " ")
             {
                 Time::delay(ftime);
-                bool grasped = iCub->getARE()->take(value, bHand);
+                bool grasped = iCub->take(value, bHand);
                 cout << (grasped ? "grasped!" : "missed!") << endl;
 
                 success &= grasped;
@@ -456,10 +456,10 @@ bool LRH::AREactions(vector<string> seq)
 
                 if (grasped){
                     Bottle opts("over still " + sHand);
-                    bool dropped = iCub->getARE()->dropOn(vGoal, opts);
+                    bool dropped = iCub->release(vGoal, opts);
                     cout << (dropped ? "dropped!" : "missed!") << endl;
                     Time::delay(ftime);
-                    iCub->getARE()->home();
+                    iCub->home();
                     success &= dropped;
                 }
 
@@ -467,7 +467,7 @@ bool LRH::AREactions(vector<string> seq)
             // DROP WITHOUT LOCATION
             else
             {
-                bool grasped = iCub->getARE()->take(value, bHand);
+                bool grasped = iCub->take(value, bHand);
                 cout << (grasped ? "grasped!" : "missed!") << endl;
                 Time::delay(ftime);
                 success &= grasped;
@@ -490,11 +490,11 @@ bool LRH::AREactions(vector<string> seq)
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
             Time::delay(ftime);
-            bool pushed = iCub->getARE()->push(value, bHand);
+            bool pushed = iCub->push(value, bHand);
             cout << (pushed ? "pushed!" : "missed!") << endl;
             Time::delay(ftime);
             success &= pushed;
-            iCub->getARE()->home();
+            iCub->home();
         }
 
         // POINT
@@ -505,12 +505,12 @@ bool LRH::AREactions(vector<string> seq)
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
 
-            bool pointed = iCub->getARE()->point(value, bHand);
+            bool pointed = iCub->point(value, bHand);
             cout << (pointed ? "pointed!" : "missed!") << endl;
 
             success &= pointed;
             Time::delay(ftime);
-            iCub->getARE()->home(sHand);
+            iCub->home(sHand);
         }
 
     }
