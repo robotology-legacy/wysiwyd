@@ -173,6 +173,8 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError() << "Unable to talk correctly to OPC in getEntity with name";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return NULL;
     }
 
@@ -215,6 +217,8 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError() << "Unable to talk correctly to OPC in getEntity with ID";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return NULL;
     }
 
@@ -381,6 +385,8 @@ int OPCClient::getRelationID(
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError()<<"Unable to talk correctly to OPC in getRelationID";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return false;
     }
     
@@ -444,6 +450,8 @@ bool OPCClient::addRelation(
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError() << "Unable to talk correctly to OPC in addRelation";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return false;
     }
     index = reply.get(1).asList()->get(1).asInt();
@@ -493,7 +501,8 @@ bool OPCClient::removeRelation(
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
             yError() << "Unable to talk correctly to OPC in removeRelation. Item not deleted.";
-            yError() << "command used to remove = " << cmd.toString().c_str();
+            yError() << "Command was:" << cmd.toString();
+            yError() << "Reply was:" << reply.toString();
             return false;
         }
     }
@@ -563,6 +572,8 @@ bool OPCClient::setLifeTime(int opcID, double lifeTime)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError() << "Unable to talk correctly to OPC in setLifeTime";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return false;
     }
     return true;
