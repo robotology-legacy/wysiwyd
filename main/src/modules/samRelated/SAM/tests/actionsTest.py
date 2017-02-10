@@ -26,15 +26,15 @@ rpcPort.open(rpcPortName)
 # open interactionSAMModel
 if connectDirect:
     if automaticOpen:
-        args = ' '.join(['/home/daniel/SAM_Data_Models/Data/Actions3 ',
-                         '/home/daniel/SAM_Data_Models/Models/Actions3__SAMDriver_ARWin__mrd__backup',
-                         '/root/.local/share/yarp/contexts/samSupervisor/sensory_level_conf.ini',
-                         'SAMDriver_ARWin'])
-        pyFile = '/usr/local/src/robot/wysiwyd/main/src/modules/samRelated/SAM/SAM_Core/interactionSAMModel.py'
+        args = ' '.join(['/home/$USER/SAM_Data_Models/Data/Actions3 ',
+                         '/home/$USER/SAM_Data_Models/Models/Actions3__SAMDriver_ARWin__mrd__backup',
+                         '/home/$USER/.local/share/yarp/contexts/samSupervisor/sensory_level_conf.ini',
+                         'SAMDriver_ARWin', 'False'])
+        pyFile = 'interactionSAMModel.py'
         interactionCMD = ' '.join([pyFile, args])
         print interactionCMD
         windowedCMD = "bash -c \"" + interactionCMD + "\""
-        interactionProcess = subprocess.Popen(['xterm', '-e', windowedCMD], shell=False)
+        interactionProcess = subprocess.Popen(['xterm', '-hold', '-e', windowedCMD], shell=False)
 
         # wait until model loaded
         time.sleep(7)
@@ -88,13 +88,16 @@ for curr in range(lenDataFile):
 
 dataFile.close()
 try:
+    print 'Terminating process'
     interactionProcess.send_signal(signal.SIGINT)
 except:
     pass
 retCode = interactionProcess.wait()
-if processBreak or retCode != 0:
+if processBreak:
     print 'ERROR'
-raw_input("Press Enter to continue...")
+else:
+	print 'SUCCESS'
+raw_input("Press Enter to exit...")
 
 
 

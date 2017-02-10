@@ -260,8 +260,10 @@ def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimise=
     testValue = testInstance - thisModel.Ymean
     testValue /= thisModel.Ystd
 
-    ret = thisModel.SAMObject.pattern_completion(testValue, visualiseInfo=visualiseInfo, optimise=optimise)
-
+    try:
+        ret = thisModel.SAMObject.pattern_completion(testValue, visualiseInfo=visualiseInfo, optimise=optimise)
+    except IndexError:
+        return ['unknown', 100]
     mm = ret[0]
     vv = list(ret[1][0])
     svv = sum(vv)

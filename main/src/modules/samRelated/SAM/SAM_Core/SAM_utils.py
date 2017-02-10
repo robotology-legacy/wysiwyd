@@ -103,7 +103,7 @@ def initialiseModels(argv, update, initMode='training'):
     mySAMpy.ratioData = None
 
     if initMode == 'training' and (mode == 'new' or modeConfig == 'new' or 'exp' not in modelPath):
-        logging.info('Loading training parameters from: \n \t' + str(dataPath) + "/config.ini")
+        logging.info('Loading training parameters from:' + str(dataPath) + "/config.ini")
         try:
             default = False
             parser = SafeConfigParser()
