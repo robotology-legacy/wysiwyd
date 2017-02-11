@@ -1265,8 +1265,8 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
 */
 bool opcPopulater::populateScenario1()
 {
-    string sAgent = "Tobi";
-    string sObject = "blue cube";
+    string sAgent = "Toby";
+    string sObject = "duck";
     string sObjError = "octopus";
 
     Time::delay(4.);
@@ -1725,7 +1725,7 @@ bool opcPopulater::populateScenario2(){
 bool opcPopulater::populateScenario3(){
 
     string sAgent = "Daniel";
-    string sObject = "blue cube";
+    string sObject = "octopus";
     string sBox = "box";
 
     Time::delay(4.);
@@ -2004,7 +2004,7 @@ bool opcPopulater::populateScenario4(){
 * iCub + Agent: iCub wants croco, fails, ask, get
 */
 bool opcPopulater::populateScenario5(){
-    string sAgent = "Tobi";
+    string sAgent = "Toby";
     string sObject = "octopus";
 
     Time::delay(4.);
@@ -2214,7 +2214,7 @@ bool opcPopulater::populateScenario5(){
 bool opcPopulater::populateScenario6(){
     string sLarry = "Daniel";
     string sRobert = "Jordi";
-    string sObject = "blue cube";
+    string sObject = "duck";
     string sBox = "box";
 
     Time::delay(4.);
