@@ -1,73 +1,73 @@
 #  story: 13/10/2016 14:10:2 (2240) to 13/10/2016 14:10:21 (2248)
-#  At the beginning, Carol have ball and icub want ball
-#  icub take the ball
+#  At the beginning, Jordi have duck and icub want duck
+#  icub take the duck
 #  But it failed.
 #  icub reason
-#  The goal was that: icub have the ball
+#  The goal was that: icub have the duck
 #  icub reason
-#  icub said to Carol: Give me the ball please
-#  Carol give the ball icub
-#  And now, icub have ball
-#  In the end, icub have ball
+#  icub said to Jordi: Give me the duck please
+#  Jordi give the duck icub
+#  And now, icub have duck
+#  In the end, icub have duck
 
 # FIRST
-first, cover box ball, P1 P2 A2 O2
-first, want icub ball, P1 P2 A2 O2
+first, cover box duck, P1 P2 A2 O2
+first, want icub duck, P1 P2 A2 O2
 
 # SO
-so, take icub ball, P1 P2 A2 O2
-so, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
-so, remove Carol box, P1 P2 A2 O2
-so, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
-so, give Jonny ball icub, P1 P2 A2 O2 R2
-so, have icub ball, P1 P2 A2 O2
-so, have Jonny ball, P1 P2 A2 O2
+so, take icub duck, P1 P2 A2 O2
+so, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 R2
+so, remove Jordi box, P1 P2 A2 O2
+so, say icub Give_me_the_duck_please Daniel, P1 P2 A2 O2 R2
+so, give Daniel duck icub, P1 P2 A2 O2 R2
+so, have icub duck, P1 P2 A2 O2
+so, have Daniel duck, P1 P2 A2 O2
 
 # THEN
-then, take icub ball, P1 P2 A2 O2
-then, give Jonny ball icub, P1 P2 A2 O2 R2
-then, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
-then, remove Carol box, P1 P2 A2 O2
-then, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
-then, give Jonny ball icub, P1 P2 A2 O2 R2
-then, have icub ball, P1 P2 A2 O2
+then, take icub duck, P1 P2 A2 O2
+then, give Daniel duck icub, P1 P2 A2 O2 R2
+then, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 R2
+then, remove Jordi box, P1 P2 A2 O2
+then, say icub Give_me_the_duck_please Daniel, P1 P2 A2 O2 R2
+then, give Daniel duck icub, P1 P2 A2 O2 R2
+then, have icub duck, P1 P2 A2 O2
 
 # BUT
-but, want icub ball, fail icub take ball, P1 P2 A2 O2 P3 A3 O3 R3
-but, want icub ball, have Carol ball, P1 P2 A2 O2 P3 A3 O3
-but, want icub ball, cover box ball, P1 P2 A2 O2 P3 A3 O3
-but, want icub ball, have Jonny ball, P1 P2 A2 O2 P3 A3 O3
-but, take icub ball, cover box ball, P1 P2 A2 O2 P3 A3 O3
-but, take icub ball, fail icub take, P1 P2 A2 O2 P3 A3 O3
+but, want icub duck, fail icub take duck, P1 P2 A2 O2 P3 A3 O3 R3
+but, want icub duck, have Jordi duck, P1 P2 A2 O2 P3 A3 O3
+but, want icub duck, cover box duck, P1 P2 A2 O2 P3 A3 O3
+but, want icub duck, have Daniel duck, P1 P2 A2 O2 P3 A3 O3
+but, take icub duck, cover box duck, P1 P2 A2 O2 P3 A3 O3
+but, take icub duck, fail icub take, P1 P2 A2 O2 P3 A3 O3
 
 # AND
-and, cover box ball, want icub ball, P1 P2 A2 O2 P3 A3 O3
-and, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
-and, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2
-and, say icub can_you_remove_the_box_please? Carol, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2 P3 A3 O3 R3
-and, say icub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-and, say icub Give_me_the_ball_please Jonny, give Jonny ball icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, cover box duck, want icub duck, P1 P2 A2 O2 P3 A3 O3
+and, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 R2
+and, say icub Give_me_the_duck_please Daniel, P1 P2 A2 O2 R2
+and, say icub can_you_remove_the_box_please? Jordi, say icub Give_me_the_duck_please Daniel, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, say icub can_you_remove_the_box_please? Jordi, remove Jordi box, P1 P2 A2 O2 R2 P3 A3 O3
+and, say icub Give_me_the_duck_please Daniel, give Daniel duck icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # AFTER
-after, say icub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-after, say icub Give_me_the_ball_please Jonny, give Jonny ball icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-after, remove Carol box, give Jonny ball icub, P1 P2 A2 O2 P3 A3 O3 R3
-after, remove Carol box, have Jonny ball, P1 P2 A2 O2 P3 A3 O3
-after, take icub ball, give Jonny ball icub, P1 P2 A2 O2 P3 A3 O3 R3
-after, take icub ball, remove Carol box, P1 P2 A2 O2 P3 A3 O3
+after, say icub can_you_remove_the_box_please? Jordi, remove Jordi box, P1 P2 A2 O2 R2 P3 A3 O3
+after, say icub Give_me_the_duck_please Daniel, give Daniel duck icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+after, remove Jordi box, give Daniel duck icub, P1 P2 A2 O2 P3 A3 O3 R3
+after, remove Jordi box, have Daniel duck, P1 P2 A2 O2 P3 A3 O3
+after, take icub duck, give Daniel duck icub, P1 P2 A2 O2 P3 A3 O3 R3
+after, take icub duck, remove Jordi box, P1 P2 A2 O2 P3 A3 O3
 
 # BEFORE
-before, remove Carol box, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 P3 A3 O3 R3
-before, give Jonny ball icub, say icub Give_me_the_ball_please Jonny, P1 P2 A2 O2 R2 P3 A3 O3 R3
-before, give Jonny ball icub, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-before, have Jonny ball, remove Carol box, P1 P2 A2 O2 P3 A3 O3
-before, give Jonny ball icub, take icub ball, P1 P2 A2 O2 R2 P3 A3 O3
-before, remove Carol box, take icub ball, P1 P2 A2 O2 P3 A3 O3
+before, remove Jordi box, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 P3 A3 O3 R3
+before, give Daniel duck icub, say icub Give_me_the_duck_please Daniel, P1 P2 A2 O2 R2 P3 A3 O3 R3
+before, give Daniel duck icub, remove Jordi box, P1 P2 A2 O2 R2 P3 A3 O3
+before, have Daniel duck, remove Jordi box, P1 P2 A2 O2 P3 A3 O3
+before, give Daniel duck icub, take icub duck, P1 P2 A2 O2 R2 P3 A3 O3
+before, remove Jordi box, take icub duck, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
-because, say icub Give_me_the_ball_please Carol, give Carol icub ball, P1 P2 A2 O2 R2 P3 A3 O3 R3
-because, want icub ball, have icub ball, P1 P2 A2 O2 P3 A3 O3
-because, give Carol ball icub, have icub ball, P1 P2 A2 O2 R2 P3 A3 O3
+because, say icub Give_me_the_duck_please Jordi, give Jordi icub duck, P1 P2 A2 O2 R2 P3 A3 O3 R3
+because, want icub duck, have icub duck, P1 P2 A2 O2 P3 A3 O3
+because, give Jordi duck icub, have icub duck, P1 P2 A2 O2 R2 P3 A3 O3
 
 # FINALLY
-finally, have icub ball, P1 P2 A2 O2
+finally, have icub duck, P1 P2 A2 O2

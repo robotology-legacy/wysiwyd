@@ -1,75 +1,75 @@
 #  story: 13/10/2016 14:4:5 (2223) to 13/10/2016 14:4:31 (2230)
-#  At the beginning, box cover mug and icub want mug
-#  icub take the mug
+#  At the beginning, box cover duck and icub want duck
+#  icub take the duck
 #  But it failed.
-#  icub said to Carol: Carol can you remove the box please?
-#  icub said to Peter: Then Peter can you give me the mug please
-#  Carol remove the box
-#  And now, icub want mug and Peter have mug
-#  Peter give the mug icub
-#  And now, icub have mug
-#  In the end, icub have mug
+#  icub said to Jordi: Jordi can you remove the box please?
+#  icub said to Daniel: Then Daniel can you give me the duck please
+#  Jordi remove the box
+#  And now, icub want duck and Daniel have duck
+#  Daniel give the duck icub
+#  And now, icub have duck
+#  In the end, icub have duck
 
 
 # FIRST
-first, cover box mug, P1 P2 A2 O2
-first, want icub mug, P1 P2 A2 O2
+first, cover box duck, P1 P2 A2 O2
+first, want icub duck, P1 P2 A2 O2
 
 # BUT
-but, want icub mug, cover box mug, P1 P2 A2 O2 P3 A3 O3
-but, want icub mug, have Peter mug, P1 P2 A2 O2 P3 A3 O3
-but, take icub mug, cover box mug, P1 P2 A2 O2 P3 A3 O3
-but, take icub mug, fail icub take, P1 P2 A2 O2 P3 A3 O3
+but, want icub duck, cover box duck, P1 P2 A2 O2 P3 A3 O3
+but, want icub duck, have Daniel duck, P1 P2 A2 O2 P3 A3 O3
+but, take icub duck, cover box duck, P1 P2 A2 O2 P3 A3 O3
+but, take icub duck, fail icub take, P1 P2 A2 O2 P3 A3 O3
 
 # SO
-so, take icub mug, P1 P2 A2 O2
-so, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
-so, remove Carol box, P1 P2 A2 O2
-so, say icub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2
-so, give Peter mug icub, P1 P2 A2 O2 R2
-so, have icub mug, P1 P2 A2 O2
-so, have Peter mug, P1 P2 A2 O2
+so, take icub duck, P1 P2 A2 O2
+so, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 R2
+so, remove Jordi box, P1 P2 A2 O2
+so, say icub can_you_give_me_the_duck_please Daniel, P1 P2 A2 O2 R2
+so, give Daniel duck icub, P1 P2 A2 O2 R2
+so, have icub duck, P1 P2 A2 O2
+so, have Daniel duck, P1 P2 A2 O2
 
 # THEN
-then, take icub mug, P1 P2 A2 O2
-then, give Peter mug icub, P1 P2 A2 O2 R2
-then, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
-then, remove Carol box, P1 P2 A2 O2
-then, say icub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2
-then, give Peter mug icub, P1 P2 A2 O2 R2
-then, have icub mug, P1 P2 A2 O2
+then, take icub duck, P1 P2 A2 O2
+then, give Daniel duck icub, P1 P2 A2 O2 R2
+then, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 R2
+then, remove Jordi box, P1 P2 A2 O2
+then, say icub can_you_give_me_the_duck_please Daniel, P1 P2 A2 O2 R2
+then, give Daniel duck icub, P1 P2 A2 O2 R2
+then, have icub duck, P1 P2 A2 O2
 
 # AND
-and, cover box mug, want icub mug, P1 P2 A2 O2 P3 A3 O3
-and, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 R2
-and, say icub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2
-and, say icub can_you_remove_the_box_please? Carol, say icub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2 P3 A3 O3 R3
-and, say icub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-and, say icub can_you_give_me_the_mug_please Peter, give Peter mug icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, cover box duck, want icub duck, P1 P2 A2 O2 P3 A3 O3
+and, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 R2
+and, say icub can_you_give_me_the_duck_please Daniel, P1 P2 A2 O2 R2
+and, say icub can_you_remove_the_box_please? Jordi, say icub can_you_give_me_the_duck_please Daniel, P1 P2 A2 O2 R2 P3 A3 O3 R3
+and, say icub can_you_remove_the_box_please? Jordi, remove Jordi box, P1 P2 A2 O2 R2 P3 A3 O3
+and, say icub can_you_give_me_the_duck_please Daniel, give Daniel duck icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
 
 # AFTER
-after, say icub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-after, say icub can_you_give_me_the_mug_please Peter, give Peter mug icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-after, remove Carol box, give Peter mug icub, P1 P2 A2 O2 P3 A3 O3 R3
-after, remove Carol box, have Peter mug, P1 P2 A2 O2 P3 A3 O3
-after, take icub mug, give Peter mug icub, P1 P2 A2 O2 P3 A3 O3 R3
-after, take icub mug, remove Carol box, P1 P2 A2 O2 P3 A3 O3
+after, say icub can_you_remove_the_box_please? Jordi, remove Jordi box, P1 P2 A2 O2 R2 P3 A3 O3
+after, say icub can_you_give_me_the_duck_please Daniel, give Daniel duck icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+after, remove Jordi box, give Daniel duck icub, P1 P2 A2 O2 P3 A3 O3 R3
+after, remove Jordi box, have Daniel duck, P1 P2 A2 O2 P3 A3 O3
+after, take icub duck, give Daniel duck icub, P1 P2 A2 O2 P3 A3 O3 R3
+after, take icub duck, remove Jordi box, P1 P2 A2 O2 P3 A3 O3
 
 # BEFORE
-before, remove Carol box, say icub can_you_remove_the_box_please? Carol, P1 P2 A2 O2 P3 A3 O3 R3
-before, give Peter mug icub, say icub can_you_give_me_the_mug_please Peter, P1 P2 A2 O2 R2 P3 A3 O3 R3
-before, give Peter mug icub, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-before, have Peter mug, remove Carol box, P1 P2 A2 O2 P3 A3 O3
-before, give Peter mug icub, take icub mug, P1 P2 A2 O2 R2 P3 A3 O3
-before, remove Carol box, take icub mug, P1 P2 A2 O2 P3 A3 O3
+before, remove Jordi box, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 P3 A3 O3 R3
+before, give Daniel duck icub, say icub can_you_give_me_the_duck_please Daniel, P1 P2 A2 O2 R2 P3 A3 O3 R3
+before, give Daniel duck icub, remove Jordi box, P1 P2 A2 O2 R2 P3 A3 O3
+before, have Daniel duck, remove Jordi box, P1 P2 A2 O2 P3 A3 O3
+before, give Daniel duck icub, take icub duck, P1 P2 A2 O2 R2 P3 A3 O3
+before, remove Jordi box, take icub duck, P1 P2 A2 O2 P3 A3 O3
 
 # BECAUSE
-because, say icub Give_me_the_mug_please Peter, give Peter mug icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
-because, say icub can_you_remove_the_box_please? Carol, remove Carol box, P1 P2 A2 O2 R2 P3 A3 O3
-because, remove Carol box, have Peter mug, P1 P2 A2 O2 P3 A3 O3
-because, give Peter mug icub, have icub mug, P1 P2 A2 O2 R2 P3 A3 O3
-because, say icub can_you_remove_the_box_please? Carol, have icub mug, P1 P2 A2 O2 R2 P3 A3 O3
-because, say icub Give_me_the_mug_please Peter, have icub mug, P1 P2 A2 O2 R2 P3 A3 O3
+because, say icub Give_me_the_duck_please Daniel, give Daniel duck icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+because, say icub can_you_remove_the_box_please? Jordi, remove Jordi box, P1 P2 A2 O2 R2 P3 A3 O3
+because, remove Jordi box, have Daniel duck, P1 P2 A2 O2 P3 A3 O3
+because, give Daniel duck icub, have icub duck, P1 P2 A2 O2 R2 P3 A3 O3
+because, say icub can_you_remove_the_box_please? Jordi, have icub duck, P1 P2 A2 O2 R2 P3 A3 O3
+because, say icub Give_me_the_duck_please Daniel, have icub duck, P1 P2 A2 O2 R2 P3 A3 O3
 
 # FINALLY
-finally, have icub mug, P1 P2 A2 O2
+finally, have icub duck, P1 P2 A2 O2

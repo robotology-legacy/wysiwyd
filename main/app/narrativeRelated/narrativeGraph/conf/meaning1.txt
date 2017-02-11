@@ -1,32 +1,32 @@
 #   story: 13/10/2016 14:1:46 (2196)  to 13/10/2016 14:2:16 (2209)
-#   At the beginning, box cover croco and icub want croco
-#   icub take the croco
+#   At the beginning, box cover duck and icub want duck
+#   icub take the duck
 #   But it failed.
-#   icub said to Robert: Can you remove the box please?
-#   Robert remove the box
-#   And now, icub want croco and Larry have croco
-#   icub take the croco
+#   icub said to Jordi: Can you remove the box please?
+#   Jordi remove the box
+#   And now, icub want duck and Daniel have duck
+#   icub take the duck
 #   But it failed.
 #   icub reason
-#   The goal was that: icub have the croco
+#   The goal was that: icub have the duck
 #   icub reason
-#   icub said to Larry: Give me the croco please
-#   Larry give the croco icub
-#   And now, icub have croco
-#   In the end, icub have croco
+#   icub said to Daniel: Give me the duck please
+#   Daniel give the duck icub
+#   And now, icub have duck
+#   In the end, icub have duck
 
-#first, want icub croco, P1 P2 A2 O2
-#but, fail icub take croco, P1 P2 A2 O2 R2
+#first, want icub duck, P1 P2 A2 O2
+#but, fail icub take duck, P1 P2 A2 O2 R2
 #so, found icub solution, P1 P2 A2 O2
-#so, say icub Give_me_the_croco_please Larry, P1 P2 A2 O2 R2
-#then, say icub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 R2
-#then, say icub Give_me_the_croco_please Larry, P1 P2 A2 O2 R2
-#and, give Larry croco icub, P1 P2 A2 O2 R2
-#and, remove Robert box, P1 P2 A2 O2
-#Finally, have icub croco, P1 P2 A2 O2
-#Because, give Larry croco icub, say icub Give_me_the_croco_please Larry, P1 P2 A2 O2 R2 P3 A3 O3 R3
-#Because, remove Robert box, say icub can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
-#Because, have Larry croco, remove Robert box, P1 P2 A2 O2 P3 A3 O3
-#Because, have icub croco, give Larry croco icub, P1 P2 A2 O2 P3 A3 O3 R3
+#so, say icub Give_me_the_duck_please Daniel, P1 P2 A2 O2 R2
+#then, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 R2
+#then, say icub Give_me_the_duck_please Daniel, P1 P2 A2 O2 R2
+#and, give Daniel duck icub, P1 P2 A2 O2 R2
+#and, remove Jordi box, P1 P2 A2 O2
+#Finally, have icub duck, P1 P2 A2 O2
+#Because, give Daniel duck icub, say icub Give_me_the_duck_please Daniel, P1 P2 A2 O2 R2 P3 A3 O3 R3
+#Because, remove Jordi box, say icub can_you_remove_the_box_please? Jordi, P1 P2 A2 O2 P3 A3 O3 R3
+#Because, have Daniel duck, remove Jordi box, P1 P2 A2 O2 P3 A3 O3
+#Because, have icub duck, give Daniel duck icub, P1 P2 A2 O2 P3 A3 O3 R3
 
 
