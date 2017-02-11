@@ -63,7 +63,7 @@ bool AdaptiveLayer::handleGesture()
         list<Relation> gestures = iCub->opc->getRelations();
         if (gestures.size() > 0)
         {
-            iCub->look(partner->name());
+            iCub->lookAtPartner();
 
             //take the first gesture that has been recognized on the current partner
             for(list<Relation>::iterator it = gestures.begin(); it != gestures.end() ; it++)

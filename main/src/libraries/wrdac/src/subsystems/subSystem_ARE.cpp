@@ -409,6 +409,11 @@ bool wysiwyd::wrdac::SubSystem_ARE::point(const std::string &sName, const yarp::
         return false;
     }
 
+    if(o->m_ego_position[0]<-0.42) {
+        yWarning() << "This object is too far for ARE::point. Use ARE::pointfar instead.";
+        return pointfar(o->m_ego_position, options, sName);
+    }
+
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;

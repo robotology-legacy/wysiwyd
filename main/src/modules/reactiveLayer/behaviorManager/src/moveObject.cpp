@@ -46,11 +46,6 @@ void MoveObject::run(const Bottle &args) {
     //yarp::os::Time::delay(1.0);
     //iCub->opc->checkout();
 
-    Bottle options;
-    options.addString("fixate");
-    options.addString("wait");
-    iCub->look(obj_name,options); // to have a better estimate of where to move the object to
-
     iCub->opc->checkout();
 
     if(move_type == "front") {

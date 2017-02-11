@@ -563,12 +563,6 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     }
     else if (currentEntityType == "object" || currentEntityType == "rtobject") {
         yDebug() << "Going to point " << sNameTarget;
-
-        Bottle options;
-        options.addString("fixate");
-        options.addString("wait");
-        iCub->look(sNameTarget,options); // to have a better estimate of where to point
-
         iCub->point(sNameTarget);
     }
 
