@@ -9,7 +9,7 @@ wysiwyd::wrdac::SubSystem_Speech::SubSystem_Speech(const std::string &masterName
     sttRpc.open(("/" + m_masterName + "/stt:rpc").c_str());
     m_type = SUBSYSTEM_SPEECH;
     SubABM = new SubSystem_ABM(m_masterName+"/from_speech");
-    opc = new OPCClient(m_masterName+"/opc");
+    opc = new OPCClient(m_masterName+"/opc_from_speech");
 }
 
 bool wysiwyd::wrdac::SubSystem_Speech::connect()

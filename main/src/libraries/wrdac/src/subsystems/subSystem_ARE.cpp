@@ -136,7 +136,7 @@ wysiwyd::wrdac::SubSystem_ARE::SubSystem_ARE(const std::string &masterName) : Su
     m_type = SUBSYSTEM_ARE;
     lastlyUsedHand="";
 
-    opc = new OPCClient(m_masterName+"/opc");
+    opc = new OPCClient(m_masterName+"/opc_from_ARE");
 }
 
 void wysiwyd::wrdac::SubSystem_ARE::Close()
