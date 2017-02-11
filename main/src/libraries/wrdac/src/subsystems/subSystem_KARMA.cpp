@@ -437,7 +437,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
     Vector object = objCenter;
     Bottle opt = options;
     double zOffset = -0.04;
-    double actionOffset = 0.1;                      // add 10cm offset to deal with object dimension
+    double actionOffset = 0.05;                     // add 5cm offset to deal with object dimension
     yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
     selectHandCorrectTarget(opt,object);            // target is calibrated by this method
     yInfo ("[subSystem_KARMA] object center calib: %s",object.toString().c_str());
