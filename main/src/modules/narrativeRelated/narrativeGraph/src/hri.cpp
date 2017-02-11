@@ -65,6 +65,9 @@ bool narrativeHandler::speechConfirmation(){
 */
 Bottle narrativeHandler::questionHRI_DFW(){
     yInfo("starting QUESTIONHRI_DFW");
+
+    iCub->getRecogClient()->listen(false);
+
     Bottle bReturn;
 
     vector<string> vBegin;
@@ -93,8 +96,6 @@ Bottle narrativeHandler::questionHRI_DFW(){
     bool remember = false; // if asking to recall a situation
     bool listening = false; // is asked to the robot to listen to the human
     bool exit = false;
-
-    iCub->getRecogClient()->listen(false);
 
     while (!exit){
         yInfo() << "exit: " << exit;
