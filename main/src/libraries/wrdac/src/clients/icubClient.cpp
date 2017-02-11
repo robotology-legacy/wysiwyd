@@ -631,7 +631,7 @@ bool ICubClient::pushKarmaLeft(const std::string &objName, const double &targetP
 
         yInfo("[icubClient pushKarmaLeft] object %s position from OPC (no calibration): %s", oTarget->name().c_str(),
             oTarget->m_ego_position.toString().c_str());
-        return pushKarmaLeft(oTarget->m_ego_position, targetPosYLeft, armType, options, oTarget->name());
+        return pushKarmaLeft(objName, oTarget->m_ego_position, targetPosYLeft, armType, options);
     }
     else
     {
@@ -640,9 +640,9 @@ bool ICubClient::pushKarmaLeft(const std::string &objName, const double &targetP
     }
 }
 
-bool ICubClient::pushKarmaLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
+bool ICubClient::pushKarmaLeft(const std::string &objName, const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
     const std::string &armType,
-    const yarp::os::Bottle &options, const std::string &sName)
+    const yarp::os::Bottle &options)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
@@ -650,7 +650,7 @@ bool ICubClient::pushKarmaLeft(const yarp::sig::Vector &objCenter, const double 
         yError() << "[iCubClient] Called pushKarmaLeft() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->pushAside(objCenter, targetPosYLeft, 0, armType, options, sName);
+    return karma->pushAside(objName,objCenter, targetPosYLeft, 0, armType, options);
 }
 
 // Right push
@@ -676,7 +676,7 @@ bool ICubClient::pushKarmaRight(const std::string &objName, const double &target
 
         yInfo("[icubClient pushKarmaRight] object %s position from OPC (no calibration): %s", oTarget->name().c_str(),
             oTarget->m_ego_position.toString().c_str());
-        return pushKarmaRight(oTarget->m_ego_position, targetPosYRight, armType, options, oTarget->name());
+        return pushKarmaRight(objName, oTarget->m_ego_position, targetPosYRight, armType, options);
     }
     else
     {
@@ -685,9 +685,9 @@ bool ICubClient::pushKarmaRight(const std::string &objName, const double &target
     }
 }
 
-bool ICubClient::pushKarmaRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
+bool ICubClient::pushKarmaRight(const std::string &objName, const yarp::sig::Vector &objCenter, const double &targetPosYRight,
     const std::string &armType,
-    const yarp::os::Bottle &options, const std::string &sName)
+    const yarp::os::Bottle &options)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
@@ -695,7 +695,7 @@ bool ICubClient::pushKarmaRight(const yarp::sig::Vector &objCenter, const double
         yError() << "[iCubClient] Called pushKarmaRight() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->pushAside(objCenter, targetPosYRight, 180, armType, options, sName);
+    return karma->pushAside(objName, objCenter, targetPosYRight, 180, armType, options);
 }
 
 // Front push
@@ -721,7 +721,7 @@ bool ICubClient::pushKarmaFront(const std::string &objName, const double &target
 
         yInfo("[icubClient pushKarmaFront] object %s position from OPC (no calibration): %s", oTarget->name().c_str(),
             oTarget->m_ego_position.toString().c_str());
-        return pushKarmaFront(oTarget->m_ego_position, targetPosXFront, armType, options, oTarget->name());
+        return pushKarmaFront(objName, oTarget->m_ego_position, targetPosXFront, armType, options);
     }
     else
     {
@@ -730,9 +730,9 @@ bool ICubClient::pushKarmaFront(const std::string &objName, const double &target
     }
 }
 
-bool ICubClient::pushKarmaFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+bool ICubClient::pushKarmaFront(const std::string& objName, const yarp::sig::Vector &objCenter, const double &targetPosXFront,
     const std::string &armType,
-    const yarp::os::Bottle &options, const std::string &sName)
+    const yarp::os::Bottle &options)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
@@ -740,12 +740,12 @@ bool ICubClient::pushKarmaFront(const yarp::sig::Vector &objCenter, const double
         yError() << "[iCubClient] Called pushKarmaFront() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->pushFront(objCenter, targetPosXFront, armType, options, sName);
+    return karma->pushFront(objName, objCenter, targetPosXFront, armType, options);
 }
 
 // Pure push in KARMA
 bool ICubClient::pushKarma(const yarp::sig::Vector &targetCenter, const double &theta, const double &radius,
-    const yarp::os::Bottle &options, std::string sName)
+    const yarp::os::Bottle &options)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
@@ -753,7 +753,7 @@ bool ICubClient::pushKarma(const yarp::sig::Vector &targetCenter, const double &
         yError() << "[iCubClient] Called pushKarma() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->push(targetCenter, theta, radius, options, sName);
+    return karma->push(targetCenter, theta, radius, options);
 }
 
 // Back pull
@@ -779,7 +779,7 @@ bool ICubClient::pullKarmaBack(const std::string &objName, const double &targetP
 
         yInfo("[icubClient pullKarmaBack] object %s position from OPC (no calibration): %s", oTarget->name().c_str(),
             oTarget->m_ego_position.toString().c_str());
-        return pullKarmaBack(oTarget->m_ego_position, targetPosXBack, armType, options, oTarget->name());
+        return pullKarmaBack(objName, oTarget->m_ego_position, targetPosXBack, armType, options);
     }
     else
     {
@@ -788,9 +788,9 @@ bool ICubClient::pullKarmaBack(const std::string &objName, const double &targetP
     }
 }
 
-bool ICubClient::pullKarmaBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+bool ICubClient::pullKarmaBack(const std::string &objName,const yarp::sig::Vector &objCenter, const double &targetPosXBack,
     const std::string &armType,
-    const yarp::os::Bottle &options, const std::string &sName)
+    const yarp::os::Bottle &options)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
@@ -798,14 +798,14 @@ bool ICubClient::pullKarmaBack(const yarp::sig::Vector &objCenter, const double 
         yError() << "[iCubClient] Called pullKarmaBack() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->pullBack(objCenter, targetPosXBack, armType, options, sName);
+    return karma->pullBack(objName,objCenter, targetPosXBack, armType, options);
 }
 
 
 // Pure pull (draw) in KARMA
 bool ICubClient::drawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
     const double &radius, const double &dist,
-    const yarp::os::Bottle &options, std::string sName)
+    const yarp::os::Bottle &options)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
@@ -813,22 +813,8 @@ bool ICubClient::drawKarma(const yarp::sig::Vector &targetCenter, const double &
         yError() << "[iCubClient] Called drawKarma() but KARMA subsystem is not available.";
         return false;
     }
-    return karma->draw(targetCenter, theta, radius, dist, options, sName);
+    return karma->draw(targetCenter, theta, radius, dist, options);
 }
-
-bool ICubClient::vdrawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
-    const double &radius, const double &dist,
-    const yarp::os::Bottle &options, std::string sName)
-{
-    SubSystem_KARMA *karma = getKARMA();
-    if (karma == NULL)
-    {
-        yError() << "[iCubClient] Called vdrawKarma() but KARMA subsystem is not available.";
-        return false;
-    }
-    return karma->vdraw(targetCenter, theta, radius, dist, options, sName);
-}
-
 
 bool ICubClient::look(const yarp::sig::Vector &target, const yarp::os::Bottle &options,
                       const std::string& sName)
