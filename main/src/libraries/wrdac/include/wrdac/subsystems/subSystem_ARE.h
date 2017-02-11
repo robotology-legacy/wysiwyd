@@ -139,7 +139,7 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool pointfar(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
+            bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
                        const std::string &sName="target");
 
             /**
@@ -150,7 +150,7 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool point(const std::string &sName, const yarp::os::Bottle &options = yarp::os::Bottle());
+            //bool point_old(const std::string &sName, const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
             * If an object is held, bring it over the table and drop it on a

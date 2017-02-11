@@ -516,12 +516,23 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
     }
 }
 
-bool ICubClient::pointfar(const string &oLocation, const Bottle &options)
+bool ICubClient::waving(const bool sw) {
+    SubSystem_ARE *are = getARE();
+    if (are == NULL)
+    {
+        yError() << "[iCubClient] Called waving() but ARE subsystem is not available.";
+        return false;
+    }
+
+    return are->waving(sw);
+}
+
+bool ICubClient::pointfar(const string &sName, const Bottle &options)
 {
-    Entity *target = opc->getEntity(oLocation, true);
+    Entity *target = opc->getEntity(sName, true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT) && !target->isType(EFAA_OPC_ENTITY_BODYPART))
     {
-        yWarning() << "[iCubClient] Called point() on a unallowed location: \"" << oLocation << "\"";
+        yWarning() << "[iCubClient] Called point() on a unallowed location: \"" << sName << "\"";
         return false;
     }
 
@@ -534,16 +545,6 @@ bool ICubClient::pointfar(const string &oLocation, const Bottle &options)
     }
 }
 
-bool ICubClient::waving(const bool sw) {
-    SubSystem_ARE *are = getARE();
-    if (are == NULL)
-    {
-        yError() << "[iCubClient] Called waving() but ARE subsystem is not available.";
-        return false;
-    }
-
-    return are->waving(sw);
-}
 
 bool ICubClient::pointfar(const Vector &target, const Bottle &options, std::string sName)
 {
@@ -556,23 +557,26 @@ bool ICubClient::pointfar(const Vector &target, const Bottle &options, std::stri
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->pointfar(target, opt, sName);
+    return are->point(target, opt, sName);
 }
 
 
-bool ICubClient::point(const string &oLocation, const Bottle &options)
+bool ICubClient::point(const string &sName, const Bottle &options)
 {
-    SubSystem_ARE *are = getARE();
-    if (are == NULL)
+    Entity *target = opc->getEntity(sName, true);
+    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT) && !target->isType(EFAA_OPC_ENTITY_BODYPART))
     {
-        yError() << "[iCubClient] Called point() but ARE subsystem is not available.";
+        yWarning() << "[iCubClient] Called point() on a unallowed location: \"" << sName << "\"";
         return false;
     }
 
-    Bottle opt(options);
-    opt.addString("still"); // always avoid automatic homing after point
-
-    return are->point(oLocation, opt);
+    Object *oTarget = dynamic_cast<Object*>(target);
+    if(oTarget!=nullptr) {
+        return pointfar(oTarget->m_ego_position, options, oTarget->name());
+    } else {
+        yError() << "[iCubClient] pointfar: Could not cast Entity to Object";
+        return false;
+    }
 }
 
 

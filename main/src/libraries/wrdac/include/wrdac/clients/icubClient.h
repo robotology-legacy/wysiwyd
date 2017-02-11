@@ -241,7 +241,7 @@ namespace wysiwyd{
             * @return true in case of success release, false otherwise
             *         (Entity non existing, impossible to reach, etc.).
             */
-            bool pointfar(const std::string &oLocation, const yarp::os::Bottle &options = yarp::os::Bottle());
+            bool pointfar(const std::string &sName, const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
             * Point at a specified location far from the iCub.

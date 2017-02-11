@@ -346,7 +346,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::push(const std::string &sName, const yarp::o
 
 }
 
-bool wysiwyd::wrdac::SubSystem_ARE::pointfar(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
+bool wysiwyd::wrdac::SubSystem_ARE::point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
 {
     yDebug() << "ARE::pointfar start";
     if (ABMconnected)
@@ -391,7 +391,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::pointfar(const yarp::sig::Vector &targetUnsa
 }
 
 
-bool wysiwyd::wrdac::SubSystem_ARE::point(const std::string &sName, const yarp::os::Bottle &options)
+/*bool wysiwyd::wrdac::SubSystem_ARE::point_old(const std::string &sName, const yarp::os::Bottle &options)
 {
     yDebug() << "ARE::point start";
 
@@ -456,7 +456,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::point(const std::string &sName, const yarp::
     }
     yDebug() << "ARE::point stop";
     return bReturn;
-}
+}*/
 
 bool wysiwyd::wrdac::SubSystem_ARE::drop(const yarp::os::Bottle &options)
 {
