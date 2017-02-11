@@ -439,7 +439,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::point(const std::string &sName, const yarp::
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        //lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        lArgument.push_back(std::pair<std::string, std::string>(o->m_ego_position.toString().c_str(), "vector"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
