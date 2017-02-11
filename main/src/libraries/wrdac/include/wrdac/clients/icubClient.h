@@ -492,6 +492,9 @@ namespace wysiwyd{
             */
             bool look(const std::string &target, const yarp::os::Bottle &options = yarp::os::Bottle());
 
+            bool look(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),
+                      const std::string &sName="target");
+
             /**
             * Start tracking randomly objects in the field of view
             */

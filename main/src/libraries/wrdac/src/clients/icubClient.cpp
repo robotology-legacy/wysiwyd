@@ -913,6 +913,18 @@ bool ICubClient::vdrawKarma(const yarp::sig::Vector &targetCenter, const double 
 }
 
 
+bool ICubClient::look(const yarp::sig::Vector &target, const yarp::os::Bottle &options,
+                      const std::string& sName)
+{
+    if (SubSystem_ARE *are = getARE())
+    {
+        return are->look(target, options, sName);
+    }
+
+    yError() << "Error, ARE not running...";
+    return false;
+}
+
 bool ICubClient::look(const string &target, const Bottle &options)
 {
     if (subSystems.find("attention") != subSystems.end())
