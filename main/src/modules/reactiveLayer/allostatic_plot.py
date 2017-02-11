@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import get_backend
 from pylab import get_current_fig_manager
 from numpy import linspace
+from collections import defaultdict
 import yarp
 import sys
 
@@ -24,12 +25,19 @@ def change_drive_names(drive_names):
             new_names.append(name)
     return new_names
 
+default_geometry = dict(xpos=0.0, ypos=0.0, width=800, height=400)
+
 class AllostaticPlotModule(yarp.RFModule):
     def configure(self, rf):
-        self.xpos = rf.find("xpos").asInt();
-        self.ypos = rf.find("ypos").asInt();
-        self.width = rf.find("width").asInt();
-        self.height = rf.find("height").asInt();
+
+        for attr in ["xpos", "ypos", "width", "height"]:
+            a = rf.find(attr)
+            val = a.asInt() if not a.isNull() else default_geometry[attr]
+            setattr(self, attr, val)
+        # self.xpos = rf.find("xpos").asInt();
+        # self.ypos = rf.find("ypos").asInt();
+        # self.width = rf.find("width").asInt();
+        # self.height = rf.find("height").asInt();
         # time window size (= win_size * 0.1s)
         self.win_size = 600
 
@@ -120,8 +128,7 @@ class AllostaticPlotModule(yarp.RFModule):
 
         self.drive_values = [[0.] * self.win_size for _ in self.drives]
 
-        self.behaviors_to_plot = []  # plt.Rectangle(xy=(0,0), width=0, height=0)
-        self.text_to_plot = {}
+        self.behaviors_to_plot = defaultdict(list)
 
         self.t = 0
 
@@ -193,27 +200,35 @@ class AllostaticPlotModule(yarp.RFModule):
                 min_line[0].set_data((0- self.win_size, 0), (self.homeo_mins[i], self.homeo_mins[i]))
                 max_line[0].set_data((0- self.win_size, 0), (self.homeo_maxs[i], self.homeo_maxs[i]))
 
-        for plotitem in self.behaviors_to_plot:
-            plotitem[1].set_x(plotitem[1].get_x()-1)
-            plotitem[2].set_x(plotitem[1].get_x()+5)
-        if len(self.behaviors_to_plot)>0 and -(self.behaviors_to_plot[0][1].get_x()+self.behaviors_to_plot[0][1].get_width()) > self.win_size:
-            self.behaviors_to_plot[0][2].remove()
-            self.behaviors_to_plot.pop(0)
+        for key, plotitem_list in self.behaviors_to_plot.iteritems():
+            for plotitem in plotitem_list:
+                plotitem[0].set_x(plotitem[0].get_x() - 1)
+                plotitem[1].set_x(plotitem[0].get_x() + 5)
+                if -(plotitem[0].get_x() + plotitem[0].get_width()) > self.win_size:
+                    # the plotted rectangle is outside the x-axis from the left
+                    plotitem[1].remove()
+                    plotitem_list.pop(0)
+
+        # if len(self.behaviors_to_plot)>0 and -(self.behaviors_to_plot[0][1].get_x()+self.behaviors_to_plot[0][1].get_width()) > self.win_size:
+        #     self.behaviors_to_plot[0][2].remove()
+        #     self.behaviors_to_plot.pop(0)
 
         for name, port in zip(self.behaviors, self.behavior_ports):
             res = port.read(False)
             if res is not None:
                 msg = res.get(0).asString()
+                print name, msg
                 if msg == "start":
                     new_rectangle = plt.Rectangle(xy=(0, self.y_min), width=10000, height=(self.y_max-self.y_min)/20.)
                     plt.gca().add_patch(new_rectangle)
                     new_text = plt.text(5, self.y_min+0.025, name, horizontalalignment='left', color="gray")
-                    self.behaviors_to_plot.append((name, new_rectangle, new_text))
+                    self.behaviors_to_plot[name].append((new_rectangle, new_text))
                     print "Behavior " + name + " starts"
                 elif msg == "stop":
                     # print "TEST ", self.behaviors_to_plot
-                    self.behaviors_to_plot[-1][1].set_width(-self.behaviors_to_plot[-1][1].get_x())
+                    self.behaviors_to_plot[name][-1][0].set_width(-self.behaviors_to_plot[name][-1][0].get_x())
                     print "Behavior " + name + " stops"
+                print "number of behaviors to plot = ", sum([len(behs) for behs in self.behaviors_to_plot.values()]), self.behaviors_to_plot
 
         plt.draw()
         plt.pause(0.1)
