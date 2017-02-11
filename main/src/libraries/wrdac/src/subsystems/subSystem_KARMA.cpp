@@ -60,6 +60,10 @@ void wysiwyd::wrdac::SubSystem_KARMA::selectHandCorrectTarget(yarp::os::Bottle &
         target[0]=reply.get(1).asDouble();
         target[1]=reply.get(2).asDouble();
         target[2]=reply.get(3).asDouble();
+
+        Bottle opt;
+        opt.addString("fixate");
+        SubARE->look(target,opt,targetName);
     }
 
 //    lastlyUsedHand=hand;

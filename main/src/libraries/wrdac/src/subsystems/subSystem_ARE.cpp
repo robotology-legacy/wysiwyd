@@ -50,6 +50,10 @@ void wysiwyd::wrdac::SubSystem_ARE::selectHandCorrectTarget(yarp::os::Bottle &op
         target[0]=reply.get(1).asDouble();
         target[1]=reply.get(2).asDouble();
         target[2]=reply.get(3).asDouble();
+
+        yarp::os::Bottle opt;
+        opt.addString("fixate");
+        look(target,opt,objName);
     }
 
     lastlyUsedHand=hand;
