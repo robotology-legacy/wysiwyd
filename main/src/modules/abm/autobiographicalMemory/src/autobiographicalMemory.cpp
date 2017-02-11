@@ -112,7 +112,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     Network::connect(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc");
     if (!Network::isConnected(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc")) {
-        yWarning("Could not connect to augmention module!");
+        yDebug("Could not connect to augmention module!");
     }
 
     //sound
