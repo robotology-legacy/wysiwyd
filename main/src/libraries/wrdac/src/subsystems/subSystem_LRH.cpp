@@ -20,10 +20,10 @@ bool wysiwyd::wrdac::SubSystem_LRH::ABMconnected() {
 }
 
 bool wysiwyd::wrdac::SubSystem_LRH::SAMconnected() {
-    if (yarp::os::Network::isConnected(portSAM.getName(), "/sam/rpc")) {
+    if (yarp::os::Network::isConnected(portSAM.getName(), "/sam/rpc:i")) {
         return true;
     } else {
-        return yarp::os::Network::connect(portSAM.getName(), "/sam/rpc");
+        return yarp::os::Network::connect(portSAM.getName(), "/sam/rpc:i");
     }
 }
 
