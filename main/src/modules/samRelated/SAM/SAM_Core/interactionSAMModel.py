@@ -15,6 +15,8 @@ import yarp
 import logging
 from os.path import join
 import os
+from operator import itemgetter
+import thread
 warnings.simplefilter("ignore")
 np.set_printoptions(precision=2)
 
@@ -72,6 +74,11 @@ class interactionSAMModel(yarp.RFModule):
         self.modelRoot = None
         self.eventPort = None
         self.eventPortName = None
+        self.classTimestamps = None
+        self.probClassList = None
+        self.recency = None
+        self.useRecentClassTime = True
+        self.my_mutex = thread.allocate_lock()
 
     def configure(self, rf):
 
@@ -154,6 +161,12 @@ class interactionSAMModel(yarp.RFModule):
                     if self.collectionMethod not in ['buffered', 'continuous', 'future_buffered']:
                         logging.error('collectionMethod should be set to buffered / continuous / future_buffered')
                         return False
+                elif self.portNameList[j][0] == 'recency':
+                        try:
+                            self.recency = int(self.portNameList[j][1])
+                        except ValueError:
+                            logging.error('Recency value for ' + str(self.driverName) + ' is not an integer')
+                            self.recency = 5
                 else:
                     parts = self.portNameList[j][1].split(' ')
                     logging.info(parts)
@@ -189,6 +202,11 @@ class interactionSAMModel(yarp.RFModule):
                 self.eventPort = len(self.portsList) - 1
                 self.eventPortName = '/'.join(self.labelPortName.split('/')[:3])+'/event'
                 self.portsList[self.eventPort].open(self.eventPortName)
+                self.classTimestamps = []
+                if self.recency is None:
+                    logging.warning('No recency value specified for ' + self.driverName)
+                    logging.warning('Setting value to default of 5 seconds')
+                    self.recency = 5
 
             if self.svPort is None or self.labelPort is None or self.instancePort is None:
                 logging.warning('Config file properties incorrect. Should look like this:')
@@ -204,6 +222,8 @@ class interactionSAMModel(yarp.RFModule):
             self.outputType = self.portNameList[self.labelPort][1].split(' ')[1].lower()
             self.dataList = []
             self.classificationList = []
+            self.probClassList = []
+            self.classTimestamps = []
             yarp.Network.init()
 
             self.mm = initialiseModels([self.dataPath, self.modelPath, self.driverName], 'update', 'interaction')
@@ -265,7 +285,7 @@ class interactionSAMModel(yarp.RFModule):
                 logging.info("reloading model")
                 try:
                     self.mm = initialiseModels([self.dataPath, self.modelPath, self.driverName],
-                                                         'update', 'interaction', context=self.context)
+                                                'update', 'interaction')
                     reply.addString('ack')
                 except:
                     reply.addString('nack')
@@ -297,6 +317,7 @@ class interactionSAMModel(yarp.RFModule):
                 self.close()
             # -------------------------------------------------
             elif action in self.callSignList:
+                logging.info('call sign command recognized')
                 if 'label' in action:
                     self.classifyInstance(reply)
                 elif 'instance' in action:
@@ -317,41 +338,130 @@ class interactionSAMModel(yarp.RFModule):
                 logging.info('-------------------------------------')
             if self.collectionMethod == 'buffered':
                 if self.modelLoaded:
-                    thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                           additionalData=self.additionalInfoDict)
+                    logging.debug('going in process live')
+                    thisClass, probClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm,
+                                                                                verbose=self.verboseSetting,
+                                                                                additionalData=self.additionalInfoDict)
+                    logging.debug('exited process live')
                 else:
                     thisClass = None
-
-                if thisClass is None:
+                logging.debug(thisClass)
+                logging.debug('object thisclass' + str(thisClass is None))
+                logging.debug('object datalist' + str(dataList is None))
+                logging.debug('string thisclass' + str(thisClass == 'None'))
+                logging.debug('string datalist' + str(dataList == 'None'))
+                if thisClass is None or dataList is None:
+                    logging.debug('None reply')
                     reply.addString('nack')
                 else:
+                    logging.debug('correct reply')
                     reply.addString(thisClass)
-                    # reply.addDouble(likelihood)
+                logging.debug('finish reply')
+                    # reply.addDouble(probClass)
             # -------------------------------------------------
             elif self.collectionMethod == 'continuous':
-                logging.info(self.classificationList)
+                # mutex lock classificationList
+                self.my_mutex.acquire()
+                logging.debug(self.classificationList)
+                logging.debug(self.classTimestamps)
+                # check last n seconds
                 if len(self.classificationList) > 0:
-                    reply.addString('ack')
-                    reply.addString(self.classificationList[-1])
-                    self.classificationList.pop(-1)
+                    if self.useRecentClassTime:
+                        minT = self.classTimestamps[-1] - self.recency
+                    else:
+                        minT = time.time() - self.recency
+
+                    logging.debug('minT ' + str(minT))
+                    logging.debug('recency ' + str(self.recency))
+                    for index, value in enumerate(self.classTimestamps):
+                        logging.debug(str(index) + ' ' + str(value) + ' ' + str(value > minT))
+                    validList = [index for index, value in enumerate(self.classTimestamps) if value > minT]
+                    logging.debug('validList ' + str(validList))
+                    minIdx = min(validList)
+                    logging.debug('minIdx ' + str(minIdx))
+                    validClassList = self.classificationList[minIdx:]
+                    validProbList = self.probClassList[minIdx:]
+                    logging.debug('validClassList ' + str(validClassList))
+                    logging.debug('classify classList' + str(self.classificationList))
+                    logging.debug('classify probclassList' + str(self.probClassList))
+                    logging.debug('classify classTimeStamps' + str(self.classTimestamps))
+
+                    if len(validClassList) > 0:
+
+                        # combine all classifications
+                        if len(validClassList) == 1:
+                            logging.debug('validClassList is of len 1')
+                            decision = validClassList[0]
+                        else:
+                            logging.debug('validClassList is of len ' + str(len(validClassList)))
+                            setClass = list(set(validClassList))
+                            logging.debug('setClass ' + str(setClass))
+                            if len(setClass) == len(validClassList):
+                                logging.debug('len setClass = len validClassList' + str(len(setClass)) + ' ' +
+                                              str(len(validClassList)))
+                                decision = validClassList[validProbList.index(max(validProbList))]
+                            else:
+                                dictResults = dict()
+                                for m in setClass:
+                                    logging.debug('currentM ' + str(m))
+                                    idxM = [idx for idx, name in enumerate(validClassList) if name == m]
+                                    logging.debug('idx ' + str(idxM))
+                                    probVals = itemgetter(*idxM)(validProbList)
+                                    logging.debug('probs ' + str(probVals))
+                                    try:
+                                        probSum = sum(probVals)
+                                    except TypeError:
+                                        probSum = probVals
+                                    logging.debug('sum ' + str(probSum))
+                                    dictResults[m] = probSum
+                                    logging.debug('')
+                                logging.debug('dictResults ' + str(dictResults))
+                                maxDictProb = max(dictResults.values())
+                                logging.debug('maxDictProb = ' + str(maxDictProb))
+                                decisions = [key for key in dictResults.keys() if dictResults[key] == maxDictProb]
+                                logging.info('Decision: ' + str(decisions))
+                                logging.info('We have resolution')
+                                decision = ' and '.join(decisions)
+                        logging.info('Decision: ' + decision)
+
+                        reply.addString('ack')
+                        reply.addString(decision)
+                        # reply.addString(validClassList[-1])
+                        # self.classificationList.pop(-1)
+
+                        # remove validclassList from self.classificationList / probClassList / classTimeStamps
+                        self.classificationList = self.classificationList[:minIdx]
+                        self.probClassList = self.probClassList[:minIdx]
+                        self.classTimestamps = self.classTimestamps[:minIdx]
+
+                    else:
+                        logging.info('No valid classifications')
+                        reply.addString('nack')
+                    logging.debug('replying ' + reply.toString())
+                    logging.debug('classify classList' + str(self.classificationList))
+                    logging.debug('classify probclassList' + str(self.probClassList))
+                    logging.debug('classify classTimeStamps' + str(self.classTimestamps))
                 else:
+                    logging.info('No classifications yet')
                     reply.addString('nack')
+                self.my_mutex.release()
             # -------------------------------------------------
             elif self.collectionMethod == 'future_buffered':
                 self.dataList = []
                 for j in range(self.bufferSize):
                     self.dataList.append(self.readFrame())
                 if self.modelLoaded:
-                    thisClass = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                           additionalData=self.additionalInfoDict)
+                    thisClass, probClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm,
+                                                                                verbose=self.verboseSetting,
+                                                                                additionalData=self.additionalInfoDict)
                 else:
                     thisClass = None
 
-                if thisClass is None:
+                if thisClass is None or dataList is None:
                     reply.addString('nack')
                 else:
-                    reply.addString(thisClass[0])
-                    # reply.addDouble(likelihood)
+                    reply.addString(thisClass)
+                    # reply.addDouble(probClass)
         else:
             reply.addString('nack')
             reply.addString('No input connections to ' + str(self.portsList[self.labelPort].getName()))
@@ -487,27 +597,67 @@ class interactionSAMModel(yarp.RFModule):
             # process list of frames for a classification
             dataList = []
             if self.modelLoaded:
-                thisClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm, verbose=self.verboseSetting,
-                                                                 additionalData=self.additionalInfoDict)
+                thisClass, probClass, dataList = self.mm[0].processLiveData(self.dataList, self.mm,
+                                                                            verbose=self.verboseSetting,
+                                                                            additionalData=self.additionalInfoDict)
             else:
                 thisClass = None
             # if proper classification
             if thisClass is not None:
                 # empty dataList
+
+                # mutex dataList lock
+                self.my_mutex.acquire()
                 self.dataList = dataList
+                # mutex dataList release
+
                 if thisClass != 'None':
+                    tStamp = time.time()
                     eventBottle = self.portsList[self.eventPort].prepare()
                     eventBottle.clear()
                     eventBottle.addString('ack')
                     self.portsList[self.eventPort].write()
                     # add classification to classificationList to be retrieved during respond method
+
+                    # mutex classificationList lock
+
+                    # Time based method
                     logging.info('classList len: ' + str(len(self.classificationList)))
-                    if len(self.classificationList) == self.bufferSize:
-                        # FIFO buffer first item in list is oldest
-                        self.classificationList.pop(0)
-                        self.classificationList.append(thisClass)
-                    else:
-                        self.classificationList.append(thisClass)
+                    logging.debug('thisclass ' + str(thisClass))
+                    self.classificationList = self.classificationList + thisClass
+                    logging.debug('classificationList ' + str(self.classificationList))
+                    self.probClassList = self.probClassList + probClass
+                    logging.debug('probClass ' + str(self.probClassList))
+                    self.classTimestamps = self.classTimestamps + [tStamp]*len(thisClass)
+                    logging.debug('self.classTimestamps ' + str(self.classTimestamps))
+                    # remove timestamps older than memory duration (self.bufferSize in seconds)
+                    logging.debug('last time stamp: ' + str(self.classTimestamps[-1]))
+                    minMemT = self.classTimestamps[-1] - self.bufferSize
+                    logging.debug('minMemT ' + str(minMemT))
+                    goodIdxs = [idx for idx, timeVal in enumerate(self.classTimestamps) if timeVal > minMemT]
+                    logging.debug('goodIdxs ' + str(goodIdxs))
+                    minIdx = min(goodIdxs)
+                    self.classificationList = self.classificationList[minIdx:]
+                    self.probClassList = self.probClassList[minIdx:]
+                    self.classTimestamps = self.classTimestamps[minIdx:]
+
+                    logging.debug('classificationList ' + str(self.classificationList))
+                    logging.debug('probClass ' + str(self.probClassList))
+                    logging.debug('self.classTimestamps ' + str(self.classTimestamps))
+
+                    # Old method
+                    # if len(self.classificationList) == self.bufferSize:
+                    #     # FIFO buffer first item in list is oldest
+                    #     self.classificationList.pop(0)
+                    #     self.classTimestamps.pop(0)
+                    #     self.classificationList.append(thisClass)
+                    #     self.classTimestamps.append(tStamp)
+                    # else:
+                    #     self.classificationList.append(thisClass)
+                    #     self.classTimestamps.append(tStamp)
+
+                # mutex release
+                self.my_mutex.release()
         # -------------------------------------------------
         elif self.collectionMethod == 'future_buffered':
             pass
@@ -515,7 +665,7 @@ class interactionSAMModel(yarp.RFModule):
     def test(self):
         count = 0
         if self.collectionMethod == 'continuous':
-            classifyBlock = 10
+            classifyBlock = self.mm[0].paramsDict['windowSize']
         elif self.collectionMethod == 'buffered':
             classifyBlock = self.bufferSize
         else:

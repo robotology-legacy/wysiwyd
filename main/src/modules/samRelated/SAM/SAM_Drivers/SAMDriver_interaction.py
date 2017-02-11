@@ -211,10 +211,10 @@ class SAMDriver_interaction(SAMDriver):
                 logging.info(instance.shape)
                 logging.info("Collected face: " + str(i))
                 [labels[i], likelihoods[i]] = SAMTesting.testSegment(thisModel, instance, verbose, None)
-
-            return SAMTesting.combineClassifications(thisModel, labels, likelihoods)
+            finalClassLabel, finalClassProb = SAMTesting.combineClassifications(thisModel, labels, likelihoods)
+            return finalClassLabel, finalClassProb, None
         else:
-            return [None, 0]
+            return [None, 0, None]
 
     def formatGeneratedData(self, instance):
         # normalise image between 0 and 1

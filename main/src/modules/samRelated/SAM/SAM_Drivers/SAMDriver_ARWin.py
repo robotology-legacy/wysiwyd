@@ -906,7 +906,7 @@ class SAMDriver_ARWin(SAMDriver):
         for j in featureSequence:
             if j == 'object':
                 for k in objectsList:
-                    if k != partnerName:
+                    if k != partnerName and k != 'partner':
                         listOfVectorsToClassify.append([k])
 
             elif 'hand' in j:
@@ -971,19 +971,26 @@ class SAMDriver_ARWin(SAMDriver):
         mode = 'live'
         sentence = []
         classifs = []
+        sentenceProb = []
         vecList = []
         errorFlag = False
 
         if len(dataList) == self.paramsDict['windowSize']:
+            logging.debug('dataList is of good size')
             dataStrings = []
             for j in range(len(dataList)):
+                logging.debug('check message' + str(j))
                 [t, goAhead] = self.messageChecker(dataList[j].toString(), mode)
+                logging.debug('message' + str(j) + 'checked')
                 if goAhead:
+                    logging.debug('append')
                     dataStrings.append(t)
-
+            logging.debug('checked all strings')
             if len(dataStrings) == self.paramsDict['windowSize']:
                 try:
+                    logging.debug('converting to dict')
                     data, jointsList, objectsList = self.convertToDict(dataStrings, mode=mode, verbose=False)
+                    logging.debug('converted to dictionary')
                 except:
                     logging.error('Some incorrect messages received')
                     return 'None', None
@@ -994,15 +1001,17 @@ class SAMDriver_ARWin(SAMDriver):
                 else:
                     listOfVectorsToClassify = self.listOfClassificationVectors(self.featureSequence, objectsList,
                                                                                partnerName='partner')
-
+                logging.debug('finished list of vectors to classify')
                 for j in listOfVectorsToClassify:
                     v = []
                     for k in j:
                         v.append(data[k])
                     vec = np.hstack(v)
                     vecList.append(vec)
+                    logging.debug('testing segment')
                     [label, val] = SAMTesting.testSegment(thisModel, vec, verbose, visualiseInfo=None,
                                                           optimise=thisModel[0].optimiseRecall)
+                    logging.debug('tested segment')
                     classification = label.split('_')[0]
                     classifs.append(classification)
                     if self.paramsDict['flip'] and 'handLeft' in j:
@@ -1010,30 +1019,37 @@ class SAMDriver_ARWin(SAMDriver):
                             classification = 'pull'
                         elif classification == 'pull':
                             classification = 'push'
-
+                    logging.debug('making sentence')
                     if classification == 'unknown':
                         sentence.append("You did an " + classification + " action on the " + str(j[0]))
+                        sentenceProb.append(val)
                     else:
                         sentence.append("You did a " + classification + " action on the " + str(j[0]))
+                        sentenceProb.append(val)
+                    logging.debug('sentence made')
 
                     # if len(j) > 1:
                     #     sentence[-1] += " with your " + j[1].replace('hand', '') + ' hand'
                     if classification == 'unknown' and not returnUnknown:
                         sentence.pop(-1)
+                        sentenceProb.pop(-1)
                     elif printClass:
                         logging.info(sentence[-1])
                     if printClass:
                         logging.info('------------------------------------------------------')
-
+                logging.debug('modifying datalist')
                 del dataList[:self.paramsDict['windowOffset']]
                 if len(sentence) > 0:
                     # return [str(sentence), data, classifs, vecList]
-                    return str(sentence), dataList
+                    logging.debug('ret success')
+                    return sentence, sentenceProb, dataList
                 else:
                     # return ['None', data, classifs, vecList]
-                    return 'None', dataList
+                    logging.debug('ret None')
+                    return 'None', 0, dataList
             else:
                 logging.error('Some incorrect messages received')
-                return 'None', None
+                return 'None', 0, None
         else:
-            return None, None
+            logging.error('Not enough data points')
+            return None, 0, None

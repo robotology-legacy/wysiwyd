@@ -263,7 +263,7 @@ def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimise=
     try:
         ret = thisModel.SAMObject.pattern_completion(testValue, visualiseInfo=visualiseInfo, optimise=optimise)
     except IndexError:
-        return ['unknown', 100]
+        return ['unknown', 0]
     mm = ret[0]
     vv = list(ret[1][0])
     svv = sum(vv)
@@ -336,7 +336,10 @@ def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None, optimise=
         else:
             logging.info("With " + str(vv) + " prob. error the new instance is " + str(textStringOut))
 
-    return [textStringOut, vv]
+    if thisModel.calibrated:
+        return [textStringOut, probClass/len(vv)]
+    else:
+        return [textStringOut, vv]
 
 
 def multipleRecall_noCalib(thisModel, testInstance, verbose, visualiseInfo=None, optimise=True):

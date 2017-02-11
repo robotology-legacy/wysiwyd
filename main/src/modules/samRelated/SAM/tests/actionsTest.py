@@ -5,50 +5,114 @@ import subprocess
 import yarp
 import time
 import signal
+import random
+import glob
+from shutil import copyfile
+from ConfigParser import SafeConfigParser
 
+# constant variables
 automaticOpen = True
 connectDirect = True
+frameLen = 15
+
+# passed in variables
+modelName = 'Actions3'
+driverName = 'SAMDriver_ARWin'
+
+# changing variables
+datacollectionOnly = True
+randomRecall = True
+probRecall = 0.1
+bufferLen = 20
+recency = 7
+transmissionDelay = 0.05
+
+yrf = yarp.ResourceFinder()
+yrf.setVerbose(True)
+yrf.setDefaultContext("samSupervisor")
+yrf.setDefaultConfigFile("default.ini")
+yrf.configure([])
+
+rootPath = yrf.find("root_path").asString()
+name = rootPath + '/Models/' + modelName + '__' + driverName + '*.pickle'
+fname = glob.glob(name)
+assert len(fname) > 0, 'model file not found'
+modelFileName = fname[0]
+
+interactionConfFile = yrf.find("config_path").asString()
+interactionConfFile = yrf.findFile(interactionConfFile)
+# copyfile(interactionConfFile, interactionConfFile+'.bkp')
+parser = SafeConfigParser()
+parser.optionxform = str
+parser.read(interactionConfFile)
+assert modelName in parser.sections(), 'model name not in parser sections'
+
+items = parser.items(modelName)
+for j in items:
+    if j[0] == 'dataIn':
+        dataInPort = j[1].split(' ')[0]
+    elif j[0] == 'rpcBase':
+        rpcInPort = j[1]
+    elif j[0] == 'callSign':
+       askCommand = [k for k in j[1].split(',') if 'label' in k][0]
+    elif j[0] == 'collectionMethod':
+        collectionMethod = j[1].split(' ')[0]
+        if collectionMethod == 'continuous':
+            parser.set(modelName, 'collectionMethod', 'continuous ' + str(bufferLen))
+    elif j[0] == 'recency' and collectionMethod == 'continuous':
+        parser.set(modelName, 'recency', str(recency))
+
+parser.write(open(interactionConfFile, 'wb'))
+
+
+def checkRecall(rpcPort, askCommand):
+    # check correct response
+    cmBottle = yarp.Bottle()
+    rpBottle = yarp.Bottle()
+    cmBottle.addString(askCommand)
+    rpcPort.write(cmBottle, rpBottle)
+    results.append(rpBottle.toString())
+    return rpBottle
 
 networkFound = yarp.Network.checkNetwork()
 assert networkFound, 'Yarpserver not found'
 processesList = []
 
 # open data port
-dataPortName = '/actionsTest/data:o'
+dataPortName = '/modelTest/data:o'
 dataPort = yarp.BufferedPortBottle()
 dataPort.open(dataPortName)
 
 # open query port
-rpcPortName = '/actionsTest/rpc'
+rpcPortName = '/modelTest/rpc'
 rpcPort = yarp.RpcClient()
 rpcPort.open(rpcPortName)
 
 # open interactionSAMModel
 if connectDirect:
     if automaticOpen:
-        args = ' '.join(['/home/$USER/SAM_Data_Models/Data/Actions3 ',
-                         '/home/$USER/SAM_Data_Models/Models/Actions3__SAMDriver_ARWin__mrd__backup',
-                         '/home/$USER/.local/share/yarp/contexts/samSupervisor/sensory_level_conf.ini',
-                         'SAMDriver_ARWin', 'False'])
+
+        args = ' '.join([rootPath +'/Data/' + modelName, modelFileName.replace('.pickle', ''),
+                         interactionConfFile, driverName, 'False'])
         pyFile = 'interactionSAMModel.py'
         interactionCMD = ' '.join([pyFile, args])
         print interactionCMD
         windowedCMD = "bash -c \"" + interactionCMD + "\""
-        interactionProcess = subprocess.Popen(['xterm', '-hold', '-e', windowedCMD], shell=False)
+        interactionProcess = subprocess.Popen(['xterm', '-e', windowedCMD], shell=False)
 
         # wait until model loaded
         time.sleep(7)
     else:
         # check interactionSAMModel present
         pass
-    yarp.Network.connect(rpcPortName, '/sam/actions/rpc:i')
+    yarp.Network.connect(rpcPortName, rpcInPort)
 else:
     yarp.Network.connect(rpcPortName, '/sam/rpc:i')
     # send load Actions3
 
 
 # connect data to /sam/actions/actionData:i
-yarp.Network.connect(dataPortName, '/sam/actions/actionData:i')
+yarp.Network.connect(dataPortName, dataInPort)
 # yarp.Network.connect(dataPortName, '/reader')
 
 # check length of data log file
@@ -61,7 +125,7 @@ dataFile.close()
 
 # send each line with a pause of 0.1s and query model every frameLen data points.
 # check correct response and continued operation os samSupervisor
-frameLen = 15
+
 processBreak = False
 dataFile = open(join('./noisyActionData/recordedData', 'data.log'), 'r')
 results = []
@@ -72,17 +136,24 @@ for curr in range(lenDataFile):
     dataBottle = dataPort.prepare()
     dataBottle.fromString(line)
     dataPort.write()
-    time.sleep(0.05)
+    time.sleep(transmissionDelay)
+
+    if randomRecall and random.random() < probRecall and not datacollectionOnly:
+        rpBottle = checkRecall(rpcPort, askCommand)
+        pollResult = interactionProcess.poll()
+        print "{0:.2f}".format(curr*100.0/lenDataFile)+'%\t', 'Request Response:', rpBottle.toString(), pollResult
+
     if curr%frameLen == 0:
-        # check correct response
-        cmBottle = yarp.Bottle()
-        rpBottle = yarp.Bottle()
-        cmBottle.addString('ask_action_label')
-        rpcPort.write(cmBottle, rpBottle)
-        results.append(rpBottle.toString())
-        # check reply and status of process
-        print "{0:.2f}".format(curr*100.0/lenDataFile)+'%\t', rpBottle.toString(), interactionProcess.poll()
-        if interactionProcess.poll() is not None:
+        if not datacollectionOnly and not randomRecall:
+            rpBottle = checkRecall(rpcPort, askCommand)
+            # check reply and status of process
+            pollResult = interactionProcess.poll()
+            print "{0:.2f}".format(curr*100.0/lenDataFile)+'%\t', 'Request Response:', rpBottle.toString(), pollResult
+        else:
+            pollResult = interactionProcess.poll()
+            print "{0:.2f}".format(curr*100.0/lenDataFile)+'%\t', pollResult
+
+        if pollResult is not None:
             processBreak = True
             break
 
@@ -96,8 +167,7 @@ retCode = interactionProcess.wait()
 if processBreak:
     print 'ERROR'
 else:
-	print 'SUCCESS'
-raw_input("Press Enter to exit...")
+    print 'SUCCESS'
 
 
 
