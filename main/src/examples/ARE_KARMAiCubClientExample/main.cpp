@@ -83,7 +83,7 @@ int main()
 
 
     //----------------------------> ARE related action
-    iCub.home();     // Home by using ARE
+    /*iCub.home();     // Home by using ARE
     cout<<"try to point using ARE..."<<endl;
     ok = iCub.point(x);      // automatic selection of the hand
     cout<<(ok?"success":"failed")<<endl;
@@ -118,6 +118,7 @@ int main()
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
     iCub.home();
+    */
 
     cout<<"shutting down ... "<<endl;
     iCub.close();

@@ -187,7 +187,7 @@ namespace wysiwyd{
             double getChoregraphyLength(const std::string &name, double speedFactor = 1.0);
 
             /**
-            * Grasp an object.
+            * Go in home position.
             * @param part the part to be homed ("gaze", "head", "arms",
             *             "fingers", "all"; "all" by default).
             * @return true in case of successfull motor command, false
@@ -207,19 +207,6 @@ namespace wysiwyd{
             *         not grasped, etc.).
             */
             bool grasp(const std::string &oName, const yarp::os::Bottle &options = yarp::os::Bottle());
-
-            /**
-            * Grasp an object.
-            * @param target contains spatial information about the object to
-            *               be grasped.
-            * @param options bottle containing a list of options (e.g. force
-            *                to use specific hand with "left"|"right"
-            *                option; grasp type such as "above", "side").
-            * @return true in case of successfull motor command, false
-            *         otherwise (Entity non existing, impossible to reach,
-            *         not grasped, etc.).
-            */
-            bool grasp(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
 
             /**
             * Release the hand-held object on a given location.
@@ -288,18 +275,6 @@ namespace wysiwyd{
             bool waving(const bool sw);
 
             /**
-            * Point at a specified location.
-            * @param target contains spatial information about the location
-            *               where pointing at.
-            * @param options bottle containing a list of options (e.g. force
-            *                to use specific hand with "left"|"right"
-            *                option).
-            * @return true in case of success release, false otherwise
-            *         (Entity non existing, impossible to reach, etc.).
-            */
-            bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
-
-            /**
             * Push at a specified location.
             * @param oName is the name of the entity in the OPC where the
             *              robot should push at.
@@ -310,19 +285,6 @@ namespace wysiwyd{
             *         (Entity non existing, impossible to reach, etc.).
             */
             bool push(const std::string &oLocation, const yarp::os::Bottle &options = yarp::os::Bottle());
-
-            /**
-            * Push at a specified location.
-            * @param target contains spatial information about the location
-            *               where pushing at.
-            * @param options bottle containing a list of options (e.g. force
-            *                to use specific hand with "left"|"right"
-            *                option).
-            * @return true in case of success release, false otherwise
-            *         (Entity non existing, impossible to reach, etc.).
-            */
-            bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
-
 
             /**
              * @brief pushKarmaLeft: push an object by name to right side
@@ -432,18 +394,6 @@ namespace wysiwyd{
             bool take(const std::string &oLocation, const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
-            * Take at a specified location.
-            * @param target contains spatial information about the location
-            *               where taking at.
-            * @param options bottle containing a list of options (e.g. force
-            *                to use specific hand with "left"|"right"
-            *                option).
-            * @return true in case of success grasp, false otherwise
-            *         (Entity non existing, impossible to reach, etc.).
-            */
-            bool take(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
-
-            /**
             * @brief pushKarma (KARMA): push to certain position, along a direction
             * @param targetCenter: position to push to.
             * @param theta: angle between the y-axis (in robot FoR) and starting position of push action, defines the direction of push action
@@ -515,13 +465,6 @@ namespace wysiwyd{
             * @param sBodypartName is the name of the bodypart (kinect skeleton node) to be looked at
             */
             bool lookAtBodypart(const std::string &sBodypartName);
-
-            /**
-            * Points at the agent specific bodypart if present in the scene.
-            * @param sBodypartName is the name of the bodypart (kinect skeleton node) to be looked at
-            */
-            bool pointAtBodypart(const std::string &sBodypartName);
-
 
             /**
             * Extract the name of the agent interaction with the iCub (present, not iCub nor 'unnamed' partner)

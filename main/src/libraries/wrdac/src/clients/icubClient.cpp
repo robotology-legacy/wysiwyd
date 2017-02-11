@@ -464,26 +464,9 @@ bool ICubClient::home(const string &part)
 
 bool ICubClient::grasp(const string &oName, const Bottle &options)
 {
-    Entity *target = opc->getEntity(oName, true);
-    if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
-    {
-        yError() << "[iCubClient] Called grasp() on a unallowed entity: \"" << oName << "\"";
-        return false;
-    }
+    Bottle opt(options);
+    opt.addString("still"); // always avoid automatic homing after grasp
 
-    Object *oTarget = dynamic_cast<Object*>(target);
-    if (oTarget->m_present != 1.0)
-    {
-        yWarning() << "[iCubClient] Called grasp() on an unavailable entity: \"" << oName << "\"";
-        return false;
-    }
-
-    return grasp(oTarget->m_ego_position, options, oTarget->name());
-}
-
-
-bool ICubClient::grasp(const Vector &target, const Bottle &options, std::string sName)
-{
     SubSystem_ARE *are = getARE();
     if (are == NULL)
     {
@@ -491,17 +474,7 @@ bool ICubClient::grasp(const Vector &target, const Bottle &options, std::string 
         return false;
     }
 
-    if (isTargetInRange(target))
-    {
-        Bottle opt(options);
-        opt.addString("still"); // always avoid automatic homing after grasp
-        return are->take(target, opt, sName);
-    }
-    else
-    {
-        yWarning() << "[iCubClient] Called grasp() on a unreachable entity: (" << target.toString(3, 3).c_str() << ")";
-        return false;
-    }
+    return are->take(oName, opt);
 }
 
 
@@ -589,26 +562,6 @@ bool ICubClient::pointfar(const Vector &target, const Bottle &options, std::stri
 
 bool ICubClient::point(const string &oLocation, const Bottle &options)
 {
-    Entity *target = opc->getEntity(oLocation, true);
-    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
-    {
-        yWarning() << "[iCubClient] Called point() on a unallowed location: \"" << oLocation << "\"";
-        return false;
-    }
-
-    Object *oTarget = dynamic_cast<Object*>(target);
-    if (oTarget!=nullptr && oTarget->m_present != 1.0)
-    {
-        yWarning() << "[iCubClient] Called point() on an unavailable entity: \"" << oLocation << "\"";
-        return false;
-    }
-
-    return point(oTarget->m_ego_position, options, oTarget->name());
-}
-
-
-bool ICubClient::point(const Vector &target, const Bottle &options, std::string sName)
-{
     SubSystem_ARE *are = getARE();
     if (are == NULL)
     {
@@ -618,30 +571,12 @@ bool ICubClient::point(const Vector &target, const Bottle &options, std::string 
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->point(target, opt, sName);
+
+    return are->point(oLocation, opt);
 }
+
 
 bool ICubClient::push(const string &oLocation, const Bottle &options)
-{
-    Entity *target = opc->getEntity(oLocation, true);
-    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
-    {
-        yWarning() << "[iCubClient] Called push() on a unallowed location: \"" << oLocation << "\"";
-        return false;
-    }
-
-    Object *oTarget = dynamic_cast<Object*>(target);
-    if (oTarget->m_present != 1.0)
-    {
-        yWarning() << "[iCubClient] Called push() on an unavailable entity: \"" << oLocation << "\"";
-        return false;
-    }
-
-    return push(oTarget->m_ego_position, options, oTarget->name());
-}
-
-
-bool ICubClient::push(const Vector &target, const Bottle &options, std::string sName)
 {
     SubSystem_ARE *are = getARE();
     if (are == NULL)
@@ -652,30 +587,12 @@ bool ICubClient::push(const Vector &target, const Bottle &options, std::string s
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->push(target, opt, sName);
-}
 
-bool ICubClient::take(const string &oLocation, const Bottle &options)
-{
-    Entity *target = opc->getEntity(oLocation, true);
-    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
-    {
-        yWarning() << "[iCubClient] Called take() on a unallowed location: \"" << oLocation << "\"";
-        return false;
-    }
-
-    Object *oTarget = dynamic_cast<Object*>(target);
-    if (oTarget->m_present != 1.0)
-    {
-        yWarning() << "[iCubClient] Called take() on an unavailable entity: \"" << oLocation << "\"";
-        return false;
-    }
-
-    return take(oTarget->m_ego_position, options, oTarget->name());
+    return are->push(oLocation, opt);
 }
 
 
-bool ICubClient::take(const Vector &target, const Bottle &options, std::string sName)
+bool ICubClient::take(const std::string& sName, const Bottle &options)
 {
     SubSystem_ARE *are = getARE();
     if (are == NULL)
@@ -686,7 +603,7 @@ bool ICubClient::take(const Vector &target, const Bottle &options, std::string s
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->take(target, opt, sName);
+    return are->take(sName, opt);
 }
 
 // KARMA
@@ -1017,22 +934,6 @@ bool ICubClient::lookAtBodypart(const std::string &sBodypartName)
         }
 
         yWarning() << "[iCubClient] Called lookAtBodypart() on an unvalid/unpresent agent or bodypart (" << sBodypartName << ")";
-        return false;
-    }
-    return false;
-}
-
-bool ICubClient::pointAtBodypart(const std::string &sBodypartName)
-{
-    if (SubSystem_ARE *are = getARE())
-    {
-        Vector vLoc;
-        vLoc = getPartnerBodypartLoc(sBodypartName);
-        if (vLoc.size() == 3){
-            return are->point(vLoc, yarp::os::Bottle(), sBodypartName);
-        }
-
-        yWarning() << "[iCubClient] Called pointAtBodypart() on an unvalid/unpresent agent or bodypart (" << sBodypartName << ")";
         return false;
     }
     return false;

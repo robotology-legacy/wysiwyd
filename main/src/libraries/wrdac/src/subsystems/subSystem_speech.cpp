@@ -174,6 +174,7 @@ void wysiwyd::wrdac::SubSystem_Speech::Close()
     sttRpc.interrupt();
     sttRpc.close();
     SubABM->Close();
+    opc->interrupt();
     opc->close();
 
     delete SubABM;

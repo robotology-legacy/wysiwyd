@@ -82,7 +82,7 @@ int main()
     port.write(cmd,reply);
     port.close();
 
-    iCub.home();
+    /*iCub.home();
     cout<<"pointing at the object ... "<<endl;
     iCub.point(x);      // automatic selection of the hand
     Time::delay(2.0);
@@ -100,7 +100,7 @@ int main()
         cout<<"releasing ... "<<endl;
         iCub.release(x);
         iCub.home();
-    }
+    }*/
 
     cout<<"shutting down ... "<<endl;
     iCub.close();

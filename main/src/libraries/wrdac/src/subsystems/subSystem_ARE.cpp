@@ -9,7 +9,7 @@ void wysiwyd::wrdac::SubSystem_ARE::appendCartesianTarget(yarp::os::Bottle &b, c
         sub.addDouble(t[i]);
 }
 
-void wysiwyd::wrdac::SubSystem_ARE::selectHandCorrectTarget(yarp::os::Bottle &options, yarp::sig::Vector &target, const std::string handToUse)
+void wysiwyd::wrdac::SubSystem_ARE::selectHandCorrectTarget(yarp::os::Bottle &options, yarp::sig::Vector &target, const std::string& objName, const std::string handToUse)
 {
     std::string hand="";
     for (int i=0; i<options.size(); i++)
@@ -42,11 +42,10 @@ void wysiwyd::wrdac::SubSystem_ARE::selectHandCorrectTarget(yarp::os::Bottle &op
     if (calibPort.getOutputCount()>0)
     {
         yarp::os::Bottle cmd,reply;
-        cmd.addString("get_location_nolook");
+        cmd.addString("get_location");
+        cmd.addString(hand);
+        cmd.addString(objName);
         cmd.addString("iol-"+hand);
-        cmd.addDouble(target[0]);
-        cmd.addDouble(target[1]);
-        cmd.addDouble(target[2]);
         calibPort.write(cmd,reply);
         target[0]=reply.get(1).asDouble();
         target[1]=reply.get(2).asDouble();
@@ -120,6 +119,8 @@ bool wysiwyd::wrdac::SubSystem_ARE::connect()
         ret&=yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
     }
 
+    opc->connect("OPC");
+
     return ret;
 }
 
@@ -134,10 +135,16 @@ wysiwyd::wrdac::SubSystem_ARE::SubSystem_ARE(const std::string &masterName) : Su
     calibPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/calib:io").c_str());
     m_type = SUBSYSTEM_ARE;
     lastlyUsedHand="";
+
+    opc = new OPCClient(m_masterName+"/opc");
 }
 
 void wysiwyd::wrdac::SubSystem_ARE::Close()
 {
+    opc->interrupt();
+    opc->close();
+    delete opc;
+
     cmdPort.interrupt();
     rpcPort.interrupt();
     getPort.interrupt();
@@ -214,13 +221,28 @@ bool wysiwyd::wrdac::SubSystem_ARE::home(const std::string &part)
     return bReturn;
 }
 
-bool wysiwyd::wrdac::SubSystem_ARE::take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
+bool wysiwyd::wrdac::SubSystem_ARE::take(const std::string &sName, const yarp::os::Bottle &options)
 {
     yDebug() << "ARE::take start";
+
+    Entity* e = opc->getEntity(sName, true);
+    Object *o;
+    if(e) {
+        o = dynamic_cast<Object*>(e);
+    }
+    else {
+        yError() << sName << " is not an Entity";
+        return false;
+    }
+    if(!o) {
+        yError() << "Could not cast" << e->name() << "to Object";
+        return false;
+    }
+
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        lArgument.push_back(std::pair<std::string, std::string>(o->m_ego_position.toString().c_str(), "vector"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("take", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -233,9 +255,9 @@ bool wysiwyd::wrdac::SubSystem_ARE::take(const yarp::sig::Vector &targetUnsafe, 
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("take"));
 
-    yarp::sig::Vector target=targetUnsafe;
+    yarp::sig::Vector target=o->m_ego_position;
     yarp::os::Bottle opt=options;
-    selectHandCorrectTarget(opt,target);
+    selectHandCorrectTarget(opt,target,sName);
     target=applySafetyMargins(target);
     appendCartesianTarget(bCmd,target);
     bCmd.append(opt);
@@ -246,7 +268,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::take(const yarp::sig::Vector &targetUnsafe, 
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        lArgument.push_back(std::pair<std::string, std::string>(o->m_ego_position.toString().c_str(), "vector"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("take", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -261,13 +283,28 @@ bool wysiwyd::wrdac::SubSystem_ARE::take(const yarp::sig::Vector &targetUnsafe, 
     return bReturn;
 }
 
-bool wysiwyd::wrdac::SubSystem_ARE::push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
+bool wysiwyd::wrdac::SubSystem_ARE::push(const std::string &sName, const yarp::os::Bottle &options)
 {
     yDebug() << "ARE::push start";
+
+    Entity* e = opc->getEntity(sName, true);
+    Object *o;
+    if(e) {
+        o = dynamic_cast<Object*>(e);
+    }
+    else {
+        yError() << sName << " is not an Entity";
+        return false;
+    }
+    if(!o) {
+        yError() << "Could not cast" << e->name() << "to Object";
+        return false;
+    }
+
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        lArgument.push_back(std::pair<std::string, std::string>(o->m_ego_position.toString().c_str(), "vector"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("push", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -280,9 +317,9 @@ bool wysiwyd::wrdac::SubSystem_ARE::push(const yarp::sig::Vector &targetUnsafe, 
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("push"));
 
-    yarp::sig::Vector target=targetUnsafe;
+    yarp::sig::Vector target=o->m_ego_position;
     yarp::os::Bottle opt=options;
-    selectHandCorrectTarget(opt,target);
+    selectHandCorrectTarget(opt,target,sName);
     target=applySafetyMargins(target);
     appendCartesianTarget(bCmd,target);
     bCmd.append(opt);
@@ -294,7 +331,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::push(const yarp::sig::Vector &targetUnsafe, 
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        lArgument.push_back(std::pair<std::string, std::string>(o->m_ego_position.toString().c_str(), "vector"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("push", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -354,13 +391,28 @@ bool wysiwyd::wrdac::SubSystem_ARE::pointfar(const yarp::sig::Vector &targetUnsa
 }
 
 
-bool wysiwyd::wrdac::SubSystem_ARE::point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options, const std::string &sName)
+bool wysiwyd::wrdac::SubSystem_ARE::point(const std::string &sName, const yarp::os::Bottle &options)
 {
     yDebug() << "ARE::point start";
+
+    Entity* e = opc->getEntity(sName, true);
+    Object *o;
+    if(e) {
+        o = dynamic_cast<Object*>(e);
+    }
+    else {
+        yError() << sName << " is not an Entity";
+        return false;
+    }
+    if(!o) {
+        yError() << "Could not cast" << e->name() << "to Object";
+        return false;
+    }
+
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        lArgument.push_back(std::pair<std::string, std::string>(o->m_ego_position.toString().c_str(), "vector"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -373,9 +425,9 @@ bool wysiwyd::wrdac::SubSystem_ARE::point(const yarp::sig::Vector &targetUnsafe,
     yarp::os::Bottle bCmd;
     bCmd.addVocab(yarp::os::Vocab::encode("point"));
 
-    yarp::sig::Vector target=targetUnsafe;
+    yarp::sig::Vector target=o->m_ego_position;
     yarp::os::Bottle opt=options;
-    selectHandCorrectTarget(opt,target);
+    selectHandCorrectTarget(opt,target,sName);
     target=applySafetyMargins(target);
     appendCartesianTarget(bCmd,target);
     bCmd.append(opt);
@@ -387,7 +439,7 @@ bool wysiwyd::wrdac::SubSystem_ARE::point(const yarp::sig::Vector &targetUnsafe,
     if (ABMconnected)
     {
         std::list<std::pair<std::string, std::string> > lArgument;
-        lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
+        //lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
         lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
         lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
