@@ -64,7 +64,7 @@ int main()
     Vector wx=T*x;
     x.pop_back();
 
-    iCub.home();    // Home by using ARE
+    /*iCub.home();    // Home by using ARE
     x[1] =x[1] - 0.1;
     yInfo()<<"[KARMAiCubClientExample] try to push with KARMA...";
     bool ok = iCub.pushKarma(x,180,0.2);
@@ -107,7 +107,7 @@ int main()
     yInfo()<<"[KARMAiCubClientExample] try to pullBack with KARMA...";
     ok = iCub.pullKarmaBack(x,-0.25);
     yInfo()<<(ok?"success":"failed");
-    Time::delay(4.0);
+    Time::delay(4.0);*/
 
     yInfo()<<"[KARMAiCubClientExample] shutting down ... ";
     iCub.close();

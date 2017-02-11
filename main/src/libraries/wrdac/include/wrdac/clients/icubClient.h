@@ -372,6 +372,7 @@ namespace wysiwyd{
                 const yarp::os::Bottle &options = yarp::os::Bottle());
             /**
              * @brief pushKarmaLeft: push an object to left side, this wrapper simplify pure push action of KARMA
+             * @param objName: name of object's center
              * @param objCenter: coordinate of object's center
              * @param targetPosYLeft: Y coordinate of object to push to
              * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
@@ -379,12 +380,13 @@ namespace wysiwyd{
              * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
-            bool pushKarmaLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
+            bool pushKarmaLeft(const std::string &objName, const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
                 const std::string &armType = "selectable",
-                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName = "target");
+                const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
              * @brief pushKarmaRight: push an object to right side, this wrapper simplify pure push action of KARMA
+             * @param objName: name of object's center
              * @param objCenter: coordinate of object's center
              * @param targetPosYRight: Y coordinate of object to push to
              * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
@@ -392,11 +394,12 @@ namespace wysiwyd{
              * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
-            bool pushKarmaRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
+            bool pushKarmaRight(const std::string &objName, const yarp::sig::Vector &objCenter, const double &targetPosYRight,
                 const std::string &armType = "selectable",
-                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName = "target");
+                const yarp::os::Bottle &options = yarp::os::Bottle());
             /**
              * @brief pushKarmaFront: push an object to front, this wrapper simplify pure push action of KARMA
+             * @param objName: name of object's center
              * @param objCenter: coordinate of object's center
              * @param targetPosXFront: X coordinate of object to push to
              * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
@@ -404,9 +407,9 @@ namespace wysiwyd{
              * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
-            bool pushKarmaFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+            bool pushKarmaFront(const std::string &objName, const yarp::sig::Vector &objCenter, const double &targetPosXFront,
                 const std::string &armType = "selectable",
-                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName = "target");
+                const yarp::os::Bottle &options = yarp::os::Bottle());
             /**
              * @brief pullKarmaBack: pull an object back, this wrapper simplify pure draw action of KARMA
              * @param objCenter: coordinate of object's center
@@ -416,9 +419,9 @@ namespace wysiwyd{
              * @param sName: name of object to pull
              * @return true in case of success release, false otherwise
              */
-            bool pullKarmaBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+            bool pullKarmaBack(const std::string &objName, const yarp::sig::Vector &objCenter, const double &targetPosXBack,
                 const std::string &armType = "selectable",
-                const yarp::os::Bottle &options = yarp::os::Bottle(), const std::string &sName = "target");
+                const yarp::os::Bottle &options = yarp::os::Bottle());
             /**
             * Take at a specified location.
             * @param oName is the name of the entity in the OPC where the
@@ -453,7 +456,7 @@ namespace wysiwyd{
             * @return true in case of success release, false otherwise
             */
             bool pushKarma(const yarp::sig::Vector &targetCenter, const double &theta, const double &radius,
-                const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
+                const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
             * @brief drawKarma (KARMA): draw action, along the positive direction of the x-axis (in robot FoR)
@@ -467,22 +470,7 @@ namespace wysiwyd{
             */
             bool drawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
                 const double &radius, const double &dist,
-                const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
-
-            /**
-            * @brief vdrawKarma (KARMA): draw action, along the positive direction of the x-axis (in robot FoR)
-            * @param targetCenter: center of a circle
-            * @param theta: angle between the y-axis (in robot FoR) and starting position of draw action.
-            * @param radius: radius of the circle with center at @see targetCenter
-            * @param dist: moving distance of draw action
-            * @param options
-            * @param sName
-            * @return true in case of success release, false otherwise
-            */
-            bool vdrawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
-                const double &radius, const double &dist,
-                const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target");
-
+                const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
             * Start tracking a given entity
