@@ -40,7 +40,7 @@ public:
     bool trigger(const yarp::os::Bottle& args) {
         yDebug() << behaviorName << "::trigger starts"; 
         if (mut->tryLock()) {
-            yDebug() << behaviorName << "::trigger mutex closed"; 
+            yDebug() << behaviorName << "::trigger mutex locked"; 
             yarp::os::Bottle & msg = behavior_start_stop_port.prepare();
             msg.clear();
             msg.addString("start");
@@ -53,9 +53,11 @@ public:
             msg.addString("stop");
             behavior_start_stop_port.write();
             mut->unlock();
-            yDebug() << behaviorName << "::trigger mutex open"; 
+            yDebug() << behaviorName << "::trigger mutex unlocked"; 
+            yDebug() << behaviorName << "::trigger ends";
             return true;
         }
+        yDebug() << behaviorName << " not executed, mutex was closed";
         yDebug() << behaviorName << "::trigger ends";
         return false;
     }
