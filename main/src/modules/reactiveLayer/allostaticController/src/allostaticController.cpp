@@ -37,26 +37,26 @@ bool AllostaticController::interruptModule()
 bool AllostaticController::close()
 {
     yDebug() << "Closing rpc port";
-    // rpc_in_port.interrupt();
+    rpc_in_port.interrupt();
     rpc_in_port.close();
 
     yDebug() << "Closing port to homeo rpc";
-    // to_homeo_rpc.interrupt();
+    to_homeo_rpc.interrupt();
     to_homeo_rpc.close();
-    // to_behavior_rpc.interrupt();
+    to_behavior_rpc.interrupt();
     to_behavior_rpc.close();
 
     for (auto& outputm_port : outputm_ports)
     {
         // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
-        // outputm_port->interrupt();
+        outputm_port->interrupt();
         outputm_port->close();
         delete outputm_port;
     }
 
     for(auto& outputM_port : outputM_ports)
     {
-        // outputM_port->interrupt();
+        outputM_port->interrupt();
         outputM_port->close();
         delete outputM_port;
     }
@@ -201,6 +201,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
 
         AllostaticDrive alloDrive;
         alloDrive.name = driveName;
+
         Value cmds = grpAllostatic.check((driveName + "-sensation-on"), Value("None"));
         alloDrive.sensationOnCmd = *cmds.asList();
         cmds = grpAllostatic.check((driveName + "-sensation-off"), Value("None"));
@@ -214,20 +215,23 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         cmds = grpAllostatic.check((driveName + "-after-trigger"), Value("None"));
         if (!(cmds.isString() && cmds.asString() == "None")) {
             alloDrive.afterTriggerCmd = *cmds.asList();
-        }
+        }        
 
         alloDrive.homeoPort = &to_homeo_rpc;
 
         alloDrive.inputSensationPort = new BufferedPort<Bottle>;
         string portName = "/" + moduleName + "/" + driveName + "/sensation:i";
         alloDrive.inputSensationPort->open(portName);
+
         openPorts(driveName);
+
         string sensationPort = grpAllostatic.check((driveName + "-sensation-port"), Value("None")).asString();
         string pn = "/" + moduleName + "/" + driveName + "/sensation:i";
         while(!Network::connect(sensationPort, pn)) {
             yDebug()<<"Connecting " << sensationPort << " to " << pn;
             yarp::os::Time::delay(0.5);
         }
+
 
         // set drive priorities. Default to 1.
         priority = grpAllostatic.check((driveName + "-priority"), Value(1.)).asDouble();
@@ -237,6 +241,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         //Under effects
         string under_port_name = grpAllostatic.check((driveName + "-under-behavior-port"), Value("None")).asString();
         string under_cmd_name = grpAllostatic.check((driveName + "-under-behavior"), Value("None")).asString();
+
         bool active = false;
         
         if (under_port_name != "None" && under_cmd_name != "None")
@@ -255,6 +260,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         }else{
             yInfo() << "No port name for" << driveName << "under-behavior-port";
         }
+
         //Over effects
         string over_port_name = grpAllostatic.check((driveName + "-over-behavior-port"), Value("None")).asString();
         string over_cmd_name = grpAllostatic.check((driveName + "-over-behavior"), Value("None")).asString();
@@ -273,6 +279,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         } else {
             yInfo() << "No port name for" << driveName << "over-behavior-port";
         }
+
         alloDrive.active = active;
         allostaticDrives[driveName] = alloDrive;
     }
