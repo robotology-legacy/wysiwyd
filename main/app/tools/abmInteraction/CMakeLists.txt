@@ -5,3 +5,4 @@
 set(appname abmInteraction)
 file(GLOB ini ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.*)
 yarp_install(FILES ${ini} ${grxml} DESTINATION ${WYSIWYD_CONTEXTS_INSTALL_DIR}/${appname})
+

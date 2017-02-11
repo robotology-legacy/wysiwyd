@@ -1,26 +1,19 @@
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <map>
+#ifndef REACTIONS_H
+#define REACTIONS_H
 
+#include <iostream>
+#include <yarp/os/all.h>
 
 #include "behavior.h"
-
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-
 
 
 class Reactions: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const yarp::os::Bottle &args);
     
 public:
-    Reactions(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    Reactions(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
        
@@ -30,3 +23,5 @@ public:
         ;
     }
 };
+
+#endif

@@ -17,8 +17,8 @@ private:
     int         maxEyeOpening;
     //AutomaticCalibrationThread* calibrationThread;
     Port        rpc;
-    int boolLeftCam;
-    int boolRightCam;
+    //int boolLeftCam;
+    //int boolRightCam;
     //string      nameMainGrammar;
 
     yarp::os::BufferedPort<ImageOf<PixelRgb> > Port2camRight;           // a port to get the input from camera

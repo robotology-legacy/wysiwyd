@@ -235,11 +235,11 @@ long autobiographicalMemory::getCurrentTimeInMS()
 string autobiographicalMemory::getCurrentTime()
 {
     struct tm Time;
-    time_t myTime;
-    time(&myTime);                    // get unix time
-    tm *t = localtime(&myTime);        // conversion in local time
 
 #ifdef WIN32
+    time_t myTime;
+    time(&myTime); // get unix time
+    tm *t = localtime(&myTime); // conversion in local time
     SYSTEMTIME st;
     GetSystemTime(&st);
     int iUS = st.wMilliseconds * 1000;
@@ -248,6 +248,7 @@ string autobiographicalMemory::getCurrentTime()
     struct timeval tv;
     gettimeofday(&tv, &tz);
     int iUS = tv.tv_usec;
+    tm *t = localtime(&tv.tv_sec);        // conversion in local time
 #endif
 
     // Sorry, this is a terrible hack to obtain a six digit microsecond string

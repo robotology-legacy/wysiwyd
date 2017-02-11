@@ -2,20 +2,25 @@
 # Authors: Martina Zambelli, Tobias Fischer
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME sensoryProcessor)
-project(${PROJECTNAME})
+set(WYSIWYD_BUILD_SENSORYPROCESSOR TRUE CACHE BOOL "Enable compilation of sensoryProcessor")
+mark_as_advanced(WYSIWYD_BUILD_SENSORYPROCESSOR)
 
-file(GLOB sources src/*.cpp)
-file(GLOB headers include/*.h)
-set(docs ${PROJECTNAME}.xml)
+if(WYSIWYD_BUILD_SENSORYPROCESSOR)
+    set(PROJECTNAME sensoryProcessor)
+    project(${PROJECTNAME})
 
-source_group("Source Files" FILES ${sources})
-source_group("Header Files" FILES ${headers})
-source_group("DOC Files"    FILES ${docs})
+    file(GLOB sources src/*.cpp)
+    file(GLOB headers include/*.h)
+    set(docs ${PROJECTNAME}.xml)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
-target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
-set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER bodySchema)
-install(TARGETS ${PROJECTNAME} DESTINATION bin)
-yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
+    source_group("Source Files" FILES ${sources})
+    source_group("Header Files" FILES ${headers})
+    source_group("DOC Files"    FILES ${docs})
+
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+    add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
+    target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${OpenCV_LIBRARIES} pthread ${ALSA_LIBRARY})
+    set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER bodySchema)
+    install(TARGETS ${PROJECTNAME} DESTINATION bin)
+    yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
+endif()

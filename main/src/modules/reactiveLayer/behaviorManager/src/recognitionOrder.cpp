@@ -1,6 +1,9 @@
 #include "recognitionOrder.h"
 
-void recognitionOrder::configure() {
+using namespace std;
+using namespace yarp::os;
+
+void RecognitionOrder::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "/sam/rpc:i";
     from_sensation_port_name = "None";
@@ -12,10 +15,10 @@ void recognitionOrder::configure() {
     port_to_homeo_name = "/"+behaviorName+"/toHomeo:o";
     port_to_homeo.open(port_to_homeo_name);
 
-    manual = false;
+    manual = true;
 }
 
-void recognitionOrder::run(Bottle args/*=Bottle()*/) {
+void RecognitionOrder::run(const Bottle &args) {
     yInfo() << "recognitionOrder::run";
 
     if (!Network::isConnected(port_to_homeo_name,homeoPort)){
@@ -35,17 +38,15 @@ void recognitionOrder::run(Bottle args/*=Bottle()*/) {
 
     yDebug() << "send rpc to SAM";
     //Bottle *order = sensation_port_in.read();
-    Bottle order;
-    order.addString("action");
-    string id = order.get(0).asString();
-    string toSay;
     
     Bottle cmd;
     Bottle rply;
     cmd.clear();
-    cmd.addString("ask_"+id+"_label");
+    cmd.addString("ask_action_label");
     yInfo() << "Recognising...";
     
+    string toSay;
+
     rpc_out_port.write(cmd, rply);
 
     if(rply.get(0).asString() == "ack")
@@ -56,7 +57,9 @@ void recognitionOrder::run(Bottle args/*=Bottle()*/) {
     {
         toSay = "Sorry. I did not recognise that action";
     }
+    iCub->lookAtPartner();
     iCub->say(toSay);
+    iCub->home();
     yInfo() << "Recognising ends";
 
     if (!manual && Network::isConnected(port_to_homeo_name, homeoPort)){

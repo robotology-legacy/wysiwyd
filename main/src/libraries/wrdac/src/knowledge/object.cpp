@@ -27,15 +27,17 @@ using namespace yarp::dev;
 using namespace wysiwyd::wrdac;
 
 Object::Object():Entity()
-{    
+{
     m_entity_type = EFAA_OPC_ENTITY_OBJECT;
     m_ego_position.resize(3,0.0);
     m_ego_orientation.resize(3,0.0);
     m_dimensions.resize(3,0.1);
     m_color.resize(3,255.0);
     m_saliency = 0.0;
+    m_value = 0.0;
     m_present = 0.0;
-    
+    m_objectarea = ObjectArea::NOTREACHABLE;
+
     // by default, place object 25cm in front of the robot
     // to avoid collisions when pointing to an object
     m_ego_position[0] = -0.25;
@@ -50,6 +52,8 @@ Object::Object(const Object &b):Entity(b)
     this->m_ego_position = b.m_ego_position;
     this->m_present = b.m_present;
     this->m_saliency = b.m_saliency;
+    this->m_objectarea = b.m_objectarea;
+    this->m_value = b.m_value;
 }
 
 Bottle Object::asBottle()
@@ -76,6 +80,7 @@ Bottle Object::asBottle()
     bSub.addList().read(m_ego_position);
     b.addList() = bSub;
     bSub.clear();
+
     //Orientation
     bSub.addString(EFAA_OPC_OBJECT_ROBOTORX_TAG);
     bSub.addDouble(m_ego_orientation[0]);
@@ -89,6 +94,7 @@ Bottle Object::asBottle()
     bSub.addDouble(m_ego_orientation[2]);
     b.addList() = bSub;
     bSub.clear();
+
     //Dimension
     bSub.addString(EFAA_OPC_OBJECT_RTDIMX_TAG);
     bSub.addDouble(m_dimensions[0]);
@@ -120,11 +126,22 @@ Bottle Object::asBottle()
     bSub.addDouble(m_saliency);
     b.addList() = bSub;
     bSub.clear();
+    bSub.addString(EFAA_OPC_OBJECT_VALUE);
+    bSub.addDouble(m_value);
+    b.addList() = bSub;
+    bSub.clear();
 
     //Present
     bSub.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
-    bSub.addDouble(this->m_present);
+    bSub.addDouble(m_present);
     b.addList() = bSub;
+    bSub.clear();
+
+    //ObjectArea
+    bSub.addString("object_area");
+    bSub.addInt(static_cast<int>(m_objectarea));
+    b.addList() = bSub;
+    bSub.clear();
 
     return b;
 }
@@ -134,19 +151,21 @@ bool Object::fromBottle(const Bottle &b)
     if (!this->Entity::fromBottle(b))
         return false;
 
-    if (!b.check(EFAA_OPC_OBJECT_ROBOTPOSX_TAG) || 
+    if (!b.check(EFAA_OPC_OBJECT_ROBOTPOSX_TAG) ||
         !b.check(EFAA_OPC_OBJECT_ROBOTPOSY_TAG) ||
         !b.check(EFAA_OPC_OBJECT_ROBOTPOSZ_TAG) ||
-        !b.check(EFAA_OPC_OBJECT_RTDIMX_TAG) || 
-        !b.check(EFAA_OPC_OBJECT_RTDIMY_TAG) || 
-        !b.check(EFAA_OPC_OBJECT_RTDIMZ_TAG) || 
-        !b.check(EFAA_OPC_OBJECT_ROBOTORX_TAG) || 
-        !b.check(EFAA_OPC_OBJECT_ROBOTORY_TAG) || 
+        !b.check(EFAA_OPC_OBJECT_RTDIMX_TAG) ||
+        !b.check(EFAA_OPC_OBJECT_RTDIMY_TAG) ||
+        !b.check(EFAA_OPC_OBJECT_RTDIMZ_TAG) ||
+        !b.check(EFAA_OPC_OBJECT_ROBOTORX_TAG) ||
+        !b.check(EFAA_OPC_OBJECT_ROBOTORY_TAG) ||
         !b.check(EFAA_OPC_OBJECT_ROBOTORZ_TAG) ||
-        !b.check(EFAA_OPC_OBJECT_GUI_COLOR_R) || 
-        !b.check(EFAA_OPC_OBJECT_GUI_COLOR_G) || 
+        !b.check(EFAA_OPC_OBJECT_GUI_COLOR_R) ||
+        !b.check(EFAA_OPC_OBJECT_GUI_COLOR_G) ||
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_B) ||
-        !b.check(EFAA_OPC_OBJECT_PRESENT_TAG))
+        !b.check(EFAA_OPC_OBJECT_PRESENT_TAG) ||
+        !b.check("object_area")               ||
+        !b.check(EFAA_OPC_OBJECT_VALUE))
     {
         return false;
     }
@@ -164,12 +183,15 @@ bool Object::fromBottle(const Bottle &b)
     m_color[1] = b.find(EFAA_OPC_OBJECT_GUI_COLOR_G).asDouble();
     m_color[2] = b.find(EFAA_OPC_OBJECT_GUI_COLOR_B).asDouble();
     m_saliency = b.find(EFAA_OPC_OBJECT_SALIENCY).asDouble();
+    m_value = b.find(EFAA_OPC_OBJECT_VALUE).asDouble();
     m_present = b.find(EFAA_OPC_OBJECT_PRESENT_TAG).asDouble();
+    m_objectarea = static_cast<ObjectArea>(b.find("object_area").asInt());
+
     return true;
 }
 
 string Object::toString()
-{    
+{
     std::ostringstream oss;
     oss<< this->Entity::toString();
     oss<<"self xyz : \t";
@@ -179,16 +201,20 @@ string Object::toString()
     oss<<"size : \t \t";
     oss<< m_dimensions.toString(3,3)<<endl;
     oss<<"color : \t";
-    oss<< m_color.toString(3,3)<<endl;    
+    oss<< m_color.toString(3,3)<<endl;
     oss<<"saliency : \t";
     oss<< m_saliency<<endl;
+    oss<<"value : \t";
+    oss<< m_value<<endl;
     oss<<"present : \t";
     oss<< m_present<<endl;
+    oss<<"object area : \t";
+    oss<< static_cast<int>(m_objectarea)<<endl;
     return oss.str();
 }
 
 Vector Object::getSelfRelativePosition(const Vector &vInitialRoot)
-{    
+{
     Vector targetAbsolute(4,1.0);
     targetAbsolute.setSubvector(0,vInitialRoot);
     Vector targetRelative(4,1.0);
@@ -203,4 +229,34 @@ Vector Object::getSelfRelativePosition(const Vector &vInitialRoot)
     targetRelative[1] = -targetAbsolute[0]*sin(theta) + targetAbsolute[1]*cos(theta);
     targetRelative[2] = targetAbsolute[2];
     return targetRelative;
+}
+
+std::string Object::objectAreaAsString(ObjectArea o) {
+    if(o==ObjectArea::HUMAN) {
+        return "HumanOnly";
+    } else if(o==ObjectArea::ROBOT) {
+        return "RobotOnly";
+    } else if(o==ObjectArea::SHARED) {
+        return "Shared";
+    } else if(o==ObjectArea::NOTREACHABLE) {
+        return "NotReachable";
+    } else {
+        yError() << "Something went wrong in objectAreaAsString()";
+        return "NULL";
+    }
+}
+
+ObjectArea Object::stringToObjectArea(std::string o) {
+    if(o=="HumanOnly") {
+        return ObjectArea::HUMAN;
+    } else if(o=="RobotOnly") {
+        return ObjectArea::ROBOT;
+    } else if(o=="Shared") {
+        return ObjectArea::SHARED;
+    } else if(o=="NotReachable") {
+        return ObjectArea::NOTREACHABLE;
+    } else {
+        yError() << "Something went wrong in stringToObjectArea()";
+        return ObjectArea::NOTREACHABLE;
+    }
 }

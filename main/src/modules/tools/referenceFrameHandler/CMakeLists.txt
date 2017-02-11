@@ -13,7 +13,7 @@ set(doc_files ${PROJECTNAME}.xml)
 source_group("Source Files" FILES ${folder_source})
 source_group("DOC Files"    FILES ${doc_files})
 
-include_directories(${ICUB_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${wrdac_INCLUDE_DIRS})
+include_directories(${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${wrdac_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${folder_source} ${doc_files})
 target_link_libraries(${PROJECTNAME} optimization ${YARP_LIBRARIES} wrdac)
 set_target_properties(${PROJECTNAME} PROPERTIES FOLDER tools)

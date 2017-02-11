@@ -42,7 +42,7 @@ namespace wysiwyd{namespace wrdac{
 
     private:
 
-        OPCClient *opcWorld;    // relation to the OPC
+        //OPCClient *opcWorld;    // relation to the OPC
         int instance;
 
     public:
@@ -57,7 +57,7 @@ namespace wysiwyd{namespace wrdac{
         * Set the instance of OPC
         * @param i the instance
         */
-        void setInstance(int i) {instance = i;};
+        void setInstance(int i) {instance = i;}
 
         /**
         * Map of the different OPC saved during the run.

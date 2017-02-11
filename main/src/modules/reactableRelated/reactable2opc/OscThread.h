@@ -9,7 +9,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/Thread.h>
 #include <yarp/math/Math.h>
-#include <wrdac/helpers.h>
+#include <wrdac/clients/opcClient.h>
 #include <iostream>
 
 using namespace std;

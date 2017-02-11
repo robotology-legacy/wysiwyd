@@ -3,8 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.6)
-set(PROJECTNAME touchDetector)
-project(${PROJECTNAME})
+project(touchDetector)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
   
@@ -12,9 +11,7 @@ include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
 
 set(folder_source main.cpp)
-#source_group("Source Files" FILES ${folder_source})
-add_executable(${PROJECTNAME} ${folder_source} touchDetectorModule.cpp touchDetectorThread.cpp)
-
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES})
-
-install(TARGETS ${PROJECTNAME} DESTINATION bin)
+add_executable(${PROJECT_NAME} ${folder_source} touchDetectorModule.cpp touchDetectorThread.cpp)
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER systemHaptic)
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)

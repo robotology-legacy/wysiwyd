@@ -276,7 +276,7 @@ bool PasarModule::updateModule()
         {
             if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT) || entity->isType(EFAA_OPC_ENTITY_OBJECT))
             {
-                Object * ob = dynamic_cast<Object*>(entity);
+                Object * ob = dynamic_cast<Object*>(entity.get());
                 OPCEntities[entity->opc_id()].o = *ob;
             }
         }
@@ -311,7 +311,7 @@ bool PasarModule::updateModule()
 
 
         //Update the OPC values
-        for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+        for (auto it = entities.begin(); it != entities.end(); it++)
         {
             if (OPCEntities.find((*it)->opc_id()) != OPCEntities.end())
             {
@@ -770,7 +770,7 @@ void PasarModule::initializeMapTiming()
 
             if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT) || entity->isType(EFAA_OPC_ENTITY_OBJECT))
             {
-                Object * ob = dynamic_cast<Object*>(entity);
+                Object * ob = dynamic_cast<Object*>(entity.get());
                 OPCEntities[entity->opc_id()].o = *ob;
                 OPCEntities[entity->opc_id()].lastTimeSeen = (ob->m_present == 1.0) ? now : now - 10;
                 OPCEntities[entity->opc_id()].present = (ob->m_present == 1.0);

@@ -173,6 +173,8 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError() << "Unable to talk correctly to OPC in getEntity with name";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return NULL;
     }
 
@@ -215,6 +217,8 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError() << "Unable to talk correctly to OPC in getEntity with ID";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return NULL;
     }
 
@@ -381,6 +385,8 @@ int OPCClient::getRelationID(
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError()<<"Unable to talk correctly to OPC in getRelationID";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return false;
     }
     
@@ -444,6 +450,8 @@ bool OPCClient::addRelation(
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError() << "Unable to talk correctly to OPC in addRelation";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return false;
     }
     index = reply.get(1).asList()->get(1).asInt();
@@ -476,7 +484,7 @@ bool OPCClient::removeRelation(
 
     if (index == -1)
     {
-        yWarning() << "This relation do not exist on the OPC server, not removed";
+        yWarning() << "This relation does not exist on the OPC server, not removed";
     }
     else
     {
@@ -493,7 +501,8 @@ bool OPCClient::removeRelation(
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
             yError() << "Unable to talk correctly to OPC in removeRelation. Item not deleted.";
-            yError() << "command used to remove = " << cmd.toString().c_str();
+            yError() << "Command was:" << cmd.toString();
+            yError() << "Reply was:" << reply.toString();
             return false;
         }
     }
@@ -563,6 +572,8 @@ bool OPCClient::setLifeTime(int opcID, double lifeTime)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         yError() << "Unable to talk correctly to OPC in setLifeTime";
+        yError() << "Command was:" << cmd.toString();
+        yError() << "Reply was:" << reply.toString();
         return false;
     }
     return true;
@@ -984,9 +995,9 @@ void OPCClient::update(Entity *e)
 
     //Fill the datastructure with the bottle content
     Bottle props = *reply.get(1).asList();
-//    yDebug() << "OPCClient props:" << props.toString();
     if(!e->fromBottle(props)) {
-        yError("Error updating entity fromBottle!");
+        yError() << "Error updating entity " << e->name() << "fromBottle! Type: " << e->entity_type();
+        yDebug() << "OPCClient props:" << props.toString();
     }
 //    yDebug() << "OPCClient fromBottle success";
 
@@ -1077,35 +1088,35 @@ list<Entity*> OPCClient::EntitiesCache()
 
 
 //Getter of the list of entities stored locally
-list<Entity*> OPCClient::EntitiesCacheCopy()
+std::list<std::shared_ptr<Entity>> OPCClient::EntitiesCacheCopy()
 {
-    list<Entity*> lR;
+    list<std::shared_ptr<Entity>> lR;
     for(map<int,Entity*>::iterator it = this->entitiesByID.begin() ; it != this->entitiesByID.end() ; it++)
     {
-        Entity* E = NULL;
+        std::shared_ptr<Entity> E;
         if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_AGENT)
         {
-            E = new Agent();
+            E = std::shared_ptr<Agent>(new Agent());
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_OBJECT)
         {
-            E = new Object();
+            E = std::shared_ptr<Object>(new Object());
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ACTION)
         {
-            E = new Action();
+            E = std::shared_ptr<Action>(new Action());
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ADJECTIVE)
         {
-            E = new Adjective();
+            E = std::shared_ptr<Adjective>(new Adjective());
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_RTOBJECT)
         {
-            E = new RTObject();
+            E = std::shared_ptr<RTObject>(new RTObject());
         }
         else if ((it->second)->m_entity_type == "bodypart")
         {
-            E = new Bodypart();
+            E = std::shared_ptr<Bodypart>(new Bodypart());
         }
         else
         {

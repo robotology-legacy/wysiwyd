@@ -19,13 +19,18 @@
 
 int main(int argc, char * argv[])
 {
-    yarp::os::Network::init();
+    yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
+
     proactiveTagging mod;
     yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("proactiveTagging");
     rf.setDefaultConfigFile("proactiveTagging.ini");
     rf.configure( argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }

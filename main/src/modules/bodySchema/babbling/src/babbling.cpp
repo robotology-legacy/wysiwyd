@@ -33,7 +33,7 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
 
     moduleName = rf.check("name",Value("babbling"),"module name (string)").asString();
 
-    //    part = rf.check("part",Value("left_arm")).asString();
+    // part = rf.check("part",Value("left_arm")).asString();
     robot = rf.check("robot",Value("icub")).asString();
     fps = rf.check("fps",Value(30)).asInt(); //30;
     cmd_source = rf.check("cmd_source",Value("C")).asString();
@@ -43,47 +43,47 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     Bottle *b_start_commandHead = start_pos.find("head").asList();
     Bottle *b_start_command = start_pos.find("arm").asList();
 
-    if ((b_start_commandHead->isNull()) | (b_start_commandHead->size()<5))
+    start_commandHead.resize(3,0.0);
+    if ((b_start_commandHead->isNull()) || (b_start_commandHead->size()<3))
     {
         yWarning("Something is wrong in ini file. Default value is used");
-        start_commandHead[0] = -25.0;
-        start_commandHead[1]= -15.0;
-        start_commandHead[2]= 0.0;
-        start_commandHead[3]= 0.0;
-        start_commandHead[4]= -20.0;
+        start_commandHead[0]=-20.0;
+        start_commandHead[1]=-20.0;
+        start_commandHead[2]=+10.0;
     }
     else
     {
-        for(int i=0; i<b_start_commandHead->size(); i++)
+        for(int i=0; i<b_start_commandHead->size(); i++){
             start_commandHead[i] = b_start_commandHead->get(i).asDouble();
+            yDebug() << start_commandHead[i] ;
+        }
     }
 
-    if ((b_start_command->isNull()) | (b_start_command->size()<16))
+    if ((b_start_command->isNull()) || (b_start_command->size()<16))
     {
         yWarning("Something is wrong in ini file. Default value is used");
-        start_command[0] = -40.0;
-        start_command[1] = 25.0;
-        start_command[2] = 20.0;
-        start_command[3] = 85.0;
-        start_command[4] = -50.0;
+        start_command[0] = -45.0;
+        start_command[1] = 35.0;
+        start_command[2] = 0.0;
+        start_command[3] = 50.0;
+        start_command[4] = -45.0;
         start_command[5] = 0.0;
-        start_command[6] = 8.0;
-        start_command[7] = 15.0;
-        start_command[8] = 30.0;
-        start_command[9] = 4.0;
-        start_command[10] = 2.0;
+        start_command[6] = 0.0;
+        start_command[7] = 0.0;
+        start_command[8] = 10.0;
+        start_command[9] = 0.0;
+        start_command[10] = 0.0;
         start_command[11] = 0.0;
-        start_command[12] = 7.0;
-        start_command[13] = 14.0;
-        start_command[14] = 5.0;
-        start_command[15] = 14.0;
+        start_command[12] = 0.0;
+        start_command[13] = 0.0;
+        start_command[14] = 0.0;
+        start_command[15] = 0.0;
     }
     else
     {
         for(int i=0; i<b_start_command->size(); i++)
             start_command[i] = b_start_command->get(i).asDouble();
     }
-
 
     Bottle &babbl_par = rf.findGroup("babbling_param");
     freq = babbl_par.check("freq", Value(0.2)).asDouble();
@@ -111,8 +111,8 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
-    if (!portVelocityOut.open("/" + getName() + "/" + part + "/velocity:o")) {
-        cout << getName() << ": Unable to open port " << "/" << getName() << "/" << part << "/velocity:o" << endl;
+    if (!portVelocityOut.open("/" + getName() + "/velocity:o")) {
+        cout << getName() << ": Unable to open port " << "/" << getName() << "/velocity:o" << endl;
         bEveryThingisGood = false;
     }
 
@@ -128,7 +128,16 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     }
 
 
+    if (!portToMatlab.open("/portToMatlab:o")) {
+        cout << ": Unable to open port " << "/portToMatlab:o" << endl;
+    }
+    if (!portReadMatlab.open("/portReadMatlab:i")) {
+        cout << ": Unable to open port " << "/portReadMatlab:i" << endl;
+    }
+
+
     // Initialize iCub and Vision
+    cout << "Going to initialise iCub ..." << endl;
     while (!init_iCub(part)) {
         cout << getName() << ": initialising iCub... please wait... " << endl;
         bEveryThingisGood = false;
@@ -150,6 +159,8 @@ bool Babbling::interruptModule() {
     portVelocityOut.interrupt();
     handlerPort.interrupt();
     portToABM.interrupt();
+    portToMatlab.interrupt();
+    portReadMatlab.interrupt();
 
     yInfo() << "Bye!";
 
@@ -160,22 +171,26 @@ bool Babbling::interruptModule() {
 bool Babbling::close() {
     cout << "Closing module, please wait ... " <<endl;
 
-    leftArmDev->close();
-    rightArmDev->close();
-    headDev->close();
+    leftArmDev.close();
+    rightArmDev.close();
+    headDev.close();
 
     portVelocityOut.interrupt();
     portVelocityOut.close();
+
+
+    portToMatlab.interrupt();
+    portToMatlab.close();
+
+    portReadMatlab.interrupt();
+    portReadMatlab.close();
+
 
     handlerPort.interrupt();
     handlerPort.close();
 
     portToABM.interrupt();
     portToABM.close();
-
-    delete leftArmDev;
-    delete rightArmDev;
-    delete headDev;
 
     yInfo() << "Bye!";
 
@@ -357,6 +372,9 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
 }
 
 bool Babbling::updateModule() {
+    //single_joint = 1;
+    //part = "right_arm";
+    //doBabbling();
     return true;
 }
 
@@ -372,6 +390,10 @@ bool Babbling::doBabbling()
     if(!homeStart) {
         cout << "I got lost going home!" << endl;
     }
+
+    yDebug() << "OK";
+
+
     for(int i=0; i<16; i++)
     {
         if(part=="right_arm"){
@@ -382,29 +404,20 @@ bool Babbling::doBabbling()
         }
         else
             yError() << "Don't know which part to move to do babbling." ;
-
-
     }
-
-    Bottle reply;
-    Bottle abmCommand;
-    abmCommand.addString("babbling");
-    abmCommand.addString("arm");
-    abmCommand.addString(part);
-    reply = dealABM(abmCommand,1);
-
-    //check ABM reply
-    if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
-    } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
-    }
-
-    reply.clear();
 
     if (cmd_source == "C")
     {
         double startTime = yarp::os::Time::now();
+
+        Bottle abmCommand;
+        abmCommand.addString("babbling");
+        abmCommand.addString("arm");
+        abmCommand.addString(part);
+
+        yDebug() << "============> babbling with COMMAND will START" ;
+        dealABM(abmCommand,1);
+
         while (Time::now() < startTime + train_duration){
             //            yInfo() << Time::now() << "/" << startTime + train_duration;
             double t = Time::now() - startTime;
@@ -412,31 +425,35 @@ bool Babbling::doBabbling()
 
             babblingCommands(t,single_joint);
         }
+
+        dealABM(abmCommand,0);
+
+        yDebug() << "============> babbling with COMMAND is FINISHED" ;
     }
-    else
-    {
+    else if(cmd_source == "M") {
         babblingCommandsMatlab();
     }
 
-    reply = dealABM(abmCommand,0);
-    //check ABM reply
-    if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
-    } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
-    }
-
+    yDebug() << "\n CHECKPOINT \n" ;
+    Time::delay(3);
 
     bool homeEnd = gotoStartPos();
     if(!homeEnd) {
         cout << "I got lost going home!" << endl;
     }
 
+
+    yDebug() << "\n CHECKPOINT 2 \n" ;
+    Time::delay(3);
+
     return true;
 }
 
 yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
 {
+
+    yInfo() << "AMP " << amp<< "FREQ " << freq ;
+
     for (unsigned int l=0; l<command.size(); l++)
         command[l]=0;
 
@@ -451,6 +468,7 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
         else
             encodersUsed = encodersLeftArm;
 
+        cout << j_idx << endl;
 
         if(j_idx != -1)
         {
@@ -464,11 +482,15 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
                 cerr << "Error receiving encoders";
                 command[j_idx] = 0;
             } else {
-                command[j_idx] = 10 * (ref_command[j_idx] - encodersUsed[j_idx]);
+                yDebug() << "command before correction = " << ref_command[j_idx];
+                yDebug() << "current encodres : " << encodersUsed[j_idx] ;
+                command[j_idx] = amp*sin(freq*t * 2 * M_PI);//1 * (ref_command[j_idx] - encodersUsed[j_idx]);
+                yDebug() << "command after correction = " << command[j_idx];
                 if(command[j_idx] > 50)
                     command[j_idx] = 50;
                 if(command[j_idx] < -50)
                     command[j_idx] = -50;
+                yDebug() << "command after saturation = " << command[j_idx];
             }
         }
         else
@@ -555,12 +577,6 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
 int Babbling::babblingCommandsMatlab()
 {
 
-    if (!portToMatlab.open("/portToMatlab:o")) {
-        cout << ": Unable to open port " << "/portToMatlab:o" << endl;
-    }
-    if (!portReadMatlab.open("/portReadMatlab:i")) {
-        cout << ": Unable to open port " << "/portReadMatlab:i" << endl;
-    }
 
     while(!Network::isConnected(portToMatlab.getName(), "/matlab/read")) {
         Network::connect(portToMatlab.getName(), "/matlab/read");
@@ -579,7 +595,20 @@ int Babbling::babblingCommandsMatlab()
     for(int i=0; i<=6; i++)
     {
         ictrlLeftArm->setControlMode(i,VOCAB_CM_VELOCITY);
+        ictrlRightArm->setControlMode(i,VOCAB_CM_VELOCITY);
+//        ictrlLeftArm->setControlMode(i,VOCAB_CM_TORQUE);
+//        ictrlRightArm->setControlMode(i,VOCAB_CM_TORQUE);
     }
+
+    Bottle abmCommand;
+    abmCommand.addString("babbling");
+    abmCommand.addString("arm");
+    abmCommand.addString(part);
+
+    yDebug() << "============> babbling with COMMAND will START" ;
+
+    /********************************** snapshot to ABM **********************************/
+    dealABM(abmCommand,1);
 
     Bottle *endMatlab;
     Bottle *cmdMatlab;
@@ -597,30 +626,54 @@ int Babbling::babblingCommandsMatlab()
         portToMatlab.write(bToMatlab,replyFromMatlab);
 
 
-        for (unsigned int l=1; l<command.size(); l++)
+        for (unsigned int l=0; l<command.size(); l++)
             command[l]=0;
 
+        //yDebug() << command.toString();
+
         // get the commands from Matlab
-        cmdMatlab = portReadMatlab.read(true) ;
-        for (int i=0; i<6; i++)
+        cmdMatlab = portReadMatlab.read(true);
+        if(cmdMatlab == nullptr) {
+            yDebug() << "Bottle is null";
+            continue;
+        }
+
+        for (int i=0; i<7; i++)
             command[i] = cmdMatlab->get(i).asDouble();
 
+
         // Move
-        int j=1;
+        int j=5;
         while(j--)
         {
             if(part=="right_arm"){
                 velRightArm->velocityMove(command.data());
+//                for (int i=0; i<4; i++)
+//                    itrqRightArm->setRefTorque(i,command[i]);
             }
             else if(part=="left_arm"){
                 velLeftArm->velocityMove(command.data());
+//                for (int i=0; i<4; i++)
+//                {
+//                    yDebug() << command[i];
+//                    itrqLeftArm->setRefTorque(i,command[i]);
+//                }
             }
             else
                 yError() << "Don't know which part to move to do babbling." ;
 
-            Time::delay(0.00002);
+            Time::delay(0.0025);// use this with iCub: 0.025
         }
-
+//        for (unsigned int l=0; l<command.size(); l++)
+//            command[l]=0;
+//        if(part=="right_arm"){
+//            velRightArm->velocityMove(command.data());
+//        }
+//        else if(part=="left_arm"){
+//            velLeftArm->velocityMove(command.data());
+//        }
+//        else
+//            yError() << "Don't know which part to move to do babbling." ;
 
         // Tell Matlab that motion is done
         bToMatlab.clear();replyFromMatlab.clear();
@@ -633,49 +686,56 @@ int Babbling::babblingCommandsMatlab()
         nPr = nPr +1;
     }
 
+    for (unsigned int l=0; l<command.size(); l++)
+        command[l]=0;
+    if(part=="right_arm"){
+        velRightArm->velocityMove(command.data());
+    }
+    else if(part=="left_arm"){
+        velLeftArm->velocityMove(command.data());
+    }
+    else
+        yError() << "Don't know which part to move to do babbling." ;
+
     yInfo() << "Going to tell Matlab that ports will be closed here.";
     // Tell Matlab that ports will be closed here
     bToMatlab.clear();replyFromMatlab.clear();
     bToMatlab.addInt(1);
     portToMatlab.write(bToMatlab,replyFromMatlab);
 
-    portToMatlab.close();
-    portReadMatlab.close();
 
     yInfo() << "Finished and ports to/from Matlab closed.";
+    yDebug() << "============> babbling is FINISHED";
+
+    dealABM(abmCommand,0);
 
     return 0;
+}
+
+
+bool Babbling::moveHeadToStartPos()
+{
+    yarp::sig::Vector ang=start_commandHead;
+    if (part=="right_arm")
+        ang[0]=-ang[0];
+    return igaze->lookAtAbsAngles(ang);
 }
 
 
 bool Babbling::doBabblingKinStruct()
 {
     // First go to start position
-    velHead->stop();
+    igaze->stopControl();
     velLeftArm->stop();
     velRightArm->stop();
 
     yarp::os::Time::delay(1.0);
 
-    /* Move head to start position */
-    double cmd_head_2 = 30;
-    commandHead = encodersHead;
-    for (int i=0; i<=4; i++) {
-        ictrlHead->setControlMode(i,VOCAB_CM_POSITION);
-        commandHead[0] = -30;
-        commandHead[2] = cmd_head_2;
-        commandHead[3] = -12;
-    }
-    if(part=="right_arm"){
-        commandHead[1] = 10;
-        commandHead[2] = -40;
-    }
-    posHead->positionMove(commandHead.data());
-
+    moveHeadToStartPos();
 
     /* Move arm to start position */
     yarp::sig::Vector cmd_arms;
-    cmd_arms.resize(8);
+    cmd_arms.resize(16, 0.0);
     cmd_arms[0]= -70;
     cmd_arms[1]= 40;
     cmd_arms[2]= 60;
@@ -689,42 +749,26 @@ bool Babbling::doBabblingKinStruct()
 
     if(part=="left_arm" || part=="right_arm")
     {
+        command = cmd_arms;
+
         if(part=="left_arm")
-            command = cmd_arms;
-        else
-            command = cmd_arms;
-
-
-        bool successAll = false;
-        while(!successAll) {
-            successAll = true;
-            bool successIndividual = false;
-            for(int i=0; i<8; i++)
-            {
-                if(part=="left_arm")
-                    successIndividual = ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
-                else
-                    successIndividual = ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
-
-                yDebug() << "Set joint " << i << " in position mode successful: " << successIndividual;
-                command[i]=cmd_arms[i];
-                if(!successIndividual) {
-                    successAll = false;
-                }
-            }
-        }
-        if(part=="left_arm")
+        {
+            for(int i=0; i<16; i++)
+                ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
             posLeftArm->positionMove(command.data());
+        }
         else
+        {
+            for(int i=0; i<16; i++)
+                ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
             posRightArm->positionMove(command.data());
-
-
+        }
 
         bool done_head=false;
         bool done_arm=false;
         while (!done_head || !done_arm) {
             yInfo() << "Wait for position moves to finish" ;
-            posHead->checkMotionDone(&done_head);
+            igaze->checkMotionDone(&done_head);
             if(part=="left_arm") {
                 done_arm = true;
                 for(int i = 0; i< 8; i++) {
@@ -764,24 +808,13 @@ bool Babbling::doBabblingKinStruct()
     }
 
 
-    Bottle reply;
     Bottle abmCommand;
     abmCommand.addString("babbling");
     abmCommand.addString("arm");
-    abmCommand.addString(part);
-    reply = dealABM(abmCommand,1);
 
-    //check ABM reply
-    if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
-    } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
-    }
+    dealABM(abmCommand,1);
 
-    reply.clear();
-
-
-    cout << "AMP " << amp<< "FREQ " << freq <<endl;
+    yInfo() << "AMP " << amp<< "FREQ " << freq ;
 
     double startTime = yarp::os::Time::now();
     while (Time::now() < startTime + train_duration){
@@ -892,13 +925,7 @@ bool Babbling::doBabblingKinStruct()
         ////////////////////////////////////////////////////////////////////////////////
     }
 
-    reply = dealABM(abmCommand,0);
-    //check ABM reply
-    if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
-    } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
-    }
+    dealABM(abmCommand,0);
 
     bool homeEnd = gotoStartPos();
     if(!homeEnd) {
@@ -914,86 +941,39 @@ bool Babbling::doBabblingKinStruct()
 
 bool Babbling::gotoStartPos()
 {
-    velHead->stop();
+    igaze->stopControl();
     velLeftArm->stop();
     velRightArm->stop();
 
     yarp::os::Time::delay(2.0);
 
-    /* Move head to start position */
-    commandHead = encodersHead;
-    for (int i=0; i<=4; i++) {
-        ictrlHead->setControlMode(i,VOCAB_CM_POSITION);
-        commandHead[i] = start_commandHead[i];
-    }
-    if(part=="right_arm"){
-        commandHead[2] = -2*start_commandHead[2];
-    }
-    posHead->positionMove(commandHead.data());
+    moveHeadToStartPos();
 
     /* Move arm to start position */
-
     if(part=="left_arm" || part=="right_arm")
     {
         if(part=="left_arm")
+        {
             command = encodersLeftArm;
-        else
-            command = encodersRightArm;
-
-        bool successAll = false;
-        while(!successAll) {
-            successAll = true;
-            bool successIndividual = false;
-            for(int i=0; i<16; i++)
-            {
-                if(part=="left_arm")
-                    successIndividual = ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
-                else
-                    successIndividual = ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
-
-                yDebug() << "Set joint " << i << " in position mode successful: " << successIndividual;
-                command[i]=start_command[i];
-                if(!successIndividual) {
-                    successAll = false;
-                }
-            }
-        }
-        if(part=="left_arm")
+            for(int i=0; i<16; i++){
+                ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
+                command[i] = start_command[i];}
             posLeftArm->positionMove(command.data());
+        }
         else
+        {
+            command = encodersRightArm;
+            for(int i=0; i<16; i++){
+                ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
+                command[i] = start_command[i];}
             posRightArm->positionMove(command.data());
-
-
+        }
 
         bool done_head=false;
         bool done_arm=false;
-//        while (!done_head || !done_arm) {
-//            yInfo() << "Wait for position moves to finish" ;
-//            posHead->checkMotionDone(&done_head);
-//            if(part=="left_arm")
-//                posLeftArm->checkMotionDone(&done_arm);
-//            else
-//                posRightArm->checkMotionDone(&done_arm);
-//            //        yDebug() << "done_head: " << done_head << " done_arm: " << done_arm;
-//            Time::delay(0.04);
-//            //        for(int i=0; i<16; i++)
-//            //        {
-//            //            int m;
-//            //            ictrlLeftArm->getControlMode(i, &m);
-//            //            if(m==VOCAB_CM_POSITION) {
-//            //                yDebug() << i << " position";
-//            //            } else if(m==VOCAB_CM_VELOCITY) {
-//            //                yDebug() << i << " velocity";
-//            //            } else if(m==VOCAB_CM_HW_FAULT) {
-//            //                yDebug() << i << " HW fault";
-//            //            } else {
-//            //                yDebug() << i << " ???";
-//            //            }
-//            //        }
-//        }
         while (!done_head || !done_arm) {
             yInfo() << "Wait for position moves to finish" ;
-            posHead->checkMotionDone(&done_head);
+            igaze->checkMotionDone(&done_head);
             if(part=="left_arm") {
                 done_arm = true;
                 for(int i = 0; i< 8; i++) {
@@ -1020,36 +1000,21 @@ bool Babbling::gotoStartPos()
     return true;
 }
 
-
 bool Babbling::gotoHomePos()
 {
-    velHead->stop();
+    igaze->stopControl();
     velLeftArm->stop();
     velRightArm->stop();
 
     yarp::os::Time::delay(2.0);
 
     /* Move head to home position */
-    commandHead = encodersHead;
-    for (int i=0; i<=4; i++) {
-        ictrlHead->setControlMode(i,VOCAB_CM_POSITION);
-        commandHead[i] = 0;
-    }
-    posHead->positionMove(commandHead.data());
-
-    bool done_head=false;
-    while (!done_head)
-    {
-        yInfo() << "Wait for head position moves to finish" ;
-        posHead->checkMotionDone(&done_head);
-        Time::delay(0.04);
-    }
-    yInfo() << "Done head." ;
-
-
+    yarp::sig::Vector ang(3,0.0);
+    igaze->lookAtAbsAngles(ang);
+    igaze->waitMotionDone();
+    yInfo() << "Done head.";
 
     /* Move arms to home position */
-
     for(int i=0; i<16; i++)
     {
         ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
@@ -1112,19 +1077,18 @@ bool Babbling::init_iCub(string &part)
 
     yDebug() << option.toString().c_str() ;
 
-    leftArmDev = new yarp::dev::PolyDriver(option);
-    if (!leftArmDev->isValid()) {
+    if (!leftArmDev.open(option)) {
         yError() << "Device not available.  Here are the known devices:";
         yError() << yarp::dev::Drivers::factory().toString();
-        Network::fini();
         return false;
     }
 
-    leftArmDev->view(posLeftArm);
-    leftArmDev->view(velLeftArm);
-    leftArmDev->view(encsLeftArm);
-    leftArmDev->view(ictrlLeftArm);
-    leftArmDev->view(ictrlLimLeftArm);
+    leftArmDev.view(posLeftArm);
+    leftArmDev.view(velLeftArm);
+    leftArmDev.view(itrqLeftArm);
+    leftArmDev.view(encsLeftArm);
+    leftArmDev.view(ictrlLeftArm);
+    leftArmDev.view(ictrlLimLeftArm);
 
     double minLimArm[16];
     double maxLimArm[16];
@@ -1135,20 +1099,20 @@ bool Babbling::init_iCub(string &part)
     for (int l=0; l<16; l++)
         yInfo() << "Joint " << l << ": limits = [" << minLimArm[l] << "," << maxLimArm[l] << "]. start_commad = " << start_command[l];
 
-
-    if (posLeftArm==NULL || encsLeftArm==NULL || velLeftArm==NULL || ictrlLeftArm==NULL ){
+    if (posLeftArm==NULL || encsLeftArm==NULL || velLeftArm==NULL || itrqLeftArm==NULL || ictrlLeftArm==NULL ){
         cout << "Cannot get interface to robot device" << endl;
-        leftArmDev->close();
+        leftArmDev.close();
     }
 
     if (encsLeftArm==NULL){
         yError() << "Cannot get interface to robot device";
-        leftArmDev->close();
+        leftArmDev.close();
     }
 
     int nj = 0;
     posLeftArm->getAxes(&nj);
     velLeftArm->getAxes(&nj);
+    itrqLeftArm->getAxes(&nj);
     encsLeftArm->getAxes(&nj);
     encodersLeftArm.resize(nj);
 
@@ -1158,9 +1122,6 @@ bool Babbling::init_iCub(string &part)
         Time::delay(0.1);
         yInfo() << "Wait for arm encoders";
     }
-
-
-
 
     /* Create PolyDriver for right arm */
     string portnameRightArm = "right_arm";//part;
@@ -1184,22 +1145,20 @@ bool Babbling::init_iCub(string &part)
     cout << sAr << endl;
     option.put("remote", sAr.c_str());
 
-    yDebug() << option.toString().c_str() ;
+    yDebug() << option.toString().c_str();
 
-    rightArmDev = new yarp::dev::PolyDriver(option);
-    if (!rightArmDev->isValid()) {
+    if (!rightArmDev.open(option)) {
         yError() << "Device not available.  Here are the known devices:";
         yError() << yarp::dev::Drivers::factory().toString();
-        Network::fini();
         return false;
     }
 
-    rightArmDev->view(posRightArm);
-    rightArmDev->view(velRightArm);
-    rightArmDev->view(encsRightArm);
-    rightArmDev->view(ictrlRightArm);
-    rightArmDev->view(ictrlLimRightArm);
-
+    rightArmDev.view(posRightArm);
+    rightArmDev.view(velRightArm);
+    rightArmDev.view(itrqRightArm);
+    rightArmDev.view(encsRightArm);
+    rightArmDev.view(ictrlRightArm);
+    rightArmDev.view(ictrlLimRightArm);
 
     for (int l=0; l<16; l++)
         ictrlLimRightArm->getLimits(l,&minLimArm[l],&maxLimArm[l]);
@@ -1209,19 +1168,20 @@ bool Babbling::init_iCub(string &part)
         yInfo() << "Joint " << l << ": limits = [" << minLimArm[l] << "," << maxLimArm[l] << "]. start_commad = " << start_command[l];
 
 
-    if (posRightArm==NULL || encsRightArm==NULL || velRightArm==NULL || ictrlRightArm==NULL ){
+    if (posRightArm==NULL || encsRightArm==NULL || velRightArm==NULL || itrqRightArm==NULL  || ictrlRightArm==NULL ){
         cout << "Cannot get interface to robot device" << endl;
-        rightArmDev->close();
+        rightArmDev.close();
     }
 
     if (encsRightArm==NULL){
         yError() << "Cannot get interface to robot device";
-        rightArmDev->close();
+        rightArmDev.close();
     }
 
     nj = 0;
     posRightArm->getAxes(&nj);
     velRightArm->getAxes(&nj);
+    itrqRightArm->getAxes(&nj);
     encsRightArm->getAxes(&nj);
     encodersRightArm.resize(nj);
 
@@ -1232,76 +1192,33 @@ bool Babbling::init_iCub(string &part)
         yInfo() << "Wait for arm encoders";
     }
 
-
-
     yInfo() << "Arms initialized.";
 
-
-
-
-
-
     /* Init. head */
-    string portnameHead = "head";
-    option.put("robot", robot.c_str()); //"icub"); // typically from the command line.
-    option.put("device", "remote_controlboard");
-    Value& robotnameHead = option.find("robot");
+    option.clear();
+    option.put("device", "gazecontrollerclient");
+    option.put("remote", "/iKinGazeCtrl");
+    option.put("local",  "/babbling/gaze");
 
-    string sH("/babbling/");
-    sH += robotnameHead.asString();
-    sH += "/";
-    sH += portnameHead.c_str();
-    sH += "/control";
-    option.put("local", sH.c_str());
-
-    sH.clear();
-    sH += "/";
-    sH += robotnameHead.asString();
-    sH += "/";
-    sH += portnameHead.c_str();
-    option.put("remote", sH.c_str());
-
-    headDev = new yarp::dev::PolyDriver(option);
-    if (!headDev->isValid()) {
+    if (!headDev.open(option)) {
         yError() << "Device not available.  Here are the known devices:";
         yError() << yarp::dev::Drivers::factory().toString();
-        Network::fini();
         return false;
     }
 
-    headDev->view(posHead);
-    headDev->view(velHead);
-    headDev->view(encsHead);
-    headDev->view(ictrlHead);
-    if (posHead==NULL || encsHead==NULL || velHead==NULL || ictrlHead==NULL ){
-        cout << "Cannot get interface to robot head" << endl;
-        headDev->close();
-    }
-    int jnts = 0;
+    headDev.view(igaze);
 
-    posHead->getAxes(&jnts);
-    velHead->getAxes(&jnts);
-    encodersHead.resize(jnts);
-    commandHead.resize(jnts);
+    yInfo() << "Head initialized.";
 
-    yInfo() << "Wait for encoders (HEAD)" ;
-    while (!encsHead->getEncoders(encodersHead.data()))
-    {
-        Time::delay(0.1);
-        yInfo() << "Wait for head encoders";
-    }
-
-    yInfo() << "Head initialized." ;
-
-
-
-    /* Set velocity control for arm */
-    yInfo() << "Set velocity control mode";
-    for(int i=0; i<16; i++)
-    {
-        ictrlLeftArm->setControlMode(i,VOCAB_CM_VELOCITY);
-        ictrlRightArm->setControlMode(i,VOCAB_CM_VELOCITY);
-    }
+//    /* Set velocity control for arm */
+//    yInfo() << "Set velocity control mode";
+//    for(int i=0; i<16; i++)
+//    {
+////        ictrlLeftArm->setControlMode(i,VOCAB_CM_VELOCITY);
+////        ictrlRightArm->setControlMode(i,VOCAB_CM_VELOCITY);
+//        ictrlLeftArm->setControlMode(i,VOCAB_CM_TORQUE);
+//        ictrlRightArm->setControlMode(i,VOCAB_CM_TORQUE);
+//    }
 
     yInfo() << "> Initialisation done.";
 
@@ -1309,17 +1226,9 @@ bool Babbling::init_iCub(string &part)
 }
 
 
-Bottle Babbling::dealABM(const Bottle& command, int begin)
+bool Babbling::dealABM(const Bottle& command, bool begin)
 {
-    yDebug() << "Dealing with ABM";
-    if (begin<0 || begin>1)
-    {
-        yError() << "begin parameter must be 1 or 0.";
-        Bottle bError;
-        bError.addString("nack");
-        bError.addString("Error: begin item should be either 1 or 0.");
-        return bError;
-    }
+    yDebug() << "Dealing with ABM: bottle received = " << command.toString() << " of size = " << command.size() << " begin: " << begin;
 
     Bottle bABM, bABMreply;
     bABM.addString("snapshot");
@@ -1332,18 +1241,29 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     Bottle bSubSubArgument;
     bSubSubArgument.addString(command.get(1).toString());
     bSubSubArgument.addString("limb");
-    if(command.size()==3)
-    {
-        Bottle bSubSubArgument;
-        bSubSubArgument.addInt(command.get(2).asInt());
-        bSubSubArgument.addString("index");
-    }
     Bottle bSubSubArgument2;
     bSubSubArgument2.addString(part);
     bSubSubArgument2.addString("side");
     Bottle bSubSubArgument3;
     bSubSubArgument3.addString(robot);
     bSubSubArgument3.addString("agent1");
+    if(command.size()>=3)
+    {
+        Bottle bSubSubArgument4;
+        bSubSubArgument4.addString(command.get(2).toString());
+        bSubSubArgument4.addString("joint");
+        bSubArgument.addList() = bSubSubArgument4;
+    }
+    Bottle bSubSubArgument5;
+    bSubSubArgument5.addString(to_string(freq));
+    bSubSubArgument5.addString("freq");
+    Bottle bSubSubArgument6;
+    bSubSubArgument6.addString(to_string(amp));
+    bSubSubArgument6.addString("amp");
+    Bottle bSubSubArgument7;
+    bSubSubArgument7.addString(to_string(train_duration));
+    bSubSubArgument7.addString("train_duration");
+
     Bottle bBegin;
     bBegin.addString("begin");
     bBegin.addInt(begin);
@@ -1352,6 +1272,11 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     bSubArgument.addList() = bSubSubArgument;
     bSubArgument.addList() = bSubSubArgument2;
     bSubArgument.addList() = bSubSubArgument3;
+    //4 optional is already done if needed
+    bSubArgument.addList() = bSubSubArgument5;
+    bSubArgument.addList() = bSubSubArgument6;
+    bSubArgument.addList() = bSubSubArgument7;
+
     bABM.addList() = bSubArgument;
     bABM.addList() = bBegin;
     yInfo() << "Bottle to ABM: " << bABM.toString();
@@ -1363,5 +1288,15 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
         portToABM.write(bABM,bABMreply);
     }
 
-    return bABMreply;
+    yDebug() << "Finished dealing with ABM";
+
+    if (bABMreply.isNull()) {
+        yWarning() << "Reply from ABM is null : NOT connected?";
+        return false;
+    } else if (bABMreply.get(0).asString()=="nack"){
+        yWarning() << "Got nack from ABM: " << bABMreply.toString();
+        return false;
+    } else {
+        return true;
+    }
 }

@@ -74,7 +74,7 @@ string proactiveTagging::getBestEntity(string sTypeTarget) {
     while (!bFound && start + 8.0 > yarp::os::Time::now())
     {
         iCub->opc->checkout();
-        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+        list<shared_ptr<Entity>> lEntities = iCub->opc->EntitiesCacheCopy();
 
         double highestSaliency = 0.0;
         double secondSaliency = 0.0;
@@ -86,7 +86,7 @@ string proactiveTagging::getBestEntity(string sTypeTarget) {
                 if ((sTypeTarget == "object" && (entity->entity_type() == "object" || entity->entity_type() == "rtobject")) ||
                     (sTypeTarget == "bodypart" && (entity->entity_type() == "bodypart")))
                 {
-                    Object* temp = dynamic_cast<Object*>(entity);
+                    Object* temp = dynamic_cast<Object*>(entity.get());
                     if(!temp) {
                         yError() << "Could not cast " << entity->name() << " to an object";
                         iCub->say("Could not cast " + entity->name() + " to an object");
@@ -145,7 +145,7 @@ string proactiveTagging::getBestEntity(string sTypeTarget) {
 }
 
 void proactiveTagging::subPopulateBodyparts(Bottle* bodyPartList, Bottle* bodyPartJointList, bool addOrRetrieve) {
-    list<Entity*> currentEntitiesList = iCub->opc->EntitiesCacheCopy();
+    list<shared_ptr<Entity>> currentEntitiesList = iCub->opc->EntitiesCacheCopy();
 
     if (bodyPartList)
     {
@@ -153,7 +153,7 @@ void proactiveTagging::subPopulateBodyparts(Bottle* bodyPartList, Bottle* bodyPa
         {
             bool foundSame = false;
             for(auto& e : currentEntitiesList) {
-                if(Bodypart* bp = dynamic_cast<Bodypart*>(e)) {
+                if(Bodypart* bp = dynamic_cast<Bodypart*>(e.get())) {
                     if(bp->m_joint_number == bodyPartJointList->get(d).asInt()) {
                         yWarning() << "Joint" << bp->m_joint_number << "already existing";
                         foundSame = true;
@@ -215,4 +215,12 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
     }
 
     yDebug() << "configureOPC done";
+}
+
+std::string proactiveTagging::getBodyPartNameForSpeech(const std::string bodypart) {
+    std::string out = bodypart;
+    if(bodypart == "index" || bodypart == "middle" || bodypart == "ring" || bodypart == "little") {
+        out = out + " finger";
+    }
+    return out;
 }

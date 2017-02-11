@@ -264,7 +264,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     portToDumper.write(bToDumper, bAnswer);
     yInfo() << bAnswer.toString();
 
-    iCub->getARE()->home();
+    iCub->home();
     cout << "\t\t\t" << "IN DELAY HOME" << endl;
 
     Time::delay(delayHome);
@@ -305,7 +305,7 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
 
     bool bSuccess = iCub->look(sAgent);
     Time::delay(0.5);
-    bSuccess &= iCub->getARE()->waving(true);
+    bSuccess &= iCub->waving(true);
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
     if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);

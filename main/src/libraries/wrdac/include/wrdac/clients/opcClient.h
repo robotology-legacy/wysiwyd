@@ -19,6 +19,7 @@
 #ifndef __EFAA_OPCC_H__
 #define __EFAA_OPCC_H__
 
+#include <memory>
 #include "wrdac/knowledge/representations.h"
 #include "wrdac/tags.h"
 namespace wysiwyd{namespace wrdac{
@@ -37,12 +38,12 @@ class OPCClient
 private:
     yarp::os::Port opc;
     yarp::os::BufferedPort<yarp::os::Bottle> opcBroadcast;
-    bool                    write(yarp::os::Bottle &cmd, yarp::os::Bottle &reply, bool Verbose=false);
+    bool write(yarp::os::Bottle &cmd, yarp::os::Bottle &reply, bool Verbose=false);
 
     std::map<int, Entity*>       entitiesByID;
     Entity* addEntity(Entity* e);
 
-    int                     getRelationID(
+    int getRelationID(
             Entity* subject,
             Entity* verb,
             Entity* object = NULL,
@@ -55,8 +56,10 @@ private:
     */
     bool changeName(Entity *e, const std::string &newName);
 
+    std::string opcName;
+
 public: 
-    bool                    isVerbose;
+    bool isVerbose;
 
     /**
     * Creates a new entity. If an Entity with the provided name is already existing,
@@ -115,7 +118,18 @@ public:
     /**
     * Check is the client is already connected to the OPC server.
     */
-    bool isConnected() { return opc.getOutputCount() >= 1;}
+    bool isConnected() {
+        if(opcName=="") {
+            return false;
+        } else {
+            if(yarp::os::Network::isConnected(opc.getName().c_str(), ("/" + opcName + "/rpc").c_str()) &&
+               yarp::os::Network::isConnected(("/" + opcName + "/broadcast:o").c_str(), opcBroadcast.getName().c_str() )) {
+                return true;
+            } else {
+                return connect(opcName);
+            }
+        }
+    }
 
     /**
     * Try to connect the client to an OPC server
@@ -123,6 +137,7 @@ public:
     */
     bool connect(const std::string &opcName)
     {
+        this->opcName = opcName;
         return
                 (yarp::os::Network::connect(opc.getName().c_str(), ("/" + opcName + "/rpc").c_str()) &&
                  yarp::os::Network::connect(("/" + opcName + "/broadcast:o").c_str(), opcBroadcast.getName().c_str() ));
@@ -315,7 +330,7 @@ public:
     /**
     * Getter of the list of the copies of the entities stored locally
     */
-    std::list<Entity*> EntitiesCacheCopy();
+    std::list<std::shared_ptr<Entity>> EntitiesCacheCopy();
 
     /**
     * Returns a human readable description of the client content (Entities & Relations)

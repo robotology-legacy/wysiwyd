@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+   <name>KARMA_OPC_Example</name>
+   <doxygen-group>wysiwyd_examples</doxygen-group>
+   <description>Use case of the iCubClient using KARMAa and OPC for motor actions with real objects</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Demo module about how to elicit KARMA actions (e.g. push, pull) from within the iCubClient with real objects from OPC.
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="phuong.nguyen@iit.it"> Nguyen Dong Hai Phuong </author>
+   </authors>
+
+   <data>
+   </data>
+   
+   
+</module>
+

@@ -1,26 +1,19 @@
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <map>
+#ifndef POINTING_H
+#define POINTING_H
 
+#include <iostream>
+#include <yarp/os/all.h>
 
 #include "behavior.h"
-
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-
 
 
 class Pointing: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const yarp::os::Bottle &args);
     
 public:
-    Pointing(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    Pointing(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
         
@@ -30,3 +23,4 @@ public:
     }
 };
 
+#endif

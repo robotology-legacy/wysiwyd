@@ -53,8 +53,8 @@ bool AgentDetector::configure(ResourceFinder &rf)
     }
     opc->checkout();
 
-    list<Entity*> entityList = opc->EntitiesCacheCopy();
-    for(auto& e : entityList) {
+    list<shared_ptr<Entity>> entityList = opc->EntitiesCacheCopy();
+    for(auto e : entityList) {
         if(e->entity_type() == "agent" && e->name() != "icub") {
             partner_default_name = e->name();
         }

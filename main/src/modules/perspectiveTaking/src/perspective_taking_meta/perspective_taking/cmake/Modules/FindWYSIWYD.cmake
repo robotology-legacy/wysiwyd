@@ -3,7 +3,7 @@ if(NOT WYSIWYD_DIR)
 endif()
 
 if(WYSIWYD_DIR)
-    find_path(WYSIWYD_INCLUDE_DIRS cvzMmcm_IDL.h ${WYSIWYD_DIR}/include)
+    find_path(WYSIWYD_INCLUDE_DIRS wrdac/functions.h ${WYSIWYD_DIR}/include)
     find_library(WYSIWYD_LIBRARIES wrdac ${WYSIWYD_DIR}/lib)
 
     mark_as_advanced(WYSIWYD_INCLUDE_DIRS)

@@ -15,10 +15,6 @@ opcSave::opcSave()
 
 opcSave::~opcSave()
 {
-    for (list<Entity*>::iterator it = lEntities.begin(); it != lEntities.end(); it++)
-    {
-        delete *it;
-    }
     lEntities.clear();
 }
 
@@ -26,7 +22,7 @@ Bottle opcSave::toBottle()
 {
     Bottle bOutput, bTemp, bEntity, bRelation, bDrives;
     
-    for (list<Entity*>::iterator it = lEntities.begin(); it != lEntities.end(); it++)
+    for (auto it = lEntities.begin(); it != lEntities.end(); it++)
     {
         bEntity.addList() = (*it)->asBottle();
     }

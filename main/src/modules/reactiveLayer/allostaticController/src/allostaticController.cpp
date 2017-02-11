@@ -3,11 +3,17 @@
 
 bool AllostaticController::interruptModule()
 {
+    if(iCub) {
+        iCub->close();
+        delete iCub;
+    }
+
     yDebug() << "Interrupt rpc port";
     rpc_in_port.interrupt();
 
     yDebug() << "Interrupt port to homeo rpc";
     to_homeo_rpc.interrupt();
+    to_behavior_rpc.interrupt();
     for (auto& outputm_port : outputm_ports)
     {
         // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
@@ -37,17 +43,22 @@ bool AllostaticController::close()
     yDebug() << "Closing port to homeo rpc";
     to_homeo_rpc.interrupt();
     to_homeo_rpc.close();
+    to_behavior_rpc.interrupt();
+    to_behavior_rpc.close();
+
     for (auto& outputm_port : outputm_ports)
     {
         // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
         outputm_port->interrupt();
         outputm_port->close();
+        delete outputm_port;
     }
 
     for(auto& outputM_port : outputM_ports)
     {
         outputM_port->interrupt();
         outputM_port->close();
+        delete outputM_port;
     }
 
     yDebug() << "Closing AllostaticDrive ports";
@@ -294,13 +305,22 @@ bool AllostaticController::Normalize(vector<double>& vec) {
 
 bool AllostaticController::updateModule()
 {
-    for(std::map<string, AllostaticDrive>::iterator it=allostaticDrives.begin(); it!=allostaticDrives.end(); ++it) {
-        if (bool(it->second.inputSensationPort->read()->get(0).asInt())) {
+    double sensationValue;
+    for(auto& drive : allostaticDrives) {
+        sensationValue = drive.second.inputSensationPort->read()->get(0).asDouble();
+        Bottle cmd, reply;
+        reply.clear();
+        cmd.addString("par");
+        cmd.addString(drive.second.name);
+        cmd.addString("decaymult");
+        cmd.addDouble(sensationValue);
+        to_homeo_rpc.write(cmd, reply);
+        if (sensationValue) {
             yDebug() << "Sensation ON";
-            it->second.update(SENSATION_ON);
+            drive.second.update(SENSATION_ON);
         } else {
             yDebug() << "Sensation OFF";
-            it->second.update(SENSATION_OFF);
+            drive.second.update(SENSATION_OFF);
         }
     }
 
@@ -373,40 +393,29 @@ bool AllostaticController::updateAllostatic()
         yInfo() << "Drive " + activeDrive.name + " out of CZ." ;
     }
 
+    // Create relation for the drive
+
+    iCub->opc->addOrRetrieveEntity<Agent>("icub");
+    iCub->opc->addOrRetrieveEntity<Action>("want");
+    iCub->opc->addOrRetrieveEntity<Action>(activeDrive.name);
+
+    Relation Rel;
+    Rel.m_subject = "icub";
+    Rel.m_verb = "want";
+    Rel.m_object = activeDrive.name;
+
     if (allostaticDrives[activeDrive.name].active) {
         yInfo() << "Trigerring " + activeDrive.name;
 
-        // record event in ABM
-        if (iCub->getABMClient()->Connect()) {
-            yDebug() << "ABM connected and receiving record.";
-            string drive_level;
-            if (to_string(activeDrive.level) == "0"){
-                drive_level = "under";
-            }
-            else{
-                drive_level="over";
-            }
-            string predicate = "goes_" + drive_level;
-            yDebug() << "Predicate set.";
-            
-            std::list<std::pair<std::string, std::string> > lArgument;
-            lArgument.push_back(std::pair<std::string, std::string>(predicate, "predicate"));
-            lArgument.push_back(std::pair<std::string, std::string>(activeDrive.name, "agent"));
-            lArgument.push_back(std::pair<std::string, std::string>(drive_level, "object"));
-            iCub->getABMClient()->sendActivity("action",
-                activeDrive.name,
-                "drives",  // expl: "pasar", "drives"...
-                lArgument,
-                true);
-            yInfo() << activeDrive.name + " has been recorded in the ABM";
+        // commiting drive as relation
+        iCub->opc->addRelation(Rel);
+        iCub->opc->commit();
 
-        }
-        else{
-            yDebug() << "ABM not connected; no recording of the trigger.";
-        }
         allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
 
-
+        // remove the relation once the drive is fulfilled
+        iCub->opc->removeRelation(Rel);
+        iCub->opc->commit();
     }
     else {
         yInfo() << "Drive " + activeDrive.name + " is not active";
@@ -445,8 +454,7 @@ bool AllostaticController::respond(const Bottle& cmd, Bottle& reply)
         Bottle bmCmd, bmReply;
         bmCmd.addString("manual");  
         bmCmd.addString(cmd.get(1).asString());  // on or off
-        to_behavior_rpc.write(bmCmd, bmReply);     
-
+        to_behavior_rpc.write(bmCmd, bmReply);
     } else {
         reply.addString("nack");
         reply.addString("Unknown rpc command");

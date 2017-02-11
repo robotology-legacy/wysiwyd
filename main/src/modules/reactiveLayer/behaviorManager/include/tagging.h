@@ -1,26 +1,20 @@
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <map>
+#ifndef TAGGING_H
+#define TAGGING_H
 
+#include <iostream>
+#include <yarp/os/all.h>
 
 #include "behavior.h"
-
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-
-
+#include "followingOrder.h"
 
 class Tagging: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const yarp::os::Bottle &args);
+    yarp::os::Bottle bKS1, bKS2;
     
 public:
-    Tagging(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    Tagging(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
        
@@ -31,3 +25,4 @@ public:
     }
 };
 
+#endif

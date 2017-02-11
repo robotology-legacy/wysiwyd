@@ -21,13 +21,18 @@
 
 int main(int argc, char * argv[])
 {
-    yarp::os::Network::init();
+    yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
+
     AdaptiveLayer mod;
     yarp::os::ResourceFinder rf;
     rf.setVerbose(false);
     rf.setDefaultContext("adaptiveLayer");
     rf.setDefaultConfigFile("adaptiveLayer.ini");
     rf.configure(argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }

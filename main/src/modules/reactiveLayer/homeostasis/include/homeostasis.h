@@ -12,7 +12,7 @@ class Drive
 public:
     std::string name;
     double period;
-    double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax, default_value;
+    double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax, default_value, decay_multiplier;
     bool gradient;
     time_t start_sleep;
     bool is_sleeping;
@@ -28,7 +28,9 @@ public:
         default_value = (d_homeo_max + d_homeo_min)/2.;
         decay = d_decay;
         gradient = d_gradient;
-        is_sleeping = false;
+        decay_multiplier = 1;
+        is_sleeping = true;
+        time_to_sleep = 1e10;
         //todo : check the min/max
         double homeoRange =  homeostasisMax - homeostasisMin;
         if (d_value_min == numeric_limits<double>::min() && d_value_max == numeric_limits<double>::max()){
@@ -44,7 +46,7 @@ public:
 
     Drive()
     {
-        cout << "Drive created using the default construtor, you should not do this" << endl;
+        cout << "Drive created using the default constructor, you should not do this" << endl;
         name = "defaultDrive";
         value = 0.5;
         homeostasisMin = 0.25;
@@ -89,6 +91,11 @@ public:
         this->decay += d_decay;
     }
 
+    void setDecayMultiplier(double mult)
+    {
+        this->decay_multiplier = mult;
+    }
+
     // double sigDecay()
     // {
     //     double aux = (1/(1+exp(-this->value)))-0.5;
@@ -106,6 +113,7 @@ public:
     }
 
     void freeze() {
+        start_sleep = time(NULL);
         is_sleeping = true;
         time_to_sleep = 1e10;
     }
@@ -126,7 +134,7 @@ public:
             }
         }
         else if (! ((this->value > valueMax && this->decay<0) || (this->value < valueMin && this->decay>0))) {
-            this->value -= (this->decay * period);           
+            this->value -= (this->decay * this->decay_multiplier * period);           
         }
 
 

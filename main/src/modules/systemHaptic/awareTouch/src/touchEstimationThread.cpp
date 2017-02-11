@@ -18,8 +18,8 @@
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/all.h>
-#include <iCub/iDyn/iDyn.h>
-#include <iCub/iDyn/iDynBody.h>
+//#include <iCub/iDyn/iDyn.h>
+//#include <iCub/iDyn/iDynBody.h>
 #include <iCub/skinDynLib/skinContact.h>
 
 #include <iostream>

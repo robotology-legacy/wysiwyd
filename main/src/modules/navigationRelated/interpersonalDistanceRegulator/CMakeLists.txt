@@ -20,7 +20,7 @@ source_group("Header Files" FILES ${headers_files})
 source_group("IDL Files"    FILES ${idl_files})
 source_group("DOC Files"    FILES ${docs_files})
 
-include_directories(${IDL_GENERATED_CODE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
+include_directories(${IDL_GENERATED_CODE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${headers_files} ${sources_files} ${idl_files} ${docs_files})
 target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER navigationRelated)

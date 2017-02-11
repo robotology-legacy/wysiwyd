@@ -7,6 +7,7 @@ add_subdirectory(abm)
 add_subdirectory(adaptiveLayer)
 add_subdirectory(attentionRelated)
 add_subdirectory(reactiveLayer)
+add_subdirectory(contextualLayer)
 add_subdirectory(learnPrimitive)
 add_subdirectory(navigationRelated)
 add_subdirectory(narrativeRelated)
@@ -20,6 +21,8 @@ add_subdirectory(systemHaptic)
 add_subdirectory(systemMotor)
 add_subdirectory(tools)
 add_subdirectory(samRelated)
+add_subdirectory(jointsAwareness)
+add_subdirectory(kinematicStructureLearning)
 
 #Add modules with dependencies here
 if(WYSIWYD_USE_OpenCV)
@@ -29,10 +32,6 @@ endif()
 
 if(WYSIWYD_USE_OpenCV)
     add_subdirectory(bodySchema)
-endif()
-
-if(WYSIWYD_USE_GTK2)
-    add_subdirectory(cvz)
 endif()
 
 if(WYSIWYD_USE_kinectWrapper)

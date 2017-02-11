@@ -1,9 +1,7 @@
 # Copyright (c) 2015, Andreas Damianou
-from .SAMDriver_faces import *
-from .SAMDriver_actions import *
-#try:
-#    import yarp
-#    from .SAMDriver_interaction import *
-#except ImportError:
-#    print 'WARNING! SAMDriver_interaction not imported because yarp is missing!'
+# from .SAMDriver_speech import *
+from .SAMDriver_AR import *
+from .SAMDriver_ARWin import *
+from .SAMDriver_temporalActions import *
+from .SAMDriver_temporal import *
 from .SAMDriver_interaction import *

@@ -38,6 +38,8 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
     processInsertDelayed = rf.check("processInsertDelayed", Value(1)).asInt() > 0;
+    storeData = rf.check("storeData", Value(1)).asInt() > 0;
+    recordSound = rf.check("recordSound", Value(1)).asInt() > 0;
 
     setName(moduleName.c_str());
 
@@ -66,11 +68,14 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     // conf group for data providers
     Bottle &bDataProviders = rf.findGroup("data_providers");
-    defaultImgStreamProviders = *bDataProviders.find("defaultImgStreamProviders").asList();
-    defaultDataStreamProviders = *bDataProviders.find("defaultDataStreamProviders").asList();
+    if(!bDataProviders.isNull() && !bDataProviders.find("defaultImgStreamProviders").isNull()) {
+        defaultImgStreamProviders = *bDataProviders.find("defaultImgStreamProviders").asList();
+    }
+    if(!bDataProviders.isNull() && !bDataProviders.find("defaultDataStreamProviders").isNull()) {
+        defaultDataStreamProviders = *bDataProviders.find("defaultDataStreamProviders").asList();
+    }
 
-    // TODO: streamStatus should be changed to enum
-    streamStatus = "none"; //none, record, stop, send
+    streamStatus = StreamStatuses::NONE;
     imgLabel = "defaultLabel";
     imgInstance = -1;
     frameNb = 0;
@@ -107,7 +112,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     Network::connect(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc");
     if (!Network::isConnected(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc")) {
-        yWarning("Could not connect to augmention module!");
+        yDebug("Could not connect to augmention module!");
     }
 
     //sound
@@ -226,7 +231,7 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     /****************************** object Table ***************************/
     //herits from entity
     *ABMDataBase << "DROP TABLE IF EXISTS object CASCADE;";
-    *ABMDataBase << "CREATE TABLE object(  presence boolean NOT NULL,  position real [],  orientation real[],  dimension real[],  color int[], saliency real, CONSTRAINT object_pkey PRIMARY KEY (instance, opcid),  UNIQUE (instance, opcid),  FOREIGN KEY (instance, opcid) REFERENCES contentopc (instance, opcid)) INHERITS (entity) WITH (OIDS=FALSE);";
+    *ABMDataBase << "CREATE TABLE object(  presence boolean NOT NULL,  position real [],  orientation real[],  dimension real[],  color int[], saliency real, objectarea text, CONSTRAINT object_pkey PRIMARY KEY (instance, opcid),  UNIQUE (instance, opcid),  FOREIGN KEY (instance, opcid) REFERENCES contentopc (instance, opcid)) INHERITS (entity) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE object OWNER TO postgres;";
 
     /****************************** rtobject Table ***************************/
@@ -443,6 +448,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 {
     Bottle bError;
     bReply.clear();
+
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "help \n" +
@@ -616,7 +622,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
                 bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot);
                 if(blocking) {
-                    while(streamStatus=="send") {
+                    while(streamStatus==StreamStatuses::SEND) {
                         yarp::os::Time::delay(0.2);
                     }
                 }
@@ -640,7 +646,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         //remove an image provider from the list of available stream images provider
         else if (bCommand.get(0) == "removeImgStreamProvider")
         {
@@ -731,10 +736,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             else {
                 bReply.addString("nack");
             }
-            }
+        }
         else if (bCommand.get(0) == "getStreamStatus")
         {
-            bReply.addString(streamStatus);
+            bReply.addString(std::string(1, static_cast<char>(streamStatus)));
         }
         else
         {
@@ -742,7 +747,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             yInfo() << "\n" << helpMessage;
             bReply = bError;
         }
-        }
+    }
     else
     {
         bError.addString(helpMessage);
@@ -754,14 +759,16 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
     }
 
 void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool forSingleInstance, string fullSentence) {
-    std::thread dataStreamThread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
-    std::thread imageThread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
-    imageThread.join();
-    dataStreamThread.join();
+    if(storeData) {
+        std::thread dataStreamThread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
+        std::thread imageThread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
+        imageThread.join();
+        dataStreamThread.join();
 
-    if (increaseFrameNb) {
-        frameNb++;
-        increaseFrameNb = false;
+        if (increaseFrameNb) {
+            frameNb++;
+            increaseFrameNb = false;
+        }
     }
 }
 
@@ -790,7 +797,7 @@ bool autobiographicalMemory::updateModule() {
 
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
-    if (streamStatus == "begin") {
+    if (streamStatus == StreamStatuses::BEGIN) {
         yDebug() << "[mutexStreamRecord] trying to lock in stream begin";
         mutexStreamRecord.lock();
         yDebug() << "[mutexStreamRecord] locked in stream begin";
@@ -807,15 +814,15 @@ bool autobiographicalMemory::updateModule() {
         storeImagesAndData(synchroTime);
 
         //init of the stream record done: go through the classic record phase
-        streamStatus = "record";
+        streamStatus = StreamStatuses::RECORD;
         yDebug() << "[mutexChangeover] unlocked in begin";
         mutexChangeover.unlock();
     }
-    else if (streamStatus == "record") {
+    else if (streamStatus == StreamStatuses::RECORD) {
         string synchroTime = getCurrentTime();
         storeImagesAndData(synchroTime);
     }
-    else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
+    else if (streamStatus == StreamStatuses::SEND) { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
             yDebug() << "[mutexStreamRecord] trying to lock in stream send";
@@ -905,12 +912,13 @@ bool autobiographicalMemory::updateModule() {
             if (bListContData.toString() != "NULL") {
                 Bottle &bCmd = dataStreamPortOut.second->prepare();
                 bCmd.clear();
-                // for joints, begin with the command to set the position
+                // for joints, begin with the command to set the position, also for objects2DProj
                 if (dataStreamPortOut.first.find("state:o") != std::string::npos) {
                     bCmd.fromString("[set] [poss]");
                 }
 
                 Bottle bJoints;
+                map<int, double> jointsMap;
 
                 // Append bottle of ports for all the subtypes
                 for (int i = 0; i < bListContData.size(); i++) {
@@ -918,11 +926,24 @@ bool autobiographicalMemory::updateModule() {
                         timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                         //yDebug() << "Set new timeLastImageSentCurrentIteration " << timeLastImageSentCurrentIteration;
                     }
+                    // for skeleton joints, subtype 0->n , value "hand x y z"
                     if (dataStreamPortOut.first.find("skeleton:o") != std::string::npos) {
                         bJoints.addString(bListContData.get(i).asList()->get(3).asString());
+                    } else if ((dataStreamPortOut.first.find("objects2DProj:o") != std::string::npos) || (dataStreamPortOut.first.find("agentLoc:o") != std::string::npos) || (dataStreamPortOut.first.find("objLoc:o") != std::string::npos)) {
+                        // for objProj or agentLoc, subtype = object/joint name, value = "x y"
+                        Bottle bSubtype;
+                        bSubtype.addString(bListContData.get(i).asList()->get(0).asString()); //element 0 is the subtype
+                        bSubtype.addString(bListContData.get(i).asList()->get(3).asString()); //element 3 is the value
+                        bJoints.addList() = bSubtype;
                     } else {
-                        bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
+                        jointsMap[atoi(bListContData.get(i).asList()->get(0).asString().c_str())] = atof(bListContData.get(i).asList()->get(3).asString().c_str());
+                        //bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
                     }
+                }
+
+                //because key is int, the map should already be ordered. Dont do anything if jointsMap is empty
+                for(auto const& jointItem : jointsMap){
+                    bJoints.addDouble(jointItem.second);
                 }
 
                 bCmd.addList() = bJoints;
@@ -953,21 +974,25 @@ bool autobiographicalMemory::updateModule() {
         if (done) {
             //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
             yInfo() << "streamStatus = end, closing ports";
-            for (auto const& imgStreamPortOut : mapImgStreamPortOut) {
+            for (auto& imgStreamPortOut : mapImgStreamPortOut) {
                 imgStreamPortOut.second->waitForWrite();
                 imgStreamPortOut.second->interrupt();
                 imgStreamPortOut.second->close();
                 if (!imgStreamPortOut.second->isClosed()) {
                     yError() << "Error, port " << imgStreamPortOut.first << " could not be closed";
                 }
+                delete imgStreamPortOut.second;
+                imgStreamPortOut.second = nullptr;
             }
-            for (auto const& dataStreamPortOut : mapDataStreamPortOut) {
+            for (auto& dataStreamPortOut : mapDataStreamPortOut) {
                 dataStreamPortOut.second->waitForWrite();
                 dataStreamPortOut.second->interrupt();
                 dataStreamPortOut.second->close();
                 if (!dataStreamPortOut.second->isClosed()) {
                     yError() << "Error, port " << dataStreamPortOut.first << " could not be closed";
                 }
+                delete dataStreamPortOut.second;
+                dataStreamPortOut.second = nullptr;
             }
 
             mapImgStreamPortOut.clear();
@@ -977,12 +1002,12 @@ bool autobiographicalMemory::updateModule() {
             mutexChangeover.lock();
             yDebug() << "[mutexChangeover] unlocked in end of send";
 
-            streamStatus = "end";
+            streamStatus = StreamStatuses::END;
         }
     }
 
     //go back to default global value
-    if (streamStatus == "end") {
+    if (streamStatus == StreamStatuses::END) {
         yInfo() << "============================= STREAM STOP =================================";
 
         // wait for threads to be finished
@@ -995,7 +1020,7 @@ bool autobiographicalMemory::updateModule() {
         imgInstance = -1;
         frameNb = 0;
         sendStreamIsInitialized = false;
-        streamStatus = "none";
+        streamStatus = StreamStatuses::NONE;
 
         yDebug() << "[mutexStreamRecord] unlocked in end of stop";
         mutexStreamRecord.unlock();
@@ -1050,9 +1075,6 @@ bool autobiographicalMemory::close()
     abm2augmented.interrupt();
     abm2augmented.close();
 
-    requestInsertProcessQueue();
-    storeImageOIDs();
-
     for(auto& input : mapDataStreamInput) {
         delete input.second;
     }
@@ -1062,15 +1084,33 @@ bool autobiographicalMemory::close()
     }
 
     for(auto& outport : mapDataStreamPortOut) {
-        delete outport.second;
+        if(outport.second) {
+            outport.second->interrupt();
+            outport.second->close();
+            if (!outport.second->isClosed()) {
+                yError() << "Error, port " << outport.first << " could not be closed";
+            }
+            delete outport.second;
+        }
     }
 
     for(auto& outport : mapImgStreamPortOut) {
-        delete outport.second;
+        if(outport.second) {
+            outport.second->interrupt();
+            outport.second->close();
+            if (!outport.second->isClosed()) {
+                yError() << "Error, port " << outport.first << " could not be closed";
+            }
+            delete outport.second;
+        }
     }
 
     delete opcWorldReal;
     delete opcWorldMental;
+
+    requestInsertProcessQueue();
+    storeImageOIDs();
+
     delete ABMDataBase;
 
     yInfo() << "ABM Successfully finished!";
@@ -1343,7 +1383,6 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
         bRequest.addString("request");
         bRequest.addString(osRequest.str().c_str());
         request(bRequest);
-
     }
     bOutput.addString("instance(s) erased");
     return bOutput;

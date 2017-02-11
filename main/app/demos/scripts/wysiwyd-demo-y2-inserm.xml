@@ -24,7 +24,12 @@
 
     <module>
         <name>actionsRenderingEngine</name>
-        <parameters>--motor::block_eyes 5.0 --motor::impedance off</parameters>
+        <parameters>--motor::block_eyes 5.0 --motor::impedance on</parameters>
+        <node>icub-b1</node>
+    </module>
+
+    <module>
+        <name>karmaMotor</name>
         <node>icub-b1</node>
     </module>
 
@@ -180,7 +185,7 @@
         </dependencies>
     </module>
     <module>
-        <name>narrativeHandler</name>
+        <name>narrativeGraph</name>
         <parameters></parameters>
         <node>icub-b3</node>
         <dependencies>
@@ -250,6 +255,7 @@
         <node>console1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
         </dependencies>
     </module>
 
@@ -310,7 +316,7 @@
             <port timeout="10">/ears/behavior:o</port>
             <port timeout="10">/ears/target:o</port>
             <port timeout="20">/proactiveTagging/rpc</port>
-            <port timeout="10">/narrativeHandler/rpc</port>
+            <port timeout="10">/narrativeGraph/rpc</port>
             <port timeout="10">/sam/rpc:i</port>
         </dependencies>
     </module>
@@ -321,6 +327,19 @@
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
 	    <port timeout="10">/speechRecognizer/rpc</port>
+        </dependencies>
+    </module>
+    <module>
+        <name>planner</name>
+        <parameters></parameters>
+        <node>icub-b1</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/homeostasis/rpc</port>
+            <port timeout="10">/BehaviorManager/trigger:i</port>
+            <port timeout="10">/ears/target:o</port>
+            <port timeout="10">/SensationManager/rpc</port>
         </dependencies>
     </module>
     <module>
@@ -340,8 +359,8 @@
     </module>
 
    <module>
-       <name>xterm</name>
-       <parameters>-e "python /home/rococo/samSupervisor.py"</parameters>
+       <name>samSupervisor.py</name>
+       <parameters></parameters>
        <node>rococo</node>
   </module>
 
@@ -354,6 +373,14 @@
         </dependencies>
     </module>
 
+    <module>
+        <name>CLMYarp</name>
+        <parameters>--from /home/icub/robotology/human-sensing-SAM/build/bin/</parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+    </module>
 
   <connection>
   <from>/icub/face/emotions/out</from>
@@ -467,11 +494,6 @@
         <protocol>tcp</protocol>
     </connection>
     <connection>
-        <from>/iol2opc/calib:rpc</from>
-        <to>/iolReachingCalibration/rpc</to>
-        <protocol>tcp</protocol>
-    </connection>
-    <connection>
         <from>/actionsRenderingEngine/wbd:rpc</from>
         <to>/wholeBodyDynamics/rpc:i</to>
         <protocol>tcp</protocol>
@@ -570,6 +592,16 @@
   <connection>
       <from>/actionRecogDataDumper/data/dump:o</from>
       <to>/sam/actions/actionData:i</to>
+      <protocol>udp</protocol>
+  </connection>
+  <connection>
+      <from>/CLM/imageSeg/out</from>
+      <to>/sam/faces/imageData:i</to>
+      <protocol>udp</protocol>
+  </connection>
+  <connection>
+      <from>/kinectServer/image:o</from>
+      <to>/CLM/image/in</to>
       <protocol>udp</protocol>
   </connection>
 </application>

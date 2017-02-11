@@ -55,7 +55,7 @@ public:
 
     SubSystem_SlidingController(const std::string &masterName);
 
-    virtual void Close();;
+    virtual void Close();
 };
 
 }}//Namespace

@@ -4,8 +4,12 @@
 bool wysiwyd::wrdac::SubSystem_Reactable::connect()
 {
     bool success = true;
-    success &= yarp::os::Network::connect(portRTrpc.getName(), "/reactable2opc/command:i");
-    success &= yarp::os::Network::connect("/reactable2opc/osc:o", portRTin.getName());
+    if(!yarp::os::Network::isConnected(portRTrpc.getName(), "/reactable2opc/command:i")) {
+        success &= yarp::os::Network::connect(portRTrpc.getName(), "/reactable2opc/command:i");
+    }
+    if(!yarp::os::Network::isConnected("/reactable2opc/osc:o", portRTin.getName())) {
+        success &= yarp::os::Network::connect("/reactable2opc/osc:o", portRTin.getName());
+    }
     return success;
 }
 
@@ -18,8 +22,10 @@ wysiwyd::wrdac::SubSystem_Reactable::SubSystem_Reactable(const std::string &mast
 
 void wysiwyd::wrdac::SubSystem_Reactable::Close()
 {
-    portRTrpc.interrupt();portRTrpc.close();
-    portRTin.interrupt();portRTin.close();
+    portRTrpc.interrupt();
+    portRTrpc.close();
+    portRTin.interrupt();
+    portRTin.close();
 }
 
 void wysiwyd::wrdac::SubSystem_Reactable::SendOSC(yarp::os::Bottle &oscMsg)

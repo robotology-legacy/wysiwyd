@@ -244,11 +244,13 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     }
 
     //2.Ask human to touch
-    string sAsking = "I know how to move my " + sName + ", but how does it feel when I touch something? Can you touch my " + sName + " when I move it, please?";
+    string sAsking = "I know how to move my " + getBodyPartNameForSpeech(sName) + ", but how does it feel when I touch something? Can you touch my " + getBodyPartNameForSpeech(sName) + " when I move it, please?";
     yInfo() << " sAsking: " << sAsking;
     iCub->lookAtPartner();
     iCub->say(sAsking, false);
     portFromTouchDetector.read(false); // clear buffer from previous readings
+
+    yarp::os::Time::delay(1.0);
 
     //2.b Move also the bodypart to show it has been learnt.
     yInfo() << "Cast okay : name BP = " << BPentity->name();
@@ -278,7 +280,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
         yError() << " error in proactiveTagging::exploreTactileEntityWithName | for " << sName << " | Touch not detected!" ;
         bOutput.addString("error");
         bOutput.addString("I did not feel any touch.");
-        iCub->say("I did not feel any touch.");
+        iCub->say("I did not feel any touch.", false);
         iCub->home();
 
         return bOutput;
@@ -292,7 +294,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     iCub->opc->commit(BPentity);
 
     //4.Ask human to touch
-    string sThank = " Thank you, now I know when I am touching object with my " + sName;
+    string sThank = " Thank you, now I know when I am touching object with my " + getBodyPartNameForSpeech(sName);
     yInfo() << " sThank: " << sThank;
     iCub->lookAtPartner();
     iCub->say(sThank);

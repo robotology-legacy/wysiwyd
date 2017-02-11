@@ -39,6 +39,7 @@ namespace wysiwyd{
         class SubSystem_Recog;
         class SubSystem_LRH;
         class SubSystem_SlidingController;
+        class SubSystem_KARMA;
     }
 }
 

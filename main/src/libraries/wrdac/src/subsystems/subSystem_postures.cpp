@@ -6,10 +6,18 @@ using namespace wysiwyd::wrdac;
 bool wysiwyd::wrdac::SubSystem_Postures::connect()
 {
     bool success = true;
-    success &= yarp::os::Network::connect(ctpHead.getName(), "/ctpservice/head/rpc");
-    success &= yarp::os::Network::connect(ctpLeftArm.getName(), "/ctpservice/left_arm/rpc");
-    success &= yarp::os::Network::connect(ctpRightArm.getName(), "/ctpservice/right_arm/rpc");
-    success &= yarp::os::Network::connect(ctpTorso.getName(), "/ctpservice/torso/rpc");
+    if(!yarp::os::Network::isConnected(ctpHead.getName(), "/ctpservice/head/rpc")) {
+        success &= yarp::os::Network::connect(ctpHead.getName(), "/ctpservice/head/rpc");
+    }
+    if(!yarp::os::Network::isConnected(ctpLeftArm.getName(), "/ctpservice/left_arm/rpc")) {
+        success &= yarp::os::Network::connect(ctpLeftArm.getName(), "/ctpservice/left_arm/rpc");
+    }
+    if(!yarp::os::Network::isConnected(ctpRightArm.getName(), "/ctpservice/right_arm/rpc")) {
+        success &= yarp::os::Network::connect(ctpRightArm.getName(), "/ctpservice/right_arm/rpc");
+    }
+    if(!yarp::os::Network::isConnected(ctpTorso.getName(), "/ctpservice/torso/rpc")) {
+        success &= yarp::os::Network::connect(ctpTorso.getName(), "/ctpservice/torso/rpc");
+    }
     return success;
 }
 
@@ -24,10 +32,14 @@ wysiwyd::wrdac::SubSystem_Postures::SubSystem_Postures(const std::string &master
 
 void wysiwyd::wrdac::SubSystem_Postures::Close()
 {
-    ctpHead.interrupt();ctpHead.close();
-    ctpLeftArm.interrupt();ctpLeftArm.close();
-    ctpRightArm.interrupt();ctpRightArm.close();
-    ctpTorso.interrupt();ctpTorso.close();
+    ctpHead.interrupt();
+    ctpHead.close();
+    ctpLeftArm.interrupt();
+    ctpLeftArm.close();
+    ctpRightArm.interrupt();
+    ctpRightArm.close();
+    ctpTorso.interrupt();
+    ctpTorso.close();
 }
 
 void wysiwyd::wrdac::SubSystem_Postures::Execute(wysiwyd::wrdac::BodyPosture &p, double timing, const std::string &partUsed)

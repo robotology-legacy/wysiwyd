@@ -41,18 +41,9 @@
 *
 */
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <ctime>
-
-#ifdef _WIN32
-#include <io.h>
-#include <windows.h>
-#else
-#include <unistd.h>
-#define Sleep(x) usleep(x)
-#endif
-
 #include <cmath>
 
 #include <opencv2/opencv.hpp>
@@ -60,7 +51,6 @@
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/dev/Drivers.h>
 
 #include <wrdac/clients/opcClient.h>
 

@@ -1,0 +1,63 @@
+#  At the beginning, box cover octopus and icub want octopus
+#  icub take the octopus
+#  But it failed.
+#  icub said to Daniel: Can you remove the box please?
+#  Daniel remove the box
+#  And now, icub want octopus
+#  icub take the octopus
+#  And now, icub have octopus
+#  In the end, icub have octopus
+
+# FIRST
+first, want icub octopus, P1 P2 A2 O2
+first, cover box octopus, P1 P2 A2 O2
+
+# SO
+so, take icub octopus, P1 P2 A2 O2
+so, say icub Can_you_remove_the_box_please? Daniel, P1 P2 A2 O2 R2
+so, remove Daniel box, P1 P2 A2 O2
+so, take icub octopus, P1 P2 A2 O2
+so, have icub octopus, P1 P2 A2 O2
+
+# THEN
+then, take icub octopus, P1 P2 A2 O2
+then, say icub Can_you_remove_the_box_please? Daniel, P1 P2 A2 O2 R2
+then, remove Daniel box, P1 P2 A2 O2
+then, take icub octopus, P1 P2 A2 O2
+then, have icub octopus, P1 P2 A2 O2
+
+# AND
+and, want icub octopus, cover box octopus, P1 P2 A2 O2 P3 A3 O3
+and, say icub Can_you_remove_the_box_please? Daniel, remove Daniel box, P1 P2 A2 O2 R2 P3 A3 O3
+and, take icub octopus, have icub octopus, P1 P2 A2 O2 P3 A3 O3
+
+# BEFORE
+before, take icub octopus, remove Daniel box, P1 P2 A2 O2 P3 A3 O3
+before, take icub octopus, want icub octopus, P1 P2 A2 O2 P3 A3 O3
+before, have icub octopus, want icub octopus, P1 P2 A2 O2 P3 A3 O3
+before, have icub octopus, take icub octopus, P1 P2 A2 O2 P3 A3 O3
+before, remove Daniel box, want icub octopus, P1 P2 A2 O2 P3 A3 O3
+before, remove Daniel box, say icub Can_you_remove_the_box_please? octopus, P1 P2 A2 O2 P3 A3 O3 R3
+
+# AFTER
+after, take icub octopus, remove Daniel box, P1 P2 A2 O2 P3 A3 O3
+after, want icub octopus, take icub octopus, P1 P2 A2 O2 P3 A3 O3
+after, remove Daniel box, take icub octopus, P1 P2 A2 O2 P3 A3 O3
+after, remove Daniel box, have icub octopus, P1 P2 A2 O2 P3 A3 O3
+after, take icub octopus, have icub octopus, P1 P2 A2 O2 P3 A3 O3
+after, want icub octopus, remove Daniel box, P1 P2 A2 O2 P3 A3 O3
+after, say icub Can_you_remove_the_box_please? octopus, remove Daniel box, P1 P2 A2 O2 R2 P3 A3 O3
+
+# BUT
+but, want icub octopus, cover box octopus, P1 P2 A2 O2 P3 A3 O3
+but, take icub octopus, cover box octopus, P1 P2 A2 O2 P3 A3 O3
+but, take icub octopus, fail icub take, P1 P2 A2 O2 P3 A3 O3
+
+# BECAUSE
+because, remove Daniel box, take icub octopus, P1 P2 A2 O2 P3 A3 O3
+because, want icub octopus, take icub octopus, P1 P2 A2 O2 P3 A3 O3
+because, want icub octopus, have icub octopus, P1 P2 A2 O2 P3 A3 O3
+because, take icub octopus, have icub octopus, P1 P2 A2 O2 P3 A3 O3
+
+#FINALLY
+finally, have icub octopus, P1 P2 A2 O2

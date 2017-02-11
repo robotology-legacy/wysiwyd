@@ -37,7 +37,7 @@ public:
     Bottle sensationOnCmd, sensationOffCmd, beforeTriggerCmd, afterTriggerCmd;
     
     AllostaticDrive() {
-        manualMode = false;
+        manualMode = true;
         behaviorUnderPort = nullptr;
         behaviorOverPort = nullptr;
         homeoPort = nullptr;
@@ -50,7 +50,6 @@ public:
         if (behaviorOverPort!=nullptr) {
             behaviorOverPort->interrupt();
         }
-        homeoPort->interrupt();
         inputSensationPort->interrupt();
         return true;
     }
@@ -59,15 +58,19 @@ public:
         if (behaviorUnderPort!=nullptr) {
             behaviorUnderPort->interrupt();
             behaviorUnderPort->close();
+            delete behaviorUnderPort;
+            behaviorUnderPort=nullptr;
         }
         if (behaviorOverPort!=nullptr) {
             behaviorOverPort->interrupt();
             behaviorOverPort->close();
+            delete behaviorOverPort;
+            behaviorOverPort=nullptr;
         }
-        homeoPort->interrupt();
-        homeoPort->close();
         inputSensationPort->interrupt();
         inputSensationPort->close();
+        delete inputSensationPort;
+        inputSensationPort=nullptr;
         return true;
     }
 
@@ -163,6 +166,7 @@ public:
 class AllostaticController: public RFModule
 {
 private:
+    ICubClient  *iCub;
 
     Bottle drivesList;
     
@@ -188,7 +192,6 @@ private:
     bool openPorts(string driveName);
 public:
     bool configure(yarp::os::ResourceFinder &rf);
-    ICubClient  *iCub;
     bool interruptModule();
 
     bool close();

@@ -1,5 +1,22 @@
 #include "behaviorManager.h"
 
+#include "wrdac/subsystems/subSystem_ABM.h"
+
+#include "dummy.h"
+#include "tagging.h"
+#include "pointing.h"
+#include "reactions.h"
+#include "narrate.h"
+#include "followingOrder.h"
+#include "recognitionOrder.h"
+#include "speech.h"
+#include "greeting.h"
+#include "ask.h"
+#include "moveObject.h"
+
+using namespace std;
+using namespace yarp::os;
+
 bool BehaviorManager::interruptModule()
 {
     rpc_in_port.interrupt();
@@ -17,7 +34,9 @@ bool BehaviorManager::close()
     iCub->close();
 
     for(auto& beh : behaviors) {
+        beh->interrupt_ports();
         beh->close_ports();
+        delete beh;
     }
     behaviors.clear();
 
@@ -34,7 +53,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(1.0)).asDouble();
 
     Bottle grp = rf.findGroup("BEHAVIORS");
-    behaviorList = *grp.find("behaviors").asList();  
+    Bottle behaviorList = *grp.find("behaviors").asList();
 
     rpc_in_port.open("/" + moduleName + "/trigger:i");
     yInfo() << "RPC_IN : " << rpc_in_port.getName();
@@ -57,7 +76,15 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         }  else if (behavior_name == "narrate") {
             behaviors.push_back(new Narrate(&mut, rf, "narrate"));
         }  else if (behavior_name == "recognitionOrder") {
-            behaviors.push_back(new recognitionOrder(&mut, rf, "recognitionOrder"));
+            behaviors.push_back(new RecognitionOrder(&mut, rf, "recognitionOrder"));
+        }  else if (behavior_name == "greeting") {
+            behaviors.push_back(new Greeting(&mut, rf, "greeting"));
+        }  else if (behavior_name == "ask") {
+            behaviors.push_back(new Ask(&mut, rf, "ask"));
+        }  else if (behavior_name == "speech") {
+            behaviors.push_back(new Speech(&mut, rf, "speech"));
+        } else if (behavior_name == "moveObject") {
+            behaviors.push_back(new MoveObject(&mut, rf, "moveObject"));
             // other behaviors here
         }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
@@ -67,17 +94,22 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
-    iCub = new ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
+    iCub = new wysiwyd::wrdac::ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
 
     if (!iCub->connect())
     {
         yInfo() << "iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
-
-    while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
-        yWarning() << "Ears is not reachable";
-        yarp::os::Time::delay(0.5);
+    if (rf.check("use_ears",Value("false")).asBool())
+    {
+        yDebug()<<"using ears";
+        while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
+            yWarning() << "Ears is not reachable";
+            yarp::os::Time::delay(0.5);
+        }
+    }else{
+        yDebug()<<"not using ears";
     }
 
     // id = 0;
@@ -98,6 +130,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
                 yarp::os::Time::delay(0.5);
             }   
         }
+
     }
 
     attach(rpc_in_port);
@@ -131,35 +164,39 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 if (cmd.get(1).asString() == "on") {
                     yInfo() << "followingOrder behavior manual mode on";
                     dynamic_cast<FollowingOrder *>(beh)->manual = true;
-                    reply.addString("ack");
                 } else if (cmd.get(1).asString() == "off") {
                     yInfo() << "followingOrder behavior manual mode off";
                     dynamic_cast<FollowingOrder *>(beh)->manual = false;
-                    reply.addString("ack");
                 }
             }
             else if (beh->behaviorName == "recognitionOrder") {
                 if (cmd.get(1).asString() == "on") {
                     yInfo() << "recognitionOrder behavior manual mode on";
-                    dynamic_cast<recognitionOrder *>(beh)->manual = true;
-                    reply.addString("ack");
+                    dynamic_cast<RecognitionOrder *>(beh)->manual = true;
                 } else if (cmd.get(1).asString() == "off") {
                     yInfo() << "recognitionOrder behavior manual mode off";
-                    dynamic_cast<recognitionOrder *>(beh)->manual = false;
-                    reply.addString("ack");
+                    dynamic_cast<RecognitionOrder *>(beh)->manual = false;
                 }
             }
         }
+        reply.addString("ack");
     } else if (cmd.get(0).asString() == "names" ) {
         Bottle names;
-        names.clear();
         for(auto& beh : behaviors) {
             names.addString(beh->behaviorName);
         }
         reply.addList() = names;
-    }
+    } else if (cmd.get(0).asString() == "is_available" ) {
+        if (mut.tryLock()) {
+            mut.unlock();
+            reply.addInt(1);
+        } else {
+            reply.addInt(0);
+        }
+    }    
     else
     {
+        bool behavior_triggered = false;
         for(auto& beh : behaviors) {
             if (cmd.get(0).asString() == beh->behaviorName) {
         //         Bottle args;
@@ -182,7 +219,13 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                     }   
                 }
 
-                beh->trigger(/*args*/);
+                Bottle args;
+                if (cmd.size()>1){
+                    args = cmd.tail();
+                }
+                yDebug() << "arguments are " << args.toString().c_str();
+                // beh->trigger(args);
+                behavior_triggered = beh->trigger(args);
 
                 // Add event into ABM
                 if (iCub->getABMClient()->Connect()) {
@@ -203,7 +246,12 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 }
             }
         }
-        reply.addString("ack");
+        if (behavior_triggered) {
+            reply.addString("ack");
+        } else {
+            reply.addString("nack");
+            yDebug()<< "Behavior ' " << cmd.get(0).asString() << " ' cant be triggered. \nSend 'names' to see a list of available behaviors. ";
+        }
     }
     yDebug() << "End of BehaviorManager::respond";
     return true;

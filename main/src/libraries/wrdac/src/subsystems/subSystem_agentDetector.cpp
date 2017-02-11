@@ -2,7 +2,11 @@
 #include "wrdac/subsystems/subSystem_agentDetector.h"
 
 bool wysiwyd::wrdac::SubSystem_agentDetector::connect() {
-    return yarp::os::Network::connect(portRPC.getName(), "/agentDetector/rpc");
+    if(yarp::os::Network::isConnected(portRPC.getName(), "/agentDetector/rpc")) {
+        return true;
+    } else {
+        return yarp::os::Network::connect(portRPC.getName(), "/agentDetector/rpc");
+    }
 }
 
 wysiwyd::wrdac::SubSystem_agentDetector::SubSystem_agentDetector(const std::string &masterName) : SubSystem(masterName) {

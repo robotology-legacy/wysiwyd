@@ -55,7 +55,8 @@ private:
 
     // visualABM
     std::string imgFormat;
-    std::string streamStatus;
+    enum class StreamStatuses : char {NONE = 'n', BEGIN = 'b', SEND = 's', RECORD = 'r', END = 'e'};
+    StreamStatuses streamStatus;
     std::string imgLabel;
 
     unsigned int frameNb;
@@ -143,6 +144,8 @@ public:
 
     // store image / data stream to ABM
     bool processInsertDelayed;
+    bool storeData;
+    bool recordSound;
     void requestInsertPushToQueue(const std::string &sRequest);
     void requestInsertProcessQueue();
     std::vector<std::string> requests;

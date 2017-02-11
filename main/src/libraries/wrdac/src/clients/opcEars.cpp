@@ -46,7 +46,7 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
     opcNew->lEntities = OPCReal->EntitiesCacheCopy();
     opcNew->lRelations = OPCReal->getRelations();
 
-    for (list<Entity*>::iterator it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
+    for (auto it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
     {   // Check all the entities to find the iCub
         if (((*it_E)->name() == "icub" || (*it_E)->name() == "iCub") && ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT))
         {
@@ -85,7 +85,7 @@ Bottle opcEars::snapshot_string(string sName, OPCClient *OPCReal)
     opcNew->lEntities = OPCReal->EntitiesCacheCopy();
     opcNew->lRelations = OPCReal->getRelations();
 
-    for (list<Entity*>::iterator it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
+    for (auto it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
     {   // Check all the entities to find the iCub
         if (((*it_E)->name() == "icub" || (*it_E)->name() == "iCub") && ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT))
         {
@@ -158,24 +158,27 @@ Bottle opcEars::insertEntity(Entity *A)
         OA.fromBottle(bA);
 
         if (OA.m_present==1.0)
-            osEntity << " , TRUE , '{ ";
+            osEntity << " , TRUE , ";
         else
-            osEntity << " , FALSE , '{ ";
+            osEntity << " , FALSE , ";
 
         //  Insert position
-        osEntity << OA.m_ego_position[0] << " , " << OA.m_ego_position[1] << " , " << OA.m_ego_position[2] << " }' , '{ ";
+        osEntity << "'{ " << OA.m_ego_position[0] << " , " << OA.m_ego_position[1] << " , " << OA.m_ego_position[2] << " }' , ";
 
         // Insert orientation
-        osEntity << OA.m_ego_orientation[0] << " , " << OA.m_ego_orientation[1] << " , " << OA.m_ego_orientation[2] << " }' , '{ ";
+        osEntity << "'{ " << OA.m_ego_orientation[0] << " , " << OA.m_ego_orientation[1] << " , " << OA.m_ego_orientation[2] << " }' , ";
 
         // Insert dimension
-        osEntity << OA.m_dimensions[0] << " , " << OA.m_dimensions[1] << " , " << OA.m_dimensions[2] << " }' , '{ ";
+        osEntity << "'{ " << OA.m_dimensions[0] << " , " << OA.m_dimensions[1] << " , " << OA.m_dimensions[2] << " }' , ";
 
         //Insert color
-        osEntity << OA.m_color[0] << " , " << OA.m_color[1] << " , " << OA.m_color[2] << " }' ,  ";
+        osEntity << "'{ " << OA.m_color[0] << " , " << OA.m_color[1] << " , " << OA.m_color[2] << " }' ,  ";
 
         // Insert Saliency
-        osEntity << OA.m_saliency << " ) ";
+        osEntity << OA.m_saliency << " , ";
+
+        // Insert Object area
+        osEntity << "'" << OA.objectAreaAsString() << "'" << " ) ";
 
         bOutput.addString(osEntity.str().c_str());
     }
@@ -370,7 +373,7 @@ Bottle opcEars::insertOPC(string sName)
 
     osContent << "INSERT INTO contentopc( type , instance , opcid , subtype) VALUES ";
     osEntity << "INSERT INTO entities(opcid, name, instance) VALUES ";
-    osObject << "INSERT INTO object(opcid, name, instance, presence, position, orientation, dimension, color, saliency) VALUES ";
+    osObject << "INSERT INTO object(opcid, name, instance, presence, position, orientation, dimension, color, saliency, objectarea) VALUES ";
     osRTObject << "INSERT INTO rtobject(opcid, name, instance, presence, position, orientation, dimension, color, rtposition, saliency) VALUES ";
     osAgent << "INSERT INTO agent(opcid, name, instance, presence, position, orientation, dimension, color, saliency) VALUES ";
     osAdjective << "INSERT INTO adjective(opcid, name, instance, quality) VALUES ";
@@ -385,16 +388,17 @@ Bottle opcEars::insertOPC(string sName)
 
     if (opcTemp == NULL)
     {
-        yError() << "insertOPC: OPC not connected!";
+        yError() << "insertOPC: OPC not connected!, sname="<<sName;
+        yError() << "Hint: Did you use a wrong activity type?";
         bOutput.addString("nack");
         bOutput.addString("Error, OPC not connected");
         return bOutput;
     }
 
     // ---- Entities ---- //
-    for (list<Entity*>::iterator it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++)
+    for (auto it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++)
     {
-        bTemp = insertEntity(*it_E);
+        bTemp = insertEntity((*it_E).get());
 
         //        yInfo() << " bTemp = " << bTemp.toString() << endl ;
 

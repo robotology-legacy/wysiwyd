@@ -87,7 +87,6 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     // Open port2OPCManager
     port2OPCmanagerName = "/";
     port2OPCmanagerName += getName() + "/toOPCManager";
-
     if (!Port2OPCManager.open(port2OPCmanagerName.c_str())) {
         yInfo() << getName() << ": Unable to open port " << port2OPCmanagerName;
         bEveryThingisGood = false;
@@ -95,9 +94,14 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
 
     port2BodySchemaName = "/" + getName() + "/toBodySchema";
-
     if (!Port2BodySchema.open(port2BodySchemaName.c_str())) {
         yInfo() << getName() << ": Unable to open port " << port2BodySchemaName;
+        bEveryThingisGood = false;
+    }
+
+    port2ABMName = "/" + getName() + "/toABM";
+    if (!Port2ABM.open(port2ABMName.c_str())) {
+        yInfo() << getName() << ": Unable to open port " << port2ABMName;
         bEveryThingisGood = false;
     }
 
@@ -108,19 +112,17 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     //------------------------//
     //      iCub Client
     //------------------------//
-    string ttsSystem = SUBSYSTEM_SPEECH;
     iCub = new ICubClient(moduleName.c_str(), "abmHandler", "client.ini", true);
     //  iCub->getSpeechClient()->SetOptions("iCubina-fr");
-    iCub->say("test Greg!", false);
     //  iCub->opc->isVerbose = false;
 
     // Connect iCub Client, and ports
-    //      bEveryThingisGood &= !iCub->connect()  
-    //bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
+    bEveryThingisGood &= !iCub->connect();
+    bEveryThingisGood &= Network::connect(port2ABMName.c_str(), "/autobiographicalMemory/rpc");
 
     bOptionnalModule &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
     bOptionnalModule &= Network::connect(port2OPCmanagerName, "/opcManager/rpc");
-    bOptionnalModule &= Network::connect(port2BodySchemaName, "/bodySchema/rpc");
+    bOptionnalModule &= Network::connect(port2BodySchemaName, "/babbling/rpc");
 
     bOptionnalModule &= Network::connect("/mainLoop/speechGrammar/keyword:o", handlerPortName.c_str());
 
@@ -363,7 +365,7 @@ Bottle abmHandler::node1()
     }
 
     // Can you remember the first/last time when you ...
-    else if (sQuestionKind == "REMEMBERING")
+    /*else if (sQuestionKind == "REMEMBERING")
     {
 
         Bottle bBodySchema;
@@ -428,7 +430,7 @@ Bottle abmHandler::node1()
 
         //return bOutput ;
         return node1();
-    }
+    }*/
 
     // Can you remember the first/last time when you ...
     ////else if (sQuestionKind == "ACTING")
@@ -470,107 +472,114 @@ Bottle abmHandler::node1()
     ////}
 
     //////For Apple demo
-    ////else if (sQuestionKind == "REMEMBERING")
-    ////{
-    ////    yInfo() << " ============= REMEMBERING ===================";
-    ////    yInfo() << bSemantic.toString().c_str();
+    else if (sQuestionKind == "REMEMBERING")
+    {
+        yInfo() << " ============= REMEMBERING ===================";
+        yInfo() << bSemantic.toString().c_str();
 
-    ////    bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
-    ////    sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
-    ////    sCurrentPronoun = bSemantic.check("name", Value("HyungJin")).asString();
+        bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
+        sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
+        sCurrentPronoun = bSemantic.check("name", Value("HyungJin")).asString();
 
-    ////    bBodySchema.clear();
-    ////    if (sCurrentActivity == "motor babbling"){
-    ////        sCurrentActivity = "babbling";
-    ////    }
+        if (sCurrentActivity == "motor babbling"){
+            sCurrentActivity = "babbling";
+        }
 
-    ////    yInfo() << " first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity << " ; sCurrentPronoun = " << sCurrentPronoun;
+        yInfo() << " first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity << " ; sCurrentPronoun = " << sCurrentPronoun;
 
-    ////    if (sCurrentPronoun == "none" || sCurrentActivity == "none")
-    ////    {
-    ////        iCurrentInstance = -1;
-    ////        osError << "no pronoun or activity";
-    ////        bOutput.addString(osError.str());
-    ////        yInfo() << osError.str();
-    ////        return bOutput;
-    ////    }
+        if (sCurrentPronoun == "none" || sCurrentActivity == "none")
+        {
+            iCurrentInstance = -1;
+            osError << "no pronoun or activity";
+            bOutput.addString(osError.str());
+            yInfo() << osError.str();
+            return bOutput;
+        }
 
-    ////    ostringstream osRequest;
-    ////    osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '" << sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
-    ////    if (sCurrentPronoun == "you") {
-    ////        osRequest << " argument = 'icub' AND role = 'agent1') ";
-    ////    }
-    ////    else {
-    ////        osRequest << " argument = '" << sCurrentPronoun << "' AND role = 'agent1') ";
-    ////    }
+        ostringstream osRequest;
+        osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '" << sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+        if (sCurrentPronoun == "you") {
+            osRequest << " argument = 'icub' AND role = 'agent1') ";
+        }
+        else {
+            osRequest << " argument = '" << sCurrentPronoun << "' AND role = 'agent1') ";
+        }
 
-    ////    fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
+        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
 
-    ////    yInfo() << " REQUEST : " << osRequest.str();
+        yInfo() << " REQUEST : " << osRequest.str();
 
-    ////    bMessenger.clear();
-    ////    bMessenger.addString("request");
-    ////    bMessenger.addString(osRequest.str().c_str());
+        Bottle bMessenger;
+        bMessenger.addString("request");
+        bMessenger.addString(osRequest.str().c_str());
 
-    ////    bAnswer.clear();
-    ////    Port2ABM.write(bMessenger, bAnswer);
+        bAnswer.clear();
+        Port2ABM.write(bMessenger, bAnswer);
 
-    ////    yInfo() << " Response of ABM: ==>" << bAnswer.toString() << "<==";
+        yInfo() << " Response of ABM: ==>" << bAnswer.toString() << "<==";
 
-    ////    if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
-    ////    {
-    ////        iCurrentInstance = -1;
-    ////        osError.str("");
-    ////        osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
-    ////        bOutput.addString(osError.str());
-    ////        yInfo() << osError.str();
-    ////        return bOutput;
-    ////    }
+        if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
+        {
+            iCurrentInstance = -1;
+            osError.str("");
+            osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
+            bOutput.addString(osError.str());
+            yInfo() << osError.str();
+            return bOutput;
+        }
 
-    ////    iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
-    ////    ostringstream osAnswer;
-    ////    osAnswer << "Yes, it was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
-    ////    sLastSentence = osAnswer.str();
+        iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
+        ostringstream osAnswer;
+        osAnswer << "Yes, it was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
+        sLastSentence = osAnswer.str();
 
-    ////    bSpeak.clear();
-    ////    bSpeak.addString(osAnswer.str());
-    ////    Port2iSpeak.write(bSpeak);
+        iCub->say(osAnswer.str());
 
-    ////    yarp::os::Time::delay(2);
+        yarp::os::Time::delay(2);
 
-    ////    osAnswer.str(std::string());
-    ////    osAnswer << "Actually, I remember, I am visualizing it right now ";
-    ////    sLastSentence = osAnswer.str();
+        osAnswer.str(std::string());
+        osAnswer << "Actually, I remember, I am visualizing it right now ";
+        sLastSentence = osAnswer.str();
 
-    ////    bSpeak.clear();
-    ////    bSpeak.addString(osAnswer.str());
-    ////    Port2iSpeak.write(bSpeak);
+        iCub->say(osAnswer.str());
 
-    //    //yarp::os::Time::delay(3);
 
-    //    //TODO : triggerStreaming for raw images
-    //    bMessenger.clear();
-    //    bAnswer.clear();
-    //    bMessenger.addString("triggerStreaming");
-    //    bMessenger.addInt(iCurrentInstance); //string iCurrentInstance cast in int
-    //    bMessenger.addInt(1); //for syncro real time : Yes
-    //    bMessenger.addInt(0); //for include augmented images? No
+        //yarp::os::Time::delay(3);
 
-    //    yInfo() << " Bottle sent to ABM: ==>" << bMessenger.toString() << "<==";
-    //    Port2ABM.write(bMessenger, bAnswer);
-    //    yInfo() << " Response of ABM: ==>" << bAnswer.toString() << "<==";
+        //TODO : triggerStreaming for raw images
+        bMessenger.clear();
+        bAnswer.clear();
+        bMessenger.addString("triggerStreaming");
+        bMessenger.addInt(iCurrentInstance); //string iCurrentInstance cast in int
+        Bottle sub1;
+        sub1.addString("realtime");
+        sub1.addInt(1);
+        bMessenger.addList() = sub1;
 
-    //    //Connect port to yarpview for future visualization : HACK
-    //    //Network::connect("/autobiographicalMemory/icub/camcalib/right/out", "/yarpview/abm/icub/camcalib/right");
-    //    //Network::connect("/autobiographicalMemory/icub/camcalib/left/out", "/yarpview/abm/icub/camcalib/left");
+        Bottle sub2;
+        sub2.addString("includeAugmented");
+        sub2.addInt(0);
+        bMessenger.addList() = sub2;
 
-    //    //return bOutput ;
-    //    return appleNode2();
-    //}
+        Bottle sub3;
+        sub3.addString("blocking");
+        sub3.addInt(1);
+        bMessenger.addList() = sub3;
+
+        yInfo() << " Bottle sent to ABM: ==>" << bMessenger.toString() << "<==";
+        Port2ABM.write(bMessenger, bAnswer);
+        yInfo() << " Response of ABM: ==>" << bAnswer.toString() << "<==";
+
+        //Connect port to yarpview for future visualization : HACK
+        //Network::connect("/autobiographicalMemory/icub/camcalib/right/out", "/yarpview/abm/icub/camcalib/right");
+        //Network::connect("/autobiographicalMemory/icub/camcalib/left/out", "/yarpview/abm/icub/camcalib/left");
+
+        return appleNode2();
+    }
 
     else
     {
-        string sError = "What da hell are you talking about Bro ?";
+        string sError = "I do not understand this command.";
         yInfo() << sError;
         iCub->say(sError);
         sLastSentence = sError;
@@ -642,7 +651,7 @@ Bottle abmHandler::appleNode2()
 
         iCub->say(sLastSentence);
 
-        yarp::os::Time::delay(2);
+        yarp::os::Time::delay(1);
 
         osAnswer.str(std::string());
         osAnswer << "You can look at my reasoning about your kinematic structure of your left hand";
@@ -654,6 +663,7 @@ Bottle abmHandler::appleNode2()
 
         //TODO : triggerStreaming for raw images  
         bAnswer = iCub->getABMClient()->triggerStreaming(iCurrentInstance); // syncro real time yes, augmented images yes
+        yDebug() << "Response of ABM: " << bAnswer.toString();
 
 
         //TODO : streaming RAW + augmented image from sCurrentAugmented
@@ -710,16 +720,18 @@ Bottle abmHandler::appleNode3()
     // semantic is the list of the semantic elements of the sentence except the type ef sentence
     bSemantic = *bAnswer.get(1).asList()->get(1).asList();
 
-    if (sQuestionKind == "ACTING")
+    if (sQuestionKind == "ASKING")
     {
-        yInfo() << " ============= ACTING ===================";
+        yInfo() << " ============= ASKING ===================";
         yInfo() << bSemantic.toString().c_str();
 
         sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
 
         bBodySchema.clear();
         if (sCurrentActivity == "motor babbling"){
-            bBodySchema.addString("babblingLearning");
+            bBodySchema.addString("babbling");
+            bBodySchema.addString("arm");
+            bBodySchema.addString("left");
         }
 
         yInfo() << " To BodySchema : " << bBodySchema.toString();
@@ -1367,7 +1379,7 @@ string abmHandler::dateToSpeech(string sDate)
     }
 
     ostringstream osOutput;
-    osOutput << sDay << ", of " << sNameMonth << ", of " << sYear;
+    osOutput << sDay << ", of " << sNameMonth << sYear;
     sOutput = osOutput.str();
     return sOutput;
 }

@@ -17,7 +17,7 @@ if(UNIX)
    add_definitions("-std=gnu++0x")
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
 target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER AutoBiographicalMemory)

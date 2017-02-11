@@ -4,10 +4,30 @@
 *.orig
 *.pyc
 CMakeLists.txt.user
+.catkin_tools
 
 WYSIWYD.config
 WYSIWYD.creator
 WYSIWYD.creator.user
 WYSIWYD.files
 WYSIWYD.includes
+
+main/src/modules/perspectiveTaking/build
+main/src/modules/perspectiveTaking/logs
+main/src/modules/perspectiveTaking/devel
+main/src/modules/samRelated/SAM/.idea/
+
+main/src/modules/kinematicStructureLearning/matlabModuleKS/src/KinematicStructureCorrespondence/data/
+main/src/modules/kinematicStructureLearning/matlabModuleKS/src/KinematicStructureCorrespondence/parfor_progress.txt
+main/src/modules/kinematicStructureLearning/matlabModuleKS/src/KinematicStructureCorrespondence/result/
+
+main/src/modules/kinematicStructureLearning/matlabModuleKS/include/include_Matlab/topology_similarity/graph_alignment/MAGNA++_CLI_Linux64_01_30_2015/graph_P-leda-temp.gw
+main/src/modules/kinematicStructureLearning/matlabModuleKS/include/include_Matlab/topology_similarity/graph_alignment/MAGNA++_CLI_Linux64_01_30_2015/graph_P.gw
+main/src/modules/kinematicStructureLearning/matlabModuleKS/include/include_Matlab/topology_similarity/graph_alignment/MAGNA++_CLI_Linux64_01_30_2015/graph_Q-leda-temp.gw
+main/src/modules/kinematicStructureLearning/matlabModuleKS/include/include_Matlab/topology_similarity/graph_alignment/MAGNA++_CLI_Linux64_01_30_2015/graph_Q.gw
+main/src/modules/kinematicStructureLearning/matlabModuleKS/include/include_Matlab/topology_similarity/matrix-correspondance-no-removal.output
+main/src/modules/kinematicStructureLearning/matlabModuleKS/include/include_Matlab/topology_similarity/matrix-correspondance-with-removal.output
+main/src/modules/kinematicStructureLearning/matlabModuleKS/include/include_Matlab/topology_similarity/myGraph.txt
+main/src/modules/kinematicStructureLearning/matlabModuleKS/src/KinematicStructureCorrespondence/Rplots.pdf
+main/src/modules/kinematicStructureLearning/matlabModuleKS/src/KinematicStructureCorrespondence/temp.mat
 

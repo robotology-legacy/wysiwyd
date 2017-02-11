@@ -57,7 +57,7 @@ before_script:
   - cd main
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release -DWYSIWYD_BUILD_IOL2OPC=FALSE ..
+  - cmake -DCMAKE_BUILD_TYPE=Release -DWYSIWYD_BUILD_IOL2OPC=FALSE -DWYSIWYD_BUILD_SENSORYPROCESSOR=FALSE ..
 
 script:
   - make

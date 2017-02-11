@@ -5,12 +5,16 @@ bool wysiwyd::wrdac::SubSystem_Recog::connect() {
     // paste master name of
     ABMconnected = (SubABM->Connect());
     yInfo() << ((ABMconnected) ? "Recog connected to ABM" : "Recog didn't connect to ABM");
-    if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
-        yInfo() << "Recog connected to ears";
+
+    if (!yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")) {
+        if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
+            yInfo() << "Recog connected to ears";
+        }
+        else {
+            yDebug() << "Recog didn't connect to ears at start";
+        }
     }
-    else {
-        yDebug() << "Recog didn't connect to ears at start";
-    }
+
     if (yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
         return true;
     }
@@ -56,12 +60,12 @@ void wysiwyd::wrdac::SubSystem_Recog::listen(bool on) {
         else {
             cmd.addString("off");
         }
-        yDebug() << "Listen sending command" << cmd.toString();
+        yDebug() << "[listen] Listen sending command" << cmd.toString();
         ears_port.write(cmd, reply);
-        yDebug() << "Listen got reply" << reply.toString();
+        yDebug() << "[listen] Listen got reply" << reply.toString();
     }
     else {
-        yWarning() << "No connection to ears available...";
+        yWarning() << "[listen] No connection to ears available...";
     }
 }
 
@@ -73,12 +77,12 @@ void wysiwyd::wrdac::SubSystem_Recog::waitForEars() {
         yarp::os::Bottle cmd, reply;
         cmd.addString("listen");
         cmd.addString("offShouldWait");
-        yDebug() << "Listen sending command" << cmd.toString();
+        yDebug() << "[waitForEars] Listen sending command" << cmd.toString();
         ears_port.write(cmd, reply);
-        yDebug() << "Listen got reply" << reply.toString();
+        yDebug() << "[waitForEars] Listen got reply" << reply.toString();
     }
     else {
-        yWarning() << "No connection to ears available...";
+        yWarning() << "[waitForEars] No connection to ears available...";
     }
 }
 

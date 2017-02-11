@@ -7,13 +7,9 @@ void OpcSensation::configure()
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName,"sensation","client.ini",isRFVerbose);
     iCub->opc->isVerbose = false;
-    char rep = 'n';
-    while (rep!='y'&&!iCub->connect())
+    while (!iCub->connect())
     {
         cout<<"iCubClient : Some dependencies are not running..."<<endl;
-        //cout<<"Continue? y,n"<<endl;
-        //cin>>rep;
-        break; //to debug
         Time::delay(1.0);
     }
 
@@ -34,6 +30,12 @@ void OpcSensation::configure()
 
     is_touched_port_name = "/" + moduleName + "/is_touched:o";
     is_touched_port.open(is_touched_port_name);
+
+    u_entities.clear();
+    k_entities.clear();
+    pf3dTrackerPort.open("/"+moduleName+"/pf3dTracker:i");
+
+    outputPPSPort.open("/"+moduleName+"/objects:o");
 
     yInfo() << "Configuration done.";
 
@@ -93,62 +95,204 @@ Bottle OpcSensation::handleEntities()
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
-    bool unknown_obj = false;
-    bool known_obj = false;
     bool agentPresent = false;
-    Bottle u_entities, k_entities;
+    Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities, temp_o_positions;
+    Bottle objects;
 
     for (auto& entity : lEntities)
     {
+        if(entity->entity_type() == "object") {
+            Object* o = dynamic_cast<Object*>(entity);
+                if(o) {
+                    addToEntityList(temp_o_positions, o->objectAreaAsString(), entity->name());
+                }
+        }
+
         if (entity->name().find("unknown") == 0) {
             if (entity->entity_type() == "object")
             {
-                // yInfo() << "I found an unknown entity: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
+                
                 if(o && (o->m_present==1.0)) {
-                    unknown_obj = true;
-                    addToEntityList(u_entities, entity->entity_type(), entity->name());
+                    addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
                 }
+                addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
             }
             else if(entity->entity_type() == "bodypart") {
-                    unknown_obj = true;
-                    addToEntityList(u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
         }
-
         else if (entity->name() == "partner" && entity->entity_type() == "agent") {
-            yInfo() << "I found an unknown partner: " << entity->name();
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
-                unknown_obj = true;
-                addToEntityList(u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
+            addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
         }
         else {
             if (entity->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(entity)->m_tactile_number == -1))
             {
-                unknown_obj = true;
-                addToEntityList(u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_u_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_up_entities, entity->entity_type(), entity->name());
             }
-            else if (entity->entity_type() == "object" && dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
-                known_obj = true;
-                addToEntityList(k_entities, entity->entity_type(), entity->name());
+            else if (entity->entity_type() == "object"){
+                Object* obj1 = dynamic_cast<Object*>(entity);
+
+                //Handle red balls
+                if (obj1 && entity->name() == "red_ball"){
+                    // Set color:
+                    obj1->m_color[0] = 250;
+                    obj1->m_color[1] = 0;
+                    obj1->m_color[2] = 0;
+                    if (!Network::isConnected("/pf3dTracker/data:o",("/"+moduleName+"/pf3dTracker:i").c_str())){
+                        yDebug("RedBall Port not connected...");
+                        obj1->m_present = 0.0;
+                    }else{
+                        //update position
+                        Bottle *bot = pf3dTrackerPort.read();
+                        obj1->m_ego_position[0] = bot->get(0).asDouble();
+                        obj1->m_ego_position[1] = bot->get(1).asDouble();
+                        obj1->m_ego_position[2] = bot->get(2).asDouble();
+                        obj1->m_dimensions[0] = bot->get(3).asDouble();
+                        obj1->m_dimensions[1] = bot->get(4).asDouble();
+                        obj1->m_dimensions[2] = bot->get(5).asDouble();
+                        obj1->m_present = bot->get(6).asDouble();
+                        
+                    }
+                }
+                if (obj1 && obj1->m_present == 1.0){
+                    //send data to PPS
+                    Bottle objec;
+                    objec.clear();
+                    objec.addDouble(obj1->m_ego_position[0]);          //X
+                    objec.addDouble(obj1->m_ego_position[1]);          //Y
+                    objec.addDouble(obj1->m_ego_position[2]);          //Z
+                    double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
+                    objec.addDouble(dimensions);                       //RADIUS
+                    objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
+                    objects.addList()=objec;
+                    addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
+                }
+                addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
+                iCub->opc->commit(obj1);
             }
         }
-        if (entity->entity_type() == "agent") {  // Known entities
+        if (dynamic_cast<Object*>(entity) && dynamic_cast<Object*>(entity)->m_present == 1.0)
+        {
+            addToEntityList(temp_p_entities, entity->entity_type(), entity->name());
+        }
+        //Add agent right hand to interfere with robot left hand
+        if (entity->name() == iCub->getPartnerName(false) && entity->entity_type() == "agent") {
+            Agent* a = dynamic_cast<Agent*>(entity);
             agentPresent = true;
+            if(a && (a->m_present==1.0)) {
+                double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
+                Bottle right_hand;
+                right_hand.addDouble(a->m_body.m_parts["handRight"][0]);          //X
+                right_hand.addDouble(a->m_body.m_parts["handRight"][1]);          //Y
+                right_hand.addDouble(a->m_body.m_parts["handRight"][2]);          //Z
+                right_hand.addDouble(dimensions);                       //RADIUS
+                right_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
+                objects.addList()=right_hand;
+                
+                Bottle left_hand;
+                left_hand.addDouble(a->m_body.m_parts["handLeft"][0]);          //X
+                left_hand.addDouble(a->m_body.m_parts["handLeft"][1]);          //Y
+                left_hand.addDouble(a->m_body.m_parts["handLeft"][2]);          //Z
+                left_hand.addDouble(dimensions);                       //RADIUS
+                left_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
+                objects.addList()=left_hand;
+            }
         }
     }
 
-    //yDebug() << "u_entities = " + u_entities.toString();
-    //yDebug() << "k_entities = " + k_entities.toString();
+    u_entities.copy( temp_u_entities);
+    k_entities.copy( temp_k_entities);
+    p_entities.copy( temp_p_entities);
+    up_entities.copy( temp_up_entities);
+    kp_entities.copy( temp_kp_entities);
+    o_positions.copy( temp_o_positions);
 
+    Bottle& output=outputPPSPort.prepare();
+    output.clear();
+    output.addList()=objects;
+    outputPPSPort.write();
     Bottle out;
-    out.addInt(int(unknown_obj));
-    out.addList()=u_entities;
-    out.addInt(int(known_obj));
-    out.addList()=k_entities;
+    out.addInt(up_entities.size());
+    out.addList()=up_entities;
+    out.addInt(kp_entities.size());
+    out.addList()=kp_entities;
     out.addInt(int(agentPresent));
 
     return out;
 }
+
+int OpcSensation::get_property(string name,string property)
+{
+    Bottle b;
+    bool check_position=false;
+
+    if (property == "known")
+    {
+        b = k_entities;
+    }
+    else if (property == "unknown")
+    {
+        b = u_entities;
+    }
+    else if (property == "present")
+    {
+        b = p_entities;
+    }
+    else 
+    {
+        b = o_positions;
+        check_position=true;
+    }
+    if (check_position)
+    {
+        yDebug()<<"Checking object position"<<name<<property;
+        yDebug()<<"b:"<<b.toString();
+        for (int i=0;i<b.size();i++)
+        {
+            if (name == "any"){
+                if (b.get(i).asList()->get(0).asString()==property)
+                {
+                    yDebug() << "check_position, name==any, return 1";
+                    return 1;
+                }
+            }else{
+                if (b.get(i).asList()->get(1).asString()==name && b.get(i).asList()->get(0).asString()==property)
+                {
+                    yDebug() << "check_position, name!=any, return 1 " << b.toString();
+                    return 1;
+                }
+            }
+        }
+        yDebug() << "check_position, return 0";
+        return 0;
+    }else{
+        if (name == "any"){
+            if (b.size()!=0){
+                yDebug() << "not check_position, name==any, return 1";
+                return 1;
+            }else{
+                yDebug() << "not check_position, name==any, return 0";
+                return 0;
+            }
+        }else{
+            for (int i=0;i<b.size();i++)
+            {
+                if (b.get(i).asList()->get(1).asString()==name)
+                {
+                    yDebug() << "not check_position, name!=any, return 1";
+                    return 1;
+                }
+            }
+            yDebug() << "not check_position, name!=any, return 0";
+            return 0;
+        }
+    }
+}
+

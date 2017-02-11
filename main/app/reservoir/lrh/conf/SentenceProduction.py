@@ -2,7 +2,7 @@
 """
 Created on 11 janv. 2012
 
-@author: Xavier HINAUT, Colas, Anne-Laure MEALIER 
+@author: Xavier HINAUT, Colas Droin, Anne-Laure MEALIER 
 xavier.hinaut #/at\# inserm.fr
 """
 
@@ -13,17 +13,16 @@ import shelve
 
 
 class Production:
-    def __init__(self, corpusFile, fileResult, smode, closed_class_words, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, nbNeuron):
+    def __init__(self, corpusFile, fileResult, smode, closed_class_words, l_elt_pred, nbNeuron, verbose):
         self.corpusFile = corpusFile
         self.fileResult = fileResult
         self.smode = smode
-        self.closed_class_words = closed_class_words 
-        self.imax_nr_ocw = imax_nr_ocw
-        self.imax_nr_actionrelation = imax_nr_actionrelation
+        self.closed_class_words = closed_class_words
         self.l_elt_pred= l_elt_pred
         self.iNbNeurons = nbNeuron
+        self.verbose = verbose
         
-        self.mainFunc(self.corpusFile, self.fileResult, self.iNbNeurons)
+        self.mainFunc()
 
     def extr_sent(self, sent):
         sent = sent.strip() #removing spaces before and after the sentence
@@ -96,7 +95,10 @@ class Production:
             m_res, a_res, assignement = self.extr_meaning(meaning=l, verbose=True)
             return (m_res, a_res) #assignement is currently replacing canonical information
         else:
-            raise Exception, "APOR structure missing"
+            raise Exception, "Something is wrong in your train file, eg. \n <train data> \n\
+            , wanted I , get I giraffe <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>; I wanted to get the giraffe \n\
+            </train data>"
+            
     
     
     def extract_data_io(self, path_file, verbose=False):
@@ -261,7 +263,7 @@ class Production:
         l_ocw_array = []
         for structure, meaning in zip(tab_structure, tab_meaning):
             ocw_array=[]
-            cor={'P':0, 'A':1, 'O':2, 'R':3, 'V':4}
+            cor={'P':0, 'A':1, 'O':2, 'R':3, 'V':4, 'W':5}
             m_res = self.structure_partition(structure)
     
             m_res = zip(*m_res) # transpose the list
@@ -450,7 +452,9 @@ class Production:
             if file is not None:
                 raise Exception, "Too much arguments. You must choose between file and file_path."
             else:
-                file = open(file_path, 'w')
+	        file = open(file_path, 'w')
+                file.seek(0)
+                file.truncate()
         if file is None:
             raise Exception, "No file given in input."
         
@@ -659,7 +663,7 @@ class Production:
 
         return l_recovered_sentences_test
                    
-    def mainFunc(self, path_file_in, path_file_out, plot=False, feedback=False, return_result=False, verbose=False):            
+    def mainFunc(self, plot=False, feedback=False, return_result=False):            
         # Definning parameters of stimulus (in a dictionary)
         d = {}
         d['act_time'] = 5
@@ -668,14 +672,30 @@ class Production:
         d['initial_pause'] = True
         d['offset'] = False        
             
-        [train_data_txt, test_data, sent_form_info_train, sent_form_info_test] = self.extract_data_io(path_file=path_file_in)    
+        [train_data_txt, test_data, sent_form_info_train, sent_form_info_test] = self.extract_data_io(path_file=self.corpusFile)    
+        if self.verbose:
+            print "train_data_txt : ", train_data_txt
+            print "test_data : ", test_data
+            print "sent_form_info_train : ", sent_form_info_train
+            print "sent_form_info_test : ", sent_form_info_test
         train_corpus, train_meaning  = self.txt2corpus_and_meaning(train_txt=train_data_txt)
-
+        
+        
+        if self.verbose:
+            print "train_corpus : ", train_corpus
+            print "train_meaning : ", train_meaning
+            
+        sdir = os.path.dirname(os.path.abspath(self.fileResult))
+        print "sdir main func : ", sdir
+        
         if self.smode =="test":
-            shelf = shelve.open('shelf_prod.db', flag='r')
+            shelf = shelve.open(sdir + '/shelf_prod.db', flag='r')
             flag = shelf.has_key("l_ocw_array_train")
             if flag:
                 test_corpus = test_data
+
+                self.imax_nr_actionrelation = shelf["imax_nr_actionrelation"]
+                self.imax_nr_ocw = shelf["imax_nr_ocw"]
 
                 l_recovered_sentences_test = self.test(test_corpus, sent_form_info_test, shelf)
                 
@@ -693,7 +713,7 @@ class Production:
                 for sent in l_final_sent_test:
                     print sent
         
-                self.write_list_in_file(l_final_sent_test, file_path=path_file_out)
+                self.write_list_in_file(l_final_sent_test, file_path=self.fileResult)
             else:
                 raise Exception, "The train was not launched"
                 
@@ -701,9 +721,35 @@ class Production:
 
 
         else:
-            shelf = shelve.open('shelf_prod.db', writeback=True)
+            focus=[]
+            for i in range (len(sent_form_info_train)):
+                idx1=[a for a, x in enumerate(sent_form_info_train[i]) if x == "["]
+                idx2=[b for b, x in enumerate(sent_form_info_train[i]) if x == "]"]
+                l=[]
+                for j in range (len(idx1)):
+                    l.append(sent_form_info_train[i][idx1[j]+1:idx2[j]].split('-'))
+                focus.append(l)
+
+            self.imax_nr_ocw = 0
+            self.imax_nr_actionrelation = 0
+            
+            for i in range (len(focus)): 
+                itemp = 0
+                temp_nr_actionrelation = len(focus[i]) 
+                for j in range (len(focus[i])):
+                    for k in range (len(focus[i][j])):
+                        if focus[i][j][k] != '_':
+                            itemp+=1
+                    if itemp > self.imax_nr_ocw:
+                        self.imax_nr_ocw = itemp
+                if temp_nr_actionrelation > self.imax_nr_actionrelation:
+                    self.imax_nr_actionrelation = temp_nr_actionrelation             
+            
+
+            shelf = shelve.open(sdir + '/shelf_prod.db', writeback=True)
             l_ocw_array_train, states_out_train, construction_words, internal_states_train, res, stim_mean_train, stim_sent_train, l_m_elt = \
                 self.train(sent_form_info_train, train_meaning, train_corpus, d)
+
             shelf["l_ocw_array_train"] = l_ocw_array_train
             shelf["states_out_train"] = states_out_train
             shelf["construction_words"] = construction_words
@@ -712,6 +758,8 @@ class Production:
             shelf["stim_mean_train"] = stim_mean_train
             shelf["stim_sent_train"] = stim_sent_train
             shelf["l_m_elt"] = l_m_elt
+            shelf["imax_nr_actionrelation"]= self.imax_nr_actionrelation
+            shelf["imax_nr_ocw"]= self.imax_nr_ocw
             shelf.close()
         print ""
 
@@ -719,27 +767,26 @@ if __name__ == '__main__':
     import os, sys
 
     sdir = os.path.dirname(os.path.abspath(__file__))
+    print "sdir : ", sdir 
     corpusFile= sys.argv[1] # "corpus_narratif_scenario3_XPAOR.txt"
     fileResult = sys.argv[2]
     sMode =  sys.argv[3]   
     closed_class_words = sys.argv[4].split(',') #   ['after', 'than', 'before', 'to', 'the', 'slowly', 'quickly', 'with', 'that', 'for', 'a', 'an', 'this', 'of', 'and', 'while', 'when'] 
-    imax_nr_ocw = int(sys.argv[5])              #15
-    imax_nr_actionrelation = int(sys.argv[6])    #5
-    l_elt_pred= sys.argv[7].split(',')     #['P','A','O','R','V']
-    iNbNeurons = int(sys.argv[8]) #600
-
-
-#    corpusFile = sdir + "/Corpus/temporaryCorpus.txt"
-#    fileResult = sdir + "/Corpus/output.txt"
-#    sMode = "test"
-#    #closed_class_words = ['after', 'than', 'before', 'to', 'the', 'slowly', 'quickly', 'with', 'that', 'for', 'a', 'an', 'this', 'of', 'and', 'while', 'when']
-#    #closed_class_words = ['could','would','if','so','a','because','but','after','and','before','to','the','slowly','quickly','was','with','that','for','now','and']
-#    closed_class_words = ['the', 'a', 'and', 'to']
-#    imax_nr_ocw = 15
-#    imax_nr_actionrelation = 5
-#    l_elt_pred = ['P','A','O','R','V']
-#    iNbNeurons = 600
+    l_elt_pred= sys.argv[5].split(',')     #['P','A','O','R','V']
+    iNbNeurons = int(sys.argv[6]) #600
     
-    prodSentences = Production(corpusFile, fileResult, sMode, closed_class_words, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, iNbNeurons)
+    prodSentences = Production(corpusFile, fileResult, sMode, closed_class_words, l_elt_pred, iNbNeurons, False)
+
+#    sdir = os.path.dirname(os.path.abspath(__file__))
+#    corpusFile = sdir + "/Corpus/corpus.txt"
+#    fileResult = sdir + "/Corpus/output.txt"
+#
+#    closed_class_words = ['the', 'a', 'and', 'to','that']
+#    l_elt_pred = ['P','A','O','R','V','W']
+#    iNbNeurons = 1000
+#    lMode = ["train", "test"]
+#    for sMode in lMode:    
+#        prodSentences = Production(corpusFile, fileResult, sMode, closed_class_words, l_elt_pred, iNbNeurons, False)
+
 
     print "*********END OF PROGRAM********"

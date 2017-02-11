@@ -33,6 +33,8 @@
 #include "wrdac/subsystems/subSystem_LRH.h"
 #include "wrdac/subsystems/subSystem_slidingCtrl.h"
 
+#include "wrdac/subsystems/subSystem_KARMA.h"
+
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -46,6 +48,17 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     rfClient.setDefaultContext(context.c_str());
     rfClient.setDefaultConfigFile(clientConfigFile.c_str());
     rfClient.configure(0, NULL);
+
+    if (rfClient.check("robot"))
+    {
+        robot = rfClient.find("robot").asString();
+        yInfo("Robot name set to %s", robot.c_str());
+    }
+    else
+    {
+        robot = "icub";
+        yInfo("Robot name set to default, i.e. %s", robot.c_str());
+    }
 
     if (bLoadPostures){
         yarp::os::ResourceFinder rfPostures;
@@ -118,6 +131,8 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
                 subSystems[SUBSYSTEM_AGENTDETECTOR] = new SubSystem_agentDetector(fullName);
             else if (currentSS == SUBSYSTEM_BABBLING)
                 subSystems[SUBSYSTEM_BABBLING] = new SubSystem_babbling(fullName);
+            else if (currentSS == SUBSYSTEM_KARMA)
+                subSystems[SUBSYSTEM_KARMA] = new SubSystem_KARMA(fullName, robot);
             else
                 yError() << "Unknown subsystem!";
         }
@@ -279,13 +294,16 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             opc->changeName(e, newName);
             opc->commit(e);
 
-            if(!dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName)) {
+            if (!dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName)) {
                 say("could not change default name of partner");
                 yError() << "[SubSystem_agentDetector] Could not change default name of partner";
                 allOkay = false;
             }
 
             dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->resume();
+        }
+        if (subSystems.find("recog") != subSystems.end()) {
+            dynamic_cast<SubSystem_Recog*>(subSystems["recog"])->setSpeakerName(newName);
         }
     }
     else if (e->entity_type() == "object") {
@@ -299,7 +317,7 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
         }
         else {
             string oldName = e->name();
-            if(!dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->changeName(oldName, newName)) {
+            if (!dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->changeName(oldName, newName)) {
                 yError() << "iol2opc did not change name successfully";
                 say("iol2opc did not change name successfully");
                 allOkay = false;
@@ -307,7 +325,7 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
         }
     }
     else {
-        if(!opc->changeName(e, newName)) {
+        if (!opc->changeName(e, newName)) {
             yError() << "Could not change name of entity";
             say("Could not change name of entity");
             allOkay = false;
@@ -454,7 +472,7 @@ bool ICubClient::grasp(const string &oName, const Bottle &options)
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
-    if (oTarget->m_present!=1.0)
+    if (oTarget->m_present != 1.0)
     {
         yWarning() << "[iCubClient] Called grasp() on an unavailable entity: \"" << oName << "\"";
         return false;
@@ -497,7 +515,7 @@ bool ICubClient::release(const string &oLocation, const Bottle &options)
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
-    if (oTarget->m_present!=1.0)
+    if (oTarget->m_present != 1.0)
     {
         yWarning() << "[iCubClient] Called release() on an unavailable entity: \"" << oLocation << "\"";
         return false;
@@ -525,6 +543,49 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
     }
 }
 
+bool ICubClient::pointfar(const string &oLocation, const Bottle &options)
+{
+    Entity *target = opc->getEntity(oLocation, true);
+    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT) && !target->isType(EFAA_OPC_ENTITY_BODYPART))
+    {
+        yWarning() << "[iCubClient] Called point() on a unallowed location: \"" << oLocation << "\"";
+        return false;
+    }
+
+    Object *oTarget = dynamic_cast<Object*>(target);
+    if(oTarget!=nullptr) {
+        return pointfar(oTarget->m_ego_position, options, oTarget->name());
+    } else {
+        yError() << "[iCubClient] pointfar: Could not cast Entity to Object";
+        return false;
+    }
+}
+
+bool ICubClient::waving(const bool sw) {
+    SubSystem_ARE *are = getARE();
+    if (are == NULL)
+    {
+        yError() << "[iCubClient] Called waving() but ARE subsystem is not available.";
+        return false;
+    }
+
+    return are->waving(sw);
+}
+
+bool ICubClient::pointfar(const Vector &target, const Bottle &options, std::string sName)
+{
+    SubSystem_ARE *are = getARE();
+    if (are == NULL)
+    {
+        yError() << "[iCubClient] Called pointfar() but ARE subsystem is not available.";
+        return false;
+    }
+
+    Bottle opt(options);
+    opt.addString("still"); // always avoid automatic homing after point
+    return are->pointfar(target, opt, sName);
+}
+
 
 bool ICubClient::point(const string &oLocation, const Bottle &options)
 {
@@ -536,7 +597,7 @@ bool ICubClient::point(const string &oLocation, const Bottle &options)
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
-    if (oTarget->m_present!=1.0)
+    if (oTarget!=nullptr && oTarget->m_present != 1.0)
     {
         yWarning() << "[iCubClient] Called point() on an unavailable entity: \"" << oLocation << "\"";
         return false;
@@ -570,7 +631,7 @@ bool ICubClient::push(const string &oLocation, const Bottle &options)
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
-    if (oTarget->m_present!=1.0)
+    if (oTarget->m_present != 1.0)
     {
         yWarning() << "[iCubClient] Called push() on an unavailable entity: \"" << oLocation << "\"";
         return false;
@@ -594,16 +655,286 @@ bool ICubClient::push(const Vector &target, const Bottle &options, std::string s
     return are->push(target, opt, sName);
 }
 
-bool ICubClient::look(const string &target)
+bool ICubClient::take(const string &oLocation, const Bottle &options)
+{
+    Entity *target = opc->getEntity(oLocation, true);
+    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
+    {
+        yWarning() << "[iCubClient] Called take() on a unallowed location: \"" << oLocation << "\"";
+        return false;
+    }
+
+    Object *oTarget = dynamic_cast<Object*>(target);
+    if (oTarget->m_present != 1.0)
+    {
+        yWarning() << "[iCubClient] Called take() on an unavailable entity: \"" << oLocation << "\"";
+        return false;
+    }
+
+    return take(oTarget->m_ego_position, options, oTarget->name());
+}
+
+
+bool ICubClient::take(const Vector &target, const Bottle &options, std::string sName)
+{
+    SubSystem_ARE *are = getARE();
+    if (are == NULL)
+    {
+        yError() << "[iCubClient] Called take() but ARE subsystem is not available.";
+        return false;
+    }
+
+    Bottle opt(options);
+    opt.addString("still"); // always avoid automatic homing after point
+    return are->take(target, opt, sName);
+}
+
+// KARMA
+
+// Left push
+bool ICubClient::pushKarmaLeft(const std::string &objName, const double &targetPosYLeft,
+    const std::string &armType,
+    const yarp::os::Bottle &options)
+{
+    if (opc->isConnected())
+    {
+        Entity *target = opc->getEntity(objName, true);
+        if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
+        {
+            yWarning() << "[iCubClient] Called pushKarmaLeft() on a unallowed entity: \"" << objName << "\"";
+            return false;
+        }
+
+        Object *oTarget = dynamic_cast<Object*>(target);
+        if (oTarget->m_present != 1.0)
+        {
+            yWarning() << "[iCubClient] Called pushKarmaLeft() on an unavailable entity: \"" << objName << "\"";
+            return false;
+        }
+
+        yInfo("[icubClient pushKarmaLeft] object %s position from OPC (no calibration): %s", oTarget->name().c_str(),
+            oTarget->m_ego_position.toString().c_str());
+        return pushKarmaLeft(oTarget->m_ego_position, targetPosYLeft, armType, options, oTarget->name());
+    }
+    else
+    {
+        yWarning() << "[iCubClient] There is no OPC connection";
+        return false;
+    }
+}
+
+bool ICubClient::pushKarmaLeft(const yarp::sig::Vector &objCenter, const double &targetPosYLeft,
+    const std::string &armType,
+    const yarp::os::Bottle &options, const std::string &sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called pushKarmaLeft() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->pushAside(objCenter, targetPosYLeft, 0, armType, options, sName);
+}
+
+// Right push
+bool ICubClient::pushKarmaRight(const std::string &objName, const double &targetPosYRight,
+    const std::string &armType,
+    const yarp::os::Bottle &options)
+{
+    if (opc->isConnected())
+    {
+        Entity *target = opc->getEntity(objName, true);
+        if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
+        {
+            yWarning() << "[iCubClient] Called pushKarmaLeft() on a unallowed entity: \"" << objName << "\"";
+            return false;
+        }
+
+        Object *oTarget = dynamic_cast<Object*>(target);
+        if (oTarget->m_present != 1.0)
+        {
+            yWarning() << "[iCubClient] Called pushKarmaLeft() on an unavailable entity: \"" << objName << "\"";
+            return false;
+        }
+
+        yInfo("[icubClient pushKarmaRight] object %s position from OPC (no calibration): %s", oTarget->name().c_str(),
+            oTarget->m_ego_position.toString().c_str());
+        return pushKarmaRight(oTarget->m_ego_position, targetPosYRight, armType, options, oTarget->name());
+    }
+    else
+    {
+        yWarning() << "[iCubClient] There is no OPC connection";
+        return false;
+    }
+}
+
+bool ICubClient::pushKarmaRight(const yarp::sig::Vector &objCenter, const double &targetPosYRight,
+    const std::string &armType,
+    const yarp::os::Bottle &options, const std::string &sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called pushKarmaRight() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->pushAside(objCenter, targetPosYRight, 180, armType, options, sName);
+}
+
+// Front push
+bool ICubClient::pushKarmaFront(const std::string &objName, const double &targetPosXFront,
+    const std::string &armType,
+    const yarp::os::Bottle &options)
+{
+    if (opc->isConnected())
+    {
+        Entity *target = opc->getEntity(objName, true);
+        if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
+        {
+            yWarning() << "[iCubClient] Called pushKarmaFront() on a unallowed entity: \"" << objName << "\"";
+            return false;
+        }
+
+        Object *oTarget = dynamic_cast<Object*>(target);
+        if (oTarget->m_present != 1.0)
+        {
+            yWarning() << "[iCubClient] Called pushKarmaFront() on an unavailable entity: \"" << objName << "\"";
+            return false;
+        }
+
+        yInfo("[icubClient pushKarmaFront] object %s position from OPC (no calibration): %s", oTarget->name().c_str(),
+            oTarget->m_ego_position.toString().c_str());
+        return pushKarmaFront(oTarget->m_ego_position, targetPosXFront, armType, options, oTarget->name());
+    }
+    else
+    {
+        yWarning() << "[iCubClient] There is no OPC connection";
+        return false;
+    }
+}
+
+bool ICubClient::pushKarmaFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+    const std::string &armType,
+    const yarp::os::Bottle &options, const std::string &sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called pushKarmaFront() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->pushFront(objCenter, targetPosXFront, armType, options, sName);
+}
+
+// Pure push in KARMA
+bool ICubClient::pushKarma(const yarp::sig::Vector &targetCenter, const double &theta, const double &radius,
+    const yarp::os::Bottle &options, std::string sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called pushKarma() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->push(targetCenter, theta, radius, options, sName);
+}
+
+// Back pull
+bool ICubClient::pullKarmaBack(const std::string &objName, const double &targetPosXBack,
+    const std::string &armType,
+    const yarp::os::Bottle &options)
+{
+    if (opc->isConnected())
+    {
+        Entity *target = opc->getEntity(objName, true);
+        if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
+        {
+            yWarning() << "[iCubClient] Called pushKarmaFront() on a unallowed entity: \"" << objName << "\"";
+            return false;
+        }
+
+        Object *oTarget = dynamic_cast<Object*>(target);
+        if (oTarget->m_present != 1.0)
+        {
+            yWarning() << "[iCubClient] Called pushKarmaFront() on an unavailable entity: \"" << objName << "\"";
+            return false;
+        }
+
+        yInfo("[icubClient pullKarmaBack] object %s position from OPC (no calibration): %s", oTarget->name().c_str(),
+            oTarget->m_ego_position.toString().c_str());
+        return pullKarmaBack(oTarget->m_ego_position, targetPosXBack, armType, options, oTarget->name());
+    }
+    else
+    {
+        yWarning() << "[iCubClient] There is no OPC connection";
+        return false;
+    }
+}
+
+bool ICubClient::pullKarmaBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+    const std::string &armType,
+    const yarp::os::Bottle &options, const std::string &sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called pullKarmaBack() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->pullBack(objCenter, targetPosXBack, armType, options, sName);
+}
+
+
+// Pure pull (draw) in KARMA
+bool ICubClient::drawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
+    const double &radius, const double &dist,
+    const yarp::os::Bottle &options, std::string sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called drawKarma() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->draw(targetCenter, theta, radius, dist, options, sName);
+}
+
+bool ICubClient::vdrawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
+    const double &radius, const double &dist,
+    const yarp::os::Bottle &options, std::string sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called vdrawKarma() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->vdraw(targetCenter, theta, radius, dist, options, sName);
+}
+
+
+bool ICubClient::look(const yarp::sig::Vector &target, const yarp::os::Bottle &options,
+                      const std::string& sName)
+{
+    if (SubSystem_ARE *are = getARE())
+    {
+        return are->look(target, options, sName);
+    }
+
+    yError() << "Error, ARE not running...";
+    return false;
+}
+
+bool ICubClient::look(const string &target, const Bottle &options)
 {
     if (subSystems.find("attention") != subSystems.end())
         return ((SubSystem_Attention*)subSystems["attention"])->track(target);
 
     if (SubSystem_ARE *are = getARE())
     {
-        if (Object *oTarget = dynamic_cast<Object*>(opc->getEntity(target)))
-            if (oTarget->m_present==1.0)
-                return are->look(oTarget->m_ego_position, yarp::os::Bottle() , oTarget->name());
+        if (Object *oTarget = dynamic_cast<Object*>(opc->getEntity(target, true)))
+            if (oTarget->m_present == 1.0)
+                return are->look(oTarget->m_ego_position, options, oTarget->name());
 
         yWarning() << "[iCubClient] Called look() on an unavailable target: \"" << target << "\"";
         return false;
@@ -613,28 +944,98 @@ bool ICubClient::look(const string &target)
     return false;
 }
 
-std::string ICubClient::getPartnerName()
+std::string ICubClient::getPartnerName(bool verbose)
 {
     string partnerName = "";
-    list<Entity*> lEntities = opc->EntitiesCacheCopy();
+    list<shared_ptr<Entity>> lEntities = opc->EntitiesCacheCopy();
     for (auto& entity : lEntities) {
         if (entity->entity_type() == "agent") {
-            Agent* a = dynamic_cast<Agent*>(entity);
+            Agent* a = dynamic_cast<Agent*>(entity.get());
             //We assume kinect can only recognize one skeleton at a time
-            if(a->m_present == 1.0 && a->name()!="icub") {
-                partnerName = a->name() ;
-                yInfo() << "Partner found: name = " << partnerName;
+            if (a->m_present == 1.0 && a->name() != "icub") {
+                partnerName = a->name();
+                if (verbose) {
+                    yInfo() << "Partner found: name =" << partnerName;
+                }
                 return partnerName;
             }
         }
     }
-    yWarning() << "No partner present was found!";
+    if (verbose) {
+        yWarning() << "No partner present was found!";
+    }
     return partnerName;
+}
+
+yarp::sig::Vector ICubClient::getPartnerBodypartLoc(std::string sBodypartName){
+
+    Vector vLoc;
+
+    //we extract the coordinates of a specific bodypart of the partner and we look with ARE
+    string partnerName = getPartnerName();
+    if (partnerName == ""){
+        yWarning() << "[iCubclient] Called getPartnerBodypartLoc :No partner present was found: cannot look at his/her ";
+        return vLoc;
+    }
+
+
+    if (Agent *oPartner = dynamic_cast<Agent*>(opc->getEntity(partnerName, true))){
+        if (oPartner->m_present == 1.0){
+            if (oPartner->m_body.m_parts.find(sBodypartName) != oPartner->m_body.m_parts.end()){
+                vLoc = oPartner->m_body.m_parts[sBodypartName];
+                yDebug() << "The bodypart " << sBodypartName << "of the agemt " << partnerName << " is  at position " << vLoc.toString();
+                return vLoc;
+            }
+            else {
+                yError() << "[iCubClient] Called getPartnerBodypartLoc() on an unavalid bodypart (" << sBodypartName << ")";
+                return vLoc;
+            }
+        }
+        else {
+            yError() << "[iCubClient] Called getPartnerBodypartLoc() on a non-present agent (" << partnerName << ")";
+            return vLoc;
+        }
+    }
+
+    return vLoc;
 }
 
 bool ICubClient::lookAtPartner()
 {
     return look(getPartnerName());
+}
+
+
+bool ICubClient::lookAtBodypart(const std::string &sBodypartName)
+{
+    if (SubSystem_ARE *are = getARE())
+    {
+        Vector vLoc;
+        vLoc = getPartnerBodypartLoc(sBodypartName);
+        if (vLoc.size() == 3){
+            return are->look(vLoc, yarp::os::Bottle(), sBodypartName);
+        }
+
+        yWarning() << "[iCubClient] Called lookAtBodypart() on an unvalid/unpresent agent or bodypart (" << sBodypartName << ")";
+        return false;
+    }
+    return false;
+}
+
+bool ICubClient::pointAtBodypart(const std::string &sBodypartName)
+{
+    if (SubSystem_ARE *are = getARE())
+    {
+        Vector vLoc;
+        vLoc = getPartnerBodypartLoc(sBodypartName);
+        if (vLoc.size() == 3){
+            return are->point(vLoc, yarp::os::Bottle(), sBodypartName);
+        }
+
+        yWarning() << "[iCubClient] Called pointAtBodypart() on an unvalid/unpresent agent or bodypart (" << sBodypartName << ")";
+        return false;
+    }
+    return false;
 }
 
 bool ICubClient::lookAround()
@@ -751,7 +1152,7 @@ void ICubClient::getHighestEmotion(string &emotionName, double &intensity)
 }
 
 
-bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossible, const std::string &overrideVoice, bool recordABM)
+bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossible, const std::string &overrideVoice, bool recordABM, std::string addressee)
 {
     if (subSystems.find("speech") == subSystems.end())
     {
@@ -768,7 +1169,7 @@ bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossib
     }
 
     yDebug() << "iCub says" << text;
-    ((SubSystem_Speech*)subSystems["speech"])->TTS(text, shouldWait, recordABM);
+    ((SubSystem_Speech*)subSystems["speech"])->TTS(text, shouldWait, recordABM, addressee);
     return true;
 }
 
@@ -885,7 +1286,7 @@ list<Object*> ICubClient::getObjectsInRange()
     list<Entity*> allEntities = opc->EntitiesCache();
     for (list<Entity*>::iterator it = allEntities.begin(); it != allEntities.end(); it++)
     {
-        if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT) && (dynamic_cast<Object*>(*it))->m_present==1.0)
+        if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT) && (dynamic_cast<Object*>(*it))->m_present == 1.0)
         {
             Vector itemPosition = this->icubAgent->getSelfRelativePosition((dynamic_cast<Object*>(*it))->m_ego_position);
 
@@ -996,4 +1397,12 @@ SubSystem_LRH* ICubClient::getLRH()
         return NULL;
     else
         return (SubSystem_LRH*)subSystems[SUBSYSTEM_LRH];
+}
+
+SubSystem_KARMA* ICubClient::getKARMA()
+{
+    if (subSystems.find(SUBSYSTEM_KARMA) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_KARMA*)subSystems[SUBSYSTEM_KARMA];
 }

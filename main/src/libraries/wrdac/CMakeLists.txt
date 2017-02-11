@@ -27,6 +27,7 @@ set(folder_source src/functions.cpp
                   src/subsystems/subSystem_LRH.cpp
                   src/subsystems/subSystem_slidingCtrl.cpp
                   src/subsystems/subSystem_speech.cpp
+                  src/subsystems/subSystem_KARMA.cpp
                   src/clients/animation.cpp
                   src/clients/icubClient.cpp
                   src/clients/opcClient.cpp
@@ -35,7 +36,6 @@ set(folder_source src/functions.cpp
 
 
 set(folder_header include/wrdac/functions.h
-                  include/wrdac/helpers.h
                   include/wrdac/tags.h
                   include/wrdac/knowledge/action.h         
                   include/wrdac/knowledge/adjective.h      
@@ -68,7 +68,8 @@ set(folder_header include/wrdac/functions.h
                   include/wrdac/subsystems/subSystem_recog.h           
                   include/wrdac/subsystems/subSystem_LRH.h           
                   include/wrdac/subsystems/subSystem_slidingCtrl.h     
-                  include/wrdac/subsystems/subSystem_speech.h)
+                  include/wrdac/subsystems/subSystem_speech.h
+                  include/wrdac/subsystems/subSystem_KARMA.h)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wysiwydIDLClients_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 

@@ -29,6 +29,8 @@
 #ifndef __WYSIWYD_OPCTAGS_H__
 #define __WYSIWYD_OPCTAGS_H__
 
+#include <vector>
+
 #define EFAA_OPC_INVALID_ID                 -1
 
 #define EFAA_OPC_ENTITY_TAG                 ("entity")
@@ -39,20 +41,8 @@
 #define EFAA_OPC_ENTITY_ADJECTIVE           ("adjective")
 #define EFAA_OPC_ENTITY_ACTION              ("action")
 #define EFAA_OPC_ENTITY_RELATION            ("relation")
-#define EFAA_OPC_ENTITY_CONTACT_EVENT       ("contact")
-
-//We need to clean/think about entities...
-//#define EFAA_OPC_ENTITY_TABLE               ("rt_table")
-//#define EFAA_OPC_ENTITY_ROBOT               ("robot")
-//#define EFAA_OPC_ENTITY_CURSOR              ("cursor")
-#define EFAA_OPC_ENTITY_MATH                ("math")
-//#define EFAA_OPC_ENTITY_LOCATION            ("location")
-//#define EFAA_OPC_ENTITY_EMO_ROBOT           ("emo_robot")
-//#define EFAA_OPC_ENTITY_EMO_HUMAN           ("emo_human")
-//#define EFAA_OPC_ENTITY_BODY_PART           ("body_part")
 
 #define EFAA_OPC_OBJECT_NAME_TAG            ("name")
-#define EFAA_OPC_OBJECT_RTONTABLE_TAG       ("onTable")
 #define EFAA_OPC_OBJECT_PRESENT_TAG         ("isPresent")
 #define EFAA_OPC_OBJECT_RTID_TAG            ("rt_id")
 #define EFAA_OPC_OBJECT_RTPOSX_TAG          ("rt_position_x")
@@ -63,6 +53,7 @@
 #define EFAA_OPC_OBJECT_RTDIMY_TAG          ("rt_dim_y")
 #define EFAA_OPC_OBJECT_RTDIMZ_TAG          ("rt_dim_z")
 #define EFAA_OPC_OBJECT_SALIENCY            ("saliency")
+#define EFAA_OPC_OBJECT_VALUE               ("value")
 #define EFAA_OPC_OBJECT_CURID_TAG           ("cur_id")
 
 #define EFAA_OPC_OBJECT_ROBOTPOS_TAG        ("position_3d")
@@ -73,15 +64,10 @@
 #define EFAA_OPC_OBJECT_ROBOTORY_TAG        ("robot_orientation_y")
 #define EFAA_OPC_OBJECT_ROBOTORZ_TAG        ("robot_orientation_z")
 
-#define EFAA_OPC_OBJECT_GRASPCONF_TAG       ("graspConfiguration")
-#define EFAA_OPC_OBJECT_GRASPCONF_UP        ("up")
-#define EFAA_OPC_OBJECT_GRASPCONF_SIDE      ("side")
-#define EFAA_OPC_OBJECT_GRASPCONF_TOP       ("top")
 #define EFAA_OPC_OBJECT_GUI_COLOR_R         ("color_r")
 #define EFAA_OPC_OBJECT_GUI_COLOR_G         ("color_g")
 #define EFAA_OPC_OBJECT_GUI_COLOR_B         ("color_b")
 #define EFAA_OPC_OBJECT_GUI_COLOR_ALPHA     ("color_aplha")
-#define EFAA_OPC_MATH_MATRIX_TAG            ("transformation_matrix")
 
 // OPC : Frames
 #define EFAA_OPC_FRAME_NAME                 ("frameName")
@@ -125,6 +111,34 @@
 #define EFAA_OPC_BODY_PART_TYPE_FT_R        ("fingertipRight")
 #define EFAA_OPC_BODY_PART_TYPE_COM         ("CoM")
 
+const static std::vector<std::string> ALL_AVAILABLE_BODYPARTS = {
+    EFAA_OPC_BODY_PART_TYPE_HEAD,
+    EFAA_OPC_BODY_PART_TYPE_HAND_L,
+    EFAA_OPC_BODY_PART_TYPE_HAND_R,
+    EFAA_OPC_BODY_PART_TYPE_WRIST_L,
+    EFAA_OPC_BODY_PART_TYPE_WRIST_R,
+    EFAA_OPC_BODY_PART_TYPE_ELBOW_L,
+    EFAA_OPC_BODY_PART_TYPE_ELBOW_R,
+    EFAA_OPC_BODY_PART_TYPE_SHOULDER_C,
+    EFAA_OPC_BODY_PART_TYPE_SHOULDER_L,
+    EFAA_OPC_BODY_PART_TYPE_SHOULDER_R,
+    EFAA_OPC_BODY_PART_TYPE_SPINE,
+    EFAA_OPC_BODY_PART_TYPE_HIP_C,
+    EFAA_OPC_BODY_PART_TYPE_HIP_L,
+    EFAA_OPC_BODY_PART_TYPE_HIP_R,
+    EFAA_OPC_BODY_PART_TYPE_KNEE_L,
+    EFAA_OPC_BODY_PART_TYPE_KNEE_R,
+    EFAA_OPC_BODY_PART_TYPE_ANKLE_L,
+    EFAA_OPC_BODY_PART_TYPE_ANKLE_R,
+    EFAA_OPC_BODY_PART_TYPE_FOOT_L,
+    EFAA_OPC_BODY_PART_TYPE_FOOT_R,
+    EFAA_OPC_BODY_PART_TYPE_COLLAR_L,
+    EFAA_OPC_BODY_PART_TYPE_COLLAR_R,
+    EFAA_OPC_BODY_PART_TYPE_FT_L,
+    EFAA_OPC_BODY_PART_TYPE_FT_R,
+    EFAA_OPC_BODY_PART_TYPE_COM
+};
+
 // OPC: Attentional touching
 #define EFAA_OPC_CONTACT_PROPERTY_PART       ("contact_part")
 #define EFAA_OPC_CONTACT_PROPERTY_TYPE       ("contact_type")
@@ -151,4 +165,3 @@
 #define EFAA_KINECT_CLOSEST_PLAYER         -1
 
 #endif
-

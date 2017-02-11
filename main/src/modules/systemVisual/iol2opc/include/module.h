@@ -183,7 +183,6 @@ protected:
     RpcServer  rpcPort;
     RpcClient  rpcClassifier;
     RpcClient  rpcGet3D;
-    RpcClient  rpcCalib;
     OPCClient *opc;
 
     BufferedPort<Bottle>             blobExtractor;
@@ -208,9 +207,9 @@ protected:
     Mutex mutexResourcesSFM;
 
     double period;
+    bool verbose;
     bool empty;
     bool object_persistence;
-    string calib_entry;    
 
     double presence_timeout;
     string tracker_type;
@@ -234,12 +233,20 @@ protected:
     Vector skim_blobs_y_bounds;
     Vector histObjLocation;
 
+    Vector human_area_x_bounds;
+    Vector human_area_y_bounds;
+    Vector robot_area_x_bounds;
+    Vector robot_area_y_bounds;
+    Vector shared_area_x_bounds;
+    Vector shared_area_y_bounds;
+
     CvPoint clickLocation;
 
     friend class RtLocalization;
     friend class OpcUpdater;
     friend class ClassifierReporter;
 
+    void    yInfoGated(const char *msg, ...) const;
     string  findName(const Bottle &scores, const string &tag);
     Bottle  skimBlobs(const Bottle &blobs);
     bool    thresBBox(CvRect &bbox, const Image &img);
@@ -259,8 +266,10 @@ protected:
     void    train(const string &object, const Bottle &blobs, const int i);
     void    doLocalization();
     void    updateOPC();
+    ObjectArea getReachableArea(const yarp::sig::Vector &objpos);
 
     bool    configure(ResourceFinder &rf);
+    void    setBounds(ResourceFinder &rf, Vector &bounds, string configName, double std_lower, double std_upper);
     bool    interruptModule();
     bool    close();
     bool    attach(RpcServer &source);

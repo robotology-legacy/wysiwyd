@@ -15,7 +15,7 @@
  * Public License for more details
 */
 
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 #include <fstream>
 #include <deque>
@@ -26,7 +26,14 @@
 #include <yarp/math/Math.h>
 
 #include <iCub/ctrl/math.h>
+#if __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
 #include <iCub/iKin/iKinFwd.h>
+#if __clang__
+#pragma clang diagnostic pop
+#endif
 #include <iCub/perception/models.h>
 #include <iCub/action/actionPrimitives.h>
 
@@ -88,7 +95,19 @@ protected:
         {
             if (forceCalibration || !model->isCalibrated())
             {
-                Property prop("(finger all_parallel)");
+                Bottle fingers;
+                Bottle &fng=fingers.addList();
+                fng.addString("index");
+                fng.addString("middle");
+                fng.addString("ring");
+                fng.addString("little");
+
+                Property prop;
+                prop.put("finger",fingers.get(0));
+                model->calibrate(prop);
+
+                prop.clear();
+                prop.put("finger","thumb");
                 model->calibrate(prop);
 
                 ofstream fout;
@@ -164,7 +183,7 @@ public:
         max_dist=rf.check("max_dist",Value(0.02)).asDouble();
         impedanceSw=rf.check("impedance",Value("off")).asString()=="on";
         exploration_height=rf.check("exploration_height",Value(-0.1)).asDouble();
-        exploration_max_force=rf.check("exploration_max_force",Value(40.0)).asDouble();        
+        exploration_max_force=rf.check("exploration_max_force",Value(40.0)).asDouble();
 
         Property optionCart("(device cartesiancontrollerclient)");
         optionCart.put("remote",("/"+robot+"/cartesianController/"+arm+"_arm").c_str());

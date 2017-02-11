@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+   <name>ARE_KARMAiCubClientExample</name>
+   <doxygen-group>wysiwyd_examples</doxygen-group>
+   <description>Use case of the iCubClient using both ARE and KARMA for motor actions</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Tutorial module about how to elicit both ARE and KARMA actions (e.g. push, pull) from within the iCubClient.
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="m.petit@imperial.ac.uk"> Maxime Petit </author>
+   </authors>
+
+   <data>
+   </data>
+   
+   
+</module>
+

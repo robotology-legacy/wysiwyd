@@ -1,0 +1,95 @@
+<train data>
+
+##### ADD RESPONSE FOR DFW: SENTENCE SIMPLE:
+
+# 1 - 4
+then, give Sam croco iCub <o>[P-_-_-_-_][_-A-P-O-R]<o>;then Sam give the croco to iCub
+
+# 1 - 3
+then, take iCub croco <o>[P-_-_-_][_-A-P-O]<o>;then iCub take the croco
+
+# 1 - 2
+first, iCub reason<o>[P-_-_][_-A-P]<o>;first iCub reason
+
+##### ADD RESPONSE FOR DFW: SENTENCE DOUBLE:
+
+# 4 - 4
+
+# A DFW B
+because, give Sam toy robot, say iCub please partner <o>[_-_-_-_-P-_-_-_-_][A-P-O-R-_-_-_-_-_][_-_-_-_-_-A-P-O-R]<o>; Sam give the toy to robot because iCub say please to partner
+
+# DFW B A
+because, give Sam toy robot, say iCub please partner <o>[P-_-_-_-_-_-_-_-_][_-_-_-_-_-A-P-O-R][_-A-P-O-R-_-_-_-_]<o>; because iCub say please to partner Sam give the toy to robot
+
+
+# 3 - 4
+
+# A DFW B
+because, has iCub croco , give Sam toy robot  <o>[_-_-_-P-_-_-_-_][A-P-O-_-_-_-_-_][_-_-_-_-A-P-O-R]<o>; iCub has the croco because Sam give the toy to robot
+
+# DFW B A
+because, has iCub croco , give Sam toy robot  <o>[P-_-_-_-_-_-_-_][_-_-_-_-_-A-P-O][_-A-P-O-R-_-_-_]<o>; because Sam give the toy to robot iCub has the croco
+
+
+# 4 - 3
+
+# A DFW B
+because, give Sam croco iCub , want Robot toy <o>[_-_-_-_-P-_-_-_][A-P-O-R-_-_-_-_][_-_-_-_-_-A-P-O]<o>; Sam give the croco to iCub because Robot want the toy
+
+# DFW B A
+because, give Sam croco iCub , want Robot toy <o>[P-_-_-_-_-_-_-_][_-_-_-_-A-P-O-R][_-A-P-O-_-_-_-_]<o>; because Robot want the toy Sam give the croco to iCub
+
+# 4 - 2
+
+# A DFW B
+because, give Sam croco iCub , reason Robot <o>[_-_-_-_-P-_-_][A-P-O-R-_-_-_][_-_-_-_-_-A-P]<o>; Sam give the croco to iCub because Robot reason
+
+# DFW B A
+because, give Sam croco iCub , reason Robot <o>[P-_-_-_-_-_-_][_-_-_-A-P-O-R][_-A-P-_-_-_-_]<o>; because Robot reason Sam give the croco to iCub
+
+# 2 - 4
+
+# A DFW B
+because, reason robot, fail iCub grasp croco <o>[_-_-P-_-_-_-_][A-P-_-_-_-_-_][_-_-_-A-P-O-R]<o>; robot reason because iCub fail to grasp the croco
+
+# DFW B A
+because, reason robot, fail iCub grasp croco <o>[P-_-_-_-_-_-_][_-_-_-_-_-A-P][_-A-P-O-R-_-_]<o>; because iCub fail to grasp the croco iCub reason
+
+# 3 - 3
+
+# A DFW B
+because, has iCub croco , want Robot toy <o>[_-_-_-P-_-_-_][A-P-O-_-_-_-_][_-_-_-_-A-P-O]<o>; iCub has the croco because Robot want the toy
+
+# DFW B A
+because, has iCub croco , want Robot toy <o>[P-_-_-_-_-_-_][_-_-_-_-A-P-O][_-A-P-O-_-_-_]<o>; because Robot want the toy iCub has the croco
+
+
+
+# 3 - 2
+
+# A DFW B
+because, has iCub croco , reason robot <o>[_-_-_-P-_-_][A-P-O-_-_-_][_-_-_-_-A-P]<o>; iCub has the croco because robot reason
+
+# DFW B A
+because, has iCub croco , robot reason <o>[P-_-_-_-_-_-_][_-_-_-A-P-O][_-A-P-_-_-_]<o>; because robot reason iCub has the croco
+
+
+# 2 - 3
+
+# A DFW B
+because, reason robot , failed iCub grasp <o>[_-_-P-_-_-_][A-P-_-_-_-_][_-_-_-A-P-O]<o>; robot reason because iCub failed to grasp
+
+# DFW B A
+because, robot reason , failed iCub grasp <o>[P-_-_-_-_-_][_-_-_-_-A-P][_-A-P-O-_-_]<o>; because iCub failed to grasp robot reason
+
+
+
+
+
+
+
+
+
+
+
+

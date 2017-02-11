@@ -124,6 +124,10 @@ void CRMainEstimation::estimate() {
         }
         cvSetData(depthCV,buf,depth_width*2);
     }
+    else {
+        yDebug() << "Did not receive image";
+        return;
+    }
     Mat depth=cvarrToMat(depthCV,true);
     if(depth.cols != depth_width || depth.rows != depth_height) {
         cerr << "Wrong image format : " << depth.cols << " x " << depth.rows << endl;

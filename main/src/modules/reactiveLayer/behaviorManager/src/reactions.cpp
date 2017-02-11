@@ -1,12 +1,16 @@
 #include "reactions.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+
 void Reactions::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
     external_port_name = "None";
     from_sensation_port_name = "None";
 }
 
-void Reactions::run(Bottle args/*=Bottle()*/) {
+void Reactions::run(const Bottle &args) {
     yInfo() << "Reactions::run";
 
     Object* touchLocation = dynamic_cast<Object*>(iCub->opc->getEntity("touchLocation"));
@@ -20,5 +24,4 @@ void Reactions::run(Bottle args/*=Bottle()*/) {
     Time::delay(1.0);    
 
     yInfo() << "Reactions::run ends";
-
 }

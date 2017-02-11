@@ -71,7 +71,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     for (int i = 1; i < bInput.size(); i++)
     {
         bTemp = *(bInput.get(i).asList());
-        if (bTemp.get(0) == "action" && !done)
+        if (((bTemp.get(0) == "action") || (bTemp.get(0) == "reasoning")) && !done)
         {
             osMain << bTemp.get(1).asString() << "' , '"; // activityname
             sName = bTemp.get(1).asString();
@@ -130,7 +130,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         mutexChangeover.lock();
         yDebug() << "[mutexChangeover] locked in snapshot end";
 
-        streamStatus = "end"; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
+        streamStatus = StreamStatuses::END; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
     }
 
     if(bMental) {
@@ -257,70 +257,70 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             mutexChangeover.lock();
             yDebug() << "[mutexChangeover] locked in snapshot begin";
 
-            streamStatus = "begin"; //streamStatus = "end" is done before the OPC snapshot, because the snapshot is slowing everything down
+            streamStatus = StreamStatuses::BEGIN; //streamStatus = "end" is done before the OPC snapshot, because the snapshot is slowing everything down
         }
     }
     else
     {   //just one image (sentence?)
-        while(streamStatus == "send") { // when it's sending, don't record new images!
+        while(streamStatus == StreamStatuses::SEND) { // when it's sending, don't record new images!
             yarp::os::Time::delay(0.1);
         }
 
-        if(streamStatus != "record") { // only change instance number if we are not recording already
+        if(streamStatus != StreamStatuses::RECORD) { // only change instance number if we are not recording already
             imgInstance = currentInstance;
+            frameNb = 0;
         }
         string synchroTime = getCurrentTime();
-        frameNb = 0;
 
         storeImagesAndData(synchroTime, true, fullSentence);
 
-        //if activity = say, we have to take one image/data + the sound that is coming from another port and catch in the update method of ABM (store in /tmp/sound/default.wav
+        //if activity = say, we have to take one image/data + the sound that is coming from another port and catch in the update method of ABM (store in /tmp/sound/default.wav)
         if (activityType == "recog") {
-            string sndName;
-
             //take the full sentence, replace space by _ to have the sound name
             replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
-            sndName = fullSentence + ".wav";
 
-            //read sound from file and put data in yarp::sig::Sound to store properly with semantic/instance that we are now aware of
-            yarp::sig::Sound s;
-            string defaultSoundFullPath = storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav";
-            yDebug() << "opening sound file " << defaultSoundFullPath.c_str();
-            if (yarp::sig::file::read(s, defaultSoundFullPath.c_str()) == false) {
-                yWarning() << "Cannot open the default sound file: check " << defaultSoundFullPath;
-            }
-            else {
-                yInfo() << "Default sound file loaded from " << defaultSoundFullPath;
-                stringstream sInstance;
-                sInstance << currentInstance;
+            if(recordSound) {
+                string sndName = fullSentence + ".wav";
 
-                //build the path and the name of the sound according to the instance and sentence said
-                string relativePath = sInstance.str() + "/" + sndName;
-                string fullPath = storingPath + "/" + relativePath;
+                //read sound from file and put data in yarp::sig::Sound to store properly with semantic/instance that we are now aware of
+                yarp::sig::Sound s;
+                string defaultSoundFullPath = storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav";
+                yDebug() << "opening sound file " << defaultSoundFullPath.c_str();
+                if (yarp::sig::file::read(s, defaultSoundFullPath.c_str()) == false) {
+                    yWarning() << "Cannot open the default sound file: check " << defaultSoundFullPath;
+                } else {
+                    yInfo() << "Default sound file loaded from " << defaultSoundFullPath;
+                    stringstream sInstance;
+                    sInstance << currentInstance;
 
-                if (yarp::sig::file::write(s, fullPath.c_str()) == false) {
-                    yError() << "Cannot save the default sound file to " << fullPath;
+                    //build the path and the name of the sound according to the instance and sentence said
+                    string relativePath = sInstance.str() + "/" + sndName;
+                    string fullPath = storingPath + "/" + relativePath;
+
+                    if (yarp::sig::file::write(s, fullPath.c_str()) == false) {
+                        yError() << "Cannot save the default sound file to " << fullPath;
+                    }
+                    else {
+                        yInfo() << "Default sound file renamed and moved to " << fullPath;
+
+                        database_mutex.lock();
+                        //add the sound into the  large_objects table of ABM
+                        unsigned int snd_oid = ABMDataBase->lo_import(fullPath.c_str());
+                        database_mutex.unlock();
+
+                        Bottle bRequest;
+                        ostringstream osArg;
+
+                        //Populate the sounddata table with the infos
+                        bRequest.addString("request");
+                        osArg << "INSERT INTO sounddata(instance, relative_path, time, snd_provider_port, snd_oid) VALUES ('" << currentInstance << "', '" << relativePath << "', '" << synchroTime << "', '" << portSoundStreamInput.getName() << "', '" << snd_oid << "');";
+                        bRequest.addString(osArg.str());
+                        request(bRequest);
+                    }
                 }
-                else {
-                    yInfo() << "Default sound file renamed and moved to " << fullPath;
-
-                    database_mutex.lock();
-                    //add the sound into the  large_objects table of ABM
-                    unsigned int snd_oid = ABMDataBase->lo_import(fullPath.c_str());
-                    database_mutex.unlock();
-
-                    Bottle bRequest;
-                    ostringstream osArg;
-
-                    //Populate the sounddata table with the infos
-                    bRequest.addString("request");
-                    osArg << "INSERT INTO sounddata(instance, relative_path, time, snd_provider_port, snd_oid) VALUES ('" << currentInstance << "', '" << relativePath << "', '" << synchroTime << "', '" << portSoundStreamInput.getName() << "', '" << snd_oid << "');";
-                    bRequest.addString(osArg.str());
-                    request(bRequest);
-                }
             }
 
-            osInsertTemp.str("");
+            osInsertTemp.str(""); // recogFromGrammarSemantic modifies osInsertTemp
             recogFromGrammarSemantic(bRecogSemantic, "", 1, currentInstance);
             requestFromString(osInsertTemp.str());
         }
@@ -527,6 +527,8 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     /*
     format of input bottle :
     snapshot (action name_action type_action) (arg1 arg2 argn) (role1 role 2 rolen) (begin 0/1)
+    or
+    snapshot (reasoning name_action type_action) (arg1 arg2 argn) (role1 role 2 rolen) (begin 0/1)
 
     Arguments are from 2 types:
     - something from the OPC : just argN is enough
@@ -685,7 +687,6 @@ void autobiographicalMemory::recogFromGrammarSemantic(const Bottle &bRecogBottle
         //yInfo() << " === s_deep = " << s_deep << " and i_deep = " << i_deep << "===" ;
         //yInfo() << " C1 : -------> role = " << currentRole << " and word = " << currentWord << " and level " << i_deep ;
         osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << currentWord << "' , '" << currentRole << "', " << i_deep << " ) ; ";
-
     }
 
     //case 2 : string list -> sub-sentence, sub-part

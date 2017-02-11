@@ -27,8 +27,8 @@
 
 #include <iCub/ctrl/math.h>
 #include <iCub/optimization/calibReference.h>
-
-#include <wrdac/helpers.h>
+#include <wrdac/tags.h>
+#include <wrdac/functions.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -89,11 +89,14 @@ public:
         frames["icub"].SInv = frames["icub"].S;
 
         //Load matrices
-        string matricesFileName = rf.findFile( rf.check("matricesFile",Value("frames.ini")).asString().c_str()).c_str();
-        matricesFilePath = matricesFileName.c_str();
-        Property matricesProp; matricesProp.fromConfigFile(matricesFileName.c_str());
+        string matricesFileName = rf.check("matricesFile",Value("frames.ini")).asString();
+        matricesFilePath = rf.findFile(matricesFileName);
+        Property matricesProp; matricesProp.fromConfigFile(matricesFilePath);
         if (!isEmpty)
             LoadMatrices(matricesProp);
+
+        // we store new matrices in the home context path instead
+        matricesFilePath=rf.getHomeContextPath()+"/"+matricesFileName;
 
         //Create OPC
         string opcName = "/";
@@ -703,6 +706,7 @@ public:
     /************************************************************************/
     bool interruptModule()
     {
+        opc.interrupt();
         rpc.interrupt();
         return true;
     }
@@ -710,6 +714,9 @@ public:
     /************************************************************************/
     bool close()
     {
+        opc.interrupt();
+        opc.close();
+        rpc.interrupt();
         rpc.close();
         return true;
     }

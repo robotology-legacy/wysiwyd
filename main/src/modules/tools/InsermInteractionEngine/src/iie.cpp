@@ -81,9 +81,9 @@ bool IIE::updateModule() {
     if (iCub->opc->isConnected())
     {
         iCub->opc->checkout();
-        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+        list<shared_ptr<Entity>> lEntities = iCub->opc->EntitiesCacheCopy();
 
-        for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+        for (auto itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
         {
             string sName = (*itEnt)->name();
             string sNameCut = sName;

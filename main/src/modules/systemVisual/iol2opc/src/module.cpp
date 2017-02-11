@@ -19,10 +19,27 @@
 #include <limits>
 #include <sstream>
 #include <cstdio>
+#include <cstdarg>
 #include <algorithm>
 #include <set>
 
 #include "module.h"
+
+
+/**********************************************************/
+void IOL2OPCBridge::yInfoGated(const char *msg, ...) const
+{
+    if (verbose)
+    {
+        va_list arg;
+        char buf[512];
+        va_start(arg,msg);        
+        vsnprintf(buf,sizeof(buf),msg,arg);
+        va_end(arg);
+
+        yInfo("%s",buf);
+    }
+}
 
 
 /**********************************************************/
@@ -129,7 +146,7 @@ Bottle IOL2OPCBridge::getBlobs()
     {
         lastBlobsArrivalTime=Time::now();
         lastBlobs=skimBlobs(*pBlobs);
-        yInfo("Received blobs list: %s",lastBlobs.toString().c_str());
+        yInfoGated("Received blobs list: %s",lastBlobs.toString().c_str());
 
         if (lastBlobs.size()==1)
         {
@@ -180,7 +197,7 @@ bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
         {
             clickLocation.x=bPos->get(0).asInt();
             clickLocation.y=bPos->get(1).asInt();
-            yInfo("Received new click location: (%d,%d)",
+            yInfoGated("Received new click location: (%d,%d)",
                   clickLocation.x,clickLocation.y);
         }
         else
@@ -289,32 +306,6 @@ bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
     }
 
     return false;
-}
-
-
-/**********************************************************/
-Vector IOL2OPCBridge::calibPosition(const Vector &x)
-{
-    Vector y=x;
-
-    // apply 3D correction
-    if (rpcCalib.getOutputCount()>0)
-    {
-        yarp::os::Bottle cmd,reply;
-        cmd.addString("get_location_nolook");
-        cmd.addString(calib_entry);
-        cmd.addDouble(y[0]);
-        cmd.addDouble(y[1]);
-        cmd.addDouble(y[2]);
-        rpcCalib.write(cmd,reply);
-        y[0]=reply.get(1).asDouble();
-        y[1]=reply.get(2).asDouble();
-        y[2]=reply.get(3).asDouble();
-    }
-    else
-        yError("Unable to connect to calibrator");
-
-    return y;
 }
 
 
@@ -592,9 +583,9 @@ Bottle IOL2OPCBridge::classify(const Bottle &blobs)
         item.addString(tag.str().c_str());
         item.addList()=*blobs.get(i).asList();
     }
-    yInfo("Sending classification request: %s",cmd.toString().c_str());
+    yInfoGated("Sending classification request: %s",cmd.toString().c_str());
     rpcClassifier.write(cmd,reply);
-    yInfo("Received reply: %s",reply.toString().c_str());
+    yInfoGated("Received reply: %s",reply.toString().c_str());
 
     // release resources
     mutexResources.unlock();
@@ -628,9 +619,9 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
     else
         options.add(blobs.get(i));
 
-    yInfo("Sending training request: %s",cmd.toString().c_str());
+    yInfoGated("Sending training request: %s",cmd.toString().c_str());
     rpcClassifier.write(cmd,reply);
-    yInfo("Received reply: %s",reply.toString().c_str());
+    yInfoGated("Received reply: %s",reply.toString().c_str());
 
     // release resources
     mutexResources.unlock();
@@ -673,6 +664,20 @@ void IOL2OPCBridge::doLocalization()
     }
 }
 
+ObjectArea IOL2OPCBridge::getReachableArea(const Vector &objpos) {
+    if ((objpos[0]>human_area_x_bounds[0]) && (objpos[0]<human_area_x_bounds[1]) &&
+        (objpos[1]>human_area_y_bounds[0]) && (objpos[1]<human_area_y_bounds[1])) {
+        return ObjectArea::HUMAN;
+    } else if ((objpos[0]>shared_area_x_bounds[0]) && (objpos[0]<shared_area_x_bounds[1]) &&
+               (objpos[1]>shared_area_y_bounds[0]) && (objpos[1]<shared_area_y_bounds[1])) {
+        return ObjectArea::SHARED;
+    } else if ((objpos[0]>robot_area_x_bounds[0]) && (objpos[0]<robot_area_x_bounds[1]) &&
+               (objpos[1]>robot_area_y_bounds[0]) && (objpos[1]<robot_area_y_bounds[1])) {
+        return ObjectArea::ROBOT;
+    } else {
+        return ObjectArea::NOTREACHABLE;
+    }
+}
 
 /**********************************************************/
 void IOL2OPCBridge::updateOPC()
@@ -769,17 +774,27 @@ void IOL2OPCBridge::updateOPC()
             CvRect bbox;
             if (it.second.is_tracking(bbox))
             {
+                CvPoint cog;
+                cog.x=bbox.x+(bbox.width>>1);
+                cog.y=bbox.y+(bbox.height>>1);
+
                 // find 3d position
-                Vector x,dim;
-                if (get3DPositionAndDimensions(bbox,x,dim))
+                Vector dim(3,0.05);
+                Vector x;
+
+                //if (get3DPositionAndDimensions(bbox,x,dim))
+                if (get3DPosition(cog,x))
                 {
                     Bottle bObjNameLoc;
                     Vector x_filtered,dim_filtered;
                     it.second.filt(x,x_filtered,dim,dim_filtered);
 
-                    obj->m_ego_position=calibPosition(x_filtered);
+                    Vector objpos;
+                    objpos=x_filtered;
+                    obj->m_ego_position=objpos;
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
+                    obj->m_objectarea = getReachableArea(obj->m_ego_position);
 
                     bObjNameLoc.addString(obj->name());
                     bObjNameLoc.addString(obj->m_ego_position.toString());
@@ -827,15 +842,44 @@ void IOL2OPCBridge::updateOPC()
     }
 }
 
+void IOL2OPCBridge::setBounds(ResourceFinder &rf, Vector& bounds, string configName, double std_lower, double std_upper) {
+    bounds.resize(2);
+    bounds[0]=std_lower;
+    bounds[1]=std_upper;
+    if (rf.check(configName))
+    {
+        if (Bottle *rf_bounds=rf.find(configName).asList())
+        {
+            if (rf_bounds->size()==2)
+            {
+                bounds[0]=rf_bounds->get(0).asDouble();
+                bounds[1]=rf_bounds->get(1).asDouble();
+            }
+            else
+            {
+                yWarning() << configName << " does not have correct length, using default values!";
+            }
+        }
+        else
+        {
+            yWarning() << configName << " is not a list, using default values!";
+        }
+    }
+    else
+    {
+        yWarning() << configName << " not specified, using default values!";
+    }
+}
+
 
 /**********************************************************/
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     string name=rf.check("name",Value("iol2opc")).asString().c_str();
     period=rf.check("period",Value(0.1)).asDouble();
+    verbose=rf.check("verbose");
     empty=rf.check("empty");
     object_persistence=(rf.check("object_persistence",Value("off")).asString()=="on");
-    calib_entry=rf.check("calib_entry",Value("iol-right")).asString();
 
     opc=new OPCClient(name);
     if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
@@ -860,38 +904,16 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcPort.open(("/"+name+"/rpc").c_str());
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
-    rpcCalib.open(("/"+name+"/calib:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
-    skim_blobs_x_bounds.resize(2);
-    skim_blobs_x_bounds[0]=-0.50;
-    skim_blobs_x_bounds[1]=-0.10;
-    if (rf.check("skim_blobs_x_bounds"))
-    {
-        if (Bottle *bounds=rf.find("skim_blobs_x_bounds").asList())
-        {
-            if (bounds->size()>=2)
-            {
-                skim_blobs_x_bounds[0]=bounds->get(0).asDouble();
-                skim_blobs_x_bounds[1]=bounds->get(1).asDouble();
-            }
-        }
-    }
-
-    skim_blobs_y_bounds.resize(2);
-    skim_blobs_y_bounds[0]=-0.30;
-    skim_blobs_y_bounds[1]=+0.30;
-    if (rf.check("skim_blobs_y_bounds"))
-    {
-        if (Bottle *bounds=rf.find("skim_blobs_y_bounds").asList())
-        {
-            if (bounds->size()>=2)
-            {
-                skim_blobs_y_bounds[0]=bounds->get(0).asDouble();
-                skim_blobs_y_bounds[1]=bounds->get(1).asDouble();
-            }
-        }
-    }
+    setBounds(rf, skim_blobs_x_bounds,  "skim_blobs_x_bounds",  -0.70, -0.10);
+    setBounds(rf, skim_blobs_y_bounds,  "skim_blobs_y_bounds",  -0.30, -0.30);
+    setBounds(rf, human_area_x_bounds,  "human_area_x_bounds",  -0.70, -0.50);
+    setBounds(rf, human_area_y_bounds,  "human_area_y_bounds",  -0.30, 0.30);
+    setBounds(rf, shared_area_x_bounds, "shared_area_x_bounds", -0.50, -0.35);
+    setBounds(rf, shared_area_y_bounds, "shared_area_y_bounds", -0.30, 0.30);
+    setBounds(rf, robot_area_x_bounds,  "robot_area_x_bounds",  -0.35, -0.10);
+    setBounds(rf, robot_area_y_bounds,  "robot_area_y_bounds",  -0.30, 0.30);
 
     // location used to display the
     // histograms upon the closest blob
@@ -976,7 +998,6 @@ bool IOL2OPCBridge::interruptModule()
     rpcClassifier.interrupt();
     getClickPort.interrupt();
     rpcGet3D.interrupt();
-    rpcCalib.interrupt();
     opc->interrupt();
     yDebug() << "Interrupt finished";
 
@@ -1019,8 +1040,6 @@ bool IOL2OPCBridge::close()
     getClickPort.close();
     rpcGet3D.interrupt();
     rpcGet3D.close();
-    rpcCalib.interrupt();
-    rpcCalib.close();
     opc->interrupt();
     opc->close();
 
@@ -1048,9 +1067,9 @@ bool IOL2OPCBridge::updateModule()
     {
         Bottle cmd,reply;
         cmd.addVocab(Vocab::encode("list"));
-        yInfo("Sending list request: %s",cmd.toString().c_str());
+        yInfoGated("Sending list request: %s",cmd.toString().c_str());
         rpcClassifier.write(cmd,reply);
-        yInfo("Received reply: %s",reply.toString().c_str());
+        yInfoGated("Received reply: %s",reply.toString().c_str());
 
         if (reply.get(0).asString()=="ack")
         {
@@ -1062,7 +1081,7 @@ bool IOL2OPCBridge::updateModule()
             if (empty)
                 remove_all();
 
-            yInfo("Turning localization on");
+            yInfoGated("Turning localization on");
             state=Bridge::localization;
             onlyKnownObjects=IOLObject(opcMedianFilterOrder,10.0);
         }
@@ -1203,9 +1222,9 @@ bool IOL2OPCBridge::remove_object(const string &name)
     Bottle cmdClassifier,replyClassifier;
     cmdClassifier.addVocab(Vocab::encode("forget"));
     cmdClassifier.addString(name.c_str());
-    yInfo("Sending clearing request: %s",cmdClassifier.toString().c_str());
+    yInfoGated("Sending clearing request: %s",cmdClassifier.toString().c_str());
     rpcClassifier.write(cmdClassifier,replyClassifier);
-    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+    yInfoGated("Received reply: %s",replyClassifier.toString().c_str());
 
     opc->checkout();
 
@@ -1235,9 +1254,9 @@ bool IOL2OPCBridge::remove_all()
     Bottle cmdClassifier,replyClassifier;
     cmdClassifier.addVocab(Vocab::encode("forget"));
     cmdClassifier.addString("all");
-    yInfo("Sending clearing request: %s",cmdClassifier.toString().c_str());
+    yInfoGated("Sending clearing request: %s",cmdClassifier.toString().c_str());
     rpcClassifier.write(cmdClassifier,replyClassifier);
-    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+    yInfoGated("Received reply: %s",replyClassifier.toString().c_str());
 
     opc->checkout();
 
@@ -1267,9 +1286,9 @@ bool IOL2OPCBridge::change_name(const string &old_name,
     cmdClassifier.addVocab(VOCAB4('c','h','n','a'));
     cmdClassifier.addString(old_name);
     cmdClassifier.addString(new_name);
-    yInfo("Sending change name request: %s",cmdClassifier.toString().c_str());
+    yInfoGated("Sending change name request: %s",cmdClassifier.toString().c_str());
     rpcClassifier.write(cmdClassifier,replyClassifier);
-    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+    yInfoGated("Received reply: %s",replyClassifier.toString().c_str());
 
     if (replyClassifier.get(0).asString()=="nack")
     {
@@ -1294,7 +1313,7 @@ bool IOL2OPCBridge::change_name(const string &old_name,
             opc->checkout();
             opc->removeEntity(it_old->first);
             db.erase(it_old);
-            yInfo("Name change successful: reloading local cache");
+            yInfoGated("Name change successful: reloading local cache");
         }
         else
         {

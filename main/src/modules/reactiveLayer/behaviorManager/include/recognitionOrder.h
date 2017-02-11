@@ -1,37 +1,32 @@
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <map>
+#ifndef RECOGNITIONORDER_H
+#define RECOGNITIONORDER_H
 
+#include <iostream>
+#include <yarp/os/all.h>
 
 #include "behavior.h"
 
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
 
-
-
-class recognitionOrder: public Behavior
+class RecognitionOrder: public Behavior
 {
 private:
-    void run(Bottle args=Bottle());
+    void run(const yarp::os::Bottle &args);
     yarp::os::Port port_to_homeo;
-    string port_to_homeo_name;
-    string homeoPort;
+    std::string port_to_homeo_name;
+    std::string homeoPort;
 
 public:
-    recognitionOrder(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
+    RecognitionOrder(yarp::os::Mutex* mut, yarp::os::ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
        
     void configure();
 
     void close_extra_ports() {
-        ;
+        port_to_homeo.interrupt();
+        port_to_homeo.close();
     }
     bool manual;
 };
 
+#endif

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>planner</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>manages the different priorities of the actions to be carried out</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="sockching.low@upf.edu"> Low Sock Ching </author>
+   </authors>
+   
+</module>
+

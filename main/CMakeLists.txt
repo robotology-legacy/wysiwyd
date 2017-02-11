@@ -11,11 +11,9 @@ project(wysiwyd)
 
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
-find_package(ICUBcontrib REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH}
                               ${ICUB_MODULE_PATH}
-                              ${ICUBCONTRIB_MODULE_PATH}
                               ${PROJECT_SOURCE_DIR}/conf)
 
 message(STATUS "YARP is version: ${YARP_VERSION}")
@@ -27,9 +25,6 @@ yarp_configure_external_installation(wysiwyd)
 
 include(iCubOptions)
 include(iCubHelpers)
-
-include(ICUBcontribHelpers)
-include(ICUBcontribOptions)
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 make_directory(${LIBRARY_OUTPUT_PATH})
@@ -53,7 +48,7 @@ configure_file("${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake.in"
                "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake"
                @ONLY)
 add_custom_target(uninstall_wysiwyd "${CMAKE_COMMAND}" -P
-                  "${CMAKE_BINARY_DIR}/icub-config-uninstall.cmake")
+                  "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake")
 ####
 
 #### install cmake scripts
@@ -71,7 +66,6 @@ foreach(conf_i ${WYSIWYD_CMAKE_SCRIPTS})
 endforeach()
 ####
 
-option(WYSIWYD_USE_GPU "Compile components requiring GPU capabilities" OFF)
 add_subdirectory(src)
 add_subdirectory(app)
 

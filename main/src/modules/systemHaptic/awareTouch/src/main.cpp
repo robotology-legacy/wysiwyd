@@ -39,7 +39,7 @@ class AwareTouch: public yarp::os::RFModule
    double lastAutoSnapshotTime;
 
    OPCClient  * world;
-   Agent * icub;  
+   //Agent * icub;
    Object * touchLocation;
 
 

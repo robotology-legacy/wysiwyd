@@ -20,15 +20,18 @@
 int main(int argc, char * argv[]) {
     /* initialize yarp network */
     yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
 
-    yarp::os::Network::init();
     abmHandler mod;
     yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("abmHandler");
     rf.setDefaultConfigFile("abmHandler.ini");
     rf.configure(argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }
 

@@ -14,11 +14,22 @@ wysiwyd::wrdac::SubSystem_Speech::SubSystem_Speech(const std::string &masterName
 
 bool wysiwyd::wrdac::SubSystem_Speech::connect()
 {
-    yarp::os::Network::connect("/iSpeak/emotions:o", "/icub/face/emotions/in");
-    bool connected = yarp::os::Network::connect(tts.getName(), "/iSpeak");
-    connected &= yarp::os::Network::connect(ttsRpc.getName(), "/iSpeak/rpc");
-    connected &= yarp::os::Network::connect("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str());
-    connected &= yarp::os::Network::connect(sttRpc.getName().c_str(), "/speechRecognizer/rpc");
+    if(!yarp::os::Network::isConnected("/iSpeak/emotions:o", "/icub/face/emotions/in")) {
+        yarp::os::Network::connect("/iSpeak/emotions:o", "/icub/face/emotions/in");
+    }
+    bool connected = true;
+    if(!yarp::os::Network::isConnected(tts.getName(), "/iSpeak")) {
+        connected &= yarp::os::Network::connect(tts.getName(), "/iSpeak");
+    }
+    if(!yarp::os::Network::isConnected(ttsRpc.getName(), "/iSpeak/rpc")) {
+        connected &= yarp::os::Network::connect(ttsRpc.getName(), "/iSpeak/rpc");
+    }
+    if(!yarp::os::Network::isConnected("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str())) {
+        connected &= yarp::os::Network::connect("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str());
+    }
+    if(!yarp::os::Network::isConnected(sttRpc.getName().c_str(), "/speechRecognizer/rpc")) {
+        connected &= yarp::os::Network::connect(sttRpc.getName().c_str(), "/speechRecognizer/rpc");
+    }
 
     opc->connect("OPC");
 
@@ -34,7 +45,11 @@ unsigned int wysiwyd::wrdac::SubSystem_Speech::countWordsInString(const std::str
     return std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
 }
 
-void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldWait, bool recordABM) {
+void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldWait, bool recordABM, std::string addressee) {
+    if(text=="") {
+        yWarning() << "[SubSystem_Speech] Text is empty, not going to say anything";
+        return;
+    }
     //Clean the input of underscores.
     std::string tmpText = text;
     replace_all(tmpText, "_", " ");
@@ -54,33 +69,28 @@ void wysiwyd::wrdac::SubSystem_Speech::TTS(const std::string &text, bool shouldW
         std::list<std::pair<std::string, std::string> > lArgument;
         // get agent name
         opc->checkout();
-        yarp::os::Bottle isAgent, condition, isPresent, noIcub;
-        isAgent.addString(EFAA_OPC_ENTITY_TAG);
-        isAgent.addString("==");
-        isAgent.addString(EFAA_OPC_ENTITY_RTOBJECT);
 
-        isPresent.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
-        isPresent.addString("==");
-        isPresent.addInt(1);
-
-        noIcub.addString(EFAA_OPC_OBJECT_NAME_TAG);
-        noIcub.addString("!=");
-        noIcub.addString("icub");
-
-
-        condition.addList() = isAgent;
-        condition.addString("&&");
-        condition.addList() = isPresent;
-        condition.addString("&&");
-        condition.addList() = noIcub;
-
-        std::list<Entity*> Ent = opc->Entities(condition);
-        if (Ent.size()!=0){
-            lArgument.push_back(std::pair<std::string, std::string>( (*Ent.begin())->name(), "addressee"));
+        if (addressee != "none"){
+            yDebug() << "addressee is not null: "<< addressee;
+            lArgument.push_back(std::pair<std::string, std::string>(addressee, "addressee"));
         }
-        for (std::list<Entity*>::iterator it_E = Ent.begin(); it_E != Ent.end(); it_E++)
-        {
-            delete *it_E;
+        else {
+            yDebug() << "addressee is null, getting present agent.";
+
+            std::string partnerName = "partner";
+            std::list<std::shared_ptr<wysiwyd::wrdac::Entity> > lEntities = opc->EntitiesCacheCopy();
+            for (auto& entity : lEntities) {
+                if (entity->entity_type() == "agent") {
+                    wysiwyd::wrdac::Agent* a = dynamic_cast<wysiwyd::wrdac::Agent*>(entity.get());
+                    //We assume kinect can only recognize one skeleton at a time
+                    if (a->m_present == 1.0 && a->name() != "icub") {
+                        partnerName = a->name();
+                    }
+                }
+            }
+            yDebug() << "addressee is now" << partnerName;
+
+            lArgument.push_back(std::pair<std::string, std::string>( partnerName, "addressee"));
         }
 
         lArgument.push_back(std::pair<std::string, std::string>(text, "sentence"));
@@ -164,6 +174,7 @@ void wysiwyd::wrdac::SubSystem_Speech::Close()
     sttRpc.interrupt();
     sttRpc.close();
     SubABM->Close();
+    opc->close();
 
     delete SubABM;
     delete opc;

@@ -1,4 +1,9 @@
+#include "wrdac/subsystems/subSystem_ABM.h"
 #include "followingOrder.h"
+
+using namespace std;
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
 
 void FollowingOrder::configure() {
     Bottle bFollowingOrder = rf.findGroup("followingOrder");
@@ -24,18 +29,18 @@ void FollowingOrder::configure() {
     port_to_avoidance_name = "/"+behaviorName+"/avoidance:o";
     port_to_avoidance.open(port_to_avoidance_name);
 
-    manual = false;
+    manual = true;
 }
 
-void FollowingOrder::run(Bottle args/*=Bottle()*/) {
-
+void FollowingOrder::run(const Bottle &args) {
     yInfo() << "FollowingOrder::run";
-
+    yDebug()<< args.toString();
     if (!Network::isConnected(port_to_homeo_name,homeoPort)){
         if (!Network::connect(port_to_homeo_name,homeoPort)){
             yWarning()<<"Port to Homeostasis not available. Could not freeze the drives...";
         }
     }
+
     if (Network::isConnected(port_to_homeo_name,homeoPort)){
         yInfo()<<"freezing drives";
         Bottle cmd;
@@ -46,7 +51,7 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         port_to_homeo.write(cmd, rply);
     }
 
-    Bottle* sens = sensation_port_in.read();
+    Bottle* sens = args.get(0).asList();
     string action = sens->get(0).asString();
     string type;
     string target;
@@ -55,21 +60,25 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     if (sens->size()>1)
         target = sens->get(2).asString();
 
-    yDebug() << action;
-    yDebug() << type;
-    yInfo() << target;
+    yDebug() << "Action:" << action;
+    yDebug() << "Type:" << type;
+    yDebug() << "Target:" << target;
 
     if ( target != "none" && type != "bodypart" && type != "kinematic structure" && type != "kinematic structure correspondence"){           //we dont have searchEntity for bodypart
+        bool verboseSearch=true;
+        if( action == "this is" ) {
+            verboseSearch=false;
+        }
         yInfo() << "there are objects to search!!!";
-        handleSearch(type, target);
+        handleSearch(type, target, verboseSearch);
     }
 
     //FollowingOrder implying objects
-    if ( (action == "point" || action == "look at" || action == "push") && type == "object"){
+    if ( (action == "point" || action == "look at" || action == "push" || action == "this is") && type == "object"){
         // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         if (sens->size()<2){
             iCub->say("I can't " + action + "if you don't tell me the object");
-        } else{
+        } else {
             handleAction(type, target, action);
         }
     } else if (action == "move" && type == "bodypart") { //FollowingOrder implying bodypart
@@ -80,7 +89,7 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         }
     } else if (action == "narrate") {
         handleNarrate();
-    }  else if (action == "show" && (type == "kinematic structure" || type == "kinematic structure correspondence")){
+    }  else if (action == "show" && (type == "kinematic structure" || type == "kinematic structure correspondence")) {
         handleActionKS(action, type);
     } else if (action == "end") {
         handleEnd();
@@ -103,8 +112,11 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
 bool FollowingOrder::handleNarrate(){
     string port_narrate = "/narrativeHandler/rpc";
     
-    if (!yarp::os::Network::isConnected(port_to_narrate_name, port_narrate))
-        yarp::os::Network::connect(port_to_narrate_name, port_narrate);
+    if (!yarp::os::Network::isConnected(port_to_narrate_name, port_narrate)) {
+        if(!yarp::os::Network::connect(port_to_narrate_name, port_narrate)) {
+            yWarning() << "Could not connect to narrate";
+        }
+    }
 
     yInfo() << "Narrate::run";
     Bottle cmd, rply;
@@ -117,15 +129,18 @@ bool FollowingOrder::handleNarrate(){
 
 bool FollowingOrder::handleAction(string type, string target, string action) {
     yInfo() << "[handleAction] type: " << type << "target:" << target << "action:" << action;
+    if(action == "this is") {
+        yDebug() << "[handleAction] For action \"" + action + "\" there is nothing to do here. Return.";
+        return true;
+    }
+
     iCub->opc->checkout();
     yInfo() << " [handleAction]: opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
-    for (auto& entity : lEntities)
-    {
+    for (auto& entity : lEntities) {
         if (entity->name() == target) {
-            if (entity->entity_type() == "object")
-            {
+            if (entity->entity_type() == "object") {
                 Object* o = dynamic_cast<Object*>(entity);
                 if(o && o->m_present==1.0) {
                     yInfo() << "I'd like to" << action << "the" << target;
@@ -136,7 +151,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
                     } else if(action == "look at") {
                         iCub->say("oh! look at the " + target + ".", false);
                         iCub->look(target);
-                        yarp::os::Time::delay(2.0);
+                        yarp::os::Time::delay(1.5);
                     } else if(action == "push") {
                         iCub->say("oh! look how I pushed the " + target + ".", false);
                         iCub->push(target);
@@ -205,12 +220,25 @@ bool FollowingOrder::handleActionKS(string action, string type) {
 
     yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks = " << ks;
     iCub->lookAtPartner();
+    double speedMultiplier=1.0;
     if(type == "kinematic structure") {
-        iCub->say("Please look at the screen behind me. See how my arms look the same.");
+        iCub->say("Please look at the screen. See how my arms look the same.", false);
     } else if(type == "kinematic structure correspondence") {
-        iCub->say("I think our body parts are similar. I show you what I mean on the screen.");
+        iCub->say("I think our body parts are similar. I show you what I mean on the screen.", false);
+        speedMultiplier=0.5;
     }
-    iCub->getABMClient()->triggerStreaming(ks, true, true, 1.0, "icubSim", true);
+    yarp::os::Time::delay(0.5);
+    iCub->getABMClient()->triggerStreaming(ks, true, true, speedMultiplier, "icubSim", true);
+
+    if(type=="kinematic structure correspondence") {
+        yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
+        if(lHandVec.size()==0) {
+            iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
+        } else {
+            iCub->say("Look, because our hands look the same I know this is your hand.");
+            iCub->pointfar(lHandVec);
+        }
+    }
     iCub->home();
 
     return true;
@@ -240,7 +268,6 @@ bool FollowingOrder::handleActionBP(string type, string target, string action) {
                     iCub->babbling(joint, babblingArm, babbling_duration);
                 }
 
-                yarp::os::Time::delay(1.0);
                 iCub->home();
 
                 return true;
@@ -255,7 +282,7 @@ bool FollowingOrder::handleActionBP(string type, string target, string action) {
     return false;
 }
 
-bool FollowingOrder::handleSearch(string type, string target)
+bool FollowingOrder::handleSearch(string type, string target, bool verboseSearch)
 {
     // look if the object (from human order) exist and if not, trigger proactivetagging
 
@@ -291,6 +318,7 @@ bool FollowingOrder::handleSearch(string type, string target)
     cmd.addString("searchingEntity");
     cmd.addString(type);
     cmd.addString(target);
+    cmd.addInt(verboseSearch);
     rpc_out_port.write(cmd,rply);
     yDebug() << rply.toString();
 

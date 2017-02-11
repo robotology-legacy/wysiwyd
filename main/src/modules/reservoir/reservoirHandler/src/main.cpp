@@ -13,32 +13,23 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
-#include <reservoirHandler.h>
+#include "reservoirHandler.h"
 
 int main(int argc, char * argv[]) {
     /* initialize yarp network */
-    Network yarp;
-
-
-    //system("mode con COLS=100");
-
-    //test to launch a PDDL planner
-    //system("cd ~/Robots/planner/problem/ && ../seq-sat-lama-2011/plan efaa-dom.pddl efaa-prob.pddl res_plan.txt") ;
-    //system("cd ~/Robots/planner/problem/ && mv res_plan.txt* res_plan.txt") ;
+    yarp::os::Network yarp;
+    reservoirHandler module;
 
 
     /* prepare and configure the resource finder */
-    ResourceFinder rf;
+    yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("reservoirHandler.ini"); //overridden by --from parameter
     rf.setDefaultContext("reservoirHandler/conf");   //overridden by --context parameter
     rf.configure(argc, argv);
 
-        /* create your module */
-    reservoirHandler module(rf);
-    /* run the module: runModule() calls configure first and, if successful, it then runs */
     module.runModule(rf);
 
     return 0;

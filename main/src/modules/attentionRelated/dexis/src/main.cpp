@@ -24,14 +24,18 @@ using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
+    yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
 
-    Network::init();
     babbler mod;
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("tuneBabbler");
     rf.setDefaultConfigFile("tuneBabbler.ini");
     rf.configure( argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }

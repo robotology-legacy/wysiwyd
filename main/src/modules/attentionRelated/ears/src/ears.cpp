@@ -5,6 +5,8 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("ears")).asString().c_str();
     setName(moduleName.c_str());
+    onPlannerMode = rf.check("plans",Value("false")).asBool();
+    yDebug()<< "PLANS ENABLED: " << onPlannerMode;
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
@@ -19,12 +21,15 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    portToBehavior.open("/" + moduleName + "/behavior:o");
     portTarget.open("/" + moduleName + "/target:o");
     portToSpeechRecognizer.open("/" + moduleName + "/speech:o");
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
     bShouldListen = true;
+
+    if (!onPlannerMode) {
+        portToBehavior.open("/" + moduleName + "/behavior:o");
+    }
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
@@ -74,11 +79,13 @@ bool ears::close() {
     portToSpeechRecognizer.interrupt();
     portToSpeechRecognizer.close();
 
-    portToBehavior.interrupt();
-    portToBehavior.close();
-
     portTarget.interrupt();
     portTarget.close();
+
+    if (!onPlannerMode) {
+        portToBehavior.interrupt();
+        portToBehavior.close();
+    }
 
     yDebug() << "closing rpc port";
     rpc.interrupt();
@@ -99,6 +106,25 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         return false;
+    }
+    else if (command.get(0).asString() == "dummy")
+    {
+        // sends a test bottle to planner
+        Bottle &bToTarget = portTarget.prepare();
+        bToTarget.clear();
+        Bottle bAux;
+        bAux.clear();
+        Bottle bAux2;
+        bAux2.clear();
+        bToTarget.addString("new");
+        bAux.addString("dummy2");
+        bAux.addInt(1);
+        bAux2.addString("sObjectType");
+        bAux2.addString("sObject");
+        bAux.addList()=bAux2;
+        bToTarget.addList()=bAux;
+        portTarget.write();
+        yDebug() << "Sending " + bToTarget.toString();
     }
     else if (command.get(0).asString() == "listen")
     {
@@ -159,7 +185,7 @@ bool ears::updateModule() {
 
         if (bAnswer.get(0).asString() == "stop")
         {
-            yInfo() << " in abmHandler::node1 | stop called";
+            yInfo() << " in ears::updateModule | stop called";
             return true;
         }
         // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
@@ -174,6 +200,10 @@ bool ears::updateModule() {
         string sObjectType, sCommand;
         if(sQuestionKind == "SENTENCEOBJECT") {
             sAction = bSemantic.check("predicateObject", Value("none")).asString();
+            if (sAction == "please take")
+                sAction = "take";
+            else if (sAction == "give me")
+                sAction = "give";
             sObjectType = "object";
             sObject = bSemantic.check("object", Value("none")).asString();
             sCommand = "followingOrder";
@@ -189,17 +219,17 @@ bool ears::updateModule() {
             sCommand = "followingOrder";
         } else if (sQuestionKind == "SENTENCEKS") {
             sCommand = "followingOrder";
-            sAction = "show";
+            sAction = "showks";
             sObjectType = "kinematic structure";
             sObject = "";
         } else if (sQuestionKind == "SENTENCEKSC") {
             sCommand = "followingOrder";
-            sAction = "show";
+            sAction = "showksc";
             sObjectType = "kinematic structure correspondence";
             sObject = "";
         } else if (sQuestionKind == "SENTENCERECOGNISE") {
             sCommand = "recognitionOrder";
-            sAction = "";
+            sAction = "recognitionOrder";
             sObjectType = "";
             sObject = "";
         } else if (sQuestionKind == "SENTENCEDONE") {
@@ -218,28 +248,47 @@ bool ears::updateModule() {
             sObjectType = "end";
             sObject = "";
         } else {
-            yError() << "[ears] Unknown predicate";
-
+            yError() << "[ears] Unknown predicate: " << sQuestionKind;
+            return true;
         }
+        //send rpc data to planner
+        if (onPlannerMode) {
+            Bottle &bToTarget = portTarget.prepare();
+            bToTarget.clear();
+            Bottle bAux;
+            bAux.clear();
+            Bottle bAux2;
+            bAux2.clear();
+            bToTarget.addString("new");
+            bAux.addString(sAction);
+            bAux.addInt(1);
+            bAux2.addString(sObjectType);
+            bAux2.addString(sObject);
+            bAux.addList()=bAux2;
+            bToTarget.addList()=bAux;
+            portTarget.write();
+            yDebug() << "Sending " + bToTarget.toString();
+        } else {
+            Bottle &bToTarget = portTarget.prepare();
+            bToTarget.clear();
+            bToTarget.addString(sAction);
+            bToTarget.addString(sObjectType);
+            bToTarget.addString(sObject);
+            portTarget.write();
 
-        Bottle &bToTarget = portTarget.prepare();
-        bToTarget.clear();
-        bToTarget.addString(sAction);
-        bToTarget.addString(sObjectType);
-        bToTarget.addString(sObject);
-        portTarget.write();
+            Bottle bCondition;
+            bCondition.addString(sCommand);
+            bCondition.addString(sAction);
+            bCondition.addString(sObjectType);
+            bCondition.addString(sObject);
 
-        Bottle bCondition;
-        bCondition.addString(sCommand);
-        bCondition.addString(sAction);
-        bCondition.addString(sObjectType);
-        bCondition.addString(sObject);
-
-        portToBehavior.write(bCondition);
-
-        yDebug() << "Sending " + bCondition.toString();
+            portToBehavior.write(bCondition);
+     
+            yDebug() << "Sending " + bCondition.toString();
+        }
     } else {
-        yDebug() << "Not bListen";
+        yDebug() << "Not bShouldListen";
+        yarp::os::Time::delay(0.5);
     }
 
     return true;

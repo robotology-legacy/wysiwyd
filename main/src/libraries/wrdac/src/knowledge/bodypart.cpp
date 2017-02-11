@@ -30,6 +30,7 @@ Bodypart::Bodypart():Object()
     m_tactile_number = -1;
     m_part = "unknown";
     m_present = 1.0;
+    m_kinectNode = "unknown";
 }
 
 
@@ -40,6 +41,7 @@ Bodypart::Bodypart(const Bodypart &b):Object(b)
     this->m_tactile_number = b.m_tactile_number;
     this->m_part = b.m_part;
     this->m_present = 1.0;
+    this->m_kinectNode = b.m_kinectNode;
 }
 
 Bottle Bodypart::asBottle()
@@ -59,6 +61,11 @@ Bottle Bodypart::asBottle()
     bSub.addString("part");
     bSub.addString(m_part);
     b.addList() = bSub;
+    bSub.clear();
+    bSub.addString("kinectNode");
+    bSub.addString(m_kinectNode);
+    b.addList() = bSub;
+    bSub.clear();
 
     return b;
 }
@@ -73,6 +80,8 @@ string Bodypart::toString()
     oss<< m_tactile_number << endl;
     oss<< "part: \t\t";
     oss<< m_part <<endl;
+    oss<< "kinectNode: \t\t";
+    oss<< m_kinectNode <<endl;
     return oss.str();
 }
 
@@ -83,7 +92,8 @@ bool Bodypart::fromBottle(const Bottle &b)
 
     if (!b.check("joint_number") ||
         !b.check("tactile_number") ||
-        !b.check("part"))
+        !b.check("part") ||
+        !b.check("kinectNode"))
     {
         return false;
     }
@@ -91,6 +101,7 @@ bool Bodypart::fromBottle(const Bottle &b)
     m_joint_number       = b.find("joint_number").asInt();
     m_tactile_number     = b.find("tactile_number").asInt();
     m_part               = b.find("part").asString();
+    m_kinectNode         = b.find("kinectNode").asString();
 
     return true;
 }

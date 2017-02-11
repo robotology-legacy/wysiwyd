@@ -15,16 +15,15 @@ bool wysiwyd::wrdac::SubSystem_LRH::connect() {
 
 bool wysiwyd::wrdac::SubSystem_LRH::ABMconnected() {
     bool b = SubABM->Connect() && bForwardABM;
-    yInfo() << (b ? "LRH connected to ABM" : "LRH not connected to ABM");
+//    yInfo() << (b ? "LRH connected to ABM" : "LRH not connected to ABM");
     return b;
 }
 
 bool wysiwyd::wrdac::SubSystem_LRH::SAMconnected() {
-    if (yarp::os::Network::isConnected(portSAM.getName(), "/sam/rpc")){
+    if (yarp::os::Network::isConnected(portSAM.getName(), "/sam/rpc:i")) {
         return true;
-    }
-    else {
-        return yarp::os::Network::connect(portSAM.getName(), "/sam/rpc");
+    } else {
+        return yarp::os::Network::connect(portSAM.getName(), "/sam/rpc:i");
     }
 }
 
@@ -36,18 +35,23 @@ wysiwyd::wrdac::SubSystem_LRH::SubSystem_LRH(const std::string &masterName) : Su
     narrator = "iCub";
     m_type = SUBSYSTEM_LRH;
     bForwardABM = true;
-    SubABM = new SubSystem_ABM(m_masterName + "/lrh");
+    SubABM = new SubSystem_ABM(m_masterName + "/from_lrh");
+
+    ABMconnected() ? yInfo() << "LRH connected to ABM" : yWarning() << "LRH not connected to ABM";
 }
 
 void wysiwyd::wrdac::SubSystem_LRH::Close() {
+    portSAM.interrupt();
+    portSAM.close();
+
     portRPC.interrupt();
     portRPC.close();
-    SubABM->Close();
 
+    SubABM->Close();
     delete SubABM;
 }
 
-std::string wysiwyd::wrdac::SubSystem_LRH::meaningToSentence(std::string sInput)
+std::string wysiwyd::wrdac::SubSystem_LRH::meaningToSentence(std::string sInput, bool display)
 {
     yarp::os::Bottle bMessenger,
             bReturn;
@@ -81,7 +85,9 @@ std::string wysiwyd::wrdac::SubSystem_LRH::meaningToSentence(std::string sInput)
             }
         }
         portSAM.write(toSAM);
+        if (display){
         std::cout << "to SAM is: " << toSAM.toString() << std::endl;
+        }
     }
 
     if (connect()){
@@ -109,7 +115,7 @@ std::string wysiwyd::wrdac::SubSystem_LRH::meaningToSentence(std::string sInput)
     }
 }
 
-std::string wysiwyd::wrdac::SubSystem_LRH::SentenceToMeaning(std::string sInput)
+std::string wysiwyd::wrdac::SubSystem_LRH::SentenceToMeaning(std::string sInput, bool display)
 {
     yarp::os::Bottle bMessenger,
             bReturn;
@@ -136,7 +142,9 @@ std::string wysiwyd::wrdac::SubSystem_LRH::SentenceToMeaning(std::string sInput)
                 std::string word;
                 yarp::os::Bottle toSAM;
                 std::vector<std::string> allElement;
-                std::cout << "iss " << iss.str() << std::endl;
+                if (display){
+                    std::cout << "iss " << iss.str() << std::endl;
+                }
                 // split by spaces
 
                 while (iss >> word)
@@ -162,8 +170,9 @@ std::string wysiwyd::wrdac::SubSystem_LRH::SentenceToMeaning(std::string sInput)
                 }
                 portSAM.write(toSAM);
             }
-
-
+            if (display){
+                std::cout << sInput << " -> " << bReturn.get(1).asString() << std::endl;
+            }
             return bReturn.get(1).asString();
         }
         else{

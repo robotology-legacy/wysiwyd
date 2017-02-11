@@ -2,7 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <yarp/os/all.h>
-#include <wrdac/helpers.h>
+#include <wrdac/clients/opcClient.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -92,5 +92,6 @@ public:
     {
         opc->interrupt();
         opc->close();
+        delete opc;
     }
 };

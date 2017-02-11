@@ -35,6 +35,14 @@ public:
                 itry++;
             }
         }
+
+        if(pt_cloud_topic=="pointcloud_from_yarp") {
+                ROS_DEBUG("Correcting camera pos for YARP");
+                // this is pos, view, up in camera coordinates!
+                viewer->setCameraPosition(0.0, 0.0, 0.0,
+                                          1.0, 0.0, 0.0,
+                                          0.0, 0.0, 1.0);
+        }
     }
 
     ~Raytracer() {
@@ -59,9 +67,15 @@ private:
 
     static const std::string cloud_name;
     static const int visualizer_point_size=3;
+#if __cplusplus > 199711L
+    constexpr static const double obj_size=0.05;
+    constexpr static const double traversal_sphere_size=0.02;
+    constexpr static const float theta=4.0;
+#else
     static const double obj_size=0.05;
     static const double traversal_sphere_size=0.02;
     static const float theta=4.0;
+#endif
 };
 
 const std::string Raytracer::cloud_name="partner_view_cloud";
@@ -148,6 +162,12 @@ void Raytracer::doRaytrace(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cl
                               obj_r, obj_g, obj_b,
                               obj_name);
             shape_list.push_back(obj_name);
+
+            viewer->addSphere(vpt::ros_to_pcl(head_cloud_frame.point),
+                              obj_size,
+                              0.0, 0.0, 0.0,
+                              "partner");
+            shape_list.push_back("partner");
 
             // do level 1 perspective taking
             int is_occluded=-1;

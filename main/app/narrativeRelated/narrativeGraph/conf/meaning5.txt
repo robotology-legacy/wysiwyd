@@ -1,0 +1,48 @@
+# At the beginning, Toby have octopus and icub want octopus
+# icub take the octopus
+# icub reason
+# The goal was that: icub have the
+# icub reason
+# icub said to icub: Give me the octopus please
+# icub said to Toby: Give me the octopus please
+# Toby give the octopus icub
+# And now, icub have octopus
+# In the end, icub have octopus
+
+# FIRST
+first, have Toby octopus, P1 P2 A2 O2
+first, want icub octopus, P1 P2 A2 O2
+
+# AND
+and, say icub Give_me_the_octopus_please Toby, give Toby octopus icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+
+# SO
+so, take icub octopus, P1 P2 A2 O2
+so, take reason, P1 P2 A2
+so, say icub Give_me_the_octopus_please Toby, P1 P2 A2 O2 R2
+so, give Toby octopus icub, P1 P2 A2 O2 R2
+
+# THEN
+then, take reason, P1 P2 A2
+then, say icub Give_me_the_octopus_please Toby, P1 P2 A2 O2 R2
+then, give Toby octopus icub, P1 P2 A2 O2 R2
+
+#BUT
+but, want icub octopus, have Toby octopus, P1 P2 A2 O2 P3 A3 O3
+
+# BEFORE
+before, have icub octopus, have Toby octopus, P1 P2 A2 O2 P3 A3 O3
+before, give Toby octopus icub, have Toby octopus, P1 P2 A2 O2 R2 P3 A3 O3
+
+# AFTER
+after, take icub octopus, reason icub, P1 P2 A2 O2 P3 A3
+after, say icub Give_me_the_octopus_please Toby, give Toby octopus icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+after, give Toby octopus icub, have icub octopus, P1 P2 A2 O2 R2 P3 A3 O3
+
+# BECAUSE
+because, want icub octopus, have icub octopus, P1 P2 A2 O2 P3 A3 O3
+because, give Toby octopus icub, have icub octopus, P1 P2 A2 O2 R2 P3 A3 O3 
+because, say icub Give_me_the_octopus_please Toby, give Toby octopus icub, P1 P2 A2 O2 R2 P3 A3 O3 R3
+
+# FINALLY
+finally, have icub octopus, P1 P2 A2 O2
