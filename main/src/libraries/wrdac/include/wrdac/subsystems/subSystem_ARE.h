@@ -65,10 +65,6 @@ namespace wysiwyd {
             void appendCartesianTarget(yarp::os::Bottle& b, const yarp::sig::Vector &t);
 
             /********************************************************************************/
-            void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
-                                         const std::string& objName, const std::string handToUse="");
-
-            /********************************************************************************/
             bool sendCmd(const yarp::os::Bottle &cmd, const bool disableATT=false);
 
             /********************************************************************************/
@@ -91,6 +87,10 @@ namespace wysiwyd {
 
             /********************************************************************************/
             bool getTableHeight(double &height);
+
+            /********************************************************************************/
+            void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
+                                         const std::string& objName, const std::string handToUse="");
 
             /********************************************************************************/
             yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in);

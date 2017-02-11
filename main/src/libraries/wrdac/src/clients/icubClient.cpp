@@ -527,26 +527,8 @@ bool ICubClient::waving(const bool sw) {
     return are->waving(sw);
 }
 
-bool ICubClient::pointfar(const string &sName, const Bottle &options)
-{
-    Entity *target = opc->getEntity(sName, true);
-    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT) && !target->isType(EFAA_OPC_ENTITY_BODYPART))
-    {
-        yWarning() << "[iCubClient] Called point() on a unallowed location: \"" << sName << "\"";
-        return false;
-    }
 
-    Object *oTarget = dynamic_cast<Object*>(target);
-    if(oTarget!=nullptr) {
-        return pointfar(oTarget->m_ego_position, options, oTarget->name());
-    } else {
-        yError() << "[iCubClient] pointfar: Could not cast Entity to Object";
-        return false;
-    }
-}
-
-
-bool ICubClient::pointfar(const Vector &target, const Bottle &options, std::string sName)
+bool ICubClient::pointfar(const Vector &target, const Bottle &options, const std::string &sName)
 {
     SubSystem_ARE *are = getARE();
     if (are == NULL)
@@ -572,7 +554,10 @@ bool ICubClient::point(const string &sName, const Bottle &options)
 
     Object *oTarget = dynamic_cast<Object*>(target);
     if(oTarget!=nullptr) {
-        return pointfar(oTarget->m_ego_position, options, oTarget->name());
+        SubSystem_ARE *are = getARE();
+        Vector target = oTarget->m_ego_position;
+        are->selectHandCorrectTarget(const_cast<Bottle&>(options), target, sName);
+        return pointfar(target, options, sName);
     } else {
         yError() << "[iCubClient] pointfar: Could not cast Entity to Object";
         return false;
