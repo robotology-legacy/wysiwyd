@@ -104,12 +104,16 @@ void Tagging::run(const Bottle &args) {
         }
         iCub->opc->checkout();
         yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
+
+        iCub->lookAtPartner();
         if(lHandVec.size()==0) {
             iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
         } else {
             iCub->say("Look, because our hands look the same I know this is your hand.");
+            iCub->look(lHandVec);
             iCub->pointfar(lHandVec);
         }
+        iCub->home();
     }
 
     yInfo() << "Proactive tagging ends";
