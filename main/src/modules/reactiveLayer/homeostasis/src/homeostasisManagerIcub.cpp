@@ -136,6 +136,7 @@ bool HomeostaticModule::removeDrive(int d)
 
 bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
 {
+    yInfo() << "RPC received: " << cmd.toString();
     bool all_drives = false;
     if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
