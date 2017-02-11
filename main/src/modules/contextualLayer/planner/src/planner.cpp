@@ -98,18 +98,18 @@ bool Planner::close() {
         iCub->close();
         delete iCub;
     }
+    
+    rpc.interrupt();
+    rpc.close();
 
+    portToBehavior.interrupt();
     portToBehavior.close();
  
+    toHomeo.interrupt();
     toHomeo.close();
    
+    getState.interrupt();
     getState.close();
-
-    // currently not in use, will be implemented when BM receives context for actions as well
-    // port_behavior_context.interrupt();
-    // port_behavior_context.close();
-    
-    rpc.close();
 
     return true;
 }
