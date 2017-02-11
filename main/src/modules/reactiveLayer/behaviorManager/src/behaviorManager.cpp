@@ -29,10 +29,12 @@ bool BehaviorManager::interruptModule()
 
 bool BehaviorManager::close()
 {
+    rpc_in_port.interrupt();
     rpc_in_port.close();
     iCub->close();
 
     for(auto& beh : behaviors) {
+        beh->interrupt_ports();
         beh->close_ports();
         delete beh;
     }
