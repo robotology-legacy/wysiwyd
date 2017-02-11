@@ -193,7 +193,6 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
                     
                 }
                 reply.addString("ack");
-                yInfo()<<"Received a order";
             }
 
         }
@@ -227,7 +226,6 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
                     yInfo() << "Format is: \n - ['par'] [drive_name] [val/min/max/dec] [value]";
                 }
                 reply.addString("ack");
-                yInfo()<<"Received a order";
             }
         }
     }
@@ -371,7 +369,6 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
                     reply.addString("Format is: \n - ['force'] [drive_name] [top/bottom]");
                 }
                 reply.addString("ack");
-                yInfo()<<"Received a order";
             }
             else
             {

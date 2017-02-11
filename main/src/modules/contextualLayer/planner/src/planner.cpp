@@ -813,7 +813,7 @@ bool Planner::updateModule() {
 
             Bottle objectives = *grpPlans.find(planName + "-objectiveState").asList();
 
-            iCub->home();
+            //iCub->home();
             Time::delay(1);
 
             // checking for ultimate state fulfillment.
