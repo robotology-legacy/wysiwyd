@@ -109,7 +109,7 @@ void Tagging::run(const Bottle &args) {
         iCub->lookAtPartner();
         if(lHandVec.size()==0) {
             iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
-            iCub->home("head");
+            iCub->home();
         } else {
             iCub->say("Look, because our hands look the same I know this is your hand.");
             iCub->look(lHandVec);

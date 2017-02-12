@@ -26,7 +26,7 @@ void Pointing::run(const Bottle &args) {
         if(sensation->size()==0) {
             iCub->lookAtPartner();
             iCub->say("There are no objects I can point at.");
-            iCub->home("head");
+            iCub->home();
             return;
         }
         int id = yarp::os::Random::uniform(0, sensation->size() - 1);

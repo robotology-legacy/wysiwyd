@@ -716,7 +716,7 @@ bool Planner::updateModule() {
                 iCub->lookAtPartner();
                 yInfo() << errorMsg;
                 iCub->say(errorMsg);
-                iCub->home("head");
+                iCub->home();
             }
         }
         else

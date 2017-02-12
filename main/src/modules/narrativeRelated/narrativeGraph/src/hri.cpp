@@ -128,7 +128,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
             {
                 yInfo("stop called");
                 iCub->say("You're welcome!");
-                iCub->home("head");
+                iCub->home();
                 exit = true;
             }
             else{
@@ -140,7 +140,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         exit = true;
                         cout << "Okay, bye !" << endl;
                         iCub->say("You're welcome!");
-                        iCub->home("head");
+                        iCub->home();
                     }
                     else if (bSemantic.get(0).asString() == "Else"){
                         remember = false;

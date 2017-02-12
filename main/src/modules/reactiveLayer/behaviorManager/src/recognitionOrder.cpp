@@ -59,7 +59,7 @@ void RecognitionOrder::run(const Bottle &args) {
     }
     iCub->lookAtPartner();
     iCub->say(toSay);
-    iCub->home("head");
+    iCub->home();
     yInfo() << "Recognising ends";
 
     if (!manual && Network::isConnected(port_to_homeo_name, homeoPort)){
