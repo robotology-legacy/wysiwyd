@@ -1,8 +1,9 @@
 #include <algorithm>    // std::random_shuffle
 #include "opcSensation.h"
 
-void OpcSensation::configure()
+void OpcSensation::configure(yarp::os::ResourceFinder &rf)
 {
+    hand_valence = rf.check("hand_valence",Value(0.5)).asDouble();
     moduleName = "opcSensation";
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName,"sensation","client.ini",isRFVerbose);
@@ -193,7 +194,7 @@ Bottle OpcSensation::handleEntities()
                 right_hand.addDouble(a->m_body.m_parts["handRight"][1]);          //Y
                 right_hand.addDouble(a->m_body.m_parts["handRight"][2]);          //Z
                 right_hand.addDouble(dimensions);                       //RADIUS
-                right_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
+                right_hand.addDouble(hand_valence);    //Currently hardcoded threat. Make adaptive
                 objects.addList()=right_hand;
                 
                 Bottle left_hand;
@@ -201,7 +202,7 @@ Bottle OpcSensation::handleEntities()
                 left_hand.addDouble(a->m_body.m_parts["handLeft"][1]);          //Y
                 left_hand.addDouble(a->m_body.m_parts["handLeft"][2]);          //Z
                 left_hand.addDouble(dimensions);                       //RADIUS
-                left_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
+                left_hand.addDouble(hand_valence);    //Currently hardcoded threat. Make adaptive
                 objects.addList()=left_hand;
             }
         }

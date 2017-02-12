@@ -11,7 +11,7 @@ class Sensation : public BufferedPort<Bottle>
 {
 public:
 
-    virtual void configure() = 0;
+    virtual void configure(yarp::os::ResourceFinder &rf) = 0;
     virtual void publish() = 0;
     virtual void close_ports() = 0;
 

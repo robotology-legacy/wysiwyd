@@ -1,7 +1,7 @@
 #include <algorithm>    // std::random_shuffle
 #include "test.h"
 
-void Test::configure()
+void TestSensation::configure(yarp::os::ResourceFinder &rf)
 {
     on = false;
     in.open("/Sensation/test/in");
@@ -10,7 +10,7 @@ void Test::configure()
 
 }
 
-void Test::publish()
+void TestSensation::publish()
 {
 
     Bottle *res = in.read(false);
