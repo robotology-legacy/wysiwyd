@@ -173,15 +173,15 @@ class interactionSAMModel(yarp.RFModule):
 
                     if parts[1].lower() == 'imagergb':
                         self.portsList.append(yarp.BufferedPortImageRgb())
-                        self.portsList[j].open(parts[0])
+                        # self.portsList[j].open(parts[0])
 
                     elif parts[1].lower() == 'imagemono':
                         self.portsList.append(yarp.BufferedPortImageMono())
-                        self.portsList[j].open(parts[0])
+                        # self.portsList[j].open(parts[0])
 
                     elif parts[1].lower() == 'bottle':
                         self.portsList.append(yarp.BufferedPortBottle())
-                        self.portsList[j].open(parts[0])
+                        # self.portsList[j].open(parts[0])
 
                     else:
                         logging.error('Data type ' + str(parts[1]) + ' for ' +
@@ -234,6 +234,8 @@ class interactionSAMModel(yarp.RFModule):
             elif self.mm[0].model_mode == 'temporal':
                 self.bufferSize = self.mm[0].temporalModelWindowSize
 
+            self.labelPort.open(self.labelPortName)
+            self.instancePort.open(self.instancePortName)
             # self.test()
 
             return True
