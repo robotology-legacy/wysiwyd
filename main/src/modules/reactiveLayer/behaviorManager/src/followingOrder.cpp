@@ -165,7 +165,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
                 } else if (o && o->m_present==0.0) {
                     iCub->lookAtPartner();
                     iCub->say("I know the " + target + " but it is not here.");
-                    iCub->home();
+                    iCub->home("head");
                     return true;
                 }
             }
@@ -175,7 +175,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
     yWarning() << "Cannot" << action << "the" << target;
     iCub->lookAtPartner();
     iCub->say("I don't know the " + target + " but I know it is not here. I will not " + action + " it.");
-    iCub->home();
+    iCub->home("head");
     return false;
 }
 
@@ -234,12 +234,15 @@ bool FollowingOrder::handleActionKS(string action, string type) {
         yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
         if(lHandVec.size()==0) {
             iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
+            iCub->home("head");
         } else {
             iCub->say("Look, because our hands look the same I know this is your hand.");
             iCub->pointfar(lHandVec);
+            iCub->home();
         }
+    } else {
+        iCub->home("head");
     }
-    iCub->home();
 
     return true;
 }
@@ -278,7 +281,7 @@ bool FollowingOrder::handleActionBP(string type, string target, string action) {
     yWarning() << "Cannot" << action << "my" << target;
     iCub->lookAtPartner();
     iCub->say("I cannot " + action + " my " + target + ", I do not know this word");
-    iCub->home();
+    iCub->home("head");
     return false;
 }
 

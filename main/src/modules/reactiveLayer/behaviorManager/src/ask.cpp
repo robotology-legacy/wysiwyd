@@ -32,7 +32,7 @@ void Ask::run(const Bottle &args) {
     iCub->say(aux);
     yInfo() << "iCub has requested a " + action + " from the human.";
 
-    iCub->home();
+    iCub->home("head");
     Time::delay(3.0);
 }
 

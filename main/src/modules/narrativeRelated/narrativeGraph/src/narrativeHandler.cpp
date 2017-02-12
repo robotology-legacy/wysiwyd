@@ -1795,7 +1795,7 @@ void narrativeHandler::sayNarrationSimple(story target){
             iCub->say(ii, true, false, "default", false);
         }
         cout << endl << "********************************" << endl;
-        iCub->home();
+        iCub->home("head");
         return;
     }
     else{

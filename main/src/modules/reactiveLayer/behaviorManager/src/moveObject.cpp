@@ -69,5 +69,4 @@ void MoveObject::run(const Bottle &args) {
     }
 
     iCub->home();
-    yarp::os::Time::delay(0.3);
 }
