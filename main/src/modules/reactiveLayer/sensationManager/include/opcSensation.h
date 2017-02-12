@@ -30,7 +30,7 @@ private:
     void addToEntityList(yarp::os::Bottle& list, std::string type, std::string name);
     Bottle handleEntities();
     void handleTouch();
-    double hand_valence;
+    double hand_valence,default_object_valence;
     
 
 public:
