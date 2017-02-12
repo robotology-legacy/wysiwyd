@@ -66,22 +66,18 @@ bool narrativeHandler::speechConfirmation(){
 Bottle narrativeHandler::questionHRI_DFW(){
     yInfo("starting QUESTIONHRI_DFW");
 
+    iCub->say("Sure");
     iCub->getRecogClient()->listen(false);
+    iCub->getRecogClient()->interruptSpeechRecognizer();
+    iCub->getRecogClient()->waitForEars();
+    iCub->say("What do you want to know?", false);
 
     Bottle bReturn;
-
-    vector<string> vBegin;
-    vBegin.push_back("I'll be glad to talk about what we did!");
-    vBegin.push_back("Sure, what do you want to know?");
-
 
     vector<string> vConfuse;
     vConfuse.push_back("I don't know, sorry...");
     vConfuse.push_back("That's hard, I give up...");
     vConfuse.push_back("I have no idea, sorry");
-
-    unsigned int randomIndex = rand() % vBegin.size();
-    iCub->say(vBegin[randomIndex], false);
 
     vector < hriResponse > vResponses;
     vector < PAOR > vSaid;
@@ -108,7 +104,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
             iCub->opc->checkout();
             iCub->lookAtPartner();
             cout << "Remember: " << remember << " | scenario: " << scenarioToRecall << endl;
-            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, true, true);
+            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, true, true, true);
             if (bRecognized.get(0).asInt() == 0)
             {
                 yError() << " error in narrativeHandler::questionHRI_DFW | Error in speechRecog";
@@ -180,7 +176,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         if (bSemantic.get(0).asString() == "PAORsimple"
                             || bSemantic.get(0).asString() == "PAORdouble"){
                             // randomly pick a reaction.
-                            randomIndex = rand() % vConfirmation.size();
+                            unsigned int randomIndex = rand() % vConfirmation.size();
                             iCub->say(vConfirmation[randomIndex]);
                         }
                         else if (bSemantic.get(0).asString() == "stop"){
