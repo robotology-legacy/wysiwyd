@@ -160,6 +160,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         iCub->say("Ok, tell me !");
                     }
                     else if (remember == true){
+                        iCub->say("Let me see.", false);
                         if (doYouRemember(sSentence)){
                             iCub->say("Yes, of course I remember !", false);
 
