@@ -234,8 +234,8 @@ class interactionSAMModel(yarp.RFModule):
             elif self.mm[0].model_mode == 'temporal':
                 self.bufferSize = self.mm[0].temporalModelWindowSize
 
-            self.labelPort.open(self.labelPortName)
-            self.instancePort.open(self.instancePortName)
+            self.portsList[self.labelPort].open(self.labelPortName)
+            self.portsList[self.instancePort].open(self.instancePortName)
             # self.test()
 
             return True
