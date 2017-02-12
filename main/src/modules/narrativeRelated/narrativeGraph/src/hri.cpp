@@ -108,7 +108,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
             iCub->opc->checkout();
             iCub->lookAtPartner();
             cout << "Remember: " << remember << " | scenario: " << scenarioToRecall << endl;
-            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, true);
+            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, true, true);
             if (bRecognized.get(0).asInt() == 0)
             {
                 yError() << " error in narrativeHandler::questionHRI_DFW | Error in speechRecog";

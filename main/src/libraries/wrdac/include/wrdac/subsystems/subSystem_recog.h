@@ -71,7 +71,7 @@ namespace wysiwyd{
             *   From one grxml grammar, return the first sentence non-empty recognized
             *   can last for several timeout (by default 50
             */
-            yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50, bool isEars = false, bool forwardABM = true);
+            yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50, bool keepEarsEnabled = false, bool forwardABM = true, bool keepEarsDisabledAfterRecog = false);
 
         };
 
