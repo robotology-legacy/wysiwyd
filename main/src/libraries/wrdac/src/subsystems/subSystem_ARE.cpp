@@ -366,10 +366,15 @@ bool wysiwyd::wrdac::SubSystem_ARE::point(const yarp::sig::Vector &targetUnsafe,
         SubABM->sendActivity("action", "pointfar", "action", lArgument, true);
     }
 
-    yarp::os::Bottle bCmd;
-    bCmd.addVocab(yarp::os::Vocab::encode("pfar"));
-
     yarp::sig::Vector target=applySafetyMargins(targetUnsafe);
+
+    yarp::os::Bottle bCmd;
+    if(target[0]<-0.31) {
+        bCmd.addVocab(yarp::os::Vocab::encode("pfar"));
+    } else {
+        bCmd.addVocab(yarp::os::Vocab::encode("point"));
+    }
+
     appendCartesianTarget(bCmd,target);
     bCmd.append(options);
 
