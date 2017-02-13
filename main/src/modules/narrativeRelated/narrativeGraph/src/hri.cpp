@@ -662,7 +662,8 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
         Bottle quest = get<0>(question);
         yInfo() << "Current question: " << quest.get(0).asString() << ", PAOR: " << get<1>(question).toString() << ",  Response: " << vResponsesSaid[doku].toString();
         if (quest.get(0).asString() == "Else"){
-            Time::delay(1.0);
+            iCub->say("Hum", false);
+            Time::delay(0.5);
             string picked = pickResponse(vInternalResponses, vSaid);
             if (picked == "none"){
                 iCub->say("Nothing else, sorry.");
