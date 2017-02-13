@@ -100,7 +100,7 @@ void Tagging::run(const Bottle &args) {
         } else {
             iCub->lookAtPartner();
             iCub->say("Actually, I found similar parts of your body. Let me show you on the screen.", false);
-            yarp::os::Time::delay(0.5);
+            yarp::os::Time::delay(1.25);
             iCub->getABMClient()->triggerStreaming(ks, true, true, 0.5, "icubSim", true);
         }
         iCub->opc->checkout();
