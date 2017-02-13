@@ -55,7 +55,7 @@ bool LRH::configure(ResourceFinder &rf) {
     sHand = rf.check("hand", Value("right")).toString().c_str();
     offsetGrasp = rf.check("offsetGrasp", Value("0.02")).asDouble();
 
-    nameSamInputPort = rf.check("nameSamInputPort", Value("/SAM/rpc")).toString().c_str();
+    nameSamInputPort = rf.check("nameSamInputPort", Value("/sam/rpc:i")).toString().c_str();
     setName(moduleName.c_str());
 
     // Open handler port
