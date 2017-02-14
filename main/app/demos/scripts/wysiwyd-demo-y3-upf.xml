@@ -25,7 +25,7 @@
     <module>
         <name>actionsRenderingEngine</name>
         <parameters>--motor::block_eyes 5.0 --motor::impedance on</parameters>
-        <node>icububuntu</node>
+        <node>icubAlien</node>
 	    <ensure>	   
 	       <wait when="stop">21</wait>
 	    </ensure>
@@ -38,6 +38,9 @@
 	    <ensure>	   
 	       <wait when="stop">18</wait>
 	    </ensure>
+        <dependencies>
+            <port timeout="10">/actionsRenderingEngine/cmd:io</port>
+        </dependencies>
     </module>
 
     <module>
@@ -47,6 +50,9 @@
 	    <ensure>	   
 	       <wait when="stop">3</wait>
 	    </ensure>
+        <dependencies>
+            <port timeout="10">/karmaMotor/rpc</port>
+        </dependencies>
     </module>
 
     <module>
@@ -65,6 +71,9 @@
 	    <ensure>	   
 	       <wait when="stop">17</wait>
 	    </ensure>
+        <dependencies>
+            <port timeout="10">/karmaMotor/rpc</port>
+        </dependencies>
     </module>
 
     <module>
@@ -278,7 +287,7 @@
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--name /viewer/iol/histogram --x 1400 --y 600 --w 320 --h 260 --p 50 --compact</parameters>
+        <parameters>--name /viewer/iol/histogram --x 1475 --y 600 --w 320 --h 260 --p 50 --compact</parameters>
         <node>icubAlien</node>
     </module>
     <module>
@@ -293,7 +302,7 @@
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--name /viewer/faceSegmentation --compact --w 320 --h 260 --x 1060 --y 600</parameters>
+        <parameters>--name /viewer/faceSegmentation --compact --w 320 --h 260 --x 1145 --y 600</parameters>
         <node>icubAlien</node>
     </module>
     <module>
@@ -308,7 +317,7 @@
   <module>
     <name>iCubSkinGui</name>
     <!-- Remember to use the proper configuration files (i.e. "_V2.ini" for V2 robots) --> 
-    <parameters>--from right_hand_V2_1.ini --useCalibration --xpos 730 --ypos 600 --width 320 --height 260</parameters>
+    <parameters>--from right_hand_V2_1.ini --useCalibration --xpos 935 --ypos 600 --width 200 --height 200</parameters>
     <node>icubAlien</node>
     <tag>skinGuiRH</tag>
 	    <ensure>	   
@@ -375,7 +384,7 @@
 
    <module>
         <name>sensationManager</name>
-        <parameters></parameters>
+        <parameters>--object_valence -1 --hand_valence 0.7</parameters>
         <node>icubVulcan</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
@@ -408,6 +417,7 @@
             <port timeout="10">/iol2opc/rpc</port>
             <port timeout="10">/sam/rpc:i</port>
             <port timeout="10">/sam/faces/imageData:i</port>
+            <port timeout="10">/sam/actions/actionData:i</port>
         </dependencies>
 	    <ensure>	   
 	       <wait when="stop">6</wait>
@@ -478,10 +488,20 @@
     </module>
     <module>
         <name>drive_control_gui.py</name>
-        <parameters>-x 1900 -y 600</parameters>
+        <parameters>-x 730 -y 820</parameters>
         <node>icubAlien</node>
         <dependencies>
             <port timeout="30">/AllostaticController/rpc</port>
+        </dependencies>
+    </module>
+
+
+    <module>
+        <name>command.sh</name>
+        <parameters></parameters>
+        <node>icubAlien</node>
+        <dependencies>
+            <port timeout="10">/speechRecognizer/rpc</port>
         </dependencies>
     </module>
 
@@ -727,5 +747,10 @@
       <from>/sam/unity/paor:i</from>
       <to>/narrativeGraph/icubClient/lrh:o:sam</to>
       <protocol>udp</protocol>
+  </connection>
+  <connection>
+      <from>/speechRecognizer/rpc</from>
+      <to>/speechvisualizer</to>
+      <protocol>tcp+log.in</protocol>
   </connection>
 </application>
