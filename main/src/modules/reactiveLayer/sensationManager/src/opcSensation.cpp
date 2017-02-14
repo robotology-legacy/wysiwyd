@@ -1,8 +1,10 @@
 #include <algorithm>    // std::random_shuffle
 #include "opcSensation.h"
 
-void OpcSensation::configure()
+void OpcSensation::configure(yarp::os::ResourceFinder &rf)
 {
+    hand_valence = rf.check("hand_valence",Value(0.5)).asDouble();
+    default_object_valence = rf.check("object_valence",Value(0.0)).asDouble();
     moduleName = "opcSensation";
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName,"sensation","client.ini",isRFVerbose);
@@ -170,7 +172,12 @@ Bottle OpcSensation::handleEntities()
                     objec.addDouble(obj1->m_ego_position[2]);          //Z
                     double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
                     objec.addDouble(dimensions);                       //RADIUS
-                    objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
+                    if (default_object_valence != 0.0)
+                    {
+                        objec.addDouble(default_object_valence);
+                    }else{
+                        objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
+                    }
                     objects.addList()=objec;
                     addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
                 }
@@ -193,7 +200,7 @@ Bottle OpcSensation::handleEntities()
                 right_hand.addDouble(a->m_body.m_parts["handRight"][1]);          //Y
                 right_hand.addDouble(a->m_body.m_parts["handRight"][2]);          //Z
                 right_hand.addDouble(dimensions);                       //RADIUS
-                right_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
+                right_hand.addDouble(hand_valence);    //Currently hardcoded threat. Make adaptive
                 objects.addList()=right_hand;
                 
                 Bottle left_hand;
@@ -201,7 +208,7 @@ Bottle OpcSensation::handleEntities()
                 left_hand.addDouble(a->m_body.m_parts["handLeft"][1]);          //Y
                 left_hand.addDouble(a->m_body.m_parts["handLeft"][2]);          //Z
                 left_hand.addDouble(dimensions);                       //RADIUS
-                left_hand.addDouble(-0.5);    //Currently hardcoded threat. Make adaptive
+                left_hand.addDouble(hand_valence);    //Currently hardcoded threat. Make adaptive
                 objects.addList()=left_hand;
             }
         }

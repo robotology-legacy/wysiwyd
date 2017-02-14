@@ -30,12 +30,13 @@ private:
     void addToEntityList(yarp::os::Bottle& list, std::string type, std::string name);
     Bottle handleEntities();
     void handleTouch();
+    double hand_valence,default_object_valence;
     
 
 public:
 
     Bottle u_entities, k_entities, up_entities, kp_entities, p_entities, o_positions;
-    void configure();
+    void configure(yarp::os::ResourceFinder &rf);
     void publish();
     int get_property(string name, string property);
     

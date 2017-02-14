@@ -99,7 +99,8 @@ void Tagging::run(const Bottle &args) {
             yError() << "No kinematic structure instances defined in config file";
         } else {
             iCub->lookAtPartner();
-            iCub->say("Actually, I found similar parts of your body. Let me show you on the screen.");
+            iCub->say("Actually, I found similar parts of your body. Let me show you on the screen.", false);
+            yarp::os::Time::delay(1.25);
             iCub->getABMClient()->triggerStreaming(ks, true, true, 0.5, "icubSim", true);
         }
         iCub->opc->checkout();
@@ -108,12 +109,13 @@ void Tagging::run(const Bottle &args) {
         iCub->lookAtPartner();
         if(lHandVec.size()==0) {
             iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
+            iCub->home();
         } else {
             iCub->say("Look, because our hands look the same I know this is your hand.");
             iCub->look(lHandVec);
             iCub->pointfar(lHandVec);
+            iCub->home();
         }
-        iCub->home();
     }
 
     yInfo() << "Proactive tagging ends";

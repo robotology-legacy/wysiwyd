@@ -66,13 +66,13 @@ int main()
 
     bool ok ;
 
-    iCub.home();    // Home by using ARE
+    /*iCub.home();    // Home by using ARE
     cout<<"try to pushFront with KARMA ..."<<endl;
     ok = iCub.pushKarmaFront(x,-0.35);                  //WARNING: second argument is the desired x[0] that we want and should be less than original x[0]
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
 
-    /*iCub.home();    // Home by using ARE
+    iCub.home();    // Home by using ARE
     x[1] =x[1] - 0.1;                        //offset on lateral to draw?
     cout<<"try to pull with KARMA...";
     ok = iCub.drawKarma(x,0,0.1,0.1);        //draw of 0.1m but the objects is considered as -0.35 so final: -0.25
@@ -83,7 +83,7 @@ int main()
 
 
     //----------------------------> ARE related action
-    iCub.home();     // Home by using ARE
+    /*iCub.home();     // Home by using ARE
     cout<<"try to point using ARE..."<<endl;
     ok = iCub.point(x);      // automatic selection of the hand
     cout<<(ok?"success":"failed")<<endl;
@@ -118,6 +118,7 @@ int main()
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
     iCub.home();
+    */
 
     cout<<"shutting down ... "<<endl;
     iCub.close();

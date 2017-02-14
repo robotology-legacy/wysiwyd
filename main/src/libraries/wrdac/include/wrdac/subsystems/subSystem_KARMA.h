@@ -83,7 +83,8 @@ namespace wysiwyd {
             /********************************************************************************/
             bool returnArmSafely(std::string armType);
 
-            void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
+            void selectHandCorrectTarget(yarp::os::Bottle& options, const std::string &targetName,
+                                         yarp::sig::Vector& target,
                                          const std::string handToUse="");
 
             /********************************************************************************/
@@ -119,6 +120,7 @@ namespace wysiwyd {
 
             /**
              * @brief pushAside (KARMA): push an object to a certain location along y-axis of robot RoF
+             * @param objName: name of object
              * @param objCenter: coordinate of object
              * @param targetPosY: y coordinate of location to push object to
              * @param theta: angle to define pushing left (0) or right (180)
@@ -127,7 +129,8 @@ namespace wysiwyd {
              * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
-            bool pushAside(const yarp::sig::Vector &objCenter, const double &targetPosY,
+            bool pushAside(const std::string &objName,
+                           const yarp::sig::Vector &objCenter, const double &targetPosY,
                            const double &theta,
                            const std::string &armType = "selectable",
                            const yarp::os::Bottle &options = yarp::os::Bottle(),
@@ -135,6 +138,7 @@ namespace wysiwyd {
 
             /**
              * @brief pushFront (KARMA): push an object to a certain location along x-axis of robot RoF
+             * @param objName: name of object
              * @param objCenter: coordinate of object
              * @param targetPosXFront: x coordinate of location to push object to
              * @param armType: "left" or "right" arm to conduct action, otherwise arm will be chosen by KARMA
@@ -142,7 +146,8 @@ namespace wysiwyd {
              * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
-            bool pushFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+            bool pushFront(const std::string &objName,
+                           const yarp::sig::Vector &objCenter, const double &targetPosXFront,
                            const std::string &armType = "selectable",
                            const yarp::os::Bottle &options = yarp::os::Bottle(),
                            const std::string &sName = "target");
@@ -169,9 +174,11 @@ namespace wysiwyd {
              * @param sName: name of object to pull
              * @return true in case of success release, false otherwise
              */
-            bool pullBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
-                                                           const std::string &armType,
-                                                           const yarp::os::Bottle &options, const std::string &sName);
+            bool pullBack(const std::string &objName,
+                          const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+                          const std::string &armType = "selectable",
+                          const yarp::os::Bottle &options = yarp::os::Bottle(),
+                          const std::string &sName="target");
             /**
              * @brief draw (KARMA): draw action, along the positive direction of the x-axis (in robot FoR)
              * @param targetCenter: center of a circle
@@ -197,7 +204,8 @@ namespace wysiwyd {
              * @param sName: name of object to push
              * @return true in case of success release, false otherwise
              */
-            bool vdraw(const yarp::sig::Vector &targetCenter, const double theta,
+            bool vdraw(const std::string &targetName,
+                       const yarp::sig::Vector &targetCenter, const double theta,
                       const double radius, const double dist,
                       const yarp::os::Bottle &options = yarp::os::Bottle(),
                       const std::string &sName="target");

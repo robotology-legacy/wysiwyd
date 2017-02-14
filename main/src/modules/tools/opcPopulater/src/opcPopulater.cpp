@@ -609,7 +609,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     //        true);
     //}
     yInfo() << " start grasping";
-    iCub->take(ObjStory->m_ego_position);
+    iCub->take(ObjStory->name());
 
     //if (iCub->getABMClient()->Connect())
     //{
@@ -1076,7 +1076,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
 
 
     yInfo() << " start grasping";
-    bool finished = iCub->take(Giraffe->m_ego_position);
+    bool finished = iCub->take(Giraffe->name());
 
 
     if (iCub->getABMClient()->Connect())
@@ -1346,7 +1346,7 @@ bool opcPopulater::populateScenario1()
     yInfo() << " start recording in ABM";
 
     yInfo() << " start grasping";
-    iCub->take(Croco->m_ego_position, bOption, sObject);
+    iCub->take(Croco->name(), bOption);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -1624,7 +1624,7 @@ bool opcPopulater::populateScenario2(){
     yInfo() << " start recording in ABM";
 
     yInfo() << " start grasping";
-    iCub->take(Croco->m_ego_position, bOption, sObject);
+    iCub->take(Croco->name(), bOption);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -1810,7 +1810,7 @@ bool opcPopulater::populateScenario3(){
     yInfo() << " start recording in ABM";
 
     yInfo() << " start grasping";
-    iCub->take(Croco->m_ego_position, bOption, sObject);
+    iCub->take(Croco->name(), bOption);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -2071,7 +2071,7 @@ bool opcPopulater::populateScenario5(){
     yInfo() << " start recording in ABM";
 
     yInfo() << " start grasping";
-    iCub->take(Croco->m_ego_position, bOption, sObject);
+    iCub->take(Croco->name(), bOption);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -2308,7 +2308,7 @@ bool opcPopulater::populateScenario6(){
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
 
     yInfo() << " start grasping";
-    iCub->take(Croco->m_ego_position, bOption, sObject);
+    iCub->take(Croco->name(), bOption);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
@@ -2356,7 +2356,7 @@ bool opcPopulater::populateScenario6(){
     // TRY TO GRASP
 
     yInfo() << " start grasping";
-    iCub->take(Croco->m_ego_position, bOption, sObject);
+    iCub->take(Croco->name(), bOption);
 
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());

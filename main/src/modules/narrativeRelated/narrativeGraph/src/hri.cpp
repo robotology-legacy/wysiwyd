@@ -65,20 +65,19 @@ bool narrativeHandler::speechConfirmation(){
 */
 Bottle narrativeHandler::questionHRI_DFW(){
     yInfo("starting QUESTIONHRI_DFW");
+
+    iCub->say("Sure");
+    iCub->getRecogClient()->listen(false);
+    iCub->getRecogClient()->interruptSpeechRecognizer();
+    iCub->getRecogClient()->waitForEars();
+    iCub->say("What do you want to know?", false);
+
     Bottle bReturn;
-
-    vector<string> vBegin;
-    vBegin.push_back("I'll be glad to talk about what we did!");
-    vBegin.push_back("Sure, what do you want to know?");
-
 
     vector<string> vConfuse;
     vConfuse.push_back("I don't know, sorry...");
     vConfuse.push_back("That's hard, I give up...");
     vConfuse.push_back("I have no idea, sorry");
-
-    unsigned int randomIndex = rand() % vBegin.size();
-    iCub->say(vBegin[randomIndex], false);
 
     vector < hriResponse > vResponses;
     vector < PAOR > vSaid;
@@ -94,8 +93,6 @@ Bottle narrativeHandler::questionHRI_DFW(){
     bool listening = false; // is asked to the robot to listen to the human
     bool exit = false;
 
-    iCub->getRecogClient()->listen(false);
-
     while (!exit){
         yInfo() << "exit: " << exit;
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
@@ -107,7 +104,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
             iCub->opc->checkout();
             iCub->lookAtPartner();
             cout << "Remember: " << remember << " | scenario: " << scenarioToRecall << endl;
-            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, false, true);
+            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarQuestionDFW), 20, true, true, true);
             if (bRecognized.get(0).asInt() == 0)
             {
                 yError() << " error in narrativeHandler::questionHRI_DFW | Error in speechRecog";
@@ -163,6 +160,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         iCub->say("Ok, tell me !");
                     }
                     else if (remember == true){
+                        iCub->say("Let me see.", false);
                         if (doYouRemember(sSentence)){
                             iCub->say("Yes, of course I remember !", false);
 
@@ -179,7 +177,7 @@ Bottle narrativeHandler::questionHRI_DFW(){
                         if (bSemantic.get(0).asString() == "PAORsimple"
                             || bSemantic.get(0).asString() == "PAORdouble"){
                             // randomly pick a reaction.
-                            randomIndex = rand() % vConfirmation.size();
+                            unsigned int randomIndex = rand() % vConfirmation.size();
                             iCub->say(vConfirmation[randomIndex]);
                         }
                         else if (bSemantic.get(0).asString() == "stop"){
@@ -664,7 +662,8 @@ bool narrativeHandler::createNarration(vector<tuple <Bottle, PAOR > > vQuestions
         Bottle quest = get<0>(question);
         yInfo() << "Current question: " << quest.get(0).asString() << ", PAOR: " << get<1>(question).toString() << ",  Response: " << vResponsesSaid[doku].toString();
         if (quest.get(0).asString() == "Else"){
-            Time::delay(1.0);
+            iCub->say("Hum", false);
+            Time::delay(0.5);
             string picked = pickResponse(vInternalResponses, vSaid);
             if (picked == "none"){
                 iCub->say("Nothing else, sorry.");

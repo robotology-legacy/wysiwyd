@@ -173,7 +173,7 @@ bool ears::updateModule() {
         Bottle bRecognized, //received FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true, true, true);
 
         if (bRecognized.get(0).asInt() == 0)
         {

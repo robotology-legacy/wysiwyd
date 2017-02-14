@@ -39,11 +39,6 @@ void Pointing::run(const Bottle &args) {
     
     iCub->say(sentence + obj_name, false);
 
-    Bottle options;
-    options.addString("fixate");
-    options.addString("wait");
-    iCub->look(obj_name,options); // to have a better estimate of where to point
-
     bool succeeded = iCub->point(obj_name);
     if (no_objects){
         bool look_success = iCub->lookAtPartner();

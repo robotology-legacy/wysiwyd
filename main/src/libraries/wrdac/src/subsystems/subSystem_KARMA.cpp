@@ -18,7 +18,8 @@ void wysiwyd::wrdac::SubSystem_KARMA::appendDouble(yarp::os::Bottle &b, const do
     sub.addDouble(v);
 }
 
-void wysiwyd::wrdac::SubSystem_KARMA::selectHandCorrectTarget(yarp::os::Bottle &options, yarp::sig::Vector &target, const std::string handToUse)
+void wysiwyd::wrdac::SubSystem_KARMA::selectHandCorrectTarget(yarp::os::Bottle &options, const std::string &targetName,
+                                                              yarp::sig::Vector &target, const std::string handToUse)
 {
     std::string hand="";
     for (int i=0; i<options.size(); i++)
@@ -51,15 +52,18 @@ void wysiwyd::wrdac::SubSystem_KARMA::selectHandCorrectTarget(yarp::os::Bottle &
     if (calibPort.getOutputCount()>0)
     {
         yarp::os::Bottle cmd,reply;
-        cmd.addString("get_location_nolook");
+        cmd.addString("get_location");
+        cmd.addString(hand);
+        cmd.addString(targetName);
         cmd.addString("iol-"+hand);
-        cmd.addDouble(target[0]);
-        cmd.addDouble(target[1]);
-        cmd.addDouble(target[2]);
         calibPort.write(cmd,reply);
         target[0]=reply.get(1).asDouble();
         target[1]=reply.get(2).asDouble();
         target[2]=reply.get(3).asDouble();
+
+        Bottle opt;
+        opt.addString("fixate");
+        SubARE->look(target,opt,targetName);
     }
 
 //    lastlyUsedHand=hand;
@@ -290,7 +294,8 @@ void wysiwyd::wrdac::SubSystem_KARMA::chooseArmAuto()
     sendCmd(bCmd,true);
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCenter, const double &targetPosY,
+bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const std::string &objName,
+                                                const yarp::sig::Vector &objCenter, const double &targetPosY,
                                                 const double &theta,
                                                 const std::string &armType,
                                                 const yarp::os::Bottle &options, const std::string &sName)
@@ -301,7 +306,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     double zOffset = 0.05;
     double actionOffset = 0.1;              // add 10cm offset to deal with object dimension
     yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
-    selectHandCorrectTarget(opt,object);    // target is calibrated by this method
+    selectHandCorrectTarget(opt,objName,object);    // target is calibrated by this method
     yInfo ("[subSystem_KARMA] object center calib: %s",object.toString().c_str());
     double radius = fabs(object[1] - targetPosY);
     yInfo ("objectY = %f",object[1]);
@@ -332,17 +337,18 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pushAside(const yarp::sig::Vector &objCent
     return pushSucceed;
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const yarp::sig::Vector &objCenter, const double &targetPosXFront,
+bool wysiwyd::wrdac::SubSystem_KARMA::pushFront(const std::string &objName,
+                                                const yarp::sig::Vector &objCenter, const double &targetPosXFront,
                                                 const std::string &armType,
                                                 const yarp::os::Bottle &options, const std::string &sName)
 {
     // Calculate the pushing distance (radius) for push with Karma
     Vector object = objCenter;
     Bottle opt = options;
-    double zOffset = 0.08;
+    double zOffset = 0.1;
     double actionOffset = 0.1;              // add 10cm offset to deal with object dimension
     yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
-    selectHandCorrectTarget(opt,object);    // target is calibrated by this method
+    selectHandCorrectTarget(opt,objName,object);    // target is calibrated by this method
     yInfo ("[subSystem_KARMA] object center calib: %s",object.toString().c_str());
     double radius = fabs(object[0] - targetPosXFront);
     yInfo ("objectX = %f",object[0]);
@@ -429,7 +435,8 @@ bool wysiwyd::wrdac::SubSystem_KARMA::push(const yarp::sig::Vector &targetCenter
 
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCenter, const double &targetPosXBack,
+bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const std::string &objName,
+                                               const yarp::sig::Vector &objCenter, const double &targetPosXBack,
                                                const std::string &armType,
                                                const yarp::os::Bottle &options, const std::string &sName)
 {
@@ -439,7 +446,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::pullBack(const yarp::sig::Vector &objCente
     double zOffset = -0.04;
     double actionOffset = 0.05;                     // add 5cm offset to deal with object dimension
     yInfo ("[subSystem_KARMA] object center OPC  : %s",object.toString().c_str());
-    selectHandCorrectTarget(opt,object);            // target is calibrated by this method
+    selectHandCorrectTarget(opt,objName,object);            // target is calibrated by this method
     yInfo ("[subSystem_KARMA] object center calib: %s",object.toString().c_str());
     double dist = fabs(object[0] - targetPosXBack); // dist in pulling ~ radius in pushing; radius in pulling ~ radius in pushing
     yInfo ("objectX = %f",object[0]);
@@ -528,7 +535,8 @@ bool wysiwyd::wrdac::SubSystem_KARMA::draw(const yarp::sig::Vector &targetCenter
     return bReturn;
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const yarp::sig::Vector &targetCenter,
+bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const std::string &targetName,
+                                            const yarp::sig::Vector &targetCenter,
                                             const double theta, const double radius,
                                             const double dist,
                                             const yarp::os::Bottle &options, const std::string &sName)
@@ -554,7 +562,7 @@ bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const yarp::sig::Vector &targetCente
 
     yarp::sig::Vector target=targetCenter;
     yarp::os::Bottle opt=options;
-    selectHandCorrectTarget(opt,target);
+    selectHandCorrectTarget(opt,targetName,target);
     target=applySafetyMargins(target);
     appendTarget(bCmd,target);
     appendDouble(bCmd,theta);

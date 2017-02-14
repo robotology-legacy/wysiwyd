@@ -32,12 +32,12 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
             if (sensation_name == "opcSensation") {
                 sensations.push_back(new OpcSensation());
             } else if (sensation_name == "test") {
-                sensations.push_back(new Test());
+                sensations.push_back(new TestSensation());
             } else{
                 yDebug() << "Sensation " + sensation_name + " not implemented";
                 return false;
             }
-            sensations.back()->configure();
+            sensations.back()->configure(rf);
         }
     }else{
         yError()<<"Didn't find any sensation. Please revise your configuration files...";

@@ -434,7 +434,7 @@ bool Babbling::doBabbling()
         babblingCommandsMatlab();
     }
 
-    yDebug() << "\n CHECKPOINT \n" ;
+    /*yDebug() << "\n CHECKPOINT \n" ;
     Time::delay(3);
 
     bool homeEnd = gotoStartPos();
@@ -444,7 +444,7 @@ bool Babbling::doBabbling()
 
 
     yDebug() << "\n CHECKPOINT 2 \n" ;
-    Time::delay(3);
+    Time::delay(3);*/
 
     return true;
 }

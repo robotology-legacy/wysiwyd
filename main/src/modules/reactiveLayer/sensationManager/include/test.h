@@ -13,7 +13,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 
-class Test: public Sensation
+class TestSensation: public Sensation
 {
 private:
     bool on;
@@ -23,7 +23,7 @@ private:
 
 
 public:
-    void configure();
+    void configure(yarp::os::ResourceFinder &rf);
     void publish();
     void close_ports() {
         in.interrupt();

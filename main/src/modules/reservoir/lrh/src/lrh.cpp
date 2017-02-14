@@ -55,7 +55,7 @@ bool LRH::configure(ResourceFinder &rf) {
     sHand = rf.check("hand", Value("right")).toString().c_str();
     offsetGrasp = rf.check("offsetGrasp", Value("0.02")).asDouble();
 
-    nameSamInputPort = rf.check("nameSamInputPort", Value("/SAM/rpc")).toString().c_str();
+    nameSamInputPort = rf.check("nameSamInputPort", Value("/sam/rpc:i")).toString().c_str();
     setName(moduleName.c_str());
 
     // Open handler port
@@ -448,7 +448,7 @@ bool LRH::AREactions(vector<string> seq)
             if (sLocation != " ")
             {
                 Time::delay(ftime);
-                bool grasped = iCub->take(value, bHand);
+                bool grasped = iCub->take(rtObject->name(), bHand);
                 cout << (grasped ? "grasped!" : "missed!") << endl;
 
                 success &= grasped;
@@ -467,7 +467,7 @@ bool LRH::AREactions(vector<string> seq)
             // DROP WITHOUT LOCATION
             else
             {
-                bool grasped = iCub->take(value, bHand);
+                bool grasped = iCub->take(rtObject->name(), bHand);
                 cout << (grasped ? "grasped!" : "missed!") << endl;
                 Time::delay(ftime);
                 success &= grasped;
@@ -490,7 +490,7 @@ bool LRH::AREactions(vector<string> seq)
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
             Time::delay(ftime);
-            bool pushed = iCub->push(value, bHand);
+            bool pushed = iCub->push(rtObject->name(), bHand);
             cout << (pushed ? "pushed!" : "missed!") << endl;
             Time::delay(ftime);
             success &= pushed;
@@ -501,11 +501,8 @@ bool LRH::AREactions(vector<string> seq)
         else if (sPredicat == "point")
         {
             Time::delay(ftime);
-            value[1] < 0.0 ? sHand = "left" : sHand = "right";
-            Bottle bHand(sHand);
-            cout << "sHand : " << sHand << endl;
 
-            bool pointed = iCub->point(value, bHand);
+            bool pointed = iCub->point(rtObject->name());
             cout << (pointed ? "pointed!" : "missed!") << endl;
 
             success &= pointed;

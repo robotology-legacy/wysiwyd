@@ -204,17 +204,24 @@ class SAMDriver_interaction(SAMDriver):
         if numFaces > 0:
             # average all faces
             for i in range(numFaces):
+                logging.info('iterating' + str(i))
                 yarpImage.copy(dataList[i])
                 imageArrayOld = cv2.resize(imageArray, (imgHNew, imgWNew))
                 imageArrayGray = cv2.cvtColor(imageArrayOld, cv2.COLOR_BGR2GRAY)
                 instance = imageArrayGray.flatten()[None, :]
                 logging.info(instance.shape)
                 logging.info("Collected face: " + str(i))
+                logging.info('testing enter')
                 [labels[i], likelihoods[i]] = SAMTesting.testSegment(thisModel, instance, verbose, None)
-
-            return SAMTesting.combineClassifications(thisModel, labels, likelihoods)
+                logging.info('testing leave')
+            logging.info('combine enter')
+            finalClassLabel, finalClassProb = SAMTesting.combineClassifications(thisModel, labels, likelihoods)
+            logging.info('combine ready')
+            logging.info('finalClassLabels ' + str(finalClassLabel))
+            logging.info('finalClassProbs ' + str(finalClassProb))
+            return finalClassLabel, finalClassProb, []
         else:
-            return [None, 0]
+            return [None, 0, None]
 
     def formatGeneratedData(self, instance):
         # normalise image between 0 and 1

@@ -127,7 +127,7 @@ yarp::os::Bottle wysiwyd::wrdac::SubSystem_Recog::recogFromGrammar(std::string &
     // turn off the main grammar through ears
 }
 
-yarp::os::Bottle wysiwyd::wrdac::SubSystem_Recog::recogFromGrammarLoop(std::string sInput, int iLoop, bool isEars, bool forwardABM)
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_Recog::recogFromGrammarLoop(std::string sInput, int iLoop, bool keepEarsEnabled, bool forwardABM, bool keepEarsDisabledAfterRecog)
 {
     if (!yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
         if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
@@ -145,7 +145,7 @@ yarp::os::Bottle wysiwyd::wrdac::SubSystem_Recog::recogFromGrammarLoop(std::stri
             bReply, //response from speech recog without transfer information, including raw sentence
             bOutput; // semantic information of the content of the recognition
 
-    if (!isEars) {
+    if (!keepEarsEnabled) {
         listen(false);
 
         interruptSpeechRecognizer();
@@ -176,7 +176,7 @@ yarp::os::Bottle wysiwyd::wrdac::SubSystem_Recog::recogFromGrammarLoop(std::stri
             osError << "Check grammar";
             bOutput.addString(osError.str());
             yError() << " " << osError.str();
-            if (!isEars) listen(true);
+            if (!keepEarsDisabledAfterRecog) listen(true);
             return bOutput;
         }
         else if (bReply.get(0).toString() == "0")
@@ -184,8 +184,8 @@ yarp::os::Bottle wysiwyd::wrdac::SubSystem_Recog::recogFromGrammarLoop(std::stri
             bOutput.addInt(0);
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
-            yInfo() << " " << osError.str();
-            if (!isEars) listen(true);
+            yError() << " " << osError.str();
+            if (!keepEarsDisabledAfterRecog) listen(true);
             return bOutput;
         }
         else if (bReply.get(0).toString() == "ACK")
@@ -242,6 +242,6 @@ yarp::os::Bottle wysiwyd::wrdac::SubSystem_Recog::recogFromGrammarLoop(std::stri
         bOutput.addString(osError.str());
         yDebug() << osError.str();
     }
-    if (!isEars) listen(true);
+    if (!keepEarsDisabledAfterRecog) listen(true);
     return bOutput;
 }

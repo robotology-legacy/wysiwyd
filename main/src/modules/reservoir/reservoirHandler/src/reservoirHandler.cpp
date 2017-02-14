@@ -1233,7 +1233,7 @@ bool reservoirHandler::AREactions(vector<string> seq)
             if (sLocation != " ")
             {
                 Time::delay(ftime);
-                bool grasped = iCub->take(value, bHand, sObject);
+                bool grasped = iCub->take(sObject, bHand);
 
                 cout << (grasped ? "grasped!" : "missed!") << endl;
 
@@ -1253,7 +1253,7 @@ bool reservoirHandler::AREactions(vector<string> seq)
             // DROP WITHOUT LOCATION
             else
             {
-                bool grasped = iCub->take(value, bHand);
+                bool grasped = iCub->take(sObject, bHand);
                 cout << (grasped ? "grasped!" : "missed!") << endl;
                 Time::delay(ftime);
                 success &= grasped;
@@ -1276,7 +1276,7 @@ bool reservoirHandler::AREactions(vector<string> seq)
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
             Time::delay(ftime);
-            bool pushed = iCub->push(value, bHand);
+            bool pushed = iCub->push(sObject, bHand);
             cout << (pushed ? "pushed!" : "missed!") << endl;
             Time::delay(ftime);
             success &= pushed;
@@ -1287,11 +1287,8 @@ bool reservoirHandler::AREactions(vector<string> seq)
         else if (sPredicat == "point")
         {
             Time::delay(ftime);
-            value[1] < 0.0 ? sHand = "left" : sHand = "right";
-            Bottle bHand(sHand);
-            cout << "sHand : " << sHand << endl;
 
-            bool pointed = iCub->point(value, bHand);
+            bool pointed = iCub->point(sObject);
             cout << (pointed ? "pointed!" : "missed!") << endl;
 
             success &= pointed;

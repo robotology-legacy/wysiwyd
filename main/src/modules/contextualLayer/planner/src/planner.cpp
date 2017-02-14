@@ -701,7 +701,7 @@ bool Planner::updateModule() {
                         preqFail.erase(std::remove(preqFail.begin(), preqFail.end(), "not present"), preqFail.end());
                     }
                 }
-                string errorMsg = "I could not execute the plan " + planName + " because the " + object + " is ";
+                string errorMsg = "I could not " + planName + " because the " + object + " is ";
                 for (unsigned int ii = 0; ii<preqFail.size(); ii++)
                 {
                     if (ii!=0)
@@ -723,7 +723,7 @@ bool Planner::updateModule() {
         {
             // final state of object is already met
             yInfo() << "the final state of the object is already reached. No need for plan " + planName;
-            string sentence = "the " + object + " is already in the desired location, there is no need for the plan " + planName;
+            string sentence = "the " + object + " is already in the desired location";
             iCub->say(sentence);
         }
 
@@ -859,6 +859,7 @@ bool Planner::updateModule() {
                     {
                         yInfo() << "Post condition check has failed at attempt (" << checkCount << "), reattempting...";
                         checkCount += 1;
+                        iCub->home();
                         yarp::os::Time::delay(0.8);
                     }
                     else
@@ -969,7 +970,7 @@ bool Planner::updateModule() {
                         if (!state)
                         {
                             yDebug() << "The precondition for the action is no longer valid.";
-                            iCub->say("I cannot re-attempt the action because the preconditions are not met. I will not carry out the plan " + plan_list[0]);
+                            iCub->say("I am not sure how to " + plan_list[0]);
                         }
                     }
                     else { yDebug() << "there are no preconditions for this action"; }
@@ -998,7 +999,7 @@ bool Planner::updateModule() {
                 {
                     if (attemptCnt > 2)             
                     {
-                        iCub->say("I have tried too many times and failed. Do it yourself or help me.");
+                        iCub->say("I have tried too many times and failed. Please help me.");
                         yDebug() << "iCub has said that attemptCnt reached.";
                     }
 

@@ -227,19 +227,22 @@ bool FollowingOrder::handleActionKS(string action, string type) {
         iCub->say("I think our body parts are similar. I show you what I mean on the screen.", false);
         speedMultiplier=0.5;
     }
-    yarp::os::Time::delay(0.5);
+    yarp::os::Time::delay(1.0);
     iCub->getABMClient()->triggerStreaming(ks, true, true, speedMultiplier, "icubSim", true);
 
     if(type=="kinematic structure correspondence") {
         yarp::sig::Vector lHandVec = iCub->getPartnerBodypartLoc(EFAA_OPC_BODY_PART_TYPE_HAND_L);
         if(lHandVec.size()==0) {
             iCub->say("Although I know our hands look the same I cannot point at your hand because I cannot see it right now.");
+            iCub->home();
         } else {
             iCub->say("Look, because our hands look the same I know this is your hand.");
             iCub->pointfar(lHandVec);
+            iCub->home();
         }
+    } else {
+        iCub->home();
     }
-    iCub->home();
 
     return true;
 }

@@ -27,6 +27,7 @@
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
 #include "wrdac/subsystems/subSystem_attention.h"
+#include "wrdac/clients/opcClient.h"
 
 #define SUBSYSTEM_ARE       "ARE"
 
@@ -51,6 +52,8 @@ namespace wysiwyd {
             SubSystem_Attention* SubATT;
             bool ATTconnected;
 
+            OPCClient *opc;
+
             yarp::os::RpcClient cmdPort;            
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
@@ -60,10 +63,6 @@ namespace wysiwyd {
 
             /********************************************************************************/
             void appendCartesianTarget(yarp::os::Bottle& b, const yarp::sig::Vector &t);
-
-            /********************************************************************************/
-            void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
-                                         const std::string handToUse="");
 
             /********************************************************************************/
             bool sendCmd(const yarp::os::Bottle &cmd, const bool disableATT=false);
@@ -90,6 +89,10 @@ namespace wysiwyd {
             bool getTableHeight(double &height);
 
             /********************************************************************************/
+            void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
+                                         const std::string& objName, const std::string handToUse="");
+
+            /********************************************************************************/
             yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in);
 
             /**
@@ -112,38 +115,25 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                      const std::string &sName = "target");
+            bool take(const std::string &sName, const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
             * Reach the specified [target] from one side and then push it
             * laterally. Optional parameter "away" can be supplied in order
             * to have the robot push the object away from its root reference
             * frame.
-            * @param target Target to grasp in cartesian coordinates
+            * @param target Target to push in cartesian coordinates
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                      const std::string &sName="target");
+            bool push(const std::string &sName, const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
             * Point at the specified [target] with the index finger.
             * The target can be far away from the iCub, e.g. a body part of the human
-            * @param target Target to grasp in cartesian coordinates
-            * @param options Options of ARE commands ("no_head", "no_gaze",
-            *             "no_sacc", "still", "left", "right").
-            * @return true in case of successfull motor command, false
-            *         otherwise.
-            */
-            bool pointfar(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                       const std::string &sName="target");
-
-            /**
-            * Point at the specified [target] with the index finger.
-            * @param target Target to grasp in cartesian coordinates
+            * @param target Target to point to in cartesian coordinates
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
             * @return true in case of successfull motor command, false
@@ -151,6 +141,16 @@ namespace wysiwyd {
             */
             bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
                        const std::string &sName="target");
+
+            /**
+            * Point at the specified [target] with the index finger.
+            * @param target Target to point (object name)
+            * @param options Options of ARE commands ("no_head", "no_gaze",
+            *             "no_sacc", "still", "left", "right").
+            * @return true in case of successfull motor command, false
+            *         otherwise.
+            */
+            //bool point_old(const std::string &sName, const yarp::os::Bottle &options = yarp::os::Bottle());
 
             /**
             * If an object is held, bring it over the table and drop it on a
