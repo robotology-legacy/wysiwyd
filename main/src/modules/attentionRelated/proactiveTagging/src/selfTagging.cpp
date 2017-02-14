@@ -243,6 +243,12 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
         return bOutput;
     }
 
+    if (!Network::isConnected(touchDetectorRpc.c_str(), portFromTouchDetector.getName().c_str())) {
+	    if (!Network::connect(touchDetectorRpc.c_str(), portFromTouchDetector.getName().c_str())) {
+		yWarning() << "TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
+	    }
+    }
+
     //2.Ask human to touch
     string sAsking = "I know how to move my " + getBodyPartNameForSpeech(sName) + ", but how does it feel when I touch something? Can you touch my " + getBodyPartNameForSpeech(sName) + " when I move it, please?";
     yInfo() << " sAsking: " << sAsking;
