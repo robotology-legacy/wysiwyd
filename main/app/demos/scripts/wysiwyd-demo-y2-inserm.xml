@@ -128,10 +128,17 @@
     </module>
 
     <module>
+        <name>reachableArea.py</name>
+        <parameters></parameters>
+        <node>icub-b3</node>
+    </module>
+
+    <module>
         <name>iol2opc</name>
         <parameters></parameters>
         <node>icub-cuda</node>
         <dependencies>
+            <port timeout="10">/reachableArea/rpc</port>
             <port timeout="10">/OPC/rpc</port>
             <port timeout="10">/himrepClassifier/rpc</port>
             <port timeout="10">/SFM/rpc</port>
@@ -466,6 +473,11 @@
     <connection>
         <from>/iol2opc/imgClassifier:o</from>
         <to>/himrepClassifier/img:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/iol2opc/getReachableArea:rpc</from>
+        <to>/reachableArea/rpc</to>
         <protocol>tcp</protocol>
     </connection>
     <connection>

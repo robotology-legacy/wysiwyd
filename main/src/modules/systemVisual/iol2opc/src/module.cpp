@@ -665,6 +665,21 @@ void IOL2OPCBridge::doLocalization()
 }
 
 ObjectArea IOL2OPCBridge::getReachableArea(const Vector &objpos) {
+    if(rpcGetReachableArea.getOutputCount()>0) {
+        Bottle bCmd, bReply;
+        bCmd.addString("get_area");
+        bCmd.addDouble(objpos[0]);
+        bCmd.addDouble(objpos[1]);
+        bCmd.addDouble(objpos[2]);
+        rpcGetReachableArea.write(bCmd, bReply);
+        if(bReply.get(0).asString()=="nack") {
+            yError() << "Got nack from getReachableArea module";
+        } else {
+            return Object::stringToObjectArea(bReply.get(1).asString());
+        }
+    }
+
+    yWarning() << "Not connected to getReachableArea module, use default procedure";
     if ((objpos[0]>human_area_x_bounds[0]) && (objpos[0]<human_area_x_bounds[1]) &&
         (objpos[1]>human_area_y_bounds[0]) && (objpos[1]<human_area_y_bounds[1])) {
         return ObjectArea::HUMAN;
@@ -905,6 +920,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
+    rpcGetReachableArea.open(("/"+name+"/getReachableArea:rpc").c_str());
 
     setBounds(rf, skim_blobs_x_bounds,  "skim_blobs_x_bounds",  -0.70, -0.10);
     setBounds(rf, skim_blobs_y_bounds,  "skim_blobs_y_bounds",  -0.30, -0.30);
