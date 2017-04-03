@@ -185,6 +185,12 @@ Bottle OpcSensation::handleEntities()
                 iCub->opc->commit(obj1);
             }
         }
+        if (entity->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(entity)->m_kinectNode != "unknown"))
+            {
+                addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
+                addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
+
+            }
         if (dynamic_cast<Object*>(entity) && dynamic_cast<Object*>(entity)->m_present == 1.0)
         {
             addToEntityList(temp_p_entities, entity->entity_type(), entity->name());
