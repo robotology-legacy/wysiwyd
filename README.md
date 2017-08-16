@@ -3,6 +3,21 @@ wysiwyd : What You Say Is What You Did
 
 The WYSIWYD project will create a new transparency in human robot interaction (HRI) by allowing robots to both understand their own actions and those of humans, and to interpret and communicate these in human compatible intentional terms expressed as a language-like communication channel we call WYSIWYD Robotese (WR).
 
+## Citation and video demonstration
+If you use parts of this work, please cite our paper in the IEEE Transactions on Cognitive and Developmental Systems:
+```
+@article{MoulinFrierFischerTCDS2017,
+author={Clement Moulin-Frier and Tobias Fischer and Maxime Petit and Gregoire Pointeau and Jordi-Ysard Puigbo and Ugo Pattacini and Sock Ching Low and Daniel Camilleri and Phuong Nguyen and Matej Hoffmann and Hyung Jin Chang and Martina Zambelli and Anne-Laure Mealier and Andreas Damianou and Giorgio Metta and Tony J. Prescott and Yiannis Demiris and Peter Ford Dominey and Paul F. M. J. Verschure},
+journal={IEEE Transactions on Cognitive and Developmental Systems},
+title={{DAC-h3: A Proactive Robot Cognitive Architecture to Acquire and Express Knowledge About the World and the Self}},
+year={2017},
+keywords={Cognitive Robotics;Distributed Adaptive Control;Human-Robot Interaction;Symbol Grounding;Autobiographical Memory},
+pages={to appear},
+}
+```
+The video demonstration can be found [here](http://wysiwyd.upf.edu/research).
+
+
 ## Documentation
 Visit the official Project [wiki](http://wiki.icub.org/wysiwyd/dox/html/index.html) for the software.
 
