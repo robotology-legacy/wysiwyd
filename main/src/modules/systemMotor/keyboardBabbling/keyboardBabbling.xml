@@ -3,7 +3,7 @@
  
 <module>
 
-   <name>handBabbling</name>
+   <name>keyboardBabbling</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
    <description>Quick Robot Manager</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
