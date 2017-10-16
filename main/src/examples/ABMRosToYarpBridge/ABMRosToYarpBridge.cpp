@@ -16,6 +16,7 @@
  * Public License for more details
 */
 
+#include <iostream>
 #include <stdio.h>
 #include <algorithm>
 #include <string>
