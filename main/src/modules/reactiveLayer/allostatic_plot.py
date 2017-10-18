@@ -2,6 +2,11 @@
 
 from copy import copy
 from time import sleep
+
+import matplotlib
+
+matplotlib.use('Qt4Agg')
+
 import matplotlib.pyplot as plt
 from matplotlib import get_backend
 from pylab import get_current_fig_manager
