@@ -141,7 +141,21 @@ public:
         cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
         if (trackerState==init)
         {
+
+#if CV_MINOR_VERSION <= 2
             tracker=cv::Tracker::create(trackerType);
+#else
+            if(trackerType=="BOOSTING")
+                tracker=cv::TrackerBoosting::create();
+            else if(trackerType=="MIL")
+                tracker=cv::TrackerMIL::create();
+            else if (trackerType=="TLD")
+                tracker=cv::TrackerTLD::create();
+            else if (trackerType=="KCF")
+                tracker=cv::TrackerKCF::create();
+            else
+                throw std::runtime_error("This tracker is not supported. Supported trackers: BOOSTING, MIL, TLD, KCF");
+#endif
             tracker->init(frame,trackerResult);
             trackerTimer=Time::now();
             trackerState=tracking;
