@@ -17,6 +17,8 @@ pages={to appear},
 ```
 The video demonstration can be found [here](http://wysiwyd.upf.edu/research).
 
+## Underlying software framework
+The core library and modules within WYSIWYD were polished and have been updated in the [iCub-HRI repository](https://github.com/robotology/icub-hri) (along with an article published in the Frontiers in Robotics and AI). Please consider using the code in this repository as it is more up-to-date.
 
 ## Documentation
 Visit the official Project [wiki](http://wiki.icub.org/wysiwyd/dox/html/index.html) for the software.
