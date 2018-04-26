@@ -1181,7 +1181,7 @@ int narrativeHandler::linkNaiveScenario(int iNaive, int iScenario){
     iLost += (listAutoNaives[iNaive].size() - MD.meanings.vDiscourse.size());
 
     sReturn += to_string(iLost) + " sentences lost.";
-    yInfo(sReturn);
+    yInfo() << sReturn;
     if (iLost > 0){
         yWarning() << "in narrativeGraph::humanNarration::linkNaiveScenario ; " << iLost << " sentences lost for scenario: " << iScenario;
     }

@@ -87,7 +87,7 @@ bool Agent::fromBottle(const Bottle &b)
     if (!this->Object::fromBottle(b))
         return false;
 
-    if (!b.check("belief")||!b.check("emotions"))
+    if (!b.check("belief")||!b.check("emotions")||!b.check("drives"))
         return false;
 
     m_belief.clear();

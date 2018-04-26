@@ -353,11 +353,11 @@ Bottle bodyReservoir::loopPointing(int iNbLoop)
 
         for (vector<string>::iterator itTar = vTarget.begin(); itTar != vTarget.end(); itTar++)
         {
-            yInfo() << " pointing " << *itTar << " for loop " << ii + 1 << "/" << iNbLoop;
+            yInfo() << " pointing " << *itTar << " for loop " << std::to_string(ii + 1) << "/" << iNbLoop;
             bResultPointing = pointObject(*itTar);
             if (bResultPointing.get(0).asString() == "failed"){
                 yInfo() << "error in pointing " << *itTar << " " << ii;
-                bOutput.addString("error in pointing " + *itTar + " " + ii);
+                bOutput.addString("error in pointing " + *itTar + " " + std::to_string(ii));
             }
         }
     }

@@ -40,30 +40,7 @@
    </authors>
 
    <data>
-      <input>
-          <type>yarp::sig::Bottle</type>
-          <port carrier="tcp">/cvz/head/joints/real:i</port>
-          <!-- required input means the execution of module depends on
-               this input data. Notice that not all the input are required
-               for a module to perform its task (e.g. control input, status
-               request input). -->
-          <required>no</required>
-          <!-- priority forces the execution of module to be delayed
-               until the required data becomes available on the port -->
-          <priority>no</priority>
-          <description>
-              Accept a vector input of 6 components within the limits of the head joints (as defined in icub_head.ini)
-          </description>
-      </input>
-	  <output>
-          <type>yarp::sig::Bottle</type>
-          <port carrier="tcp">/cvz/head/joints/prediction:o</port>
-          <description>
-              Outputs a vector of 6 components within the limits of the head joints (as defined in icub_head.ini). Correspond to the actual prediction of the cvz.
-          </description>
-      </output>  
-	  
-	    <input>
+     <input>
           <type>yarp::sig::Bottle</type>
           <port carrier="tcp">/cvz/head/intertial/real:i</port>
           <!-- required input means the execution of module depends on
@@ -78,7 +55,7 @@
               Accept a vector input of 9 components within the limits of the inertia sensor (as defined in icub_head.ini)
           </description>
       </input>
-	  <output>
+      <output>
           <type>yarp::sig::Bottle</type>
           <port carrier="tcp">/cvz/head/joints/prediction:o</port>
           <description>
@@ -86,22 +63,6 @@
           </description>
       </output>  
    </data>
-   
-   <services>
-       <server>
-           <type>cvz_IDL</type>
-           <idl>cvz.thrift</idl>
-           <port>/cvz/head/rpc</port>
-           <description>Command port</description>
-       </server>
-     
-       <server>
-           <type>cvzMmcm_IDL</type>
-           <idl>cvzMmcm.thrift</idl>
-           <port>/cvz/head/rpc</port>
-           <description>Command port</description>
-       </server>
-   </services>
    
 </module>
 

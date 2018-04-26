@@ -228,9 +228,11 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
     yDebug() << "End configuration...";
 
     MAX_COUNT = 20;
-
+#if CV_MINOR_VERSION <= 2
     tracker = Tracker::create( "KCF" );
-
+#else
+    tracker=cv::TrackerKCF::create();
+#endif
     ImageOf<PixelRgb> *yarpImage = imgPortIn.read();
     ImageOf<PixelBgr> tmp; tmp.resize(*yarpImage);
 
@@ -568,7 +570,7 @@ bool SensoryProcessor::findFeatures(TermCriteria &termcrit, Size &subPixWinSize,
 
         // automatic initialization
         //goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.0003, 5, Mat(), 3, 0, 0.0004);
-        goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.0003, 0.001, Mat(), 2, 0, 0.004);
+        goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.0003, 0.001, Mat(), 2, false, 0.004);
         cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
         /// Draw corners detected
         int radius = 2;

@@ -92,7 +92,7 @@ bool LRH::configure(ResourceFinder &rf) {
     cout << "Connections done" << endl;
 
     yInfo("training system.");
-    yInfo(train());
+    yInfo() << train();
 
 
 

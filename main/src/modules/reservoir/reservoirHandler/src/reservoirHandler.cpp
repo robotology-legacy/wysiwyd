@@ -41,47 +41,47 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
         "module name (string)").asString();
 
     sKeyWord = rf.check("keyword", Value("grammar")).toString().c_str();
-    cout << "**************Context path for grammars: " << rf.getContextPath() << endl;
-    nameGrammarNodeType = rf.getContextPath().c_str();
+    cout << "**************Context path for grammars: " << rf.getHomeContextPath() << endl;
+    nameGrammarNodeType = rf.getHomeContextPath().c_str();
     nameGrammarNodeType += rf.check("nameGrammarNodeType", Value("/nameGrammarNodeType.xml")).toString().c_str();
-    nameGrammarNodeModality = rf.getContextPath().c_str();
+    nameGrammarNodeModality = rf.getHomeContextPath().c_str();
     nameGrammarNodeModality += rf.check("nameGrammarNodeModality", Value("/nameGrammarNodeModality.xml")).toString().c_str();
-    nameGrammarNodeTrainAP = rf.getContextPath().c_str();
+    nameGrammarNodeTrainAP = rf.getHomeContextPath().c_str();
     nameGrammarNodeTrainAP += rf.check("nameGrammarNodeTrainAP", Value("/nameGrammarNodeTrainAP.xml")).toString().c_str();
-    nameGrammarNodeTestAP = rf.getContextPath().c_str();
+    nameGrammarNodeTestAP = rf.getHomeContextPath().c_str();
     nameGrammarNodeTestAP += rf.check("nameGrammarNodeTestAP", Value("/nameGrammarNodeTestAP.xml")).toString().c_str();
-    nameGrammarNodeTrainSD = rf.getContextPath().c_str();
+    nameGrammarNodeTrainSD = rf.getHomeContextPath().c_str();
     nameGrammarNodeTrainSD += rf.check("nameGrammarNodeTrainSD", Value("/nameGrammarNodeTrainSD.xml")).toString().c_str();
-    nameGrammarYesNo = rf.getContextPath().c_str();
+    nameGrammarYesNo = rf.getHomeContextPath().c_str();
     nameGrammarYesNo += rf.check("nameGrammarYesNo", Value("/nameGrammarYesNo.xml")).toString().c_str();
-    nameGrammarNodeInteraction = rf.getContextPath().c_str();
+    nameGrammarNodeInteraction = rf.getHomeContextPath().c_str();
     nameGrammarNodeInteraction += rf.check("nameGrammarNodeInteraction", Value("/nameGrammarNodeInteraction.xml")).toString().c_str();
 
-    fvector = rf.getContextPath().c_str();
+    fvector = rf.getHomeContextPath().c_str();
     fvector += rf.check("vectorFile", Value("/vector.txt")).toString().c_str();
 
     cout << fvector << "        " << endl;
-    pythonPath = rf.getContextPath().c_str();
-    cout << "rf.getContextPath().c_str() : " << rf.getContextPath().c_str() << endl;
+    pythonPath = rf.getHomeContextPath().c_str();
+    cout << "rf.getContextPath().c_str() : " << rf.getHomeContextPath().c_str() << endl;
     pythonPath += rf.check("pythonPath", Value("/RAD/src/iCub_language")).toString().c_str();
     cout << "pythonPath : " << pythonPath << endl;
 
     /* Mode Action Performer => Meaning*/
-    fileAPimputS = rf.getContextPath().c_str();
+    fileAPimputS = rf.getHomeContextPath().c_str();
     fileAPimputS += rf.check("APimputS", Value("/AP_input_S.txt")).toString().c_str();
-    fileAPoutputM = rf.getContextPath().c_str();
+    fileAPoutputM = rf.getHomeContextPath().c_str();
     fileAPoutputM += rf.check("APoutputM", Value("/AP_output_M.txt")).toString().c_str();
-    fileXavierTrainAP = rf.getContextPath().c_str();
+    fileXavierTrainAP = rf.getHomeContextPath().c_str();
     fileXavierTrainAP += rf.check("xavierTrainAP", Value("/xavier_trainAP.txt")).toString().c_str();
 
     fileAP = rf.check("fileAP", Value("action_performer.py")).toString().c_str();
 
     /* Mode Scene Describer => Produce*/
-    fileSRinputM = rf.getContextPath().c_str();
+    fileSRinputM = rf.getHomeContextPath().c_str();
     fileSRinputM += rf.check("SRinputM.txt", Value("/SR_input_M.txt")).toString().c_str();
-    fileSRoutputS = rf.getContextPath().c_str();
+    fileSRoutputS = rf.getHomeContextPath().c_str();
     fileSRoutputS += rf.check("SRoutputS", Value("/SR_output_S.txt")).toString().c_str();
-    fileXavierTrain = rf.getContextPath().c_str();
+    fileXavierTrain = rf.getHomeContextPath().c_str();
     fileXavierTrain += rf.check("xavierTrain", Value("/xavier_train.txt")).toString().c_str();
 
     fileSD = rf.check("fileSD", Value("spatial_relation.py")).toString().c_str();

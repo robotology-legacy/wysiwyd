@@ -229,7 +229,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         iLost += (linkNaiveScenario(4, 3));
         yInfo("linking scenarios 6 6");
         iLost += (linkNaiveScenario(5, 4));
-        yInfo(exportDFW());
+        yInfo() << exportDFW();
 
         if (iLost != 0){
             cout << endl << endl;
@@ -718,7 +718,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             if (command.size() >= 5)
                 a.recipient = command.get(4).asString();
             int i = sm.addNewActionEvt(a);
-            yInfo(" creation sucessful of the " + to_string(i) + "-th action event");
+            yInfo() << "creation sucessful of the " << to_string(i) << "-th action event";
             reply.addString(" creation sucessful of the " + to_string(i) + "-th action event");
         }
         else {
@@ -734,7 +734,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             r.verb = command.get(2).asString();
             r.object = command.get(3).asString();
             int i = sm.findRelation(r, true);
-            yInfo(" creation sucessful of the " + to_string(i) + "-th relation");
+            yInfo() << " creation sucessful of the " << to_string(i) << "-th relation";
             reply.addString(" creation sucessful of the " + to_string(i) + "-th relation");
         }
         else {
@@ -745,7 +745,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "createIGARF") {
         yInfo(" add an IGARF event in the situation model");
         int i = sm.createIGARF();
-        yInfo(" creation sucessful of the " + to_string(i) + "-th IGARF");
+        yInfo() << " creation sucessful of the " << to_string(i) << "-th IGARF";
         reply.addString(" creation sucessful of the " + to_string(i) + "-th IGARF");
     }
     else if (command.get(0).asString() == "showIGARF") {
@@ -2547,7 +2547,7 @@ void narrativeHandler::addLink(const Bottle& command, Bottle& reply) {
             const storygraph::sDiscourseLink& lk = sm.vDiscourseLinks.at(i);
             string link = lk.word + ": From " + lk.fromEvt.cPart + " of IGARF " + to_string(lk.fromEvt.iIGARF)
                 + " to " + lk.toEvt.cPart + " of IGARF " + to_string(lk.toEvt.iIGARF);
-            yInfo(link);
+            yInfo() << link;
             reply.addString(link);
         }
         yInfo(" creation sucessful");
@@ -2574,7 +2574,7 @@ void narrativeHandler::LRHtoSM(string m, Bottle& reply, bool create) {
             const storygraph::sDiscourseLink& lk = sm.vDiscourseLinks.at(i);
             string link = lk.word + ": From " + lk.fromEvt.cPart + " of IGARF " + to_string(lk.fromEvt.iIGARF)
                 + " to " + lk.toEvt.cPart + " of IGARF " + to_string(lk.toEvt.iIGARF);
-            yInfo(link);
+            yInfo() << link;
             reply.addString(link);
         }
         if (last == (int)sm.vDiscourseLinks.size()) {
@@ -2598,7 +2598,7 @@ void narrativeHandler::sentenceToTrain(string s, Bottle& reply) {
         }
         string trainLine = sm.SMtoTrain(s);
         if (trainLine != "" && trainLine != "NoMatch") {
-            yInfo(" " + trainLine);
+            yInfo() << " " << trainLine;
             reply.addString(trainLine);
             if (fTrainOutput.is_open()) {
                 fTrainOutput << trainLine << "\n";
