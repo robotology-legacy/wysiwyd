@@ -1,4 +1,12 @@
-// This is an automatically-generated file.
+/*
+ * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms of the
+ * BSD-3-Clause license. See the accompanying LICENSE file for details.
+ */
+
+// This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
 #include <interpersonalDistanceRegulator_IDL.h>
@@ -10,27 +18,27 @@ class interpersonalDistanceRegulator_IDL_pause : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class interpersonalDistanceRegulator_IDL_resume : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class interpersonalDistanceRegulator_IDL_quit : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
-bool interpersonalDistanceRegulator_IDL_pause::write(yarp::os::ConnectionWriter& connection) {
+bool interpersonalDistanceRegulator_IDL_pause::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("pause",1,1)) return false;
@@ -51,7 +59,7 @@ void interpersonalDistanceRegulator_IDL_pause::init() {
   _return = false;
 }
 
-bool interpersonalDistanceRegulator_IDL_resume::write(yarp::os::ConnectionWriter& connection) {
+bool interpersonalDistanceRegulator_IDL_resume::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("resume",1,1)) return false;
@@ -72,7 +80,7 @@ void interpersonalDistanceRegulator_IDL_resume::init() {
   _return = false;
 }
 
-bool interpersonalDistanceRegulator_IDL_quit::write(yarp::os::ConnectionWriter& connection) {
+bool interpersonalDistanceRegulator_IDL_quit::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("quit",1,1)) return false;
@@ -131,7 +139,7 @@ bool interpersonalDistanceRegulator_IDL::read(yarp::os::ConnectionReader& connec
   yarp::os::idl::WireReader reader(connection);
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
-  yarp::os::ConstString tag = reader.readTag();
+  std::string tag = reader.readTag();
   bool direct = (tag=="__direct__");
   if (direct) tag = reader.readTag();
   while (!reader.isError()) {
@@ -179,7 +187,7 @@ bool interpersonalDistanceRegulator_IDL::read(yarp::os::ConnectionReader& connec
         if (!writer.isNull()) {
           if (!writer.writeListHeader(2)) return false;
           if (!writer.writeTag("many",1, 0)) return false;
-          if (!writer.writeListBegin(BOTTLE_TAG_INT, static_cast<uint32_t>(_return.size()))) return false;
+          if (!writer.writeListBegin(BOTTLE_TAG_INT32, static_cast<uint32_t>(_return.size()))) return false;
           std::vector<std::string> ::iterator _iterHelp;
           for (_iterHelp = _return.begin(); _iterHelp != _return.end(); ++_iterHelp)
           {
@@ -191,7 +199,7 @@ bool interpersonalDistanceRegulator_IDL::read(yarp::os::ConnectionReader& connec
       return true;
     }
     if (reader.noMore()) { reader.fail(); return false; }
-    yarp::os::ConstString next_tag = reader.readTag();
+    std::string next_tag = reader.readTag();
     if (next_tag=="") break;
     tag = tag + "_" + next_tag;
   }

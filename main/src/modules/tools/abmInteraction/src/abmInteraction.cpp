@@ -95,7 +95,7 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
     Bottle bError;
     bReply.clear();
 
-    if (bCommand.get(0) == "set")
+    if (bCommand.get(0).asString() == "set")
     {
         bool changeSomething = false;
 
@@ -123,7 +123,7 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
             Value vResume = bCommand.find("resume");
             if (!vResume.isNull() && vResume.isString()) {
 
-                if(vResume != "agent" && vResume != "yes" && vResume != "no"){
+                if(vResume.asString() != "agent" && vResume.asString() != "yes" && vResume.asString() != "no"){
                     string sError = "[set]: Wrong resume keyWord : should be 1) yes 2) no or 3) agent (for agent specific resume)";
                     yError() << sError;
                     bError.addString(sError);

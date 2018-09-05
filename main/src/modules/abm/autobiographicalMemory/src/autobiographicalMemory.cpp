@@ -481,18 +481,18 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
     if (bCommand.get(0).isString())
     {
-        if (bCommand.get(0) == "quit" || bCommand.get(0) == "close")
+        if (bCommand.get(0).asString() == "quit" || bCommand.get(0).asString() == "close")
         {
             bReply.addString("close module");
             shouldClose = true;
         }
-        else if (bCommand.get(0) == "interrupt")
+        else if (bCommand.get(0).asString() == "interrupt")
         {
             bReply.addString("interrupt module");
             interruptModule();
         }
         // Read a file, and load the requests
-        else if (bCommand.get(0) == "read")
+        else if (bCommand.get(0).asString() == "read")
         {
             if (readInsert())
             {
@@ -505,40 +505,40 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         }
         //database from sratch considering the history [but load the other tables from the OPC]
-        else if (bCommand.get(0) == "new")
+        else if (bCommand.get(0).asString() == "new")
         {
             bReply = newDB(bCommand);
         }
-        else if (bCommand.get(0) == "snapshot")
+        else if (bCommand.get(0).asString() == "snapshot")
         {
             //if(streamStatus=="none" || streamStatus=="begin" || streamStatus=="record")
                 bReply = snapshot(bCommand);
             //else
             //    bReply.addString("[nack]");
         }
-        else if (bCommand.get(0) == "snapshotSP")
+        else if (bCommand.get(0).asString() == "snapshotSP")
         {
             //if(streamStatus=="none" || streamStatus=="begin" || streamStatus=="record")
                 bReply = snapshotSP(bCommand);
             //else
             //    bReply.addString("[nack]");
         }
-        else if (bCommand.get(0) == "snapshotBE")
+        else if (bCommand.get(0).asString() == "snapshotBE")
         {
             //if(streamStatus=="none" || streamStatus=="begin" || streamStatus=="record")
                 bReply = snapshotBehavior(bCommand);
             //else
             //    bReply.addString("[nack]");
         }
-        else if (bCommand.get(0) == "load")
+        else if (bCommand.get(0).asString() == "load")
         {
             bReply = load(bCommand);
         }
-        else if (bCommand.get(0) == "connect")
+        else if (bCommand.get(0).asString() == "connect")
         {
             bReply = connect2reasoning();
         }
-        else if (bCommand.get(0) == "request")
+        else if (bCommand.get(0).asString() == "request")
         {
             if (bCommand.size() > 1)
             {
@@ -550,7 +550,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        else if (bCommand.get(0) == "insert")
+        else if (bCommand.get(0).asString() == "insert")
         {
             if (bCommand.size() > 1)
             {
@@ -563,20 +563,20 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        else if (bCommand.get(0) == "resetKnowledge")
+        else if (bCommand.get(0).asString() == "resetKnowledge")
         {
             bReply = resetKnowledge();
         }
-        else if (bCommand.get(0) == "eraseInstance")
+        else if (bCommand.get(0).asString() == "eraseInstance")
         {
             bReply = eraseInstance(bCommand);
         }
-        else if (bCommand.get(0) == "getStoringPath")
+        else if (bCommand.get(0).asString() == "getStoringPath")
         {
             bReply.addString(storingPath);
         }
         // ask for streaming data : they will be sent through ports opened by autobiographicalMemory based on the original image provider port (/autobiographicalMemory/imgProviderPortName)
-        else if (bCommand.get(0) == "triggerStreaming")
+        else if (bCommand.get(0).asString() == "triggerStreaming")
         {
             if (bCommand.size() > 1 && bCommand.get(1).isInt())
             {
@@ -634,7 +634,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         }
         // add an image provider for the following stream recording : addImgStreamProvider (label /yarp/port/img/provider)
-        else if (bCommand.get(0) == "addImgStreamProvider")
+        else if (bCommand.get(0).asString() == "addImgStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
@@ -647,7 +647,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         }
         //remove an image provider from the list of available stream images provider
-        else if (bCommand.get(0) == "removeImgStreamProvider")
+        else if (bCommand.get(0).asString() == "removeImgStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
@@ -659,11 +659,11 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        else if (bCommand.get(0) == "listImgStreamProviders")
+        else if (bCommand.get(0).asString() == "listImgStreamProviders")
         {
             bReply = listProviders(mapImgStreamInput);
         }
-        else if (bCommand.get(0) == "addDataStreamProvider")
+        else if (bCommand.get(0).asString() == "addDataStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
@@ -674,7 +674,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        else if (bCommand.get(0) == "removeDataStreamProvider")
+        else if (bCommand.get(0).asString() == "removeDataStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
@@ -686,11 +686,11 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        else if (bCommand.get(0) == "listDataStreamProviders")
+        else if (bCommand.get(0).asString() == "listDataStreamProviders")
         {
             bReply = listProviders(mapDataStreamInput);
         }
-        else if (bCommand.get(0) == "processInsertQueue")
+        else if (bCommand.get(0).asString() == "processInsertQueue")
         {
             requestInsertProcessQueue();
             if (bCommand.size() == 2 && bCommand.get(1).isInt()) {
@@ -702,14 +702,14 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             bReply.addString("ack");
         }
-        else if (bCommand.get(0) == "saveAugmentedImages")
+        else if (bCommand.get(0).asString() == "saveAugmentedImages")
         {
             yDebug() << "start saveAugmentedImages";
             augmentedTime = getCurrentTime();
             saveAugmentedImages();
             bReply.addString("ack");
         }
-        else if (bCommand.get(0) == "requestAugmentedImages")
+        else if (bCommand.get(0).asString() == "requestAugmentedImages")
         {
             int instance = -1;
             int quantity = 5;
@@ -737,7 +737,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply.addString("nack");
             }
         }
-        else if (bCommand.get(0) == "getStreamStatus")
+        else if (bCommand.get(0).asString() == "getStreamStatus")
         {
             bReply.addString(std::string(1, static_cast<char>(streamStatus)));
         }

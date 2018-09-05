@@ -9,7 +9,7 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 project(wysiwyd)
 
-find_package(YARP REQUIRED)
+find_package(YARP COMPONENTS OS sig dev math gsl REQUIRED)
 find_package(ICUB REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH}

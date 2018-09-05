@@ -209,7 +209,7 @@ void objectGeneratorSim::tf(Bottle* b)
     Vector new_v = H*v;
     for(int i=0;i<3;i++)
     {
-        b->get(i)=new_v[i];
+        b->get(i)=*yarp::os::Value::makeFloat64(new_v[i]);
     }
 }
 

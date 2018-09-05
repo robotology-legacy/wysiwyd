@@ -149,7 +149,7 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         iCub->opc->update();
         reply.addString("clearing OPC");
     }
-    else if (command.get(0) == "populateScenario"){
+    else if (command.get(0).asString() == "populateScenario"){
         int scenarioNB = 1;
         if (command.size() == 2){
             scenarioNB = command.get(1).asInt();

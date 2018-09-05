@@ -130,7 +130,7 @@ void wysiwyd::wrdac::SubSystem_iKart::goToWayPoint(const yarp::sig::Vector &wp)
         localWp[1] = wp[1];
         localWp[3] = 1.0;
 
-        localWp = yarp::math::operator*(yarp::math::pinv(H), localWp);
+        localWp = yarp::math::pinv(H)*localWp;
         std::cout << "H=" << H.toString(3, 3).c_str() << std::endl;
         std::cout << "Going to a waypoint at : " << wp.toString(3, 3).c_str() << std::endl;
         std::cout << "Current position is : " << currentWp.toString(3, 3).c_str() << std::endl;

@@ -209,15 +209,15 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
                 {
                     manager->drives[d]->deltaValue(cmd.get(3).asDouble());
                 }
-                else if (cmd.get(2)=="min")
+                else if (cmd.get(2).asString()=="min")
                 {
                     manager->drives[d]->deltaHomeostasisMin(cmd.get(3).asDouble());
                 }
-                else if (cmd.get(2)=="max")
+                else if (cmd.get(2).asString()=="max")
                 {
                     manager->drives[d]->deltaHomeostasisMax(cmd.get(3).asDouble());
                 }
-                else if (cmd.get(2)=="dec")
+                else if (cmd.get(2).asString()=="dec")
                 {
                     manager->drives[d]->deltaDecay(cmd.get(3).asDouble());
                 }

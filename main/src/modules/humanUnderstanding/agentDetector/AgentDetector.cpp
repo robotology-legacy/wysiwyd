@@ -250,7 +250,7 @@ bool AgentDetector::checkCalibration()
         bCmd.addString("icub");
         rfh.write(bCmd,reply);
 
-        if (reply.get(0)!="nack")
+        if (reply.get(0).asString()!="nack")
         {
             if (Bottle *bMat=reply.get(1).asList())
             {

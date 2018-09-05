@@ -138,7 +138,7 @@ bool Reactable2OPC::checkCalibration(bool forceRefresh)
         Bottle reply;
         reply.clear();
         portCalibration.write(bCmd, reply);
-        if (reply.get(0) == "nack")
+        if (reply.get(0).asString() == "nack")
         {
             cout<<"Transformation matrix not retrieved"<<endl;
             return false;
@@ -170,7 +170,7 @@ bool Reactable2OPC::checkCalibration(bool forceRefresh)
 
         reply.clear();
         portCalibration.write(bCmd, reply);
-        if (reply.get(0) == "nack")
+        if (reply.get(0).asString() == "nack")
         {
             cout<<"Inverse Transformation matrix not retrieved"<<endl;
             return false;

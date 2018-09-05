@@ -71,7 +71,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     for (int i = 1; i < bInput.size(); i++)
     {
         bTemp = *(bInput.get(i).asList());
-        if (((bTemp.get(0) == "action") || (bTemp.get(0) == "reasoning")) && !done)
+        if (((bTemp.get(0).asString() == "action") || (bTemp.get(0).asString() == "reasoning")) && !done)
         {
             osMain << bTemp.get(1).asString() << "' , '"; // activityname
             sName = bTemp.get(1).asString();
@@ -106,7 +106,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     for (int i = 1; i < bInput.size(); i++)
     {
         bTemp = *(bInput.get(i).asList());
-        if (bTemp.get(0) == "begin" && !done)
+        if (bTemp.get(0).asString() == "begin" && !done)
         {
             if (bTemp.get(1).asInt() == 1)
             {
@@ -167,7 +167,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         for (int i = 1; i < bInput.size(); i++)
         {
             bTemp = *(bInput.get(i).asList());
-            if (bTemp.get(0) == "arguments" && bTemp.size() > 1)
+            if (bTemp.get(0).asString() == "arguments" && bTemp.size() > 1)
             {
                 for (int j = 1; j < bTemp.size(); j++)
                 {
@@ -394,7 +394,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
 
     //Action
     bTemp = *(bInput.get(1).asList());
-    if (bTemp.get(0) == "action") {
+    if (bTemp.get(0).asString() == "action") {
         sName = bTemp.get(1).asString();
         osMain << sName << "' , '";
         osMain << bTemp.get(2).asString() << "' , '";
@@ -409,7 +409,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     //Begin
     bool inSharedPlan = false;
     bTemp = *(bInput.get(4).asList());
-    if (bTemp.get(0) == "begin") {
+    if (bTemp.get(0).asString() == "begin") {
         if (bTemp.get(1).asInt() == 1)
         {
             osMain << "TRUE ); ";
@@ -587,7 +587,7 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
 
     //Action
     bTemp = *(bInput.get(1).asList());
-    if (bTemp.get(0) == "action") {
+    if (bTemp.get(0).asString() == "action") {
         sName = bTemp.get(1).asString();
         osMain << sName << "' , '";
         osMain << bTemp.get(2).asString() << "' , '";
@@ -601,7 +601,7 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
 
     //Begin
     bTemp = *(bInput.get(4).asList());
-    if (bTemp.get(0) == "begin") {
+    if (bTemp.get(0).asString() == "begin") {
         if (bTemp.get(1).asInt() == 1)
         {
             osMain << "TRUE ); ";

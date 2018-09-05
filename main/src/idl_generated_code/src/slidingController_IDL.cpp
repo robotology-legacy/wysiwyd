@@ -1,4 +1,12 @@
-// This is an automatically-generated file.
+/*
+ * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms of the
+ * BSD-3-Clause license. See the accompanying LICENSE file for details.
+ */
+
+// This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
 #include <slidingController_IDL.h>
@@ -10,16 +18,16 @@ class slidingController_IDL_stop : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class slidingController_IDL_calibrate : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class slidingController_IDL_impedance : public yarp::os::Portable {
@@ -27,16 +35,16 @@ public:
   std::string sw;
   bool _return;
   void init(const std::string& sw);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class slidingController_IDL_explore : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class slidingController_IDL_hand : public yarp::os::Portable {
@@ -45,8 +53,8 @@ public:
   bool wait;
   bool _return;
   void init(const std::string& key, const bool wait);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class slidingController_IDL_goTo : public yarp::os::Portable {
@@ -57,19 +65,19 @@ public:
   bool interpolate;
   bool _return;
   void init(const double x, const double y, const double z, const bool interpolate);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class slidingController_IDL_quit : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
-bool slidingController_IDL_stop::write(yarp::os::ConnectionWriter& connection) {
+bool slidingController_IDL_stop::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("stop",1,1)) return false;
@@ -90,7 +98,7 @@ void slidingController_IDL_stop::init() {
   _return = false;
 }
 
-bool slidingController_IDL_calibrate::write(yarp::os::ConnectionWriter& connection) {
+bool slidingController_IDL_calibrate::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("calibrate",1,1)) return false;
@@ -111,7 +119,7 @@ void slidingController_IDL_calibrate::init() {
   _return = false;
 }
 
-bool slidingController_IDL_impedance::write(yarp::os::ConnectionWriter& connection) {
+bool slidingController_IDL_impedance::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("impedance",1,1)) return false;
@@ -134,7 +142,7 @@ void slidingController_IDL_impedance::init(const std::string& sw) {
   this->sw = sw;
 }
 
-bool slidingController_IDL_explore::write(yarp::os::ConnectionWriter& connection) {
+bool slidingController_IDL_explore::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("explore",1,1)) return false;
@@ -155,7 +163,7 @@ void slidingController_IDL_explore::init() {
   _return = false;
 }
 
-bool slidingController_IDL_hand::write(yarp::os::ConnectionWriter& connection) {
+bool slidingController_IDL_hand::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("hand",1,1)) return false;
@@ -180,13 +188,13 @@ void slidingController_IDL_hand::init(const std::string& key, const bool wait) {
   this->wait = wait;
 }
 
-bool slidingController_IDL_goTo::write(yarp::os::ConnectionWriter& connection) {
+bool slidingController_IDL_goTo::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(5)) return false;
   if (!writer.writeTag("goTo",1,1)) return false;
-  if (!writer.writeDouble(x)) return false;
-  if (!writer.writeDouble(y)) return false;
-  if (!writer.writeDouble(z)) return false;
+  if (!writer.writeFloat64(x)) return false;
+  if (!writer.writeFloat64(y)) return false;
+  if (!writer.writeFloat64(z)) return false;
   if (!writer.writeBool(interpolate)) return false;
   return true;
 }
@@ -209,7 +217,7 @@ void slidingController_IDL_goTo::init(const double x, const double y, const doub
   this->interpolate = interpolate;
 }
 
-bool slidingController_IDL_quit::write(yarp::os::ConnectionWriter& connection) {
+bool slidingController_IDL_quit::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("quit",1,1)) return false;
@@ -308,7 +316,7 @@ bool slidingController_IDL::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
-  yarp::os::ConstString tag = reader.readTag();
+  std::string tag = reader.readTag();
   bool direct = (tag=="__direct__");
   if (direct) tag = reader.readTag();
   while (!reader.isError()) {
@@ -387,15 +395,15 @@ bool slidingController_IDL::read(yarp::os::ConnectionReader& connection) {
       double y;
       double z;
       bool interpolate;
-      if (!reader.readDouble(x)) {
+      if (!reader.readFloat64(x)) {
         reader.fail();
         return false;
       }
-      if (!reader.readDouble(y)) {
+      if (!reader.readFloat64(y)) {
         reader.fail();
         return false;
       }
-      if (!reader.readDouble(z)) {
+      if (!reader.readFloat64(z)) {
         reader.fail();
         return false;
       }
@@ -433,7 +441,7 @@ bool slidingController_IDL::read(yarp::os::ConnectionReader& connection) {
         if (!writer.isNull()) {
           if (!writer.writeListHeader(2)) return false;
           if (!writer.writeTag("many",1, 0)) return false;
-          if (!writer.writeListBegin(BOTTLE_TAG_INT, static_cast<uint32_t>(_return.size()))) return false;
+          if (!writer.writeListBegin(BOTTLE_TAG_INT32, static_cast<uint32_t>(_return.size()))) return false;
           std::vector<std::string> ::iterator _iterHelp;
           for (_iterHelp = _return.begin(); _iterHelp != _return.end(); ++_iterHelp)
           {
@@ -445,7 +453,7 @@ bool slidingController_IDL::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (reader.noMore()) { reader.fail(); return false; }
-    yarp::os::ConstString next_tag = reader.readTag();
+    std::string next_tag = reader.readTag();
     if (next_tag=="") break;
     tag = tag + "_" + next_tag;
   }
