@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import yarp
+import time
 
 #Open network
 yarp.Network.init()
@@ -76,9 +77,9 @@ def trigger_behavior(behavior):
     # Send command
     if not yarp.Network.isConnected(homeoPortName,homeoRPC):
         print yarp.Network.connect(homeoPortName,homeoRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toHomeo.write(cmd)
-    yarp.Time.delay(2.)
+    time.sleep(2.)
     reset_all()
     freeze_all()
 
@@ -91,9 +92,9 @@ def launch_behavior(behavior):
     # Send command
     if not yarp.Network.isConnected(BMPortName,BMRPC):
         print yarp.Network.connect(BMPortName,BMRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toHomeo.write(cmd)
-    yarp.Time.delay(2.)
+    time.sleep(2.)
     reset_all()
     freeze_all()
 def freeze_all():
@@ -105,7 +106,7 @@ def freeze_all():
     # Send command
     if not yarp.Network.isConnected(homeoPortName,homeoRPC):
         print yarp.Network.connect(homeoPortName,homeoRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toHomeo.write(cmd)
 
 def unfreeze_all():
@@ -117,7 +118,7 @@ def unfreeze_all():
     # Send command
     if not yarp.Network.isConnected(homeoPortName,homeoRPC):
         print yarp.Network.connect(homeoPortName,homeoRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toHomeo.write(cmd)
 
 def reset_all():
@@ -130,7 +131,7 @@ def reset_all():
     # Send command
     if not yarp.Network.isConnected(homeoPortName,homeoRPC):
         print yarp.Network.connect(homeoPortName,homeoRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toHomeo.write(cmd)
 
 def narrate():
@@ -154,7 +155,7 @@ def manual_mode():
     # Send command to allostatic controller
     if not yarp.Network.isConnected(alloPortName,alloRPC):
         print yarp.Network.connect(alloPortName,alloRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toAllo.write(cmd_allo)
 
     # Send command to planner
@@ -164,12 +165,12 @@ def manual_mode():
     cmd_planner.addString('on')
     if not yarp.Network.isConnected(plannerPortName,plannerRPC):
         print yarp.Network.connect(plannerPortName,plannerRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toPlanner.write(cmd_planner)
 
-    yarp.Time.delay(0.1)
+    time.sleep(0.1)
     freeze_all()
-    yarp.Time.delay(0.1)
+    time.sleep(0.1)
     reset_all()
 
 
@@ -182,7 +183,7 @@ def automatic_mode():
     # Send command
     if not yarp.Network.isConnected(alloPortName,alloRPC):
         print yarp.Network.connect(alloPortName,alloRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toAllo.write(cmd)
 
     # Send command to planner
@@ -192,10 +193,10 @@ def automatic_mode():
     cmd_planner.addString('off')
     if not yarp.Network.isConnected(plannerPortName,plannerRPC):
         print yarp.Network.connect(plannerPortName,plannerRPC)
-        yarp.Time.delay(0.1)
+        time.sleep(0.1)
     toPlanner.write(cmd_planner)
 
-    yarp.Time.delay(0.1)
+    time.sleep(0.1)
     reset_all()
-    yarp.Time.delay(0.1)
+    time.sleep(0.1)
     unfreeze_all()
