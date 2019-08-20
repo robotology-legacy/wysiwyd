@@ -31,7 +31,7 @@ This is the recommended code style for WYSIYWD.
 
     Long description of the commit wrapped at 72 characters.
     ```
- * Never force-push on the `master` and `devel` branches unless there is
+ * Never force-push on the `master` branch unless there is
    a very good reason to do it
 
 
@@ -41,60 +41,5 @@ Workflow
 
 ### Stable branch: `master`
 
-The `master` branch is stable and **should not receive new features**.
-Only **bug fixes** are accepted that do not disrupt API/ABI compatibilities, and
-only if they are deemed strictly necessary.
-
-Further, the `master` branch is protected and only a limited number of contributors
+The WYSIWYD project has finished and this repository does typically not receive new features. Bug fixes or new features should be done via pull requests on dedicated branches. The `master` branch is protected and only a limited number of contributors
 have write access.
-
-
-### Development branch: `devel`
-
-We use the branch `devel` to collect the ongoing work, which is given in terms
-of **new features** and **bug fixes**. Importantly, the development in `devel`
-should always be done via **pull requests** (PR) on dedicated branches.
-
-This is the typical workflow to fix a bug in the `devel` branch.
-
-* Identify the bug.
-* Open an issue on GitHub.
-* Add some label.
-* Assign the issue to yourself.
-* Create a new **fix branch** starting from the `devel` branch:
-
-  ```sh
-  git fetch origin
-  git checkout -b fix/<branch_name> origin/devel
-  ```
-
-* Fix the bug and make one or more commits.
-* [Push the branch on your fork and create a pull request](https://help.github.com/categories/collaborating-on-projects-using-pull-requests/). To do so, you might want to first rebase `devel` into your new branch by following these steps (**warning**: never use `merge` to do this):
-
-  1. `git fetch origin` (to update your local remotes)
-  2. `git checkout devel`
-  3. `git pull --rebase` (to update `devel`)
-  4. `git checkout fix/<branch_name>`
-  5. `git pull --rebase` (to update your branch, but it might be not necessary)
-  6. `git rebase devel` (to introduce your modifications on top of `devel`)
-    - at this point you might need to solve possible conflicts 
-  7. `git push --force-with-lease` (to publish your modifications)
-now you can proceed opening up the PR on GitHub with `base:devel` and `compare:fix/<branch_name>`
-* Wait for someone else to review your fix and merge your pull request.
-
-Likewise, one can proceed for developing a new feature, for which we use a dedicated
-**feature branch** termed according to this convention: `feature/<brach_name>`.
-While proposing a new feature, the contributor can skip the creation of the issue
-on GitHub.
-
-When we decide to publish these new features in a new software release (roughly
-each month), we run an extensive test session to validate all the software components
-by typically executing the demo and then we merge the new modifications into `master`, doing:
-
-```sh
-git checkout master
-git merge --no-ff devel
-git push origin master
-```
-
-Subsequently, the `master` gets tagged.
