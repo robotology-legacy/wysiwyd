@@ -51,14 +51,16 @@ void FollowingOrder::run(const Bottle &args) {
         port_to_homeo.write(cmd, rply);
     }
 
-    Bottle* sens = args.get(0).asList();
-    string action = sens->get(0).asString();
+    yInfo()<<"TEST: frozen the drives";
+
+    string action = args.get(0).asString();
+    yInfo()<<"TEST: action"<<action;
     string type;
     string target;
-    if (sens->size()>0)
-        type = sens->get(1).asString();
-    if (sens->size()>1)
-        target = sens->get(2).asString();
+    if (args.size()>0)
+        type = args.get(1).asString();
+    if (args.size()>1)
+        target = args.get(2).asString();
 
     yDebug() << "Action:" << action;
     yDebug() << "Type:" << type;
@@ -76,13 +78,13 @@ void FollowingOrder::run(const Bottle &args) {
     //FollowingOrder implying objects
     if ( (action == "point" || action == "look at" || action == "push" || action == "this is") && type == "object"){
         // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
-        if (sens->size()<2){
+        if (args.size()<2){
             iCub->say("I can't " + action + "if you don't tell me the object");
         } else {
             handleAction(type, target, action);
         }
     } else if (action == "move" && type == "bodypart") { //FollowingOrder implying bodypart
-        if (sens->size()<2) {
+        if (args.size()<2) {
             iCub->say("I can't " + action + "if you don't tell me the bodypart");
         } else {
             handleActionBP(type, target, action);

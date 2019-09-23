@@ -219,12 +219,12 @@ bool ears::updateModule() {
             sCommand = "followingOrder";
         } else if (sQuestionKind == "SENTENCEKS") {
             sCommand = "followingOrder";
-            sAction = "showks";
+            sAction = "show";
             sObjectType = "kinematic structure";
             sObject = "";
         } else if (sQuestionKind == "SENTENCEKSC") {
             sCommand = "followingOrder";
-            sAction = "showksc";
+            sAction = "show";
             sObjectType = "kinematic structure correspondence";
             sObject = "";
         } else if (sQuestionKind == "SENTENCERECOGNISE") {
